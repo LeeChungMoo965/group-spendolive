@@ -28,7 +28,7 @@ public class MemberControllerImpl implements MemberController{
     private MemberVO memberVO;
     
     @Override
-    @RequestMapping(value="/login.do" ,method = RequestMethod.POST)
+    @RequestMapping(value="/login.do" ,method = RequestMethod.POST )
     public ModelAndView login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
             throws Exception {
         ModelAndView mav = new ModelAndView();
@@ -50,10 +50,10 @@ public class MemberControllerImpl implements MemberController{
         }
         return mav;
     }
-    @RequestMapping(value="/loginForm.do" , method = RequestMethod.GET)
+    @RequestMapping(value="/loginForm.do" , method = {RequestMethod.POST, RequestMethod.GET})
     public ModelAndView loginForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
         ModelAndView mav = new ModelAndView();
-        mav.setViewName("/member/loginForm");
+        mav.setViewName("member/loginForm");
 
         return mav;
     }

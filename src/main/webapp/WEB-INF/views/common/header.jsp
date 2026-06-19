@@ -29,10 +29,10 @@
             </a>
         </nav>
         <div class="header-actions">
-            <a class="btn btn-light" href="${contextPath}/spendolive/login.do">
+            <a class="btn btn-light" href="${contextPath}/member/loginForm.do">
                 로그인
             </a>
-            <a class="btn btn-primary" href="${contextPath}/spendolive/signup.do">
+            <a class="btn btn-primary" href="${contextPath}/member/signup.do">
                 회원가입
             </a>
         </div>

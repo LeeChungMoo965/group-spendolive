@@ -73,12 +73,10 @@
                 아이디 또는 이메일 형식으로 가입할 수 있습니다.
             </p>
         </div>
-<<<<<<< Updated upstream
-        <form actions="${contextPath}/member/addmember.do" method="post">
-=======
+
               
         <form action="${contextPath}/member/addmember.do" method="post">
->>>>>>> Stashed changes
+
             <div class="auth-grid-2">
                 <div class="auth-form-group">
                     <label for="name">
@@ -112,14 +110,7 @@
                     이메일
                 </label>
                 <div class="auth-input-row">
-<<<<<<< Updated upstream
-                    <input id="email" type="email" placeholder="example@email.com">
-                 
-                </div>
-        
-            </div>
 
-=======
                     <input id="email" name="email"type="email" placeholder="example@email.com">
                   
                 </div>
@@ -127,19 +118,16 @@
             </div>
       
               
->>>>>>> Stashed changes
+
             <div class="auth-form-group">
                 <label for="phone">
                     전화번호
                 </label>
                 <div class="auth-input-row">
-<<<<<<< Updated upstream
-                    <input id="phone" type="tel" placeholder="010-0000-0000">
-                   
-=======
+
                     <input id="phone"name="phone" type="tel" placeholder="010-0000-0000">
                     
->>>>>>> Stashed changes
+
                 </div>
             </div>
             
