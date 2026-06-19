@@ -15,11 +15,13 @@ import jakarta.servlet.http.HttpSession;
 
 public class HomeController {
 
-    @RequestMapping(value = "/spendolive/main.do", method={RequestMethod.POST, RequestMethod.GET})
+    //@RequestMapping(value = "/spendolive/main.do", method={RequestMethod.POST, RequestMethod.GET})
+    /* 
     public String home(HttpServletRequest request, HttpServletResponse response) throws Exception{
         ModelAndView mav = new ModelAndView();
     
 	    HttpSession session = request.getSession();
         return "redirect:/member/main.jsp";
     }
+    */
 }

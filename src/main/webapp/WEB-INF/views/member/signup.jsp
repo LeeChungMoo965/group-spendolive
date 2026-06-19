@@ -73,19 +73,22 @@
                 아이디 또는 이메일 형식으로 가입할 수 있습니다.
             </p>
         </div>
-        <form actions="${contextPath}/member/addmember.do" method="post">
+
+              
+        <form action="${contextPath}/member/addmember.do" method="post">
+
             <div class="auth-grid-2">
                 <div class="auth-form-group">
                     <label for="name">
                         이름
                     </label>
-                    <input id="name" type="text" placeholder="이름을 입력하세요">
+                    <input id="name" name="member_name" type="text" placeholder="이름을 입력하세요">
                 </div>
                 <div class="auth-form-group">
                     <label for="nickname">
                         닉네임
                     </label>
-                    <input id="nickname" type="text" placeholder="닉네임을 입력하세요">
+                    <input id="nickname"name="nickname" type="text" placeholder="닉네임을 입력하세요">
                 </div>
             </div>
             <div class="auth-form-group">
@@ -93,7 +96,7 @@
                     아이디
                 </label>
                 <div class="auth-input-row">
-                    <input id="userId" type="text" placeholder="사용할 아이디를 입력하세요">
+                    <input id="userId" type="text" name="id"placeholder="사용할 아이디를 입력하세요">
                     <button class="auth-btn auth-btn-light" type="button" onclick="checkId()">
                         중복확인
                     </button>
@@ -107,19 +110,24 @@
                     이메일
                 </label>
                 <div class="auth-input-row">
-                    <input id="email" type="email" placeholder="example@email.com">
-                 
+
+                    <input id="email" name="email"type="email" placeholder="example@email.com">
+                  
                 </div>
-        
+              
             </div>
+      
+              
 
             <div class="auth-form-group">
                 <label for="phone">
                     전화번호
                 </label>
                 <div class="auth-input-row">
-                    <input id="phone" type="tel" placeholder="010-0000-0000">
-                   
+
+                    <input id="phone"name="phone" type="tel" placeholder="010-0000-0000">
+                    
+
                 </div>
             </div>
             
@@ -128,7 +136,7 @@
                     <label for="password">
                         비밀번호
                     </label>
-                    <input id="password" type="password" placeholder="비밀번호를 입력하세요">
+                    <input id="password" type="password"name="password" placeholder="비밀번호를 입력하세요">
                 </div>
                 <div class="auth-form-group">
                     <label for="passwordCheck">
@@ -137,24 +145,7 @@
                     <input id="passwordCheck" type="password" placeholder="비밀번호를 다시 입력하세요">
                 </div>
             </div>
-            <div class="auth-terms-box">
-                <label class="auth-check-row">
-                    <input type="checkbox">
-                    전체 약관에 동의합니다.
-                </label>
-                <label class="auth-check-row">
-                    <input type="checkbox">
-                    서비스 이용약관 동의
-                </label>
-                <label class="auth-check-row">
-                    <input type="checkbox">
-                    개인정보 처리방침 동의
-                </label>
-                <label class="auth-check-row">
-                    <input type="checkbox">
-                    위치기반 서비스 이용약관 동의
-                </label>
-            </div>
+           
             <br>
             <button class="auth-btn auth-btn-primary" type="submit">
                 회원가입
