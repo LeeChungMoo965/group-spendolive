@@ -73,7 +73,7 @@
                 아이디 또는 이메일 형식으로 가입할 수 있습니다.
             </p>
         </div>
-        <form onsubmit="event.preventDefault(); authSignup();">
+        <form actions="${contextPath}/member/addmember.do" method="post">
             <div class="auth-grid-2">
                 <div class="auth-form-group">
                     <label for="name">
@@ -108,53 +108,21 @@
                 </label>
                 <div class="auth-input-row">
                     <input id="email" type="email" placeholder="example@email.com">
-                    <button class="auth-btn auth-btn-light" type="button" onclick="sendEmailCode()">
-                        이메일 인증
-                    </button>
+                 
                 </div>
-                <p class="auth-help-text">
-                    이메일 형식으로 회원가입을 원하는 경우 이메일 인증을 진행해주세요.
-                </p>
+        
             </div>
-            <div class="auth-form-group">
-                <label for="emailCode">
-                    이메일 인증번호
-                </label>
-                <div class="auth-input-row">
-                    <input id="emailCode" type="text" placeholder="인증번호 6자리">
-                    <button class="auth-btn auth-btn-outline" type="button" onclick="verifyEmailCode()">
-                        인증확인
-                    </button>
-                </div>
-                <p id="emailResult" class="auth-result-text">
-                    이메일 인증 전입니다.
-                </p>
-            </div>
+
             <div class="auth-form-group">
                 <label for="phone">
                     전화번호
                 </label>
                 <div class="auth-input-row">
                     <input id="phone" type="tel" placeholder="010-0000-0000">
-                    <button class="auth-btn auth-btn-light" type="button" onclick="sendPhoneCode()">
-                        전화번호 인증
-                    </button>
+                   
                 </div>
             </div>
-            <div class="auth-form-group">
-                <label for="phoneCode">
-                    전화번호 인증번호
-                </label>
-                <div class="auth-input-row">
-                    <input id="phoneCode" type="text" placeholder="인증번호 6자리">
-                    <button class="auth-btn auth-btn-outline" type="button" onclick="verifyPhoneCode()">
-                        인증확인
-                    </button>
-                </div>
-                <p id="phoneResult" class="auth-result-text">
-                    전화번호 인증 전입니다.
-                </p>
-            </div>
+            
             <div class="auth-grid-2">
                 <div class="auth-form-group">
                     <label for="password">

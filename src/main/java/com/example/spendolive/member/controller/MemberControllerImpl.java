@@ -63,6 +63,7 @@ public class MemberControllerImpl implements MemberController{
     }
 
     @Override
+    @RequestMapping(value="/addmember.do" , method = RequestMethod.POST)
     public ResponseEntity addMember(@ModelAttribute("memberVO") MemberVO member, HttpServletRequest request, HttpServletResponse response)
             throws Exception {
         response.setContentType("text/html; charset=UTF-8");
