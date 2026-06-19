@@ -82,7 +82,8 @@
         <div class="auth-divider">
             또는 일반 로그인
         </div>
-        <form onsubmit="event.preventDefault(); authLogin();">
+        
+        <form actions="${contextPath}/member/login.do" method="post">
             <div class="auth-form-group">
                 <label for="loginId">
                     아이디 또는 이메일
