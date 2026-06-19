@@ -29,12 +29,25 @@
             </a>
         </nav>
         <div class="header-actions">
+        <c:choose>
+            <c:when test="${isLogOn == true && not empty memberInfo}">
+            <a class="btn btn-light" href="${contextPath}/member/loginForm.do">
+                로그아웃
+            </a>
+           
+                <strong>${memberInfo.member_name}님</strong>
+            </c:when>
+            <c:otherwise>
+
+
             <a class="btn btn-light" href="${contextPath}/member/loginForm.do">
                 로그인
             </a>
             <a class="btn btn-primary" href="${contextPath}/member/signup.do">
                 회원가입
             </a>
+            </c:otherwise>
+        </c:choose>
         </div>
     </div>
 </header>
