@@ -20,6 +20,6 @@ public class HomeController {
         ModelAndView mav = new ModelAndView();
     
 	    HttpSession session = request.getSession();
-        return "redirect:/spendolive/main.jsp";
+        return "redirect:/member/main.jsp";
     }
 }
