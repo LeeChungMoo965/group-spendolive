@@ -15,7 +15,7 @@ public class SpendOliveController {
 
     @GetMapping("/expense.do")
     public String expense() {
-        return "member/expense";
+        return "redirect:/spendolive/expense/list.do";
     }
 
     @GetMapping("/calendar.do")
