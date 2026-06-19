@@ -4,6 +4,7 @@ import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.OverridesAttribute;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -28,12 +29,12 @@ public class MemberControllerImpl implements MemberController{
     
     @Override
     @RequestMapping(value="/login.do" ,method = RequestMethod.POST)
-    public ModelAndView login(Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
+    public ModelAndView login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
             throws Exception {
         ModelAndView mav = new ModelAndView();
         memberVO = memberService.login(loginMap);
         //로그인 성공 하여 memberVO객체가 생성될 시 home화면 이동
-        if(memberVO != null && memberVO.getId() != null && memberVO.getId().equals("")) {
+        if(memberVO != null && memberVO.getId() != null && !memberVO.getId().equals("")) {
             HttpSession session = request.getSession();
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
@@ -45,14 +46,14 @@ public class MemberControllerImpl implements MemberController{
             String message = "아이디나 비밀번호가 틀립니다. 다시 로그인해주세요.";
             mav.addObject("message", message);
             
-            mav.setViewName("redirect:/member/loginForm.jsp"); 
+            mav.setViewName("/member/loginForm"); 
         }
         return mav;
     }
     @RequestMapping(value="/loginForm.do" , method = RequestMethod.GET)
     public ModelAndView loginForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
         ModelAndView mav = new ModelAndView();
-        mav.setViewName("redirect:/member/loginForm.jsp");
+        mav.setViewName("/member/loginForm");
 
         return mav;
     }
@@ -63,7 +64,7 @@ public class MemberControllerImpl implements MemberController{
     }
 
     @Override
-    @RequestMapping(value="/addmember.do" , method = RequestMethod.POST)
+    @RequestMapping(value="/addmember.do" ,method = RequestMethod.POST)
     public ResponseEntity addMember(@ModelAttribute("memberVO") MemberVO member, HttpServletRequest request, HttpServletResponse response)
             throws Exception {
         response.setContentType("text/html; charset=UTF-8");
@@ -96,7 +97,7 @@ public class MemberControllerImpl implements MemberController{
         ModelAndView mav = new ModelAndView();
         
         // 전체 틀(layout.jsp)을 불러옵니다.
-        mav.setViewName("redirect:/member/loginForm.jsp");
+        mav.setViewName("member/signup");
         
     
         

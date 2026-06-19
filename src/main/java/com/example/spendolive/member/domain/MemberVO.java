@@ -25,9 +25,6 @@ public class MemberVO {
 	private String blocked_until;
 	private String update_at;
 	private String last_login_at;
-	public void setLogin_type(String string) {
-	}
-
 	
 }
 
