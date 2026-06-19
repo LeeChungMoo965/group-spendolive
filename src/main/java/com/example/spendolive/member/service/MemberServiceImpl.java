@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.repository.MemberRepository;
-
+@Service
 public class MemberServiceImpl implements MemberService {
 
     @Autowired

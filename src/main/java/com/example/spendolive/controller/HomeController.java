@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @Controller("homeController")
-@EnableAspectJAutoProxy
+
 public class HomeController {
 
     @RequestMapping(value = "/spendolive/main.do", method={RequestMethod.POST, RequestMethod.GET})
@@ -20,6 +20,6 @@ public class HomeController {
         ModelAndView mav = new ModelAndView();
     
 	    HttpSession session = request.getSession();
-        return "redirect:/spendolive/main.do";
+        return "redirect:/spendolive/main.jsp";
     }
 }

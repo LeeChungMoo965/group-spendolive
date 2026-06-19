@@ -24,7 +24,6 @@ import com.example.spendolive.member.service.MemberService;
 public class MemberControllerImpl implements MemberController{
     @Autowired
     private MemberService memberService;
-    @Autowired
     private MemberVO memberVO;
     
     @Override
