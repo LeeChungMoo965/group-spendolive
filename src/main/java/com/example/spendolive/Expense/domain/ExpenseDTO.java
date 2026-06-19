@@ -1,4 +1,4 @@
-package com.example.spendolive.domain;
+package com.example.spendolive.Expense.domain;
 
 import java.util.Date;
 import org.springframework.format.annotation.DateTimeFormat;

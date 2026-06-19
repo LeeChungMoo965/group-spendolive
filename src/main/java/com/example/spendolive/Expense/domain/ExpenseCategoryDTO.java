@@ -1,4 +1,4 @@
-package com.example.spendolive.domain;
+package com.example.spendolive.Expense.domain;
 
 public class ExpenseCategoryDTO {
 

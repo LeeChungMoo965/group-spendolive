@@ -3,11 +3,11 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.example.spendolive.mapper.ExpenseMapper">
+<mapper namespace="com.example.spendolive.Expense.mapper.ExpenseMapper">
 
     <select id="selectExpenseList"
             parameterType="long"
-            resultType="com.example.spendolive.domain.ExpenseDTO">
+            resultType="com.example.spendolive.Expense.domain.ExpenseDTO">
         SELECT
             e.expense_id AS expenseId,
             e.member_id AS memberId,
@@ -33,7 +33,7 @@
 
     <select id="selectExpense"
             parameterType="long"
-            resultType="com.example.spendolive.domain.ExpenseDTO">
+            resultType="com.example.spendolive.Expense.domain.ExpenseDTO">
         SELECT
             e.expense_id AS expenseId,
             e.member_id AS memberId,
@@ -57,7 +57,7 @@
     </select>
 
     <insert id="insertExpense"
-            parameterType="com.example.spendolive.domain.ExpenseDTO">
+            parameterType="com.example.spendolive.Expense.domain.ExpenseDTO">
         INSERT INTO expense_tb (
             member_id,
             category_id,
@@ -84,7 +84,7 @@
     </insert>
 
     <update id="updateExpense"
-            parameterType="com.example.spendolive.domain.ExpenseDTO">
+            parameterType="com.example.spendolive.Expense.domain.ExpenseDTO">
         UPDATE expense_tb
         SET
             category_id = #{categoryId},
@@ -108,7 +108,7 @@
     </delete>
 
     <select id="selectCategoryList"
-            resultType="com.example.spendolive.domain.ExpenseCategoryDTO">
+            resultType="com.example.spendolive.Expense.domain.ExpenseCategoryDTO">
         SELECT
             category_id AS categoryId,
             category_name AS categoryName,
@@ -120,7 +120,7 @@
 
     <select id="selectCategoryListByType"
             parameterType="string"
-            resultType="com.example.spendolive.domain.ExpenseCategoryDTO">
+            resultType="com.example.spendolive.Expense.domain.ExpenseCategoryDTO">
         SELECT
             category_id AS categoryId,
             category_name AS categoryName,

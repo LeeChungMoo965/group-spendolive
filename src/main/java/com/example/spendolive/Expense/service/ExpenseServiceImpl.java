@@ -1,9 +1,10 @@
-package com.example.spendolive.service;
+package com.example.spendolive.Expense.service;
 
-import com.example.spendolive.domain.ExpenseDTO;
-import com.example.spendolive.domain.ExpenseCategoryDTO;
-import com.example.spendolive.mapper.ExpenseMapper;
 import org.springframework.stereotype.Service;
+
+import com.example.spendolive.Expense.domain.ExpenseCategoryDTO;
+import com.example.spendolive.Expense.domain.ExpenseDTO;
+import com.example.spendolive.Expense.mapper.ExpenseMapper;
 
 import java.util.List;
 

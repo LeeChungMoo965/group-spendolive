@@ -1,8 +1,9 @@
-package com.example.spendolive.mapper;
+package com.example.spendolive.Expense.mapper;
 
-import com.example.spendolive.domain.ExpenseDTO;
-import com.example.spendolive.domain.ExpenseCategoryDTO;
 import org.apache.ibatis.annotations.Mapper;
+
+import com.example.spendolive.Expense.domain.ExpenseCategoryDTO;
+import com.example.spendolive.Expense.domain.ExpenseDTO;
 
 import java.util.List;
 

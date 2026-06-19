@@ -1,13 +1,13 @@
-package com.example.spendolive.controller.ExpenseController;
-
-import com.example.spendolive.domain.ExpenseDTO;
-import com.example.spendolive.service.ExpenseService;
+package com.example.spendolive.Expense.controller;
 
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.spendolive.Expense.domain.ExpenseDTO;
+import com.example.spendolive.Expense.service.ExpenseService;
 
 @Controller
 @RequestMapping("/spendolive/expense")

@@ -1,9 +1,9 @@
-package com.example.spendolive.service;
-
-import com.example.spendolive.domain.ExpenseDTO;
-import com.example.spendolive.domain.ExpenseCategoryDTO;
+package com.example.spendolive.Expense.service;
 
 import java.util.List;
+
+import com.example.spendolive.Expense.domain.ExpenseCategoryDTO;
+import com.example.spendolive.Expense.domain.ExpenseDTO;
 
 public interface ExpenseService {
 
