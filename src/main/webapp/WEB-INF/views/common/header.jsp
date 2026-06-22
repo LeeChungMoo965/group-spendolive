@@ -33,7 +33,7 @@
                 로그아웃
             </a>
            
-                <strong>${memberInfo.member_name}님</strong>
+                <h4><strong>${memberInfo.member_name}님</strong></h4>
             </c:when>
             <c:otherwise>
 
