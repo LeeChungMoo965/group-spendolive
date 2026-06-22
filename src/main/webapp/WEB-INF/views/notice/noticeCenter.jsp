@@ -6,9 +6,6 @@
 
 <section class="page-hero">
     <div class="container">
-        <a href="${contextPath}/spendolive/main.do" class="btn btn-outline">
-            ‹ 메인으로 돌아가기
-        </a>
 
         <div class="notice-hero-text">
             <p class="eyebrow">NOTICE CENTER</p>
