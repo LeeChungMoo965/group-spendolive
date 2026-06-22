@@ -18,8 +18,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<ExpenseDTO> getExpenseList(Long memberId) {
-        return expenseRepository.selectExpenseList(memberId);
+    public List<ExpenseDTO> getExpenseList(Long memberId, String yearMonth) {
+        return expenseRepository.selectExpenseList(memberId, yearMonth);
     }
 
     @Override
@@ -38,8 +38,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public void removeExpense(Long expenseId) {
-        expenseRepository.deleteExpense(expenseId);
+    public void removeExpense(Long expenseId, Long memberId) {
+        expenseRepository.deleteExpense(expenseId, memberId);
     }
 
     @Override

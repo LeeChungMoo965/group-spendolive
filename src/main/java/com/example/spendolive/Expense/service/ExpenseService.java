@@ -7,7 +7,7 @@ import com.example.spendolive.Expense.domain.ExpenseDTO;
 
 public interface ExpenseService {
 
-    List<ExpenseDTO> getExpenseList(Long memberId);
+    List<ExpenseDTO> getExpenseList(Long memberId, String yearMonth);
 
     ExpenseDTO getExpense(Long expenseId);
 
@@ -15,7 +15,7 @@ public interface ExpenseService {
 
     void modifyExpense(ExpenseDTO expenseDTO);
 
-    void removeExpense(Long expenseId);
+    void removeExpense(Long expenseId, Long memberId);
 
     List<ExpenseCategoryDTO> getCategoryList();
 
