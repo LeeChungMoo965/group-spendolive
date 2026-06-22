@@ -8,7 +8,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.example.spendolive.notice.service.NoticeService;
 
 @Controller
-@RequestMapping("notice")
+@RequestMapping("/spendolive/notice")
 public class NoticeController {
 
     private final NoticeService noticeService;
