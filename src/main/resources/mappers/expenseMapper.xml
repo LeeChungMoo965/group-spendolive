@@ -3,6 +3,132 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.example.spendolive.mapper.ExpenseMapper">
+<mapper namespace="com.example.spendolive.Expense.mapper.ExpenseMapper">
+
+    <select id="selectExpenseList"
+            parameterType="long"
+            resultType="com.example.spendolive.Expense.domain.ExpenseDTO">
+        SELECT
+            e.expense_id AS expenseId,
+            e.member_id AS memberId,
+            e.category_id AS categoryId,
+            c.category_name AS categoryName,
+            c.expense_type AS expenseType,
+            e.expense_title AS expenseTitle,
+            e.amount AS amount,
+            e.expense_date AS expenseDate,
+            e.payment_method AS paymentMethod,
+            e.memo AS memo,
+            e.repeat_yn AS repeatYn,
+            e.repeat_cycle AS repeatCycle,
+            e.fixed_yn AS fixedYn,
+            e.created_at AS createdAt,
+            e.updated_at AS updatedAt
+        FROM expense_tb e
+        JOIN expense_category_tb c
+          ON e.category_id = c.category_id
+        WHERE e.member_id = #{memberId}
+        ORDER BY e.expense_date DESC, e.expense_id DESC
+    </select>
+
+    <select id="selectExpense"
+            parameterType="long"
+            resultType="com.example.spendolive.Expense.domain.ExpenseDTO">
+        SELECT
+            e.expense_id AS expenseId,
+            e.member_id AS memberId,
+            e.category_id AS categoryId,
+            c.category_name AS categoryName,
+            c.expense_type AS expenseType,
+            e.expense_title AS expenseTitle,
+            e.amount AS amount,
+            e.expense_date AS expenseDate,
+            e.payment_method AS paymentMethod,
+            e.memo AS memo,
+            e.repeat_yn AS repeatYn,
+            e.repeat_cycle AS repeatCycle,
+            e.fixed_yn AS fixedYn,
+            e.created_at AS createdAt,
+            e.updated_at AS updatedAt
+        FROM expense_tb e
+        JOIN expense_category_tb c
+          ON e.category_id = c.category_id
+        WHERE e.expense_id = #{expenseId}
+    </select>
+
+    <insert id="insertExpense"
+            parameterType="com.example.spendolive.Expense.domain.ExpenseDTO">
+        INSERT INTO expense_tb (
+            member_id,
+            category_id,
+            expense_title,
+            amount,
+            expense_date,
+            payment_method,
+            memo,
+            repeat_yn,
+            repeat_cycle,
+            fixed_yn
+        ) VALUES (
+            #{memberId},
+            #{categoryId},
+            #{expenseTitle},
+            #{amount},
+            #{expenseDate},
+            #{paymentMethod},
+            #{memo},
+            NVL(#{repeatYn}, 'N'),
+            #{repeatCycle},
+            NVL(#{fixedYn}, 'N')
+        )
+    </insert>
+
+    <update id="updateExpense"
+            parameterType="com.example.spendolive.Expense.domain.ExpenseDTO">
+        UPDATE expense_tb
+        SET
+            category_id = #{categoryId},
+            expense_title = #{expenseTitle},
+            amount = #{amount},
+            expense_date = #{expenseDate},
+            payment_method = #{paymentMethod},
+            memo = #{memo},
+            repeat_yn = NVL(#{repeatYn}, 'N'),
+            repeat_cycle = #{repeatCycle},
+            fixed_yn = NVL(#{fixedYn}, 'N'),
+            updated_at = SYSDATE
+        WHERE expense_id = #{expenseId}
+          AND member_id = #{memberId}
+    </update>
+
+    <delete id="deleteExpense"
+            parameterType="long">
+        DELETE FROM expense_tb
+        WHERE expense_id = #{expenseId}
+    </delete>
+
+    <select id="selectCategoryList"
+            resultType="com.example.spendolive.Expense.domain.ExpenseCategoryDTO">
+        SELECT
+            category_id AS categoryId,
+            category_name AS categoryName,
+            expense_type AS expenseType,
+            sort_order AS sortOrder
+        FROM expense_category_tb
+        ORDER BY sort_order ASC, category_id ASC
+    </select>
+
+    <select id="selectCategoryListByType"
+            parameterType="string"
+            resultType="com.example.spendolive.Expense.domain.ExpenseCategoryDTO">
+        SELECT
+            category_id AS categoryId,
+            category_name AS categoryName,
+            expense_type AS expenseType,
+            sort_order AS sortOrder
+        FROM expense_category_tb
+        WHERE expense_type = #{expenseType}
+        ORDER BY sort_order ASC, category_id ASC
+    </select>
 
 </mapper>
