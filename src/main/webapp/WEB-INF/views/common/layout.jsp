@@ -6,6 +6,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+
+    <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SpendOlive | 지출관리 플랫폼</title>

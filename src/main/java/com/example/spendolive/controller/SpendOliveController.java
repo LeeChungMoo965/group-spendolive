@@ -10,9 +10,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+
 @Controller
 @RequestMapping("/spendolive")
 public class SpendOliveController {
+
 
     @RequestMapping(value= "/main.do" ,method={RequestMethod.POST,RequestMethod.GET})
     public ModelAndView main(HttpServletRequest request, HttpServletResponse response) throws Exception{
@@ -56,4 +58,5 @@ public class SpendOliveController {
     public String signup() {
         return "member/signup";
     }
+   
 }
