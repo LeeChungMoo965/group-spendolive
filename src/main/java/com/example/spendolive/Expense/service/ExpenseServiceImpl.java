@@ -1,54 +1,54 @@
 package com.example.spendolive.Expense.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.example.spendolive.Expense.domain.ExpenseCategoryDTO;
 import com.example.spendolive.Expense.domain.ExpenseDTO;
-import com.example.spendolive.Expense.mapper.ExpenseMapper;
-
-import java.util.List;
+import com.example.spendolive.Expense.repository.ExpenseRepository;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
 
-    private final ExpenseMapper expenseMapper;
+    private final ExpenseRepository expenseRepository;
 
-    public ExpenseServiceImpl(ExpenseMapper expenseMapper) {
-        this.expenseMapper = expenseMapper;
+    public ExpenseServiceImpl(ExpenseRepository expenseRepository) {
+        this.expenseRepository = expenseRepository;
     }
 
     @Override
     public List<ExpenseDTO> getExpenseList(Long memberId) {
-        return expenseMapper.selectExpenseList(memberId);
+        return expenseRepository.selectExpenseList(memberId);
     }
 
     @Override
     public ExpenseDTO getExpense(Long expenseId) {
-        return expenseMapper.selectExpense(expenseId);
+        return expenseRepository.selectExpense(expenseId);
     }
 
     @Override
     public void addExpense(ExpenseDTO expenseDTO) {
-        expenseMapper.insertExpense(expenseDTO);
+        expenseRepository.insertExpense(expenseDTO);
     }
 
     @Override
     public void modifyExpense(ExpenseDTO expenseDTO) {
-        expenseMapper.updateExpense(expenseDTO);
+        expenseRepository.updateExpense(expenseDTO);
     }
 
     @Override
     public void removeExpense(Long expenseId) {
-        expenseMapper.deleteExpense(expenseId);
+        expenseRepository.deleteExpense(expenseId);
     }
 
     @Override
     public List<ExpenseCategoryDTO> getCategoryList() {
-        return expenseMapper.selectCategoryList();
+        return expenseRepository.selectCategoryList();
     }
 
     @Override
     public List<ExpenseCategoryDTO> getCategoryListByType(String expenseType) {
-        return expenseMapper.selectCategoryListByType(expenseType);
+        return expenseRepository.selectCategoryListByType(expenseType);
     }
 }

@@ -15,7 +15,7 @@
             <a href="#" class="notification-link" aria-label="알림" title="알림" onclick="alert('알림 기능은 준비 중입니다.'); return false;">
                 🔔
             </a>
-            <a href="${contextPath}/spendolive/expense.do" class="${fn:contains(requestURI, '/expense') ? 'active' : ''}">
+            <a href="${contextPath}/spendolive/expense/list.do" class="${fn:contains(requestURI, '/expense') ? 'active' : ''}">
                 지출관리
             </a>
             <a href="${contextPath}/spendolive/calendar.do" class="${fn:contains(requestURI, '/calendar') ? 'active' : ''}">
