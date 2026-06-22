@@ -1,3 +1,7 @@
+SELECT * FROM member_tb;
+SELECT * FROM expense_category_tb;
+SELECT * FROM expense_tb;
+
 /* =========================================================
    SpendOlive Oracle DB Schema - 수정 반영본
    =========================================================
@@ -241,6 +245,25 @@ BEGIN
 END;
 /
 
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('월세', 'FIXED', 1);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('통신비', 'FIXED', 2);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('보험료', 'FIXED', 3);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('관리비', 'FIXED', 4);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('공과금', 'FIXED', 5);
+
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('식비', 'VARIABLE', 1);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('교통비', 'VARIABLE', 2);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('생활비', 'VARIABLE', 3);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('쇼핑', 'VARIABLE', 4);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('문화, 취미생활', 'VARIABLE', 5);
+
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('Netflix', 'OTT', 1);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('Disney+', 'OTT', 2);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('TVING', 'OTT', 3);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('Wavve', 'OTT', 4);
+INSERT INTO expense_category_tb (category_name, expense_type, sort_order) VALUES ('coupangplay', 'OTT', 5);
+
+COMMIT;
 
 /* =========================================================
     3. 지출 내역 테이블
