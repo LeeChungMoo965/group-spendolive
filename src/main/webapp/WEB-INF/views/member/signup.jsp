@@ -165,7 +165,7 @@
             <span>
                 이미 계정이 있으신가요?
             </span>
-            <a href="${contextPath}/member/login.do">
+            <a href="${contextPath}/member/loginForm.do">
                 로그인
             </a>
         </div>

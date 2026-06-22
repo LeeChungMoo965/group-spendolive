@@ -130,7 +130,7 @@
                 <p>
                     고정지출, 변동지출, OTT지출을 나누어 등록하고 통계와 랭킹을 확인합니다.
                 </p>
-                <a href="${contextPath}/spendolive/expense.do" class="btn btn-outline full">
+                <a href="${contextPath}/spendolive/expense/list.do" class="btn btn-outline full">
                     자세히 보기
                 </a>
             </article>
