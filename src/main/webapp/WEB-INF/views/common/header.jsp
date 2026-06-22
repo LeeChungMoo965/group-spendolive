@@ -12,7 +12,7 @@
             </span>
         </a>
         <nav class="nav">
-            <a href="${pageContext.request.contextPath}/notice/center.do">🔔</a>
+            <a href="${pageContext.request.contextPath}notice/center.do">🔔</a>
             <a href="${contextPath}/spendolive/expense/list.do" class="${fn:contains(requestURI, '/expense') ? 'active' : ''}">
                 지출관리
             </a>
