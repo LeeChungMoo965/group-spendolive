@@ -113,7 +113,7 @@
             <span>
                 아직 회원이 아니신가요?
             </span>
-            <a href="${contextPath}/spendolive/signup.do">
+            <a href="${contextPath}/member/signup.do">
                 회원가입
             </a>
         </div>

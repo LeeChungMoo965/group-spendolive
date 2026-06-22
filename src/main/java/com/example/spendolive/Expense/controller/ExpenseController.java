@@ -27,7 +27,7 @@ public class ExpenseController {
         model.addAttribute("expenseList", expenseService.getExpenseList(memberId));
         model.addAttribute("categoryList", expenseService.getCategoryList());
 
-        return "member/expense";
+        return "expense/expense";
     }
 
     @PostMapping("/add.do")

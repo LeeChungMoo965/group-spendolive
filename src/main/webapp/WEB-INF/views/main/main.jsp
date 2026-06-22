@@ -1,18 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
-<!DOCTYPE html>
-<html lang="ko">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>
-        SpendOlive | 지출관리 플랫폼
-    </title>
+
     <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
-</head>
-<body>
-    <jsp:include page="/WEB-INF/views/common/header.jsp" />
+
+
     <main>
         <section class="hero">
             <div class="container hero-grid">
@@ -188,8 +180,7 @@
     </div>
 </section>
 </main>
-<jsp:include page="/WEB-INF/views/common/footer.jsp" />
+
 <script src="${contextPath}/resources/js/app.js">
 </script>
-</body>
-</html>
+
