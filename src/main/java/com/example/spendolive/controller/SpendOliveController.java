@@ -25,38 +25,4 @@ public class SpendOliveController {
         return mav;
     }
 
-    @GetMapping("/expense.do")
-    public ModelAndView expense(HttpServletRequest request, HttpServletResponse response) throws Exception{
-        ModelAndView mav = new ModelAndView();
-	    HttpSession session = request.getSession();
-        mav.setViewName("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/expense/expense.jsp");
-        return mav;
-    }
-
-    @GetMapping("/calendar.do")
-    public String calendar() {
-        return "member/calendar";
-    }
-
-    @GetMapping("/ott.do")
-    public String ott() {
-        return "member/ott";
-    }
-
-    @GetMapping("/mypage.do")
-    public String mypage() {
-        return "member/mypage";
-    }
-
-    @GetMapping("/login.do")
-    public String login() {
-        return "member/login";
-    }
-
-    @GetMapping("/signup.do")
-    public String signup() {
-        return "member/signup";
-    }
-   
 }
