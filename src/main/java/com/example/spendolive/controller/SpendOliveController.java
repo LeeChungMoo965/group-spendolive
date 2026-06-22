@@ -19,13 +19,17 @@ public class SpendOliveController {
         ModelAndView mav = new ModelAndView();
 	    HttpSession session = request.getSession();
         mav.setViewName("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/member/main.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/main/main.jsp");
         return mav;
     }
 
     @GetMapping("/expense.do")
-    public String expense() {
-        return "redirect:/spendolive/expense/list.do";
+    public ModelAndView expense(HttpServletRequest request, HttpServletResponse response) throws Exception{
+        ModelAndView mav = new ModelAndView();
+	    HttpSession session = request.getSession();
+        mav.setViewName("common/layout");
+        mav.addObject("body_page", "/WEB-INF/views/expense/expense.jsp");
+        return mav;
     }
 
     @GetMapping("/calendar.do")
