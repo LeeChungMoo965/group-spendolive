@@ -351,9 +351,6 @@
             </div>
         </section>
     </main>
-
-
-
     <script src="${contextPath}/resources/js/app.js"></script>
 </body>
 </html>

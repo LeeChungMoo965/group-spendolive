@@ -9,6 +9,7 @@
         <title>
         SpendOlive | 회원가입
     </title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
 </head>
 <body class="auth-body">
@@ -75,7 +76,7 @@
         </div>
 
               
-        <form action="${contextPath}/member/addmember.do" method="post">
+        <form action="${contextPath}/member/addmember.do" method="post" onsubmit="return joinCheck()">
 
             <div class="auth-grid-2">
                 <div class="auth-form-group">
@@ -110,27 +111,36 @@
                     이메일
                 </label>
                 <div class="auth-input-row">
-
                     <input id="email" name="email"type="email" placeholder="example@email.com">
-                  
+                    <button class="auth-btn auth-btn-light" type="button" onclick="sendEmail()">인증요청</button>
                 </div>
-              
             </div>
-      
-              
+            <div class="auth-form-group" id="emailAuthArea" style="display:none;">
+                <label for="emailAuthCode">인증번호 입력</label>
+                <div class="auth-input-row">
+                    <input id="emailAuthCode" type="text" placeholder="6자리 인증번호를 입력하세요">
+                    <button class="auth-btn auth-btn-light" type="button" onclick="verifyEmail()">인증확인</button>
+                </div>
+                <p id="emailAuthResult" class="auth-result-text">이메일로 발송된 인증번호를 입력해 주세요.</p>
+            </div>
+        
 
             <div class="auth-form-group">
-                <label for="phone">
-                    전화번호
-                </label>
+                <label for="phone">전화번호</label>
                 <div class="auth-input-row">
-
-                    <input id="phone"name="phone" type="tel" placeholder="010-0000-0000">
-                    
-
+                    <input id="phone" name="phone" type="tel" placeholder="010-0000-0000">
+                    <button class="auth-btn auth-btn-light" type="button" onclick="sendSms()">인증요청</button>
                 </div>
             </div>
-            
+
+            <div class="auth-form-group" id="phoneAuthArea" style="display:none;">
+                <label for="phoneAuthCode">전화번호 인증번호 입력</label>
+                <div class="auth-input-row">
+                    <input id="phoneAuthCode" type="text" placeholder="6자리 인증번호를 입력하세요">
+                    <button class="auth-btn auth-btn-light" type="button" onclick="verifySms()">인증확인</button>
+                </div>
+                <p id="phoneAuthResult" class="auth-result-text">휴대폰으로 발송된 인증번호를 입력해 주세요.</p>
+            </div>
             <div class="auth-grid-2">
                 <div class="auth-form-group">
                     <label for="password">

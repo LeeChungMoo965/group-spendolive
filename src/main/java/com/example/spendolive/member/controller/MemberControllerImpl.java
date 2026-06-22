@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -117,5 +118,71 @@ public class MemberControllerImpl implements MemberController{
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'overlapped'");
     }
-    
+    @Override
+    @ResponseBody
+    @RequestMapping(value="/sendEmail", method = RequestMethod.POST)
+    public String sendEmail(@RequestParam("email") String email, HttpServletRequest request) {
+        try {
+            // 메일 발송 후 생성된 6자리 코드 반환받기
+            String verificationCode = memberService.sendVerificationEmail(email);
+            
+            // 사용자가 나중에 입력한 값과 비교할 수 있도록 세션에 인증코드 저장
+            HttpSession session = request.getSession();
+            session.setAttribute("verificationCode", verificationCode);
+            
+            return "SUCCESS"; // 프론트엔드(JSP)에 성공 신호 보냄
+        } catch (Exception e) {
+            return "ERROR";
+        }
+    }
+    @Override
+    @RequestMapping(value="/verifyEmail", method = RequestMethod.POST)
+    @ResponseBody
+    public boolean verifyEmail(@RequestParam("inputCode") String inputCode, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        
+        // 세션에 저장해 둔 진짜 인증번호 꺼내기
+        String originalCode = (String) session.getAttribute("verificationCode");
+        
+        // 사용자가 화면에 입력한 값과 진짜 값이 일치하는지 판별 (true / false 반환)
+        if (originalCode != null && originalCode.equals(inputCode)) {
+            session.removeAttribute("emailCode"); // 인증 성공 시 세션 청소
+            return true;
+        }
+        
+        return false;
+    }
+            // 1. 휴대폰 인증번호 발송 요청 처리
+        @Override
+        @RequestMapping(value="/sendSms", method = RequestMethod.POST)
+        @ResponseBody
+        public String sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
+            // 가상 시뮬레이터 가동해서 6자리 번호 획득
+            String verificationCode = memberService.sendSmsVerification(phone);
+            
+            // 이메일 때처럼 서버 세션을 열어서 발급된 인증번호를 임시 저장
+            HttpSession session = request.getSession();
+            session.setAttribute("smsCode", verificationCode);
+            
+            return "success"; // 프론트 Ajax의 success로 신호 전달
+        }
+
+        // 2. 사용자가 입력한 인증번호 검증 처리
+        @Override
+        @RequestMapping(value="/verifySms", method = RequestMethod.POST)
+        @ResponseBody
+        public boolean verifySms(@RequestParam("inputCode") String inputCode, HttpServletRequest request) {
+            HttpSession session = request.getSession();
+            
+            // 세션에 저장해 둔 진짜 인증번호 꺼내기
+            String originalCode = (String) session.getAttribute("smsCode");
+            
+            // 사용자가 화면에 입력한 값과 진짜 값이 일치하는지 판별 (true / false 반환)
+            if (originalCode != null && originalCode.equals(inputCode)) {
+                session.removeAttribute("smsCode"); // 인증 성공 시 세션 청소
+                return true;
+            }
+            
+            return false;
+        }
 }
