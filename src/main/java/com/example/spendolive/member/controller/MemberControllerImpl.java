@@ -50,6 +50,7 @@ public class MemberControllerImpl implements MemberController{
         }
         return mav;
     }
+    @Override
     @RequestMapping(value="/loginForm.do" , method = {RequestMethod.POST, RequestMethod.GET})
     public ModelAndView loginForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
         ModelAndView mav = new ModelAndView();
@@ -58,9 +59,14 @@ public class MemberControllerImpl implements MemberController{
         return mav;
     }
     @Override
+    @RequestMapping(value="/logout.do" ,method = RequestMethod.GET)
     public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'logout'");
+        ModelAndView mav = new ModelAndView();
+        HttpSession session=request.getSession();
+        session.setAttribute("isLogOn", false);
+        session.removeAttribute("memberInfo");
+        mav.setViewName("redirect:/spendolive/main.do");
+        return mav;
     }
 
     @Override
@@ -76,13 +82,13 @@ public class MemberControllerImpl implements MemberController{
         try {
             memberService.addMember(member);
             message  = "<script>";
-            message +=" alert('회원 가입을 완료했습니다. 로그인창으로 이동합니다.');"; // 한글 깨짐 수정
+            message +=" alert('회원 가입을 완료했습니다. 로그인창으로 이동합니다.');"; 
             message += " location.href='"+request.getContextPath()+"/member/loginForm.do';";
             message += " </script>";
             
         }catch(Exception e) {
             message  = "<script>";
-            message +=" alert('작업 중 오류가 발생했습니다. 다시 시도해 주세요.');"; // 한글 깨짐 수정
+            message +=" alert('작업 중 오류가 발생했습니다. 다시 시도해 주세요.');"; 
             message += " location.href='"+request.getContextPath()+"/member/signup.do';";
             message += " </script>";
             e.printStackTrace();
@@ -92,11 +98,12 @@ public class MemberControllerImpl implements MemberController{
     }
 
     //회원가입 페이지 이동 메서드
+    @Override
     @RequestMapping(value="/signup.do" , method = RequestMethod.GET)
     public ModelAndView memberForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
         ModelAndView mav = new ModelAndView();
         
-        // 전체 틀(layout.jsp)을 불러옵니다.
+
         mav.setViewName("member/signup");
         
     
