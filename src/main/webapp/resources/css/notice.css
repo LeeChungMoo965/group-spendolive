@@ -1,0 +1,29 @@
+.notice-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .notice-tabs .btn.active {
+    background: var(--olive);
+    color: #fff;
+  }
+  
+  .notice-title-link {
+    font-weight: 900;
+    color: var(--text);
+  }
+  
+  .notice-title-link:hover {
+    color: var(--olive-dark);
+  }
+  
+  .notice-important {
+    background: #fff1d6;
+    color: #9a5f13;
+  }
+  
+  .notice-normal {
+    background: var(--olive-soft);
+    color: var(--olive-dark);
+  }
