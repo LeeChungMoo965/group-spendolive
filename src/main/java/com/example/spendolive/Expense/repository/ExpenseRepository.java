@@ -1,14 +1,11 @@
-package com.example.spendolive.Expense.mapper;
+package com.example.spendolive.Expense.repository;
 
-import org.apache.ibatis.annotations.Mapper;
+import java.util.List;
 
 import com.example.spendolive.Expense.domain.ExpenseCategoryDTO;
 import com.example.spendolive.Expense.domain.ExpenseDTO;
 
-import java.util.List;
-
-@Mapper
-public interface ExpenseMapper {
+public interface ExpenseRepository {
 
     List<ExpenseDTO> selectExpenseList(Long memberId);
 

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.spendolive.Expense.domain.ExpenseDTO;
 import com.example.spendolive.Expense.service.ExpenseService;
+import com.example.spendolive.member.domain.MemberVO;
 
 @Controller
 @RequestMapping("/spendolive/expense")
@@ -24,10 +25,15 @@ public class ExpenseController {
 
         Long memberId = getLoginMemberId(session);
 
+        if (memberId == null) {
+            return "redirect:/member/loginForm.do";
+        }
+
         model.addAttribute("expenseList", expenseService.getExpenseList(memberId));
         model.addAttribute("categoryList", expenseService.getCategoryList());
+        model.addAttribute("body_page", "/WEB-INF/views/expense/expense.jsp");
 
-        return "expense/expense";
+        return "common/layout";
     }
 
     @PostMapping("/add.do")
@@ -35,6 +41,11 @@ public class ExpenseController {
                              HttpSession session) {
 
         Long memberId = getLoginMemberId(session);
+
+        if (memberId == null) {
+            return "redirect:/member/loginForm.do";
+        }
+
         expenseDTO.setMemberId(memberId);
 
         if (expenseDTO.getRepeatYn() == null) {
@@ -51,7 +62,14 @@ public class ExpenseController {
     }
 
     @PostMapping("/delete.do")
-    public String deleteExpense(@RequestParam("expenseId") Long expenseId) {
+    public String deleteExpense(@RequestParam("expenseId") Long expenseId,
+                                HttpSession session) {
+
+        Long memberId = getLoginMemberId(session);
+
+        if (memberId == null) {
+            return "redirect:/member/loginForm.do";
+        }
 
         expenseService.removeExpense(expenseId);
 
@@ -59,14 +77,13 @@ public class ExpenseController {
     }
 
     private Long getLoginMemberId(HttpSession session) {
-        /*
-         * 로그인 기능이 완성되면 세션에서 member_id를 꺼내면 됨.
-         * 지금은 테스트용으로 1번 회원 고정.
-         *
-         * 예시:
-         * MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
-         * return memberInfo.getMemberId();
-         */
-        return 1L;
+
+        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+
+        if (memberInfo == null) {
+            return null;
+        }
+
+        return Long.valueOf(memberInfo.getMember_id());
     }
 }

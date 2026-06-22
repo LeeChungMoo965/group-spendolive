@@ -3,19 +3,9 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpendOlive | 지출관리</title>
-    <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
-</head>
+<link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
 
-<body>
-
-
-    <main>
+<main>
         <section class="page-hero">
             <div class="container page-hero-grid">
                 <div>
@@ -350,10 +340,6 @@
                 </div>
             </div>
         </section>
-    </main>
+</main>
 
-
-
-    <script src="${contextPath}/resources/js/app.js"></script>
-</body>
-</html>
+<script src="${contextPath}/resources/js/app.js"></script>
