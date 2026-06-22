@@ -54,33 +54,32 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
             """;
 
     private final String selectRepeatBaseExpenseSql = """
-            SELECT
-                e.expense_id,
-                e.member_id,
-                e.category_id,
-                c.category_name,
-                c.expense_type,
-                e.expense_title,
-                e.amount,
-                e.expense_date,
-                e.payment_method,
-                e.memo,
-                e.repeat_yn,
-                e.repeat_cycle,
-                e.fixed_yn,
-                e.created_at,
-                e.updated_at
-            FROM expense_tb e
-            JOIN expense_category_tb c
-              ON e.category_id = c.category_id
-            WHERE e.member_id = ?
-              AND c.expense_type = 'FIXED'
-              AND e.fixed_yn = 'Y'
-              AND e.repeat_yn = 'Y'
-              AND e.repeat_cycle IN ('MONTHLY', 'WEEKLY', 'YEARLY')
-              AND e.expense_date < ?
-            ORDER BY e.expense_date ASC, e.expense_id ASC
-            """;
+        SELECT
+            e.expense_id,
+            e.member_id,
+            e.category_id,
+            c.category_name,
+            c.expense_type,
+            e.expense_title,
+            e.amount,
+            e.expense_date,
+            e.payment_method,
+            e.memo,
+            e.repeat_yn,
+            e.repeat_cycle,
+            e.fixed_yn,
+            e.created_at,
+            e.updated_at
+        FROM expense_tb e
+        JOIN expense_category_tb c
+          ON e.category_id = c.category_id
+        WHERE e.member_id = ?
+          AND c.expense_type IN ('FIXED', 'OTT')
+          AND e.repeat_yn = 'Y'
+          AND e.repeat_cycle IN ('MONTHLY', 'WEEKLY', 'YEARLY')
+          AND e.expense_date < ?
+        ORDER BY e.expense_date ASC, e.expense_id ASC
+        """;
 
     private final String selectExpenseSql = """
             SELECT

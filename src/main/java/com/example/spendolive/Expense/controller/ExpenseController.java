@@ -144,8 +144,12 @@ public class ExpenseController {
         return Long.valueOf(memberInfo.getMember_id());
     }
 
+    private boolean isRepeatTargetType(String expenseType) {
+        return "FIXED".equals(expenseType) || "OTT".equals(expenseType);
+    }
+
     private void applyRepeatSettings(ExpenseDTO expenseDTO) {
-        if ("FIXED".equals(expenseDTO.getExpenseType())) {
+        if (isRepeatTargetType(expenseDTO.getExpenseType())) {
             expenseDTO.setFixedYn("Y");
 
             if (expenseDTO.getRepeatCycle() == null || expenseDTO.getRepeatCycle().isBlank()) {
