@@ -24,6 +24,7 @@ public class MemberServiceImpl implements MemberService {
     
     @Override
     public MemberVO login(Map loginMap) throws Exception {
+        
         return memberRepository.login(loginMap);
     }
 

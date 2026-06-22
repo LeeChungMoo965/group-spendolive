@@ -27,7 +27,12 @@ public class MemberControllerImpl implements MemberController{
     @Autowired
     private MemberService memberService;
     private MemberVO memberVO;
-    
+    private final String clientId = "700ee71dfda3cbe5ed1ad66eedc9448e";
+    private final String redirectUri = "http://localhost:8080/carrentproject/kakaoCallback.jsp";
+    private final String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
+                            + "?client_id=" + clientId 
+                            + "&redirect_uri=" +redirectUri
+                            + "&response_type=code";
     @Override
     @RequestMapping(value="/login.do" ,method = RequestMethod.POST )
     public ModelAndView login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
@@ -39,7 +44,7 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
-
+            
             mav.setViewName("redirect:/spendolive/main.do");  
         }
         //로그인 실피 시 로그인 화면 유지
@@ -55,6 +60,8 @@ public class MemberControllerImpl implements MemberController{
     @RequestMapping(value="/loginForm.do" , method = {RequestMethod.POST, RequestMethod.GET})
     public ModelAndView loginForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
         ModelAndView mav = new ModelAndView();
+        HttpSession session = request.getSession();
+        session.setAttribute("kakaoAuthUrl", kakaoAuthUrl);
         mav.setViewName("member/loginForm");
 
         return mav;

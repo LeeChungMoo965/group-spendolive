@@ -1,13 +1,9 @@
 package com.example.spendolive.member.domain;
 
 import lombok.Setter;
-
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
 @Getter
 @Setter
-@Component
 public class MemberVO {
 	private int member_id;
 	private int warning_count;

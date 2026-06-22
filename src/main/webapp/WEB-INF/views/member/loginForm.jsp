@@ -73,12 +73,9 @@
                 SpendOlive 계정으로 로그인하고 나의 지출 현황을 확인하세요.
             </p>
         </div>
-        <button class="auth-btn auth-btn-kakao" onclick="kakaoLogin()">
-            <span>
-                K
-            </span>
-            카카오톡으로 로그인
-        </button>
+        <a href="${kakaoAuthUrl}">
+            <img src="${contextPath}/resources/images/kakao_login_medium_narrow.png" alt="카카오 로그인 버튼" />
+        </a>
         <div class="auth-divider">
             또는 일반 로그인
         </div>
