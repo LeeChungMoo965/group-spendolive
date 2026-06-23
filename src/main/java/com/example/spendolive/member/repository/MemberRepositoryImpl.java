@@ -25,6 +25,11 @@ public class MemberRepositoryImpl implements MemberRepository{
     + "FROM member_tb WHERE id = ? AND password = ?";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
     +" from member_tb where id =?";
+    private final String checkEmail = "select decode(count(*),1, 'false', 0, 'true') as email"
+    +" from member_tb where email =?";
+    private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
+    +" from member_tb where phone =?";
+
 
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
@@ -36,8 +41,6 @@ public class MemberRepositoryImpl implements MemberRepository{
     }
     @Override
     public boolean checkId(String id){
-        
-         
         try {
             return jdbcTemplate.queryForObject(checkId, (rs, rowNum) -> {
                 String ids = rs.getString("id");
@@ -45,6 +48,34 @@ public class MemberRepositoryImpl implements MemberRepository{
                     return  true;}
                 return false;
                 } ,id);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return false; 
+        }
+    }
+    @Override
+    public boolean checkEmail(String email){
+        try {
+            return jdbcTemplate.queryForObject(checkEmail, (rs, rowNum) -> {
+                String emails = rs.getString("email");
+                if(emails.equals("true")){
+                    return  true;}
+                return false;
+                } ,email);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return false; 
+        }
+    }
+    @Override
+    public boolean checkPhone(String phone){
+        try {
+            return jdbcTemplate.queryForObject(checkPhone, (rs, rowNum) -> {
+                String phones = rs.getString("phone");
+                if(phones.equals("true")){
+                    return  true;}
+                return false;
+                } ,phone);
         }catch (org.springframework.dao.EmptyResultDataAccessException e) {
             // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
             return false; 

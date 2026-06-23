@@ -13,4 +13,6 @@ public interface NoticeService {
     int getNoticeCount();
 
     int getPinnedCount();
+
+    List<NoticeDTO> getImportantList();
 }

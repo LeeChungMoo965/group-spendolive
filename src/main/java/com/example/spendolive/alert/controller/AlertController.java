@@ -8,6 +8,10 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spendolive.alert.service.AlertService;
 
+import java.util.List;
+import org.springframework.web.bind.annotation.ResponseBody;
+import com.example.spendolive.alert.domain.AlertDTO;
+
 @Controller
 @RequestMapping("/spendolive/alert")
 public class AlertController {
@@ -54,4 +58,16 @@ public class AlertController {
 
         return mav;
     }
+
+    @GetMapping("/ajax/alertList.do")
+        @ResponseBody
+        public List<AlertDTO> ajaxAlertList() {
+        return alertService.getAlertList();
+        }
+
+        @GetMapping("/ajax/unreadList.do")
+        @ResponseBody
+        public List<AlertDTO> ajaxUnreadList() {
+        return alertService.getUnreadList();
+        }
 }

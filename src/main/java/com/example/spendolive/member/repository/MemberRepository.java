@@ -9,4 +9,6 @@ public interface MemberRepository {
     public MemberVO login(Map loginMap) throws DataAccessException;
 	public void insertNewMember(MemberVO memberVO) throws DataAccessException;
 	public boolean checkId(String id) throws DataAccessException;
+	public boolean checkPhone(String phone) throws DataAccessException;
+	public boolean checkEmail(String email) throws DataAccessException;
 }

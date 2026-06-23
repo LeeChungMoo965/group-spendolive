@@ -88,3 +88,12 @@
   background: #8a8f33;
   color: #fff6b0;
 }
+
+.notice-summary-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.notice-summary-link:hover {
+  transform: translateY(-4px);
+}

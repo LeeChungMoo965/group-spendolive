@@ -125,6 +125,14 @@
         public boolean checkId(String id){
             return memberRepository.checkId(id);
         }
+        @Override
+        public boolean checkEmail(String email){
+            return memberRepository.checkEmail(email);
+        }
+        @Override
+        public boolean checkPhone(String phone){
+            return memberRepository.checkPhone(phone);
+        }
         // 카카오
         @Override
         public Map<String, String> getKakaoUserInfo(String code) throws Exception {

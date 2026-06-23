@@ -25,4 +25,9 @@ public class AlertServiceImpl implements AlertService {
     public AlertDTO getAlertDetail(int alertId) {
         return alertRepository.findById(alertId);
     }
+
+    @Override
+    public List<AlertDTO> getUnreadList() {
+    return alertRepository.findUnread();
+    }
 }

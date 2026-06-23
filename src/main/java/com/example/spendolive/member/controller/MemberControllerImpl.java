@@ -1,6 +1,7 @@
 package com.example.spendolive.member.controller;
 import java.util.Map;
 
+import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -76,7 +77,8 @@ public class MemberControllerImpl implements MemberController{
         HttpSession session=request.getSession();
         session.setAttribute("isLogOn", false);
         session.removeAttribute("memberInfo");
-        mav.setViewName("/spendolive/main.do");
+        session.removeAttribute("login_type");
+        mav.setViewName("redirect:/spendolive/main.do");
         return mav;
     }
 
@@ -104,6 +106,9 @@ public class MemberControllerImpl implements MemberController{
             message += " </script>";
             e.printStackTrace();
         }
+        HttpSession session = request.getSession();
+        session.removeAttribute("id");
+        session.removeAttribute("member_name");
         resEntity = new ResponseEntity(message, responseHeaders, HttpStatus.OK);
         return resEntity;
     }
@@ -204,6 +209,18 @@ public class MemberControllerImpl implements MemberController{
         public boolean checkId(@RequestParam("id") String id) throws Exception {
             return memberService.checkId(id);
         }
+        @Override
+        @RequestMapping(value="/checkEmail", method = RequestMethod.POST)
+        @ResponseBody
+        public boolean checkEmail(@RequestParam("email") String email) throws Exception {
+            return memberService.checkEmail(email);
+        }
+        @Override
+        @RequestMapping(value="/checkPhone", method = RequestMethod.POST)
+        @ResponseBody
+        public boolean checkPhone(@RequestParam("phone") String phone) throws Exception {
+            return memberService.checkPhone(phone);
+        }
     // 카카오
     // ... 기존 코드 (login, loginForm 등) ...
 
@@ -226,14 +243,17 @@ public class MemberControllerImpl implements MemberController{
             String id = userInfo.get("id");
             // 3. 세션 처리
             HttpSession session = request.getSession();
-            session.setAttribute("id", id);
-            session.setAttribute("member_name", userInfo.get("nickname"));
+            
             if(memberService.checkId(id)){
+                session.setAttribute("login_type", "KAKAO");
+                session.setAttribute("id", id);
+                session.setAttribute("member_name", userInfo.get("nickname"));
                 mav.setViewName("/member/signup");  
             } else {
                 memberVO = memberService.login(userInfo);
                 session.setAttribute("memberInfo", memberVO);
                 session.setAttribute("isLogOn", true);
+                session.setAttribute("login_type", "KAKAO");
                 mav.setViewName("redirect:/spendolive/main.do"); // 메인 이동은 redirect 권장
             }
             // TODO: userInfo.get("id") 값을 바탕으로 DB 조회 후

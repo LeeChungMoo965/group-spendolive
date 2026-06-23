@@ -9,4 +9,6 @@ public interface AlertService {
     List<AlertDTO> getAlertList();
 
     AlertDTO getAlertDetail(int alertId);
+    
+    List<AlertDTO> getUnreadList();
 }

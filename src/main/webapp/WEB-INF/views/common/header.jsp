@@ -31,7 +31,7 @@
         <div class="header-actions">
         <c:choose>
             <c:when test="${isLogOn == true && not empty memberInfo}">
-            <a class="btn btn-light" href="${contextPath}/member/logout.do">
+            <a class="btn btn-light" href="${contextPath}/member/logout.do" onclick="return confirm('로그아웃 하시겠습니까?');">
                 로그아웃
             </a>
            

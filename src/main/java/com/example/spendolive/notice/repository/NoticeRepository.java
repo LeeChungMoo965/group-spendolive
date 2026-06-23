@@ -32,6 +32,7 @@ public class NoticeRepository {
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             NoticeDTO notice = new NoticeDTO();
+
             notice.setNoticeId(rs.getInt("notice_id"));
             notice.setAdminId(rs.getString("admin_id"));
             notice.setTitle(rs.getString("title"));
@@ -78,5 +79,37 @@ public class NoticeRepository {
     public int countPinned() {
         String sql = "SELECT COUNT(*) FROM notice_tb WHERE pinned_yn = 'Y'";
         return jdbcTemplate.queryForObject(sql, Integer.class);
+    }
+
+
+    public List<NoticeDTO> findImportant() {
+
+        String sql = """
+            SELECT
+                notice_id,
+                admin_id,
+                title,
+                content,
+                pinned_yn,
+                TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at,
+                TO_CHAR(updated_at, 'YYYY.MM.DD') AS updated_at
+            FROM notice_tb
+            WHERE pinned_yn = 'Y'
+            ORDER BY created_at DESC
+        """;
+    
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            NoticeDTO notice = new NoticeDTO();
+    
+            notice.setNoticeId(rs.getInt("notice_id"));
+            notice.setAdminId(rs.getString("admin_id"));
+            notice.setTitle(rs.getString("title"));
+            notice.setContent(rs.getString("content"));
+            notice.setPinnedYn(rs.getString("pinned_yn"));
+            notice.setCreatedAt(rs.getString("created_at"));
+            notice.setUpdatedAt(rs.getString("updated_at"));
+    
+            return notice;
+        });
     }
 }
