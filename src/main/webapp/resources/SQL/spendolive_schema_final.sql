@@ -1246,3 +1246,51 @@ JOIN expense_category_tb c ON e.category_id = c.category_id
 WHERE e.member_id = :memberId
   AND TRUNC(e.expense_date) = TO_DATE(:expenseDate, 'YYYY-MM-DD')
 ORDER BY e.expense_id DESC;
+
+
+
+/* =========================================================
+    22. 추가 : 회원별 공지 즐겨찾기(찜)
+   ========================================================= */
+
+
+  CREATE TABLE notice_bookmark_tb (
+    bookmark_id NUMBER NOT NULL,
+    id VARCHAR2(20) NOT NULL,
+    notice_id NUMBER NOT NULL,
+    created_at DATE DEFAULT SYSDATE NOT NULL,
+
+    CONSTRAINT pk_notice_bookmark
+        PRIMARY KEY (bookmark_id),
+
+    CONSTRAINT fk_notice_bookmark_member
+        FOREIGN KEY (id)
+        REFERENCES member_tb(id),
+
+    CONSTRAINT fk_notice_bookmark_notice
+        FOREIGN KEY (notice_id)
+        REFERENCES notice_tb(notice_id),
+
+    CONSTRAINT uk_notice_bookmark
+        UNIQUE (id, notice_id)
+);
+
+/*시퀀스*/
+
+    CREATE SEQUENCE seq_notice_bookmark
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE;
+
+/*트리거*/
+
+    
+    CREATE OR REPLACE TRIGGER trg_notice_bookmark_bi
+    BEFORE INSERT ON notice_bookmark_tb
+    FOR EACH ROW
+    BEGIN
+        IF :NEW.bookmark_id IS NULL THEN
+            :NEW.bookmark_id := seq_notice_bookmark.NEXTVAL;
+        END IF;
+    END;
+    /
