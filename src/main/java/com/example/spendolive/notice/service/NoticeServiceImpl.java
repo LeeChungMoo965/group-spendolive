@@ -36,4 +36,9 @@ public class NoticeServiceImpl implements NoticeService {
     public int getPinnedCount() {
         return noticeRepository.countPinned();
     }
+
+    @Override
+    public List<NoticeDTO> getImportantList() {
+    return noticeRepository.findImportant();
+}
 }

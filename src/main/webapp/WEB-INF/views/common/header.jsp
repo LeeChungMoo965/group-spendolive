@@ -1,8 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<c:set var="contextPath" value="${pageContext.request.contextPath}" />
-<c:set var="requestURI" value="${pageContext.request.requestURI}" />
+<c:set var="contextPath" value="${contextPath}" />
+<c:set var="requestURI" value="${requestURI}" />
 <header class="site-header">
     <div class="container header-inner">
         <a href="${contextPath}/spendolive/main.do" class="logo">
@@ -12,7 +12,9 @@
             </span>
         </a>
         <nav class="nav">
+
             <a href="${contextPath}/spendolive/notice/center.do">🔔</a>
+
             <a href="${contextPath}/spendolive/expense/list.do" class="${fn:contains(requestURI, '/expense') ? 'active' : ''}">
                 지출관리
             </a>

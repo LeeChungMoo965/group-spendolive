@@ -1,0 +1,48 @@
+.alert-list{
+    display:grid;
+    gap:14px;
+}
+
+.alert-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:20px;
+
+    background:#fff;
+
+    border:1px solid var(--line);
+
+    border-radius:18px;
+
+    box-shadow:var(--shadow);
+
+    transition:.2s;
+}
+
+.alert-card:hover{
+    transform:translateY(-2px);
+}
+
+.alert-badge{
+    display:inline-block;
+
+    margin-right:8px;
+
+    padding:4px 8px;
+
+    border-radius:999px;
+
+    background:var(--olive);
+
+    color:#fff;
+
+    font-size:12px;
+
+    font-weight:700;
+}
+
+.alert-date{
+    color:var(--muted);
+}
