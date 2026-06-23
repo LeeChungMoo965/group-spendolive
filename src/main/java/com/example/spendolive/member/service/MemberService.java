@@ -11,5 +11,7 @@ public interface MemberService {
 	public String sendSmsVerification(String toNumber) throws Exception;
 	public boolean checkId(String id) throws Exception;
 	public Map<String, String> getKakaoUserInfo(String code) throws Exception;
+	public boolean checkEmail(String email) throws Exception;
+	public boolean checkPhone(String phone) throws Exception;
 }
 

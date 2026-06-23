@@ -23,4 +23,6 @@ public interface MemberController {
 	public boolean verifySms(@RequestParam("inputCode") String inputCode, HttpServletRequest request) throws Exception;
 	public boolean verifyEmail(@RequestParam("inputCode") String inputCode, HttpServletRequest request) throws Exception;
 	public boolean checkId(@RequestParam("id") String id) throws Exception;
+	public boolean checkEmail(@RequestParam("email") String email) throws Exception;
+	public boolean checkPhone(@RequestParam("phone") String phone) throws Exception;
 }
