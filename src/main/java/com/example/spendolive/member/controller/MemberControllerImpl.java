@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.OverridesAttribute;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +28,10 @@ public class MemberControllerImpl implements MemberController{
     @Autowired
     private MemberService memberService;
     private MemberVO memberVO;
-    private final String clientId = "700ee71dfda3cbe5ed1ad66eedc9448e";
-    private final String redirectUri = "http://localhost:8080/carrentproject/kakaoCallback.jsp";
-    private final String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
-                            + "?client_id=" + clientId 
-                            + "&redirect_uri=" +redirectUri
-                            + "&response_type=code";
+    @Value("${kakao.client.id}")
+    private String clientId;
+    @Value("${kakao.redirect.uri}")
+    private String redirectUri;
     @Override
     @RequestMapping(value="/login.do" ,method = RequestMethod.POST )
     public ModelAndView login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
@@ -59,9 +58,13 @@ public class MemberControllerImpl implements MemberController{
     @Override
     @RequestMapping(value="/loginForm.do" , method = {RequestMethod.POST, RequestMethod.GET})
     public ModelAndView loginForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
+                            + "?client_id=" + clientId 
+                            + "&redirect_uri=" +redirectUri
+                            + "&response_type=code";
         ModelAndView mav = new ModelAndView();
         HttpSession session = request.getSession();
-        session.setAttribute("kakaoAuthUrl", kakaoAuthUrl);
+        mav.addObject("kakaoAuthUrl", kakaoAuthUrl);
         mav.setViewName("member/loginForm");
 
         return mav;
@@ -73,7 +76,7 @@ public class MemberControllerImpl implements MemberController{
         HttpSession session=request.getSession();
         session.setAttribute("isLogOn", false);
         session.removeAttribute("memberInfo");
-        mav.setViewName("redirect:/spendolive/main.do");
+        mav.setViewName("/spendolive/main.do");
         return mav;
     }
 
@@ -141,7 +144,9 @@ public class MemberControllerImpl implements MemberController{
         } catch (Exception e) {
             return "ERROR";
         }
+        
     }
+ 
     @Override
     @RequestMapping(value="/verifyEmail", method = RequestMethod.POST)
     @ResponseBody
@@ -192,4 +197,57 @@ public class MemberControllerImpl implements MemberController{
             
             return false;
         }
+        //아이디 중복확인
+        @Override
+        @RequestMapping(value="/checkId", method = RequestMethod.POST)
+        @ResponseBody
+        public boolean checkId(@RequestParam("id") String id) throws Exception {
+            return memberService.checkId(id);
+        }
+    // 카카오
+    // ... 기존 코드 (login, loginForm 등) ...
+
+    // 카카오 로그인 콜백 (Redirect URI로 설정된 주소)
+    @RequestMapping(value="/kakaoCallback.do", method = RequestMethod.GET)
+    public ModelAndView kakaoCallback(@RequestParam(value = "code", required = false) String code, 
+                                      HttpServletRequest request) {
+        ModelAndView mav = new ModelAndView();
+                                    
+        // 1. 인가 코드 누락(사용자가 취소 버튼을 누른 경우 등) 처리
+        if (code == null || code.trim().isEmpty()) {
+            mav.addObject("message", "카카오 로그인이 취소되었거나 오류가 발생했습니다.");
+            mav.setViewName("/member/loginForm");
+            return mav;
+        }
+       
+        try {
+            // 2. 통합된 MemberService를 통해 카카오 유저 정보 획득
+            Map<String, String> userInfo = memberService.getKakaoUserInfo(code);
+            String id = userInfo.get("id");
+            // 3. 세션 처리
+            HttpSession session = request.getSession();
+            session.setAttribute("id", id);
+            session.setAttribute("member_name", userInfo.get("nickname"));
+            if(memberService.checkId(id)){
+                mav.setViewName("/member/signup");  
+            } else {
+                memberVO = memberService.login(userInfo);
+                session.setAttribute("memberInfo", memberVO);
+                session.setAttribute("isLogOn", true);
+                mav.setViewName("redirect:/spendolive/main.do"); // 메인 이동은 redirect 권장
+            }
+            // TODO: userInfo.get("id") 값을 바탕으로 DB 조회 후
+            // 기존 회원이면 로그인 처리, 신규 회원이면 회원가입 페이지 이동 혹은 자동 가입 로직 추가 가능
+
+            // 성공 시 메인 화면으로 이동
+            
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            mav.addObject("message", "카카오 로그인 연동 중 서버 오류가 발생했습니다.");
+            mav.setViewName("/member/loginForm");
+        }
+        
+        return mav;
+    }
 }

@@ -75,9 +75,67 @@
             </p>
         </div>
 
-              
-        <form action="${contextPath}/member/addmember.do" method="post" onsubmit="return joinCheck()">
+        <c:choose>
+            <c:when test="${login_type == 'KAKAO'}"> 
+            <form action="${contextPath}/member/addmember.do" method="post" onsubmit="return joinCheckKakao()">
+            <div class="auth-grid-2">
+                <div class="auth-form-group">
+                    <label for="name">
+                        이름
+                    </label>
+                    <input id="name" name="member_name" type="readonly" value="${member_name}">
+                </div>
+                <div class="auth-form-group">
+                    <label for="nickname">
+                        닉네임
+                    </label>
+                    <input id="nickname"name="nickname" type="text" placeholder="닉네임을 입력하세요">
+                </div>
+            </div>
+               <div class="auth-form-group">
+                <label for="email">
+                    이메일
+                </label>
+                <div class="auth-input-row">
+                    <input id="email" name="email"type="email" placeholder="example@email.com">
+                    <button class="auth-btn auth-btn-light" type="button" onclick="sendEmail()">인증요청</button>
+                </div>
+            </div>
+            <div class="auth-form-group" id="emailAuthArea" style="display:none;">
+                <label for="emailAuthCode">인증번호 입력</label>
+                <div class="auth-input-row">
+                    <input id="emailAuthCode" type="text" placeholder="6자리 인증번호를 입력하세요">
+                    <button class="auth-btn auth-btn-light" type="button" onclick="verifyEmail()">인증확인</button>
+                </div>
+                <p id="emailAuthResult" class="auth-result-text">이메일로 발송된 인증번호를 입력해 주세요.</p>
+            </div>
+        
 
+            <div class="auth-form-group">
+                <label for="phone">전화번호</label>
+                <div class="auth-input-row">
+                    <input id="phone" name="phone" type="tel" placeholder="010-0000-0000">
+                    <button class="auth-btn auth-btn-light" type="button" onclick="sendSms()">인증요청</button>
+                </div>
+            </div>
+
+            <div class="auth-form-group" id="phoneAuthArea" style="display:none;">
+                <label for="phoneAuthCode">전화번호 인증번호 입력</label>
+                <div class="auth-input-row">
+                    <input id="phoneAuthCode" type="text" placeholder="6자리 인증번호를 입력하세요">
+                    <button class="auth-btn auth-btn-light" type="button" onclick="verifySms()">인증확인</button>
+                </div>
+                <p id="phoneAuthResult" class="auth-result-text">휴대폰으로 발송된 인증번호를 입력해 주세요.</p>
+            </div>
+            <input id="password" type="hidden" name="password" value="KAKAO">
+            <input id="userId" type="hidden" name="id" value="${id}">
+            <input id="login_type" type="hidden" name="login_type" value="${login_type}">
+            </c:when>
+        <c:otherwise>
+         
+        
+        <form action="${contextPath}/member/addmember.do" method="post" onsubmit="return joinCheck()">
+        <input id="userId" type="hidden" name="login_type" value="LOCAL">
             <div class="auth-grid-2">
                 <div class="auth-form-group">
                     <label for="name">
@@ -155,7 +213,8 @@
                     <input id="passwordCheck" type="password" placeholder="비밀번호를 다시 입력하세요">
                 </div>
             </div>
-           
+           </c:otherwise>
+        </c:choose>
             <br>
             <button class="auth-btn auth-btn-primary" type="submit">
                 회원가입

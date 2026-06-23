@@ -9,5 +9,7 @@ public interface MemberService {
 	public String overlapped(String id) throws Exception;
 	public String sendVerificationEmail(String toEmail) throws Exception;
 	public String sendSmsVerification(String toNumber) throws Exception;
+	public boolean checkId(String id) throws Exception;
+	public Map<String, String> getKakaoUserInfo(String code) throws Exception;
 }
 
