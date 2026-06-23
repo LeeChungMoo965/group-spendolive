@@ -96,8 +96,8 @@
                 type: "POST",
                 url: eContextPath + "/member/sendEmail",
                 data: { "email": email },
-                success: function(data) {
-                    if(data === "SUCCESS") {
+                success: function(isSuccess) {
+                    if(isSuccess) {
                         alert("입력하신 이메일로 인증번호가 전송되었습니다.");
                         $("#emailAuthArea").show(); 
       
