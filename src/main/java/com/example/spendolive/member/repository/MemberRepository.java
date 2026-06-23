@@ -8,5 +8,5 @@ import com.example.spendolive.member.domain.MemberVO;
 public interface MemberRepository {
     public MemberVO login(Map loginMap) throws DataAccessException;
 	public void insertNewMember(MemberVO memberVO) throws DataAccessException;
-	public String selectOverlappedID(String id) throws DataAccessException;
+	public boolean checkId(String id) throws DataAccessException;
 }

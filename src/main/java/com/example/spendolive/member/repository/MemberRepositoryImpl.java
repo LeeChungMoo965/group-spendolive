@@ -1,5 +1,7 @@
 package com.example.spendolive.member.repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +16,15 @@ public class MemberRepositoryImpl implements MemberRepository{
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,verify_type) values(?,?,?,?,?,?,?)";
+    private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
+    
     private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
     + "FROM member_tb WHERE id = ? AND password = ?";
+    private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
+    +" from member_tb where id =?";
 
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
@@ -27,9 +32,24 @@ public class MemberRepositoryImpl implements MemberRepository{
     
     @Override
     public void insertNewMember(MemberVO member){
-        jdbcTemplate.update(signup, member.getId(), member.getEmail(), member.getPassword(), member.getMember_name(), member.getNickname(), member.getPhone(),"PHONE");
+        jdbcTemplate.update(signup, member.getId(), member.getEmail(), member.getPassword(), member.getMember_name(), member.getNickname(), member.getPhone(),member.getLogin_type() ,"PHONE");
     }
-
+    @Override
+    public boolean checkId(String id){
+        
+         
+        try {
+            return jdbcTemplate.queryForObject(checkId, (rs, rowNum) -> {
+                String ids = rs.getString("id");
+                if(ids.equals("true")){
+                    return  true;}
+                return false;
+                } ,id);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return false; 
+        }
+    }
     @Override
     public MemberVO login(Map loginMap) throws DataAccessException {
         String id = (String) loginMap.get("id");
@@ -62,9 +82,5 @@ public class MemberRepositoryImpl implements MemberRepository{
         return null; 
     }
     }
-    @Override
-    public String selectOverlappedID(String id) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'selectOverlappedID'");
-    }
+    
 }
