@@ -53,7 +53,7 @@
                     <a href="${contextPath}/spendolive/notice/center.do?tab=notice"
                        class="btn btn-primary">공지사항</a>
 
-                    <a href="${contextPath}/spendolive/notice/center.do?tab=alarm"
+                    <a href="${contextPath}/spendolive/alert/center.do?tab=alarm"
                        class="btn btn-light">내 알림</a>
                 </div>
             </div>

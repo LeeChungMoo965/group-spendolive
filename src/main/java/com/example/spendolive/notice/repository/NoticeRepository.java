@@ -33,7 +33,7 @@ public class NoticeRepository {
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             NoticeDTO notice = new NoticeDTO();
             notice.setNoticeId(rs.getInt("notice_id"));
-            notice.setAdminId(rs.getInt("admin_id"));
+            notice.setAdminId(rs.getString("admin_id"));
             notice.setTitle(rs.getString("title"));
             notice.setContent(rs.getString("content"));
             notice.setPinnedYn(rs.getString("pinned_yn"));
@@ -60,7 +60,7 @@ public class NoticeRepository {
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
             NoticeDTO notice = new NoticeDTO();
             notice.setNoticeId(rs.getInt("notice_id"));
-            notice.setAdminId(rs.getInt("admin_id"));
+            notice.setAdminId(rs.getString("admin_id"));
             notice.setTitle(rs.getString("title"));
             notice.setContent(rs.getString("content"));
             notice.setPinnedYn(rs.getString("pinned_yn"));

@@ -8,7 +8,7 @@ import lombok.Setter;
 public class NoticeDTO {
 
     private int noticeId;
-    private int adminId;
+    private String adminId;
 
     private String title;
     private String content;
