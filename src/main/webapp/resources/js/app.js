@@ -32,37 +32,38 @@
     el.textContent=message;
     el.className="auth-result-text "+type;
   }
+  var isIdVerified = false; 
 
   function checkId(){
     const id=document.getElementById("userId")?.value.trim()||"";
     if(!id){setAuthMessage("idResult","아이디를 입력해주세요.","warn");return}
-    if(id.length<4){setAuthMessage("idResult","아이디는 4자 이상 입력해주세요.","warn");return}
-    setAuthMessage("idResult","사용할 수 있는 아이디입니다.","ok");
+    if(id.length<4){setAuthMessage("idResult","아이디는 4자 이상 입력해주세요.","warn").css('color', '#FF3B30');return}
+    $.ajax({
+      url: eContextPath + "/member/checkId", // 컨트롤러 매핑 주소
+      type: 'POST',
+      data: { id: id },
+      success: function(isSuccess) {
+        if (isSuccess) {
+            $('#idResult').text('✓ 사용 가능한 아이디 입니다.').css('color', '#4CAF50');
+            isIdVerified = true; 
+        } else {
+            $('#idResult').text('✗ 존재하는 아이디 입니다.').css('color', '#FF3B30');
+            isIdVerified = false; 
+        }
+    },
+    error: function() {
+        alert('중복확인 중 오류가 발생했습니다.');
+    }
+  });
+   
+   
+    
   }
 
-  function sendEmailCode(){
-    const email=document.getElementById("email")?.value.trim()||"";
-    if(!email.includes("@")||!email.includes(".")){setAuthMessage("emailResult","올바른 이메일 형식으로 입력해주세요.","warn");return}
-    setAuthMessage("emailResult","이메일 인증번호가 발송되었습니다.","ok");
-  }
 
-  function verifyEmailCode(){
-    const code=document.getElementById("emailCode")?.value.trim()||"";
-    if(!code){setAuthMessage("emailResult","이메일 인증번호를 입력해주세요.","warn");return}
-    setAuthMessage("emailResult","이메일 인증이 완료되었습니다.","ok");
-  }
 
-  function sendPhoneCode(){
-    const phone=document.getElementById("phone")?.value.trim()||"";
-    if(!phone){setAuthMessage("phoneResult","전화번호를 입력해주세요.","warn");return}
-    setAuthMessage("phoneResult","전화번호 인증번호가 발송되었습니다.","ok");
-  }
 
-  function verifyPhoneCode(){
-    const code=document.getElementById("phoneCode")?.value.trim()||"";
-    if(!code){setAuthMessage("phoneResult","전화번호 인증번호를 입력해주세요.","warn");return}
-    setAuthMessage("phoneResult","전화번호 인증이 완료되었습니다.","ok");
-  }
+
 
   document.addEventListener("DOMContentLoaded",()=>{
     document.querySelectorAll(".modal").forEach((modal)=>{
@@ -158,7 +159,7 @@ function sendSms() {
             $('#phoneAuthResult').text('콘솔창에 찍힌 6자리 숫자를 입력하세요.').css('color', '#666');
         },
         error: function() {
-            alert('문자 발송 요청 중 오류가 발생했습니다.');
+            alert('문자 발송 요청 중 오류가 발생했습니다 핸드폰 번호를 확인해 주세요! ');
         }
     });
 }
@@ -201,11 +202,25 @@ function joinCheck() {
     alert('전화번호 인증을 완료해 주세요.');
     return false;
   }
-  
+  if (!isIdVerified) {
+    alert('아이디 중복확인을 완료해 주세요.');
+    return false;
+  }
   if($("#password").val() !== $("#passwordCheck").val()) {
       alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
       return false;
   }
   return true;
 }
+function joinCheckKakao() {
+    if(!isEmailVerified) {
+        alert("이메일 인증을 완료해야 회원가입이 가능합니다.");
+        return false;    
+    }
+    if (!isPhoneVerified) {
+      alert('전화번호 인증을 완료해 주세요.');
+      return false;
+    }
+    return true;
+  }
 // 3. 최종 회원가입 서브밋 전 벨리데이션 체크 (joinCheck 함수가 있다면 추가)

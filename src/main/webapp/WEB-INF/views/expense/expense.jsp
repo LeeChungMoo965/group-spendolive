@@ -416,6 +416,10 @@
     const fixedYnInput = document.getElementById('fixedYn');
     const categoryOptions = Array.from(categorySelect.querySelectorAll('option[data-type]'));
 
+    function isRepeatTargetType(type) {
+        return type === 'FIXED' || type === 'OTT';
+    }
+
     function filterCategories() {
         const selectedType = expenseTypeSelect.value;
 
@@ -427,7 +431,7 @@
             }
         });
 
-        if (selectedType === 'FIXED') {
+        if (isRepeatTargetType(selectedType)) {
             repeatCycleArea.style.display = 'block';
             fixedYnInput.value = 'Y';
         } else {
@@ -436,15 +440,20 @@
             repeatYnInput.value = 'N';
             fixedYnInput.value = 'N';
         }
+
+        changeRepeatYn();
     }
 
     function changeRepeatYn() {
-        if (expenseTypeSelect.value === 'FIXED' && repeatCycleSelect.value !== '') {
+        if (isRepeatTargetType(expenseTypeSelect.value) && repeatCycleSelect.value !== '') {
             repeatYnInput.value = 'Y';
             fixedYnInput.value = 'Y';
-        } else if (expenseTypeSelect.value === 'FIXED') {
+        } else if (isRepeatTargetType(expenseTypeSelect.value)) {
             repeatYnInput.value = 'N';
             fixedYnInput.value = 'Y';
+        } else {
+            repeatYnInput.value = 'N';
+            fixedYnInput.value = 'N';
         }
     }
 
@@ -553,7 +562,7 @@
             return;
         }
 
-        if (typeSelect.value === 'FIXED') {
+        if (isRepeatTargetType(typeSelect.value)) {
             fixedYnInput.value = 'Y';
 
             if (repeatCycleSelect.value !== '') {
