@@ -245,6 +245,7 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             
             if(memberService.checkId(id)){
+                session.setAttribute("login_type", "KAKAO");
                 session.setAttribute("id", id);
                 session.setAttribute("member_name", userInfo.get("nickname"));
                 mav.setViewName("/member/signup");  

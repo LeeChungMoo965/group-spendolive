@@ -56,7 +56,7 @@ public class MemberRepositoryImpl implements MemberRepository{
     @Override
     public boolean checkEmail(String email){
         try {
-            return jdbcTemplate.queryForObject(checkId, (rs, rowNum) -> {
+            return jdbcTemplate.queryForObject(checkEmail, (rs, rowNum) -> {
                 String emails = rs.getString("email");
                 if(emails.equals("true")){
                     return  true;}
@@ -70,7 +70,7 @@ public class MemberRepositoryImpl implements MemberRepository{
     @Override
     public boolean checkPhone(String phone){
         try {
-            return jdbcTemplate.queryForObject(checkId, (rs, rowNum) -> {
+            return jdbcTemplate.queryForObject(checkPhone, (rs, rowNum) -> {
                 String phones = rs.getString("phone");
                 if(phones.equals("true")){
                     return  true;}
