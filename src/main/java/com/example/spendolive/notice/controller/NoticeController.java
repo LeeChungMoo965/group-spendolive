@@ -8,14 +8,18 @@ import org.springframework.web.servlet.ModelAndView;
 import com.example.spendolive.notice.service.NoticeService;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.spendolive.alert.service.AlertService;
+
 @Controller
 @RequestMapping("/spendolive/notice")
 public class NoticeController {
 
     private final NoticeService noticeService;
+private final AlertService alertService;
 
-    public NoticeController(NoticeService noticeService) {
+    public NoticeController(NoticeService noticeService, AlertService alertService) {
         this.noticeService = noticeService;
+        this.alertService = alertService;
     }
 
     @GetMapping("/center.do")
