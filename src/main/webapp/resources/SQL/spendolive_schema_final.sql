@@ -125,7 +125,6 @@ CREATE TABLE member_tb (
 
     /* 권한
        USER  : 일반 회원
-       HOST  : 파티장
        ADMIN : 관리자
     */
     role VARCHAR2(20) DEFAULT 'USER' NOT NULL,
