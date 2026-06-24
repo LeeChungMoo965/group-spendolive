@@ -12,17 +12,28 @@ public class OttRoomDTO {
     private Long ottServiceId;
     private String serviceName;
     private String roomName;
+    private String planName;
     private Integer totalPrice;
     private Integer billingDay;
     private Integer memberLimit;
     private Integer currentMemberCount;
     private String status;
     private String inviteCode;
+    private String closeRequestedAt;
+    private String closeEffectiveDate;
+    private String closeReason;
+    private String closeNotice;
+    private String closedAt;
     private String createdAt;
+    private Integer shareAmount;
+    private Integer feeAmount;
     private Integer perPersonAmount;
+    private Double platformFeeRate;
+    private Integer basePrice;
+    private Integer extraMemberFee;
+    private Integer extraMemberCount;
     private String myApplicationStatus;
 
-    // 화면에서만 사용하는 값. DB 컬럼은 없기 때문에 roomName에 합쳐서 저장한다.
-    private String planName;
+    // 화면에서만 사용하는 값
     private String roomMode;
 }

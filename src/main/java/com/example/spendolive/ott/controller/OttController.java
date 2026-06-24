@@ -33,6 +33,7 @@ public class OttController {
 
     @GetMapping("/ott.do")
     public String ottMain(Model model, HttpSession session) {
+        ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
 
         model.addAttribute("serviceList", ottService.getShareableServices());
@@ -50,18 +51,17 @@ public class OttController {
 
     @GetMapping("/ott/friends.do")
     public String friends(Model model, HttpSession session) {
+        ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
 
         if (loginId == null) {
             return "redirect:/member/loginForm.do";
         }
 
-        model.addAttribute("serviceList", ottService.getShareableServices());
+        addCommonOttModel(model, loginId);
         model.addAttribute("myRoomList", ottService.getMyRooms(loginId));
         model.addAttribute("hostedRoomList", ottService.getHostedRooms(loginId));
         model.addAttribute("settlementList", ottService.getMySettlements(loginId));
-        model.addAttribute("selectedSettlementMonth", YearMonth.now().toString());
-        model.addAttribute("defaultDueDate", LocalDate.now().plusDays(7).toString());
         model.addAttribute("body_page", "/WEB-INF/views/ott/ottFriends.jsp");
         return "common/layout";
     }
@@ -82,20 +82,19 @@ public class OttController {
     public String recruit(@RequestParam(value = "tab", required = false, defaultValue = "all") String tab,
                           Model model,
                           HttpSession session) {
+        ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
 
         if (loginId == null) {
             return "redirect:/member/loginForm.do";
         }
 
+        addCommonOttModel(model, loginId);
         model.addAttribute("tab", tab);
-        model.addAttribute("serviceList", ottService.getShareableServices());
         model.addAttribute("recruitRoomList", ottService.getRecruitRooms(loginId));
         model.addAttribute("hostedRoomList", ottService.getHostedRooms(loginId));
         model.addAttribute("hostedRoomMemberList", ottService.getHostedRoomMembers(loginId));
         model.addAttribute("settlementList", ottService.getMySettlements(loginId));
-        model.addAttribute("selectedSettlementMonth", YearMonth.now().toString());
-        model.addAttribute("defaultDueDate", LocalDate.now().plusDays(7).toString());
         model.addAttribute("body_page", "/WEB-INF/views/ott/ottRecruit.jsp");
         return "common/layout";
     }
@@ -150,6 +149,7 @@ public class OttController {
 
     @GetMapping("/ott/chat/room.do")
     public String chatRoom(@RequestParam("roomId") Long roomId, Model model, HttpSession session) {
+        ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
 
         if (loginId == null) {
@@ -161,6 +161,7 @@ public class OttController {
             return "redirect:/spendolive/ott.do?error=noChatAccess";
         }
 
+        model.addAttribute("loginId", loginId);
         model.addAttribute("chatRoom", chatRoom);
         model.addAttribute("chatMessageList", ottService.getChatMessages(roomId, loginId));
         ottService.markChatRoomAsRead(roomId, loginId);
@@ -209,11 +210,7 @@ public class OttController {
         }
 
         if (settlementMonth == null || settlementMonth.isBlank()) {
-            settlementMonth = YearMonth.now().toString();
-        }
-
-        if (dueDate == null || dueDate.isBlank()) {
-            dueDate = LocalDate.now().plusDays(7).toString();
+            settlementMonth = YearMonth.now().plusMonths(1).toString();
         }
 
         ottService.requestSettlement(roomId, loginId, settlementMonth, dueDate);
@@ -223,6 +220,57 @@ public class OttController {
         }
 
         return "redirect:/spendolive/ott/recruit.do?tab=settlement&result=settlementRequested";
+    }
+
+    @PostMapping("/ott/settlement/pay.do")
+    public String paySettlement(@RequestParam("paymentId") Long paymentId,
+                                @RequestParam(value = "returnPage", required = false, defaultValue = "recruit") String returnPage,
+                                HttpSession session) {
+        String loginId = getLoginId(session);
+
+        if (loginId == null) {
+            return "redirect:/member/loginForm.do";
+        }
+
+        ottService.markPaymentPaid(paymentId, loginId);
+
+        if ("friends".equals(returnPage)) {
+            return "redirect:/spendolive/ott/friends.do?result=paid";
+        }
+
+        return "redirect:/spendolive/ott/recruit.do?tab=settlement&result=paid";
+    }
+
+    @PostMapping("/ott/room/close-request.do")
+    public String closeRoom(@RequestParam("roomId") Long roomId,
+                            @RequestParam(value = "closeNotice", required = false) String closeNotice,
+                            @RequestParam(value = "closeReason", required = false) String closeReason,
+                            @RequestParam(value = "returnPage", required = false, defaultValue = "friends") String returnPage,
+                            HttpSession session) {
+        String loginId = getLoginId(session);
+
+        if (loginId == null) {
+            return "redirect:/member/loginForm.do";
+        }
+
+        ottService.requestRoomClose(roomId, loginId, closeNotice, closeReason);
+
+        if ("recruit".equals(returnPage)) {
+            return "redirect:/spendolive/ott/recruit.do?tab=apply&result=closeRequested";
+        }
+
+        return "redirect:/spendolive/ott/friends.do?result=closeRequested";
+    }
+
+    private void addCommonOttModel(Model model, String loginId) {
+        YearMonth nextMonth = YearMonth.now().plusMonths(1);
+        LocalDate today = LocalDate.now();
+
+        model.addAttribute("loginId", loginId);
+        model.addAttribute("serviceList", ottService.getShareableServices());
+        model.addAttribute("selectedSettlementMonth", nextMonth.toString());
+        model.addAttribute("today", today.toString());
+        model.addAttribute("settlementGuide", "OTT별 최고 멤버십 기준 금액을 N분의 1로 나누고 서비스 수수료 3%를 더해 정산합니다. 결제 마감일은 이용 시작일 5일 전으로 자동 계산됩니다.");
     }
 
     private String getLoginId(HttpSession session) {

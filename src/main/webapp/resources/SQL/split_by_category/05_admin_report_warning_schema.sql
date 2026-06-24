@@ -1,0 +1,74 @@
+/* =========================================================
+   05. 신고/경고 관리자 SQL
+   =========================================================
+   실행 안내: 01_member_schema.sql과 03_ott_schema.sql 실행 후 실행. 신고 테이블이 ott_room_tb를 참조함.
+   ========================================================= */
+
+SET DEFINE OFF;
+
+/* =========================================================
+   21. [팀 원본 사용] 신고 테이블
+   ========================================================= */
+CREATE TABLE report_tb (
+    report_id          NUMBER NOT NULL,
+    reporter_id        VARCHAR2(20) NOT NULL,
+    reported_member_id VARCHAR2(20) NOT NULL,
+    room_id            NUMBER,
+    report_reason      VARCHAR2(500) NOT NULL,
+    report_status      VARCHAR2(20) DEFAULT 'WAIT' NOT NULL,
+    admin_comment      VARCHAR2(1000),
+    created_at         DATE DEFAULT SYSDATE NOT NULL,
+    processed_at       DATE,
+
+    CONSTRAINT pk_report PRIMARY KEY (report_id),
+    CONSTRAINT fk_report_reporter FOREIGN KEY (reporter_id) REFERENCES member_tb(id),
+    CONSTRAINT fk_report_reported FOREIGN KEY (reported_member_id) REFERENCES member_tb(id),
+    CONSTRAINT fk_report_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
+    CONSTRAINT ck_report_status CHECK (report_status IN ('WAIT', 'PROCESSING', 'COMPLETE', 'REJECT'))
+);
+
+CREATE SEQUENCE seq_report START WITH 1 INCREMENT BY 1 NOCACHE;
+
+CREATE OR REPLACE TRIGGER trg_report_bi
+BEFORE INSERT ON report_tb
+FOR EACH ROW
+WHEN (NEW.report_id IS NULL)
+BEGIN
+    SELECT seq_report.NEXTVAL INTO :NEW.report_id FROM dual;
+END;
+/
+
+CREATE INDEX idx_report_reported ON report_tb(reported_member_id, report_status);
+
+/* =========================================================
+   22. [팀 원본 사용] 경고 테이블
+   ========================================================= */
+CREATE TABLE warning_tb (
+    warning_id     NUMBER NOT NULL,
+    member_id      VARCHAR2(20) NOT NULL,
+    report_id      NUMBER,
+    warning_reason VARCHAR2(500) NOT NULL,
+    warning_level  NUMBER NOT NULL,
+    penalty_days   NUMBER,
+    permanent_yn   CHAR(1) DEFAULT 'N' NOT NULL,
+    created_at     DATE DEFAULT SYSDATE NOT NULL,
+
+    CONSTRAINT pk_warning PRIMARY KEY (warning_id),
+    CONSTRAINT fk_warning_member FOREIGN KEY (member_id) REFERENCES member_tb(id),
+    CONSTRAINT fk_warning_report FOREIGN KEY (report_id) REFERENCES report_tb(report_id),
+    CONSTRAINT ck_warning_level CHECK (warning_level IN (1, 2, 3)),
+    CONSTRAINT ck_warning_permanent CHECK (permanent_yn IN ('Y', 'N'))
+);
+
+CREATE SEQUENCE seq_warning START WITH 1 INCREMENT BY 1 NOCACHE;
+
+CREATE OR REPLACE TRIGGER trg_warning_bi
+BEFORE INSERT ON warning_tb
+FOR EACH ROW
+WHEN (NEW.warning_id IS NULL)
+BEGIN
+    SELECT seq_warning.NEXTVAL INTO :NEW.warning_id FROM dual;
+END;
+/
+
+CREATE INDEX idx_warning_member ON warning_tb(member_id);

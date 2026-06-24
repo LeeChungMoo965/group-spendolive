@@ -6,10 +6,10 @@
 
 <section class="page-hero ott-sub-hero">
     <div class="container ott-wide-container">
-        <p class="eyebrow">PUBLIC RECRUIT</p>
+        <p class="eyebrow">OTT RECRUIT</p>
         <h1>모든 모집글</h1>
         <p class="hero-text">
-            공개 모집 중인 OTT 공유방을 확인하고, 신청한 사람은 파티장이 수락해야만 공유방에 참여할 수 있습니다.
+            외부 다른 사람들과 함께 이용할 OTT 파티를 찾고, 신청·승인·정산·대체 모집 상태를 관리합니다.
         </p>
         <div class="ott-page-actions">
             <a href="${contextPath}/spendolive/ott.do" class="btn btn-outline">OTT관리로 돌아가기</a>
@@ -20,70 +20,93 @@
 
 <section class="section compact ott-page-section">
     <div class="container ott-wide-container">
-        <article class="card recruit-board-card wide-board-card">
-            <div class="panel-header">
-                <div>
-                    <p class="eyebrow">ALL POSTS</p>
-                    <h2>모든 모집글</h2>
-                </div>
-                <span>${fn:length(recruitRoomList)}개 모집 중</span>
-            </div>
+        <div class="ott-system-guide card">
+            <strong>정산 규칙</strong>
+            <span>${settlementGuide}</span>
+            <span>결제 마감 후 미결제자는 자동 추방되고, 결제일 전 5일 동안 빈자리 대체 모집이 가능합니다.</span>
+            <span>방 삭제 요청 상태의 파티는 신규 신청과 다음 이용분 결제가 막히고, 결제 완료 건은 환불됩니다.</span>
+        </div>
 
+        <div class="ott-tab-menu">
+            <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="${tab eq 'all' ? 'active' : ''}">모든 모집글</a>
+            <a href="${contextPath}/spendolive/ott/recruit.do?tab=apply" class="${tab eq 'apply' ? 'active' : ''}">신청관리</a>
+            <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산, 알림</a>
+            <a href="${contextPath}/spendolive/ott/recruit.do?tab=write" class="${tab eq 'write' ? 'active' : ''}">모집글 작성</a>
+        </div>
+
+        <div class="ott-tab-content">
             <c:choose>
-                <c:when test="${not empty recruitRoomList}">
-                    <div class="recruit-list">
-                        <c:forEach var="room" items="${recruitRoomList}">
-                            <div class="recruit-item">
-                                <div class="recruit-main-info">
-                                    <strong>${room.roomName}</strong>
-                                    <p>
-                                        ${room.serviceName} · 모집인원 ${room.currentMemberCount}/${room.memberLimit}명 ·
-                                        1인당 <fmt:formatNumber value="${room.perPersonAmount}" pattern="#,##0" />원
-                                    </p>
-                                    <small>방장 ${room.hostNickname} · 결제일 매월 ${room.billingDay}일</small>
-                                </div>
-
-                                <form action="${contextPath}/spendolive/ott/recruit/apply.do" method="post" class="recruit-action-form">
-                                    <input type="hidden" name="roomId" value="${room.roomId}">
-                                    <c:choose>
-                                        <c:when test="${memberInfo.id eq room.hostMemberId}">
-                                            <button type="button" class="btn btn-outline" disabled>내 모집글</button>
-                                        </c:when>
-                                        <c:when test="${room.myApplicationStatus eq 'APPLIED'}">
-                                            <button type="button" class="btn btn-outline" disabled>승인대기</button>
-                                        </c:when>
-                                        <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
-                                            <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
-                                        </c:when>
-                                        <c:when test="${room.currentMemberCount ge room.memberLimit}">
-                                            <button type="button" class="btn btn-outline" disabled>모집완료</button>
-                                        </c:when>
-                                        <c:when test="${room.myApplicationStatus eq 'REJECTED'}">
-                                            <button type="submit" class="btn btn-primary">다시 신청</button>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <button type="submit" class="btn btn-primary">신청하기</button>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </form>
+                <c:when test="${tab eq 'all'}">
+                    <article class="card ott-tab-panel recruit-list-panel">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">ALL POSTS</p>
+                                <h2>모든 모집글</h2>
                             </div>
-                        </c:forEach>
-                    </div>
+                            <span>${fn:length(recruitRoomList)}개</span>
+                        </div>
+
+                        <c:choose>
+                            <c:when test="${not empty recruitRoomList}">
+                                <div class="recruit-card-grid">
+                                    <c:forEach var="room" items="${recruitRoomList}">
+                                        <div class="recruit-card">
+                                            <div class="recruit-card-head">
+                                                <div>
+                                                    <h3>${room.roomName}</h3>
+                                                    <p>${room.serviceName} · ${room.planName}</p>
+                                                </div>
+                                                <span class="status-pill ${room.status}">${room.status}</span>
+                                            </div>
+
+                                            <div class="recruit-info-grid">
+                                                <div>
+                                                    <span>모집 인원</span>
+                                                    <strong>${room.currentMemberCount}/${room.memberLimit}명</strong>
+                                                </div>
+                                                <div>
+                                                    <span>월 총액</span>
+                                                    <strong><fmt:formatNumber value="${room.totalPrice}" pattern="#,##0" />원</strong>
+                                                </div>
+                                                <div>
+                                                    <span>1인 결제금액</span>
+                                                    <strong><fmt:formatNumber value="${room.perPersonAmount}" pattern="#,##0" />원</strong>
+                                                    <small>분담금 <fmt:formatNumber value="${room.shareAmount}" pattern="#,##0" />원 + 수수료 3%</small>
+                                                </div>
+                                                <div>
+                                                    <span>결제일</span>
+                                                    <strong>매월 ${room.billingDay}일</strong>
+                                                </div>
+                                            </div>
+
+                                            <c:choose>
+                                                <c:when test="${room.hostMemberId eq loginId}">
+                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-outline full">내 모집글 대화방</a>
+                                                </c:when>
+                                                <c:when test="${room.myApplicationStatus eq 'NONE'}">
+                                                    <form action="${contextPath}/spendolive/ott/recruit/apply.do" method="post">
+                                                        <input type="hidden" name="roomId" value="${room.roomId}">
+                                                        <button type="submit" class="btn btn-primary full">신청하기</button>
+                                                    </form>
+                                                </c:when>
+                                                <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
+                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary full">대화방 입장</a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <button type="button" class="btn btn-outline full" disabled>${room.myApplicationStatus}</button>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="empty-box">현재 모집 중인 글이 없습니다.</div>
+                            </c:otherwise>
+                        </c:choose>
+                    </article>
                 </c:when>
-                <c:otherwise>
-                    <div class="empty-box">현재 모집 중인 글이 없습니다. 아래 탭에서 직접 모집글을 작성해보세요.</div>
-                </c:otherwise>
-            </c:choose>
-        </article>
 
-        <div class="ott-tab-wrap">
-            <div class="ott-tabs">
-                <a href="${contextPath}/spendolive/ott/recruit.do?tab=write" class="${tab eq 'write' ? 'active' : ''}">모집글 작성</a>
-                <a href="${contextPath}/spendolive/ott/recruit.do?tab=apply" class="${tab eq 'apply' ? 'active' : ''}">신청관리</a>
-                <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산, 알림</a>
-            </div>
-
-            <c:choose>
                 <c:when test="${tab eq 'apply'}">
                     <article class="card ott-tab-panel">
                         <div class="panel-header">
@@ -91,22 +114,18 @@
                                 <p class="eyebrow">APPLICATIONS</p>
                                 <h2>신청관리</h2>
                             </div>
-                            <span>신청자는 아이디와 성함 기준으로 확인</span>
+                            <span>내 모집글 신청자</span>
                         </div>
 
                         <c:choose>
                             <c:when test="${not empty hostedRoomMemberList}">
-                                <div class="apply-manage-list">
+                                <div class="application-list">
                                     <c:forEach var="member" items="${hostedRoomMemberList}">
                                         <div class="apply-manage-row application-row ${member.status}">
                                             <div>
                                                 <strong>${member.roomName}</strong>
-                                                <p>
-                                                    신청자 아이디: ${member.memberId} · 성함: ${member.memberName}
-                                                </p>
-                                                <small>
-                                                    신청일 ${member.joinedAt} · 상태 ${member.status}
-                                                </small>
+                                                <p>신청자 아이디: ${member.memberId} · 성함: ${member.memberName}</p>
+                                                <small>신청일 ${member.joinedAt} · 상태 ${member.status}</small>
                                             </div>
 
                                             <c:choose>
@@ -137,6 +156,22 @@
                                 <div class="empty-box">아직 내 모집글에 신청한 사람이 없습니다.</div>
                             </c:otherwise>
                         </c:choose>
+
+                        <div class="hosted-room-close-list">
+                            <h3>내 모집글 종료 요청</h3>
+                            <c:forEach var="room" items="${hostedRoomList}">
+                                <c:if test="${room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
+                                    <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form">
+                                        <input type="hidden" name="roomId" value="${room.roomId}">
+                                        <input type="hidden" name="returnPage" value="recruit">
+                                        <input type="hidden" name="closeReason" value="파티장 요청">
+                                        <strong>${room.roomName}</strong>
+                                        <input type="text" name="closeNotice" placeholder="참여자에게 보여줄 종료 공지 입력">
+                                        <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('방 삭제 요청을 진행할까요? 이번 이용 기간 종료일까지 유지되고, 다음 이용분 결제 완료 건은 자동 환불됩니다.');">방 삭제 요청</button>
+                                    </form>
+                                </c:if>
+                            </c:forEach>
+                        </div>
                     </article>
                 </c:when>
 
@@ -147,7 +182,7 @@
                                 <p class="eyebrow">SETTLEMENT & ALERT</p>
                                 <h2>정산, 알림</h2>
                             </div>
-                            <span>수락된 참여자에게만 정산 요청 보내기</span>
+                            <span>수락된 참여자에게 다음 이용분 정산 요청 보내기</span>
                         </div>
 
                         <div class="settlement-stack">
@@ -155,36 +190,38 @@
                                 <div class="settlement-sub-header">
                                     <div>
                                         <h3>정산 요청 보내기</h3>
-                                        <p>내가 파티장인 모집글 중 수락된 참여자가 있는 방에만 정산 요청을 보낼 수 있습니다.</p>
+                                        <p>결제 가능 시작일은 전월 결제일, 마감일은 다음 결제일 5일 전으로 자동 계산됩니다.</p>
                                     </div>
-                                    <span>요청월 · 마감일 선택</span>
+                                    <span>다음 이용분 선결제</span>
                                 </div>
 
                                 <c:choose>
                                     <c:when test="${not empty hostedRoomList}">
                                         <div class="settlement-request-list settlement-wide-list">
                                             <c:forEach var="room" items="${hostedRoomList}">
-                                                <form action="${contextPath}/spendolive/ott/settlement/request.do" method="post" class="settlement-request-row wide-settlement-row">
-                                                    <input type="hidden" name="roomId" value="${room.roomId}">
-                                                    <input type="hidden" name="returnPage" value="recruit">
+                                                <c:if test="${room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
+                                                    <form action="${contextPath}/spendolive/ott/settlement/request.do" method="post" class="settlement-request-row wide-settlement-row">
+                                                        <input type="hidden" name="roomId" value="${room.roomId}">
+                                                        <input type="hidden" name="returnPage" value="recruit">
 
-                                                    <div class="settlement-room-title">
-                                                        <strong>${room.roomName}</strong>
-                                                        <small>${room.serviceName} · 참여 ${room.currentMemberCount}/${room.memberLimit}명 · 1인당 <fmt:formatNumber value="${room.perPersonAmount}" pattern="#,##0" />원</small>
-                                                    </div>
+                                                        <div class="settlement-room-title">
+                                                            <strong>${room.roomName}</strong>
+                                                            <small>${room.serviceName} · ${room.planName} · 참여 ${room.currentMemberCount}/${room.memberLimit}명 · 1인 결제 <fmt:formatNumber value="${room.perPersonAmount}" pattern="#,##0" />원</small>
+                                                        </div>
 
-                                                    <label class="settlement-field">
-                                                        <span>정산월</span>
-                                                        <input type="month" name="settlementMonth" value="${selectedSettlementMonth}">
-                                                    </label>
+                                                        <label class="settlement-field">
+                                                            <span>정산월</span>
+                                                            <input type="month" name="settlementMonth" value="${selectedSettlementMonth}">
+                                                        </label>
 
-                                                    <label class="settlement-field">
-                                                        <span>마감일</span>
-                                                        <input type="date" name="dueDate" value="${defaultDueDate}">
-                                                    </label>
+                                                        <div class="settlement-auto-guide">
+                                                            <b>자동 계산</b>
+                                                            <small>전월 결제일 ~ 결제일 5일 전까지 결제 가능</small>
+                                                        </div>
 
-                                                    <button type="submit" class="btn btn-primary settlement-send-btn">정산 요청 보내기</button>
-                                                </form>
+                                                        <button type="submit" class="btn btn-primary settlement-send-btn">정산 요청 보내기</button>
+                                                    </form>
+                                                </c:if>
                                             </c:forEach>
                                         </div>
                                     </c:when>
@@ -209,9 +246,27 @@
                                                 <div class="status-row wide settlement-status-row">
                                                     <span>
                                                         <strong>${settlement.roomName}</strong><br>
-                                                        <small>${settlement.settlementMonth} · ${settlement.myRole}</small>
+                                                        <small>
+                                                            ${settlement.settlementMonth} 이용분 · ${settlement.myRole}<br>
+                                                            결제기간 ${settlement.paymentStartDate} ~ ${settlement.paymentCloseDate}<br>
+                                                            이용기간 ${settlement.serviceStartDate} ~ ${settlement.serviceEndDate}
+                                                        </small>
                                                     </span>
-                                                    <em class="${settlement.status eq 'DONE' ? 'done' : 'wait'}">${settlement.status}</em>
+                                                    <em class="${settlement.status eq 'DONE' or settlement.status eq 'CONFIRMED' ? 'done' : 'wait'}">${settlement.status}</em>
+
+                                                    <c:if test="${settlement.myRole eq 'MEMBER'}">
+                                                        <div class="settlement-pay-box">
+                                                            <b><fmt:formatNumber value="${settlement.myTotalAmount}" pattern="#,##0" />원</b>
+                                                            <small>${settlement.myPaymentStatus}</small>
+                                                            <c:if test="${settlement.myPaymentStatus eq 'UNPAID'}">
+                                                                <form action="${contextPath}/spendolive/ott/settlement/pay.do" method="post">
+                                                                    <input type="hidden" name="paymentId" value="${settlement.paymentId}">
+                                                                    <input type="hidden" name="returnPage" value="recruit">
+                                                                    <button type="submit" class="btn btn-primary btn-mini">결제 완료</button>
+                                                                </form>
+                                                            </c:if>
+                                                        </div>
+                                                    </c:if>
                                                 </div>
                                             </c:forEach>
                                         </div>
@@ -235,41 +290,47 @@
                             <span>모집글은 수락 방식으로 운영됩니다</span>
                         </div>
 
-                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form">
+                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form ott-fixed-plan-form">
                             <label>
                                 OTT 종류
-                                <select name="ottServiceId" required>
+                                <select name="ottServiceId" class="ott-service-select" required>
                                     <option value="">선택</option>
                                     <c:forEach var="service" items="${serviceList}">
-                                        <option value="${service.ottServiceId}">${service.serviceName}</option>
+                                        <option value="${service.ottServiceId}"
+                                                data-service-name="${service.serviceName}"
+                                                data-plan="${service.fixedPlanName}"
+                                                data-base-price="${service.basePrice}"
+                                                data-extra-fee="${service.extraMemberFee}"
+                                                data-extra-count="${service.extraMemberCount}"
+                                                data-total-price="${service.defaultPrice}"
+                                                data-member-limit="${service.maxMemberLimit}"
+                                                data-share-amount="${service.shareAmount}"
+                                                data-fee-amount="${service.feeAmount}"
+                                                data-person-amount="${service.perPersonAmount}">
+                                            ${service.serviceName}
+                                        </option>
                                     </c:forEach>
                                 </select>
                             </label>
 
                             <label>
-                                구독 종류
-                                <input type="text" name="planName" placeholder="예: 프리미엄, 스탠다드" value="프리미엄">
-                            </label>
-
-                            <label>
                                 모집글 제목
-                                <input type="text" name="roomName" placeholder="비워두면 OTT - 구독종류 - 모집으로 저장됩니다.">
-                            </label>
-
-                            <label>
-                                전체 구독료
-                                <input type="number" name="totalPrice" min="0" placeholder="예: 17000" required>
-                            </label>
-
-                            <label>
-                                모집 인원
-                                <input type="number" name="memberLimit" min="2" max="10" value="4" required>
+                                <input type="text" name="roomName" placeholder="비워두면 OTT - 최고 멤버십 - 모집으로 저장됩니다.">
                             </label>
 
                             <label>
                                 결제일
                                 <input type="number" name="billingDay" min="1" max="31" value="1" required>
                             </label>
+
+                            <input type="hidden" name="planName" class="ott-plan-input">
+                            <input type="hidden" name="totalPrice" class="ott-total-price-input">
+                            <input type="hidden" name="memberLimit" class="ott-member-limit-input">
+
+                            <div class="ott-fixed-plan-preview">
+                                <strong>OTT를 선택하면 최고 멤버십 기준 금액이 자동 적용됩니다.</strong>
+                                <p>추가 계정 비용이 있는 OTT는 기본 구독료에 추가 비용을 더한 뒤 N분의 1로 계산합니다. 서비스 수수료는 3%입니다.</p>
+                            </div>
 
                             <button type="submit" class="btn btn-primary full ott-form-submit">모집글 등록</button>
                         </form>
