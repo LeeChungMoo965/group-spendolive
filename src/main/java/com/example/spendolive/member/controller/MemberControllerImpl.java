@@ -55,6 +55,7 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
+          
             
             mav.setViewName("redirect:/spendolive/main.do");  
         }
@@ -89,6 +90,7 @@ public class MemberControllerImpl implements MemberController{
         session.setAttribute("isLogOn", false);
         session.removeAttribute("memberInfo");
         session.removeAttribute("login_type");
+        session.removeAttribute("loginId");
         mav.setViewName("redirect:/spendolive/main.do");
         return mav;
     }
