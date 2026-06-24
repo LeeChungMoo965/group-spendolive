@@ -254,3 +254,80 @@ function joinCheckKakao() {
     return true;
   }
 // 3. 최종 회원가입 서브밋 전 벨리데이션 체크 (joinCheck 함수가 있다면 추가)
+
+/* =========================================================
+   OTT 고정 최고 멤버십 자동 계산
+   ========================================================= */
+(function () {
+  function toNumber(value) {
+    const parsed = Number(value || 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function formatWon(value) {
+    return toNumber(value).toLocaleString('ko-KR') + '원';
+  }
+
+  function updateFixedPlanForm(form) {
+    const select = form.querySelector('.ott-service-select');
+    const option = select && select.selectedOptions ? select.selectedOptions[0] : null;
+    const preview = form.querySelector('.ott-fixed-plan-preview');
+
+    if (!option || !option.value) {
+      form.querySelector('.ott-plan-input')?.setAttribute('value', '');
+      form.querySelector('.ott-total-price-input')?.setAttribute('value', '');
+      form.querySelector('.ott-member-limit-input')?.setAttribute('value', '');
+      if (preview) {
+        preview.innerHTML = '<strong>OTT를 선택하면 최고 멤버십 기준 금액이 자동 적용됩니다.</strong><p>구독종류, 전체 구독료, 최대 인원은 직접 입력하지 않고 서비스 규칙으로 고정됩니다.</p>';
+      }
+      return;
+    }
+
+    const serviceName = option.dataset.serviceName || option.textContent.trim();
+    const plan = option.dataset.plan || '프리미엄';
+    const basePrice = toNumber(option.dataset.basePrice);
+    const extraFee = toNumber(option.dataset.extraFee);
+    const extraCount = toNumber(option.dataset.extraCount);
+    const totalPrice = toNumber(option.dataset.totalPrice);
+    const memberLimit = toNumber(option.dataset.memberLimit);
+    const shareAmount = toNumber(option.dataset.shareAmount);
+    const feeAmount = toNumber(option.dataset.feeAmount);
+    const personAmount = toNumber(option.dataset.personAmount);
+
+    const planInput = form.querySelector('.ott-plan-input');
+    const totalInput = form.querySelector('.ott-total-price-input');
+    const memberInput = form.querySelector('.ott-member-limit-input');
+
+    if (planInput) planInput.value = plan;
+    if (totalInput) totalInput.value = totalPrice;
+    if (memberInput) memberInput.value = memberLimit;
+
+    const extraText = extraFee > 0 && extraCount > 0
+      ? `추가 계정 ${extraCount}명 × ${formatWon(extraFee)} 포함`
+      : '추가 계정 비용 없음';
+
+    if (preview) {
+      preview.innerHTML = `
+        <strong>${serviceName} · ${plan}</strong>
+        <div class="ott-plan-preview-grid">
+          <span><b>기본 구독료</b>${formatWon(basePrice)}</span>
+          <span><b>추가 비용</b>${extraText}</span>
+          <span><b>N분의 1 기준 금액</b>${formatWon(totalPrice)} / ${memberLimit}명</span>
+          <span><b>1인 결제금액</b>${formatWon(personAmount)} <small>분담금 ${formatWon(shareAmount)} + 수수료 ${formatWon(feeAmount)}(3%)</small></span>
+        </div>
+      `;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.ott-fixed-plan-form').forEach(function (form) {
+      const select = form.querySelector('.ott-service-select');
+      updateFixedPlanForm(form);
+      if (select) {
+        select.addEventListener('change', function () {
+          updateFixedPlanForm(form);
+        });
+      }
+    });
+  });
+})();

@@ -82,11 +82,11 @@
                 <div class="ott-guide-grid">
                     <div>
                         <strong>모든 모집글</strong>
-                        <span>모집인원 · 금액 확인</span>
+                        <span>모집인원 · 3% 수수료 포함 금액 확인</span>
                     </div>
                     <div>
                         <strong>모집글 작성</strong>
-                        <span>OTT/구독종류/금액 등록</span>
+                        <span>OTT 선택 시 최고 멤버십 자동 계산</span>
                     </div>
                     <div>
                         <strong>신청관리</strong>

@@ -15,9 +15,16 @@ public class OttSettlementDTO {
     private Integer totalFee;
     private Integer totalPayAmount;
     private String dueDate;
+    private String paymentStartDate;
+    private String paymentCloseDate;
+    private String serviceStartDate;
+    private String serviceEndDate;
+    private String replaceStartDate;
+    private String replaceEndDate;
     private String status;
     private String createdAt;
     private String myRole;
+    private Long paymentId;
     private String myPaymentStatus;
     private Integer myTotalAmount;
 }

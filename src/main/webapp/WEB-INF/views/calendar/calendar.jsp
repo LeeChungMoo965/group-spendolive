@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
 </head>
 <body>
-    <jsp:include page="/WEB-INF/views/common/header.jsp" />
     <main>
         <section class="page-hero">
             <div class="container">
@@ -240,7 +239,6 @@
 </div>
 </section>
 </main>
-<jsp:include page="/WEB-INF/views/common/footer.jsp" />
 <script src="${contextPath}/resources/js/app.js">
 </script>
 </body>
