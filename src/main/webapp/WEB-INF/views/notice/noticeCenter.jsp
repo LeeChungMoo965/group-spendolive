@@ -52,32 +52,26 @@
 
             <div class="row-title notice-row-title">
                 <div>
-                    <p class="eyebrow">
-                        <c:choose>
-                            <c:when test="${param.tab eq 'alarm'}">ALERT LIST</c:when>
-                            <c:otherwise>NOTICE LIST</c:otherwise>
-                        </c:choose>
+                    <p class="eyebrow" id="listEyebrow">
+                        NOTICE LIST
                     </p>
 
-                    <h2>
-                        <c:choose>
-                            <c:when test="${param.tab eq 'alarm'}">내 알림</c:when>
-                            <c:otherwise>공지사항</c:otherwise>
-                        </c:choose>
+                    <h2 id="listTitle">
+                        공지사항
                     </h2>
                 </div>
 
                 <div class="notice-tabs">
                   <a href="javascript:void(0);"
-                        onclick="loadNoticeList()"
-                        id="noticeTabBtn"
-                        class="btn btn-primary">공지사항</a>
+                    onclick="loadNoticeList()"
+                    id="noticeTabBtn"
+                    class="btn btn-primary">공지사항</a>
 
-                        <a href="javascript:void(0);"
-                        onclick="loadAlertList()"
-                        id="alertTabBtn"
-                        class="btn btn-light">내 알림</a>
-                                        </div>
+                    <a href="javascript:void(0);"
+                    onclick="loadAlertList()"
+                    id="alertTabBtn"
+                    class="btn btn-light">내 알림</a>
+                                    </div>
                     </div>
 
             <div class="table-wrap">
@@ -303,4 +297,32 @@ function drawAlertList(list) {
 
     tbody.innerHTML = html;
 }
+function setListMode(mode) {
+
+    const eyebrow = document.getElementById("listEyebrow");
+    const title = document.getElementById("listTitle");
+    const noticeBtn = document.getElementById("noticeTabBtn");
+    const alertBtn = document.getElementById("alertTabBtn");
+
+    if (mode === "alert") {
+        eyebrow.textContent = "ALERT LIST";
+        title.textContent = "내 알림";
+
+        noticeBtn.classList.remove("btn-primary");
+        noticeBtn.classList.add("btn-light");
+
+        alertBtn.classList.remove("btn-light");
+        alertBtn.classList.add("btn-primary");
+    } else {
+        eyebrow.textContent = "NOTICE LIST";
+        title.textContent = "공지사항";
+
+        noticeBtn.classList.remove("btn-light");
+        noticeBtn.classList.add("btn-primary");
+
+        alertBtn.classList.remove("btn-primary");
+        alertBtn.classList.add("btn-light");
+    }
+}
+
 </script>
