@@ -1,5 +1,9 @@
 package com.example.spendolive.member.controller;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.UUID;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.service.MemberService;
@@ -30,9 +35,15 @@ public class MemberControllerImpl implements MemberController{
     private MemberService memberService;
     private MemberVO memberVO;
     @Value("${kakao.client.id}")
-    private String clientId;
+    private String kakaoclientId;
     @Value("${kakao.redirect.uri}")
-    private String redirectUri;
+    private String kakaoredirectUri;
+    @Value("${openbanking.client-id}")
+    private String openbankingclientId;
+    @Value("${openbanking.redirect-uri}")
+    private String openbankingredirectUri;
+    @Value("${openbanking.client-secret}")
+    private String openbankingclientSecret;    
     @Override
     @RequestMapping(value="/login.do" ,method = RequestMethod.POST )
     public ModelAndView login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
@@ -60,8 +71,8 @@ public class MemberControllerImpl implements MemberController{
     @RequestMapping(value="/loginForm.do" , method = {RequestMethod.POST, RequestMethod.GET})
     public ModelAndView loginForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
-                            + "?client_id=" + clientId 
-                            + "&redirect_uri=" +redirectUri
+                            + "?client_id=" + kakaoclientId 
+                            + "&redirect_uri=" +kakaoredirectUri
                             + "&response_type=code";
         ModelAndView mav = new ModelAndView();
         HttpSession session = request.getSession();
@@ -225,6 +236,7 @@ public class MemberControllerImpl implements MemberController{
     // ... 기존 코드 (login, loginForm 등) ...
 
     // 카카오 로그인 콜백 (Redirect URI로 설정된 주소)
+    @Override
     @RequestMapping(value="/kakaoCallback.do", method = RequestMethod.GET)
     public ModelAndView kakaoCallback(@RequestParam(value = "code", required = false) String code, 
                                       HttpServletRequest request) {
@@ -270,4 +282,58 @@ public class MemberControllerImpl implements MemberController{
         
         return mav;
     }
+    @Override
+    @RequestMapping(value="/openBankingAuth.do", method = RequestMethod.GET)
+    public String openBankingAuth() throws UnsupportedEncodingException {
+
+
+        String state = UUID.randomUUID().toString().replace("-", "");
+        String encodedRedirectUri = URLEncoder.encode(openbankingredirectUri, StandardCharsets.UTF_8.toString());
+        String targetUrl = String.format(
+        "https://testapi.openbanking.or.kr/oauth/2.0/authorize?response_type=code&client_id=%s&redirect_uri=%s&scope=login+inquiry+transfer&state=%s&auth_type=0",
+        openbankingclientId, encodedRedirectUri, state
+        );
+
+        // 금결원 페이지로 리다이렉트
+        return "redirect:" + targetUrl;
+    }
+    @Override
+    @RequestMapping(value="/openBankingcallback.do", method = RequestMethod.GET)
+    public ResponseEntity openBankingCallback(
+        @RequestParam("code") String code,
+        @RequestParam("state") String state,
+        HttpServletRequest request, HttpServletResponse response,
+        HttpSession session) throws UnsupportedEncodingException { // 로그인한 회원의 정보를 알기 위해 세션 사용
+
+    // [보안 체크] 내가 보냈던 state 값이 맞는지 검증하는 로직을 넣으면 더 안전합니다.
+    
+    // 현재 로그인한 사용자의 ID나 고유 번호 가져오기 (세션 등 활용)
+    MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+    String userId = memberVO.getId();
+    response.setContentType("text/html; charset=UTF-8");
+    request.setCharacterEncoding("utf-8");
+    String message = null;
+    ResponseEntity resEntity = null;
+    HttpHeaders responseHeaders = new HttpHeaders();
+    try {
+        // 비즈니스 로직 처리를 위해 서비스 호출
+        memberService.registerOpenBankingToken(code, userId);
+        message  = "<script>";
+        message +=" alert('계좌인증을 완료했습니다. 로그인을 다시 해주세요');"; 
+        message += " location.href='"+request.getContextPath()+"/member/logout.do';";
+        message += " </script>";
+        
+        // 연동 성공 후 완료 페이지나 메인 화면으로 이동
+    
+        
+    } catch (Exception e) {
+        message  = "<script>";
+        message +=" alert('계좌 인증에 실패하였습니다. 다시 시도해 주세요.');"; 
+        message += " location.href='"+request.getContextPath()+"/spendolive/main.do';";
+        message += " </script>";
+        e.printStackTrace();
+    }
+    resEntity = new ResponseEntity(message, responseHeaders, HttpStatus.OK);
+    return resEntity;
+}
 }

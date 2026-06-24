@@ -21,6 +21,7 @@ public class MemberVO {
 	private String blocked_until;
 	private String update_at;
 	private String last_login_at;
-	
+	private String open_bank_user_seq_no;
+	private String open_bank_token;
 }
 

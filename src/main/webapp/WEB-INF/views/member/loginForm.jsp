@@ -116,9 +116,8 @@
                 회원가입
             </a>
         </div>
-        <a href="https://testapi.openbanking.or.kr/oauth/2.0/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost:8080/member/callback.do&scope=login%20inquiry%20transfer&state=b8a1ca14840b343e792a6b98118015c2&auth_type=0">
-    🏦 안전한 오픈뱅킹 계좌 연동하기
-</a>
+
+    
     </section>
 </main>
 </div>

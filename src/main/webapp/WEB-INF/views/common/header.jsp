@@ -21,6 +21,11 @@
         <div class="header-actions">
             <c:choose>
                 <c:when test="${isLogOn == true && not empty memberInfo}">
+                <c:choose>
+                    <c:when test="${memberInfo.open_bank_token == null && memberInfo.open_bank_user_seq_no == null}">
+                        <a class="btn btn-light" href="${contextPath}/member/openBankingAuth.do">🏦 안전한 오픈뱅킹 계좌 연동하기</a>
+                    </c:when>
+                </c:choose>
                     <a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
                     <h4><strong>${memberInfo.member_name}님</strong></h4>
                 </c:when>

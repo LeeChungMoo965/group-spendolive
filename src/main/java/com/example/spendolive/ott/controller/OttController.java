@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.domain.OttChatMessageDTO;
@@ -35,10 +36,11 @@ public class OttController {
     public String ottMain(Model model, HttpSession session) {
         ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
-
+        
+        
         model.addAttribute("serviceList", ottService.getShareableServices());
         model.addAttribute("recruitRoomCount", ottService.getRecruitRoomCount());
-
+        
         if (loginId != null) {
             model.addAttribute("myRoomCount", ottService.getMyRoomCount(loginId));
         } else {
@@ -50,14 +52,20 @@ public class OttController {
     }
 
     @GetMapping("/ott/friends.do")
-    public String friends(Model model, HttpSession session) {
+    public String friends(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
-
-        if (loginId == null) {
+        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        String open_bank_token = memberVO.getOpen_bank_token();
+        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
+        if (loginId == null) {   
             return "redirect:/member/loginForm.do";
         }
+        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
 
+            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+            return "redirect:/spendolive/main.do";
+        }
         addCommonOttModel(model, loginId);
         model.addAttribute("myRoomList", ottService.getMyRooms(loginId));
         model.addAttribute("hostedRoomList", ottService.getHostedRooms(loginId));
@@ -69,11 +77,13 @@ public class OttController {
     @PostMapping("/ott/friends/create.do")
     public String createFriendRoom(@ModelAttribute OttRoomDTO roomDTO, HttpSession session) {
         String loginId = getLoginId(session);
-
+        
         if (loginId == null) {
+            
             return "redirect:/member/loginForm.do";
         }
-
+        
+        
         ottService.createFriendRoom(roomDTO, loginId);
         return "redirect:/spendolive/ott/friends.do?result=created";
     }
@@ -81,14 +91,22 @@ public class OttController {
     @GetMapping("/ott/recruit.do")
     public String recruit(@RequestParam(value = "tab", required = false, defaultValue = "all") String tab,
                           Model model,
+                          RedirectAttributes redirectAttributes,
                           HttpSession session) {
         ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
-
+        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        String open_bank_token = memberVO.getOpen_bank_token();
+        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
         if (loginId == null) {
+            
             return "redirect:/member/loginForm.do";
         }
+        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
 
+            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+            return "redirect:/spendolive/main.do";
+        }
         addCommonOttModel(model, loginId);
         model.addAttribute("tab", tab);
         model.addAttribute("recruitRoomList", ottService.getRecruitRooms(loginId));
@@ -100,13 +118,20 @@ public class OttController {
     }
 
     @PostMapping("/ott/recruit/create.do")
-    public String createRecruitRoom(@ModelAttribute OttRoomDTO roomDTO, HttpSession session) {
+    public String createRecruitRoom(@ModelAttribute OttRoomDTO roomDTO, HttpSession session, RedirectAttributes redirectAttributes) {
         String loginId = getLoginId(session);
 
         if (loginId == null) {
             return "redirect:/member/loginForm.do";
         }
+        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        String open_bank_token = memberVO.getOpen_bank_token();
+        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
+        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
 
+            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+            return "redirect:/spendolive/main.do";
+        }
         ottService.createRecruitRoom(roomDTO, loginId);
         return "redirect:/spendolive/ott/recruit.do?tab=all&result=created";
     }
