@@ -12,6 +12,8 @@ import com.example.spendolive.ott.domain.OttSettlementDTO;
 public interface OttRepository {
     List<OttServiceDTO> selectShareableServices();
 
+    OttServiceDTO selectOttServiceRule(Long ottServiceId);
+
     List<OttRoomDTO> selectRecruitRooms(String loginId);
 
     List<OttRoomDTO> selectMyRooms(String loginId);
@@ -45,6 +47,12 @@ public interface OttRepository {
     void rejectApplication(Long roomMemberId, String hostId);
 
     void createSettlement(Long roomId, String hostId, String settlementMonth, String dueDate);
+
+    void markPaymentPaid(Long paymentId, String loginId);
+
+    void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason);
+
+    void processScheduledOttJobs();
 
     void insertChatMessage(Long roomId, String senderId, String messageContent);
 

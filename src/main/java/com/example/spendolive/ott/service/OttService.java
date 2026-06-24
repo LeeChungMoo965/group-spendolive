@@ -46,6 +46,12 @@ public interface OttService {
 
     void requestSettlement(Long roomId, String hostId, String settlementMonth, String dueDate);
 
+    void markPaymentPaid(Long paymentId, String loginId);
+
+    void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason);
+
+    void processScheduledOttJobs();
+
     void sendChatMessage(Long roomId, String senderId, String messageContent);
 
     void markChatRoomAsRead(Long roomId, String loginId);

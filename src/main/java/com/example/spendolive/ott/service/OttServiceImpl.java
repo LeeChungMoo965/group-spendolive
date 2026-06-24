@@ -114,6 +114,21 @@ public class OttServiceImpl implements OttService {
     }
 
     @Override
+    public void markPaymentPaid(Long paymentId, String loginId) {
+        ottRepository.markPaymentPaid(paymentId, loginId);
+    }
+
+    @Override
+    public void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason) {
+        ottRepository.requestRoomClose(roomId, hostId, closeNotice, closeReason);
+    }
+
+    @Override
+    public void processScheduledOttJobs() {
+        ottRepository.processScheduledOttJobs();
+    }
+
+    @Override
     public void sendChatMessage(Long roomId, String senderId, String messageContent) {
         if (messageContent == null || messageContent.trim().isEmpty()) {
             return;
@@ -128,16 +143,38 @@ public class OttServiceImpl implements OttService {
     }
 
     private void prepareRoomDefaultValues(OttRoomDTO roomDTO) {
-        if (roomDTO.getTotalPrice() == null || roomDTO.getTotalPrice() < 0) {
-            roomDTO.setTotalPrice(0);
-        }
+        applyFixedOttPlanRule(roomDTO);
 
         if (roomDTO.getBillingDay() == null || roomDTO.getBillingDay() < 1 || roomDTO.getBillingDay() > 31) {
             roomDTO.setBillingDay(1);
         }
+    }
 
-        if (roomDTO.getMemberLimit() == null || roomDTO.getMemberLimit() < 2) {
-            roomDTO.setMemberLimit(4);
+    /**
+     * 모집글 작성 화면에서 금액/요금제/최대인원을 직접 입력하지 않도록 바꾸었기 때문에
+     * 서버에서도 한 번 더 OTT별 고정 규칙으로 덮어쓴다.
+     * 사용자가 개발자도구로 totalPrice나 memberLimit 값을 바꿔 보내도 DB에는 고정값만 저장된다.
+     */
+    private void applyFixedOttPlanRule(OttRoomDTO roomDTO) {
+        OttServiceDTO serviceRule = ottRepository.selectOttServiceRule(roomDTO.getOttServiceId());
+
+        if (serviceRule == null) {
+            if (roomDTO.getPlanName() == null || roomDTO.getPlanName().isBlank()) {
+                roomDTO.setPlanName("프리미엄");
+            }
+
+            if (roomDTO.getTotalPrice() == null || roomDTO.getTotalPrice() < 0) {
+                roomDTO.setTotalPrice(0);
+            }
+
+            if (roomDTO.getMemberLimit() == null || roomDTO.getMemberLimit() < 1) {
+                roomDTO.setMemberLimit(4);
+            }
+            return;
         }
+
+        roomDTO.setPlanName(serviceRule.getFixedPlanName());
+        roomDTO.setTotalPrice(serviceRule.getDefaultPrice());
+        roomDTO.setMemberLimit(serviceRule.getMaxMemberLimit());
     }
 }

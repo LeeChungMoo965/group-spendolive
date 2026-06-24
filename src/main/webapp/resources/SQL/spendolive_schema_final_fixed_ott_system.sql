@@ -143,74 +143,6 @@ CREATE TABLE member_tb (
     created_at     DATE DEFAULT SYSDATE NOT NULL,
     updated_at     DATE,
 
-    /* 회원 번호(PK) */
-    member_id NUMBER NOT NULL,
-
-    id VARCHAR2(20) NOT NULL UNIQUE,
-    /* 로그인 이메일
-       자체 가입 이메일 또는 소셜 계정 이메일
-    */
-    email VARCHAR2(100) NOT NULL,
-
-    /* 비밀번호
-       모든 회원이 우리 사이트에서 직접 설정
-    */
-    password VARCHAR2(255) NOT NULL,
-
-    /* 회원 이름 */
-    member_name VARCHAR2(50) NOT NULL,
-
-    /* 닉네임 */
-    nickname VARCHAR2(50),
-
-    /* 휴대폰 번호 */
-    phone VARCHAR2(20),
-
-    /* 로그인 방식
-       LOCAL  : 자체 회원가입/로그인
-       KAKAO  : 카카오 이메일 인증 후 가입
-       GOOGLE : 구글 이메일 인증 후 가입
-       NAVER  : 네이버 이메일 인증 후 가입
-    */
-    login_type VARCHAR2(20) DEFAULT 'LOCAL' NOT NULL,
-
-    /* 가입 인증 방식
-       EMAIL : 소셜 이메일 인증
-       PHONE : 자체 가입 휴대폰 인증
-    */
-    verify_type VARCHAR2(20) NOT NULL,
-
-    /* 권한
-       USER  : 일반 회원
-       HOST  : 파티장
-       ADMIN : 관리자
-    */
-    role VARCHAR2(20) DEFAULT 'USER' NOT NULL,
-
-    /* 회원 상태
-       ACTIVE     : 정상
-       LEAVE      : 탈퇴
-       BLOCK      : 기간 정지
-       PERM_BLOCK : 영구정지
-    */
-    status VARCHAR2(20) DEFAULT 'ACTIVE' NOT NULL,
-
-    /* 정지 해제 예정일 */
-    blocked_until DATE,
-
-    /* 경고 누적 횟수 */
-    warning_count NUMBER DEFAULT 0 NOT NULL,
-
-    /* 마지막 로그인 일시 */
-    last_login_at DATE,
-
-    /* 가입일 */
-    created_at DATE DEFAULT SYSDATE NOT NULL,
-
-    /* 수정일 */
-    updated_at DATE,
-
-    /* 기본키 */
     CONSTRAINT pk_member PRIMARY KEY (member_id),
     CONSTRAINT uk_member_id UNIQUE (id),
     CONSTRAINT uk_member_email UNIQUE (email),
@@ -221,16 +153,7 @@ CREATE TABLE member_tb (
     CONSTRAINT ck_member_warning_count CHECK (warning_count BETWEEN 0 AND 3)
 );
 
-ALTER TABLE member_tb ADD (
-    open_bank_user_seq_no VARCHAR2(50),  -- 금융결제원에서 받은 사용자 고유 일련번호
-    open_bank_token       VARCHAR2(500)  -- 이 사람 계좌에서 돈 뺄 때 쓸 치트키(Access Token)
-);
-/* 회원 번호 자동 생성 */
-CREATE SEQUENCE seq_member
-START WITH 1
-INCREMENT BY 1
-NOCACHE;
-
+CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
 
 CREATE OR REPLACE TRIGGER trg_member_bi
 BEFORE INSERT ON member_tb
@@ -337,7 +260,11 @@ CREATE TABLE ott_service_tb (
     CONSTRAINT pk_ott_service PRIMARY KEY (ott_service_id),
     CONSTRAINT uk_ott_service_name UNIQUE (service_name),
     CONSTRAINT ck_ott_service_share CHECK (share_yn IN ('Y', 'N')),
-   
+    CONSTRAINT ck_ott_service_risk CHECK (risk_level IS NULL OR risk_level IN ('LOW', 'MEDIUM', 'HIGH')),
+    CONSTRAINT ck_ott_service_price CHECK (default_price >= 0 AND base_price >= 0),
+    CONSTRAINT ck_ott_service_extra CHECK (extra_member_fee >= 0 AND extra_member_count >= 0),
+    CONSTRAINT ck_ott_service_member_limit CHECK (max_member_limit BETWEEN 1 AND 6),
+    CONSTRAINT ck_ott_service_fee_rate CHECK (platform_fee_rate >= 0)
 );
 
 CREATE SEQUENCE seq_ott_service START WITH 1 INCREMENT BY 1 NOCACHE;
@@ -447,7 +374,7 @@ CREATE TABLE ott_room_member_tb (
 
     CONSTRAINT pk_ott_room_member PRIMARY KEY (room_member_id),
     CONSTRAINT fk_room_member_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
-    CONSTRAINT fk_room_member_member FOREIGN KEY (id) REFERENCES member_tb(id),
+    CONSTRAINT fk_room_member_member FOREIGN KEY (member_id) REFERENCES member_tb(id),
     CONSTRAINT uk_room_member UNIQUE (room_id, member_id),
     CONSTRAINT ck_room_member_role CHECK (member_role IN ('HOST', 'MEMBER')),
     CONSTRAINT ck_room_member_status CHECK (status IN ('APPLIED', 'ACTIVE', 'REJECTED', 'OUT', 'KICKED')),

@@ -55,9 +55,6 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
-           /* if(memberVO.getOpen_bank_token() != null && !memberVO.getOpen_bank_token().equals("") &&  memberVO.getOpen_bank_user_seq_no() != null && !memberVO.getOpen_bank_user_seq_no().equals("")){
-                session.setAttribute("isPinOn", true);
-            }else{session.setAttribute("isPinOn", false);} */
             
             mav.setViewName("redirect:/spendolive/main.do");  
         }

@@ -347,7 +347,9 @@
      ========================================================= */
   .ott-main-hero,
   .ott-sub-hero {
-      background: linear-gradient(135deg, #f7fff8 0%, #eef8ef 55%, #fffaf0 100%);
+      /* 캘린더(page-hero)와 동일한 배경 톤으로 통일 */
+      background: radial-gradient(circle at 18% 8%, rgba(122,127,54,.16), transparent 36%),
+                  radial-gradient(circle at 82% 20%, rgba(196,138,44,.11), transparent 38%);
   }
   
   .ott-main-section .container,
@@ -1212,3 +1214,320 @@
       }
   }
   
+/* =========================================================
+   OTT 선결제/마감/방삭제 예약 시스템 UI 보강
+   ========================================================= */
+.ott-system-guide {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 18px 20px;
+}
+
+.ott-system-guide strong {
+    color: #263238;
+    margin-right: 8px;
+}
+
+.ott-system-guide span {
+    font-size: 14px;
+    color: #607d3b;
+}
+
+.room-close-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(125, 151, 78, 0.16);
+}
+
+.room-close-form strong {
+    min-width: 180px;
+    color: #4a5c2c;
+}
+
+.room-close-form input[type="text"] {
+    flex: 1;
+    min-width: 220px;
+    border: 1px solid #dfe8c9;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fffef8;
+}
+
+.settlement-auto-guide {
+    min-width: 210px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: #f7faee;
+    border: 1px solid #e2edc9;
+}
+
+.settlement-auto-guide b,
+.settlement-auto-guide small {
+    display: block;
+}
+
+.settlement-auto-guide b {
+    color: #4d6328;
+    margin-bottom: 3px;
+}
+
+.settlement-auto-guide small {
+    color: #6f7c57;
+    line-height: 1.35;
+}
+
+.settlement-pay-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    min-width: 110px;
+}
+
+.settlement-pay-box b {
+    color: #2f3b20;
+}
+
+.settlement-pay-box small {
+    font-size: 12px;
+    color: #6f7c57;
+}
+
+.hosted-room-close-list {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(125, 151, 78, 0.16);
+}
+
+.hosted-room-close-list h3 {
+    margin: 0 0 12px;
+    color: #3f4f27;
+}
+
+.danger-text {
+    color: #c0392b !important;
+    font-weight: 700;
+}
+
+.warn-text {
+    color: #b36b00 !important;
+    font-weight: 700;
+}
+
+.status-pill.CLOSE_REQUESTED {
+    background: #fff0eb;
+    color: #c0392b;
+}
+
+.status-pill.REPLACE_RECRUITING {
+    background: #fff8df;
+    color: #9a6500;
+}
+
+.status-pill.PAYMENT_OPEN {
+    background: #eaf5ff;
+    color: #1f6fb2;
+}
+
+@media (max-width: 900px) {
+    .room-close-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .room-close-form strong {
+        min-width: 0;
+    }
+
+    .settlement-pay-box {
+        align-items: flex-start;
+    }
+}
+
+/* =========================================================
+   OTT Pickle+ 방식 UI: 고정 최고 멤버십, 3% 수수료, compact 모집글
+   ========================================================= */
+.ott-tab-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 18px 0 20px;
+}
+
+.ott-tab-menu a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid #dbe7d4;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #40523d;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(52, 74, 48, 0.05);
+}
+
+.ott-tab-menu a.active,
+.ott-tab-menu a:hover {
+    background: #6d7f2e;
+    border-color: #6d7f2e;
+    color: #ffffff;
+}
+
+.ott-fixed-plan-form {
+    align-items: end;
+}
+
+.ott-fixed-plan-preview {
+    grid-column: 1 / -1;
+    min-height: 86px;
+    padding: 16px 18px;
+    border: 1px solid #dfe9d2;
+    border-radius: 18px;
+    background: #fbfdf6;
+    color: #3d4d2b;
+}
+
+.ott-fixed-plan-preview strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #26351f;
+    font-size: 15px;
+}
+
+.ott-fixed-plan-preview p {
+    margin: 0;
+    color: #6c775d;
+    line-height: 1.55;
+    font-size: 13px;
+}
+
+.ott-plan-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ott-plan-preview-grid span {
+    display: block;
+    padding: 10px 12px;
+    border: 1px solid #e5edd9;
+    border-radius: 14px;
+    background: #ffffff;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.ott-plan-preview-grid b {
+    display: block;
+    margin-bottom: 4px;
+    color: #7b7f36;
+    font-size: 12px;
+}
+
+.ott-plan-preview-grid small {
+    display: block;
+    margin-top: 3px;
+    color: #77826a;
+}
+
+.recruit-list-panel {
+    padding: 20px !important;
+}
+
+.recruit-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+}
+
+.recruit-card {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid #e3ecd8;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(52, 74, 48, 0.05);
+}
+
+.recruit-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.recruit-card-head h3 {
+    margin: 0 0 6px;
+    color: #132718;
+    font-size: 17px;
+    line-height: 1.35;
+}
+
+.recruit-card-head p {
+    margin: 0;
+    color: #697760;
+    font-size: 13px;
+}
+
+.recruit-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.recruit-info-grid div {
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid #e8efdf;
+    border-radius: 14px;
+    background: #fbfdf7;
+}
+
+.recruit-info-grid span,
+.recruit-info-grid small {
+    display: block;
+    color: #6f7b66;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.recruit-info-grid strong {
+    display: block;
+    margin-top: 4px;
+    color: #1f321e;
+    font-size: 15px;
+}
+
+.ott-room-meta small {
+    color: #717d67;
+}
+
+@media (max-width: 1100px) {
+    .ott-plan-preview-grid,
+    .recruit-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .ott-plan-preview-grid,
+    .recruit-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ott-tab-menu a {
+        width: 100%;
+    }
+}
