@@ -178,7 +178,10 @@ CREATE TABLE member_tb (
     CONSTRAINT ck_member_warning_count
         CHECK (warning_count BETWEEN 0 AND 3)
 );
-
+ALTER TABLE member_tb ADD (
+    open_bank_user_seq_no VARCHAR2(50),  -- 금융결제원에서 받은 사용자 고유 일련번호
+    open_bank_token       VARCHAR2(500)  -- 이 사람 계좌에서 돈 뺄 때 쓸 치트키(Access Token)
+);
 
 /* 회원 번호 자동 생성 */
 CREATE SEQUENCE seq_member
@@ -357,7 +360,7 @@ CREATE TABLE ott_service_tb (
 
     CONSTRAINT pk_ott_service PRIMARY KEY (ott_service_id),
     CONSTRAINT uk_ott_service_name UNIQUE (service_name),
-    CONSTRAINT ck_ott_service_share CHECK (share_yn IN ('Y', 'N')),
+    CONSTRAINT ck_ott_service_share CHECK (share_yn IN ('Y', 'N'))
    
 );
 
@@ -469,7 +472,7 @@ CREATE TABLE ott_room_member_tb (
 
     CONSTRAINT pk_ott_room_member PRIMARY KEY (room_member_id),
     CONSTRAINT fk_room_member_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
-    CONSTRAINT fk_room_member_member FOREIGN KEY (id) REFERENCES member_tb(id),
+    CONSTRAINT fk_room_member_member FOREIGN KEY (member_id) REFERENCES member_tb(id),
     CONSTRAINT uk_room_member UNIQUE (room_id, member_id),
     CONSTRAINT ck_room_member_role CHECK (member_role IN ('HOST', 'MEMBER')),
     CONSTRAINT ck_room_member_status CHECK (status IN ('ACTIVE', 'OUT')),

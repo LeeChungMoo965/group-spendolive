@@ -12,18 +12,27 @@
 
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.beans.factory.annotation.Value;
-    import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
     import org.springframework.mail.javamail.MimeMessageHelper;
     import org.springframework.stereotype.Service;
     import org.springframework.transaction.annotation.Propagation;
     import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
-    import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.domain.MemberVO;
     import com.example.spendolive.member.repository.MemberRepository;
     import com.google.gson.JsonElement;
     import com.google.gson.JsonObject;
     import com.google.gson.JsonParser;
     import jakarta.mail.internet.MimeMessage;
+import tools.jackson.databind.ObjectMapper;
     @Service
     public class MemberServiceImpl implements MemberService {
 
@@ -35,6 +44,12 @@
         private String restApiKey;
         @Value("${kakao.redirect.uri}")
         private String redirectUri;
+        @Value("${openbanking.client-id}")
+        private String openbankingclientId;
+        @Value("${openbanking.redirect-uri}")
+        private String openbankingredirectUri;
+        @Value("${openbanking.client-secret}")
+        private String openbankingclientSecret;  
         @Override
         public MemberVO login(Map loginMap) throws Exception {
             
@@ -205,6 +220,54 @@
                 throw new Exception("카카오 유저 정보 요청 실패: 상태 코드 " + conn.getResponseCode());
             }
             return userInfoMap;
+        }
+        //오픈뱅킹
+        @Override
+        public void registerOpenBankingToken(String code, String userId) throws Exception {
+        
+            // 1. 금결원 토큰 발급 요청 주소 (테스트베드 환경이므로 testapi 사용!)
+            String tokenUrl = "https://testapi.openbanking.or.kr/oauth/2.0/token";
+    
+            // 2. RestTemplate을 이용한 HTTP 통신 준비
+            RestTemplate restTemplate = new RestTemplate();
+            
+            // 헤더 설정 (Form 데이터 형식)
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    
+            // 3. 금결원 규격에 맞는 필수 파라미터 셋팅 (명세서에 나온 필수값들)
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("code", code);
+            params.add("client_id", openbankingclientId);
+            params.add("client_secret", openbankingclientSecret);
+            params.add("redirect_uri", openbankingredirectUri);
+            params.add("grant_type", "authorization_code"); // 고정값
+    
+            // 4. 요청 보내기 (POST)
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(tokenUrl, request, String.class);
+    
+            // 5. 결과 받아오기 (JSON 형태의 문자열)
+            if (response.getStatusCode() == HttpStatus.OK) {
+                String responseBody = response.getBody();
+                
+                // Jackson ObjectMapper로 JSON 파싱
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> resultMap = objectMapper.readValue(responseBody, Map.class);
+                
+                // 🔥 우리가 그토록 원하던 핵심 데이터 추출!
+                String accessToken = (String) resultMap.get("access_token");
+                String userSeqNo = (String) resultMap.get("user_seq_no"); // 고객 고유 번호
+    
+                System.out.println("발급된 Access Token: " + accessToken);
+                System.out.println("발급된 사용자 일련번호(user_seq_no): " + userSeqNo);
+    
+                // 6. DB에 저장 (내 서비스 기획에 맞게 마이바티스나 JPA로 쿼리 실행)
+                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo);
+                
+            } else {
+                throw new RuntimeException("금융결제원 토큰 발급 실패");
+            }
         }
     }
 

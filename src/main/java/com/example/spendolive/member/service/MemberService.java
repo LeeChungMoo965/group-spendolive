@@ -13,5 +13,6 @@ public interface MemberService {
 	public Map<String, String> getKakaoUserInfo(String code) throws Exception;
 	public boolean checkEmail(String email) throws Exception;
 	public boolean checkPhone(String phone) throws Exception;
+	public void registerOpenBankingToken(String code, String userId) throws Exception;
 }
 

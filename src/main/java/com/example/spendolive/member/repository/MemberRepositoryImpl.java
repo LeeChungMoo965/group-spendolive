@@ -18,7 +18,7 @@ public class MemberRepositoryImpl implements MemberRepository{
 
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     
-    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, "
+    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
@@ -29,6 +29,8 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" from member_tb where email =?";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
     +" from member_tb where phone =?";
+    private final String updatePinNO = "update member_tb set open_bank_user_seq_no =? ,open_bank_token =? "
+    +" where id =? ";
 
 
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
@@ -106,12 +108,19 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setLast_login_at(rs.getString("last_login_at"));
         member.setVerify_type(rs.getString("verify_type"));
         member.setWarning_count(rs.getInt("warning_count"));
+        member.setOpen_bank_token(rs.getString("open_bank_token"));
+        member.setOpen_bank_user_seq_no(rs.getString("open_bank_user_seq_no"));
         return member;
         },id, password);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
         // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
         return null; 
     }
+    }
+
+    @Override
+    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo) throws DataAccessException {
+        jdbcTemplate.update(updatePinNO, userSeqNo, accessToken, userId);
     }
     
 }

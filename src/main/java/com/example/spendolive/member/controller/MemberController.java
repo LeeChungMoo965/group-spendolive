@@ -3,6 +3,7 @@ import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -25,4 +26,7 @@ public interface MemberController {
 	public boolean checkId(@RequestParam("id") String id) throws Exception;
 	public boolean checkEmail(@RequestParam("email") String email) throws Exception;
 	public boolean checkPhone(@RequestParam("phone") String phone) throws Exception;
+	public ModelAndView kakaoCallback(@RequestParam(value = "code", required = false) String code, HttpServletRequest request) throws Exception;
+	public ResponseEntity openBankingCallback(@RequestParam("code") String code,@RequestParam("state") String state, HttpServletRequest request, HttpServletResponse response ,HttpSession session) throws Exception;
+	public String openBankingAuth() throws Exception;
 }
