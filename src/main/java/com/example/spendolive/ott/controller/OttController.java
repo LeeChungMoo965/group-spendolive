@@ -55,12 +55,14 @@ public class OttController {
     public String friends(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
+        
+        if (loginId == null) {   
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
+            return "redirect:/member/loginForm.do";
+        }
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         String open_bank_token = memberVO.getOpen_bank_token();
         String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
-        if (loginId == null) {   
-            return "redirect:/member/loginForm.do";
-        }
         if (open_bank_token  == null && open_bank_user_seq_no  == null) {
 
             redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
@@ -95,13 +97,14 @@ public class OttController {
                           HttpSession session) {
         ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
+        
+        if (loginId == null) {
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
+            return "redirect:/member/loginForm.do";
+        }
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         String open_bank_token = memberVO.getOpen_bank_token();
         String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
-        if (loginId == null) {
-            
-            return "redirect:/member/loginForm.do";
-        }
         if (open_bank_token  == null && open_bank_user_seq_no  == null) {
 
             redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
@@ -122,6 +125,7 @@ public class OttController {
         String loginId = getLoginId(session);
 
         if (loginId == null) {
+            
             return "redirect:/member/loginForm.do";
         }
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
@@ -165,6 +169,7 @@ public class OttController {
         String loginId = getLoginId(session);
 
         if (loginId == null) {
+            
             return "redirect:/member/loginForm.do";
         }
 

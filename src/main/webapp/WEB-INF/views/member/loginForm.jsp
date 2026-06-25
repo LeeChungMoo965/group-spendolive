@@ -121,6 +121,13 @@
     </section>
 </main>
 </div>
+<script>
+    // 컨트롤러가 보낸 일회성 메시지(msg)가 있다면 alert을 띄운다
+    var msg = "${msg}";
+    if(msg && msg !== "") {
+        alert(msg);
+    }
+</script>
 <script src="${contextPath}/resources/js/app.js">
 </script>
 </body>
