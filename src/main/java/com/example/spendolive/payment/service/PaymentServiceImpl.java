@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.payment.domain.*;
 import com.example.spendolive.payment.repository.PaymentRepository;
 
@@ -41,7 +42,7 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     @Transactional(rollbackFor = Exception.class) // 💥 돈 관련 로직이므로 에러 나면 무조건 DB 롤백!
-    public boolean processWithdraw(SettlementPaymentVO paymentInfo, String accessToken, String memberName) throws Exception {
+    public boolean processWithdraw(SettlementPaymentVO paymentInfo, MemberVO memberInfo) throws Exception {
         
         // 1. 금결원 출금이체 API 주소
         String apiUrl = "https://testapi.openbanking.or.kr/v2.0/transfer/withdraw/fintech_use_num";
@@ -50,10 +51,10 @@ public class PaymentServiceImpl implements PaymentService{
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON); // 출금이체는 JSON 바디로 요청
-        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Authorization", "Bearer " + memberInfo.getOpen_bank_token());
 
         // 3. 거래고유번호(bank_tran_id) 생성 -> 이용기관코드(10) + U + 난수(9) = 총 20자리
-        String uniqueId = UUID.randomUUID().toString().substring(0, 9).toUpperCase();
+        String uniqueId = UUID.randomUUID().toString().replace("-", "").substring(0, 9).toUpperCase();
         String bankTranId = useorgCode + "U" + uniqueId;
 
         // 4. 요청 시간 생성 (YYYYMMDDHHMMSS)
@@ -62,20 +63,20 @@ public class PaymentServiceImpl implements PaymentService{
         // 5. 금결원 규격에 맞는 JSON 바디 조립 (Map 활용)
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("bank_tran_id", bankTranId);
-        bodyMap.put("cntr_account_type", "N");                  // N: 계좌 형식
+        bodyMap.put("cntr_account_type", "C");                  // N: 계좌 형식
         bodyMap.put("cntr_account_num", cntrAccountNum);        // 우리 수납 계좌
         bodyMap.put("dps_print_text", "SpendOlive입금");        // 우리 통장에 찍힐 문구
         
         // 중요: 돈을 빼올 파티원의 핀테크이용번호 (이건 이전에 계좌조회로 얻어와서 세션이나 매개변수로 넘겨받아야 함)
         // 여기선 셈플로 파티원의 메모 필드나 가상 필드에 들고 있다고 가정합니다.
-        bodyMap.put("fintech_use_num", "파티원의_핀테크이용번호"); 
+        bodyMap.put("fintech_use_num", "199000000000000000000001"); 
         
         bodyMap.put("wd_print_text", "스펜드올리브출금");          // 파티원 통장에 찍힐 문구
-        bodyMap.put("tran_amt", String.valueOf(paymentInfo.getTotal_amount())); // 출금할 금액 (이용료 + 수수료)
+        bodyMap.put("tran_amt", paymentInfo.getTotal_amount()); // 출금할 금액 (이용료 + 수수료)
         bodyMap.put("tran_dtime", tranDtime);
-        bodyMap.put("req_client_name", memberName);             // 파티원 이름
-        bodyMap.put("req_client_num", paymentInfo.getId());      // 파티원 ID
-        bodyMap.put("req_client_fintech_use_num", "파티원의_핀테크이용번호");
+        bodyMap.put("req_client_name", "홍길동");             // 파티원 이름
+        bodyMap.put("req_client_num", memberInfo.getId());      // 파티원 ID
+        bodyMap.put("req_client_fintech_use_num", "199000000000000000000001");
         bodyMap.put("recv_client_name", cntrAccountHolder);     // 수취인 성명 (나)
         bodyMap.put("recv_client_bank_code", cntrBankCode);     // 수취인 은행 코드 (내 은행)
         bodyMap.put("recv_client_account_num", cntrAccountNum); // 수취인 계좌 (내 계좌)

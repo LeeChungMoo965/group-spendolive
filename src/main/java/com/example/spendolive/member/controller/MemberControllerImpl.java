@@ -317,7 +317,7 @@ public class MemberControllerImpl implements MemberController{
     HttpHeaders responseHeaders = new HttpHeaders();
     try {
         // 비즈니스 로직 처리를 위해 서비스 호출
-        memberService.registerOpenBankingToken(code, userId);
+        memberService.registerOpenBankingToken(code, userId, responseHeaders, resEntity);
         message  = "<script>";
         message +=" alert('계좌인증을 완료했습니다. 로그인을 다시 해주세요');"; 
         message += " location.href='"+request.getContextPath()+"/member/logout.do';";

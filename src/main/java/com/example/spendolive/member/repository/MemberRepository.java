@@ -11,5 +11,5 @@ public interface MemberRepository {
 	public boolean checkId(String id) throws DataAccessException;
 	public boolean checkPhone(String phone) throws DataAccessException;
 	public boolean checkEmail(String email) throws DataAccessException;
-	public void updateOpenBankingInfo(String userId,String accessToken,String userSeqNo)throws DataAccessException;
+	public void updateOpenBankingInfo(String userId,String accessToken,String userSeqNo, String fintech_num)throws DataAccessException;
 }

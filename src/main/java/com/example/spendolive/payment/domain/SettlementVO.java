@@ -14,9 +14,9 @@ import java.time.LocalDateTime;
 @ToString
 public class SettlementVO {
 
-    private int settlement_id;          // 정산 고유 ID (PK, 시퀀스 자동 생성)
-    private int room_id;                // OTT 매칭방 고유 ID (FK)
-    private String settlement_month;    // 정산 대상 년월 (형식: YYYY-MM)
+    private int settlement_id;          // 정산 고유 ID (PK, 시퀀스 자동 생성) 00
+    private int room_id;                // OTT 매칭방 고유 ID (FK) 00
+    private String settlement_month;    // 정산 대상 년월 (형식: YYYY-MM) 
     private int total_price;            // 해당 월 방 총 금액
     private int total_fee;              // 플랫폼 총 수수료 (기본값: 0)
     private int total_pay_amount;       // 수수료 포함 최종 정산 총 금액 (기본값: 0)
@@ -32,6 +32,6 @@ public class SettlementVO {
     private LocalDateTime closed_at;      // 정산 마감 일시
     
     // 상태값: READY, REQUESTED, DONE, PAYMENT_OPEN, REPLACE_RECRUITING, CONFIRMED, CANCELLED, CLOSED
-    private String status;              // 정산 진행 상태 (기본값: 'READY')
-    private LocalDateTime created_at;   // 정산 레코드 생성 일시 (기본값: SYSDATE)
+    private String status;              // 정산 진행 상태 (기본값: 'READY') 00
+    private LocalDateTime created_at;   // 정산 레코드 생성 일시 (기본값: SYSDATE) 00
 }

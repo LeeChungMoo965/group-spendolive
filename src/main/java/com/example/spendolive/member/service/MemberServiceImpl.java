@@ -7,26 +7,28 @@
     import java.net.HttpURLConnection;
     import java.net.URL;
     import java.util.HashMap;
+    import java.util.List;
     import java.util.Map;
     import java.util.Random;
 
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
+    import org.springframework.http.HttpEntity;
+    import org.springframework.http.HttpHeaders;
+    import org.springframework.http.HttpMethod;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.MediaType;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.mail.javamail.JavaMailSender;
     import org.springframework.mail.javamail.MimeMessageHelper;
     import org.springframework.stereotype.Service;
     import org.springframework.transaction.annotation.Propagation;
     import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
+    import org.springframework.util.LinkedMultiValueMap;
+    import org.springframework.util.MultiValueMap;
+    import org.springframework.web.client.RestTemplate;
 
-import com.example.spendolive.member.domain.MemberVO;
+    import com.example.spendolive.member.domain.MemberVO;
     import com.example.spendolive.member.repository.MemberRepository;
     import com.google.gson.JsonElement;
     import com.google.gson.JsonObject;
@@ -223,7 +225,7 @@ import tools.jackson.databind.ObjectMapper;
         }
         //오픈뱅킹
         @Override
-        public void registerOpenBankingToken(String code, String userId) throws Exception {
+        public void registerOpenBankingToken(String code, String userId,HttpHeaders headers,ResponseEntity<Map> response) throws Exception {
         
             // 1. 금결원 토큰 발급 요청 주소 (테스트베드 환경이므로 testapi 사용!)
             String tokenUrl = "https://testapi.openbanking.or.kr/oauth/2.0/token";
@@ -232,7 +234,6 @@ import tools.jackson.databind.ObjectMapper;
             RestTemplate restTemplate = new RestTemplate();
             
             // 헤더 설정 (Form 데이터 형식)
-            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     
             // 3. 금결원 규격에 맞는 필수 파라미터 셋팅 (명세서에 나온 필수값들)
@@ -245,11 +246,11 @@ import tools.jackson.databind.ObjectMapper;
     
             // 4. 요청 보내기 (POST)
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(tokenUrl, request, String.class);
+            final ResponseEntity<String> response1 = restTemplate.postForEntity(tokenUrl, request, String.class);
     
             // 5. 결과 받아오기 (JSON 형태의 문자열)
-            if (response.getStatusCode() == HttpStatus.OK) {
-                String responseBody = response.getBody();
+            if (response1.getStatusCode() == HttpStatus.OK) {
+                String responseBody = response1.getBody();
                 
                 // Jackson ObjectMapper로 JSON 파싱
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -261,9 +262,29 @@ import tools.jackson.databind.ObjectMapper;
     
                 System.out.println("발급된 Access Token: " + accessToken);
                 System.out.println("발급된 사용자 일련번호(user_seq_no): " + userSeqNo);
-    
+                // 1. 등록계좌조회 API URL (10자리 주면 24자리 계좌번호들 뱉는 곳)
+                String accountUrl = "https://testapi.openbanking.or.kr/v2.0/account/list?user_seq_no=" 
+                + userSeqNo 
+                + "&include_account_num=Y";
+
+                headers.set("Authorization", "Bearer " + accessToken);
+
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+                response = restTemplate.exchange(accountUrl, HttpMethod.GET, entity, Map.class);
+
+                if(response.getStatusCode() == HttpStatus.OK) {
+                List<Map<String, Object>> resList = (List<Map<String, Object>>) response.getBody().get("res_list");
+                if(resList != null && !resList.isEmpty()) {
+                // 💥 첫 번째 계좌의 24자리 핀테크이용번호를 쏙 뽑아옴!
+                String fintechUseNum = (String) resList.get(0).get("fintech_use_num");
+
+                // 이 24자리 값을 DB의 OPEN_BANK_USER_SEQ_NO 컬럼에 업데이트 하거나 별도로 저장해서 출금할 때 써야 합니다!
+                System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
+                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo, fintechUseNum);
+                }
+                }
                 // 6. DB에 저장 (내 서비스 기획에 맞게 마이바티스나 JPA로 쿼리 실행)
-                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo);
+                
                 
             } else {
                 throw new RuntimeException("금융결제원 토큰 발급 실패");
