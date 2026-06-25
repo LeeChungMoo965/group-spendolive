@@ -1,6 +1,9 @@
 package com.example.spendolive.member.service;
 import java.util.Map;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+
 import com.example.spendolive.member.domain.MemberVO;
 
 public interface MemberService {
@@ -13,6 +16,6 @@ public interface MemberService {
 	public Map<String, String> getKakaoUserInfo(String code) throws Exception;
 	public boolean checkEmail(String email) throws Exception;
 	public boolean checkPhone(String phone) throws Exception;
-	public void registerOpenBankingToken(String code, String userId) throws Exception;
+	public void registerOpenBankingToken(String code, String userId,HttpHeaders headers, ResponseEntity<Map> response) throws Exception;
 }
 
