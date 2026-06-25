@@ -13,7 +13,6 @@
                         EXPENSE · CALENDAR · OTT MANAGEMENT
                     </p>
                     <h1>
-                    <a href="${contextPath}/payment/detail.do" class="btn btn-primary btn-large">
                         SpendOlive로
                         <br>
                         지출을 한눈에 관리하세요

@@ -42,7 +42,7 @@ ALTER TABLE member_tb ADD (
     open_bank_user_seq_no VARCHAR2(50),
     open_bank_token       VARCHAR2(500),
     fintech_use_num VARCHAR2(24)
-);;
+);
 CREATE OR REPLACE TRIGGER trg_member_bi
 BEFORE INSERT ON member_tb
 FOR EACH ROW
