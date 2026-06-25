@@ -41,12 +41,15 @@ SELECT
     4250 + ROUND(4250 * 0.03) AS total_amount
 FROM dual;
 
--- 월별 플랫폼 수익 합계
+-- 월별 플랫폼 수수료 합계
+-- platform_revenue_tb는 최소 스키마에서 제거했고, 수수료는 결제 테이블 fee_amount 합계로 계산합니다.
 SELECT
-    TO_CHAR(created_at, 'YYYY-MM') AS revenue_month,
-    SUM(fee_amount) AS total_revenue
-FROM platform_revenue_tb
-GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+    st.settlement_month AS revenue_month,
+    SUM(sp.fee_amount) AS total_fee_revenue
+FROM settlement_payment_tb sp
+JOIN settlement_tb st ON sp.settlement_id = st.settlement_id
+WHERE sp.payment_status IN ('PAID', 'CONFIRMED')
+GROUP BY st.settlement_month
 ORDER BY revenue_month;
 
 -- 날짜별 지출 합계: 캘린더 표시용

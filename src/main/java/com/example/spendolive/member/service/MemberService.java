@@ -14,5 +14,7 @@ public interface MemberService {
 	public boolean checkEmail(String email) throws Exception;
 	public boolean checkPhone(String phone) throws Exception;
 	public void registerOpenBankingToken(String code, String userId) throws Exception;
+	public MemberVO getMemberById(String id) throws Exception;
+	public void updateMyInfo(MemberVO memberVO, String newPassword) throws Exception;
 }
 
