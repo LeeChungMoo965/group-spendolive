@@ -9,11 +9,11 @@
         <p class="eyebrow">FRIENDS SHARE ROOM</p>
         <h1>가족 · 지인 공유방</h1>
         <p class="hero-text">
-            가족 또는 지인과 함께 쓸 OTT 공유방을 만들고, 다음 달 이용분 선결제·마감·환불 상태까지 관리합니다.
+            가족 또는 지인과 함께 쓸 OTT 공유방만 모아서 보고, 다음 달 이용분 선결제·마감·환불 상태까지 관리합니다.
         </p>
         <div class="ott-page-actions">
             <a href="${contextPath}/spendolive/ott.do" class="btn btn-outline">OTT관리로 돌아가기</a>
-            <a href="#createRoom" class="btn btn-primary">새 공유방 만들기</a>
+            <a href="#createRoom" class="btn btn-primary">공유방 만들기</a>
         </div>
     </div>
 </section>
@@ -22,126 +22,133 @@
     <div class="container ott-wide-container">
         <div class="ott-system-guide card">
             <strong>정산 규칙</strong>
-            <span>${settlementGuide}</span>
-            <span>결제 마감일이 지나면 미결제자는 자동 추방되고, 결제일 전까지 빈자리 재모집 상태로 전환됩니다.</span>
-            <span>방 삭제 요청 시 이번 이용 기간까지만 유지되며, 다음 이용분 결제 완료 건은 자동 환불 처리됩니다.</span>
+            <ol>
+                <li>${settlementGuide}</li>
+                <li>결제 마감일이 지나면 미결제자는 자동 추방되고, 결제일 전까지 빈자리 재모집 상태로 전환됩니다.</li>
+                <li>방 삭제 요청 시 이번 이용 기간까지만 유지되며, 다음 이용분 결제 완료 건은 자동 환불 처리됩니다.</li>
+            </ol>
         </div>
 
-        <div class="ott-room-layout">
-            <article id="createRoom" class="card ott-form-card">
-                <div class="panel-header">
-                    <div>
-                        <p class="eyebrow">CREATE ROOM</p>
-                        <h2>공유방 만들기</h2>
-                    </div>
-                    <span>지인 초대형</span>
+        <article class="card ott-tab-panel family-room-section">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">FAMILY & FRIENDS ROOMS</p>
+                    <h2>가족 지인과의 공유방</h2>
                 </div>
+                <span>${fn:length(myRoomList)}개</span>
+            </div>
 
-                <form action="${contextPath}/spendolive/ott/friends/create.do" method="post" class="ott-form-grid ott-fixed-plan-form">
-                    <label>
-                        OTT 종류
-                        <select name="ottServiceId" class="ott-service-select" required>
-                            <option value="">선택</option>
-                            <c:forEach var="service" items="${serviceList}">
-                                <option value="${service.ottServiceId}"
-                                        data-service-name="${service.serviceName}"
-                                        data-plan="${service.fixedPlanName}"
-                                        data-base-price="${service.basePrice}"
-                                        data-extra-fee="${service.extraMemberFee}"
-                                        data-extra-count="${service.extraMemberCount}"
-                                        data-total-price="${service.defaultPrice}"
-                                        data-member-limit="${service.maxMemberLimit}"
-                                        data-share-amount="${service.shareAmount}"
-                                        data-fee-amount="${service.feeAmount}"
-                                        data-person-amount="${service.perPersonAmount}">
-                                    ${service.serviceName}
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </label>
+            <c:choose>
+                <c:when test="${not empty myRoomList}">
+                    <div class="ott-room-card-list family-room-list">
+                        <c:forEach var="room" items="${myRoomList}" varStatus="roomStatus">
+                            <div class="ott-room-card family-room-card">
+                                <div class="room-index-badge">${roomStatus.count}</div>
 
-                    <label>
-                        공유방 이름
-                        <input type="text" name="roomName" placeholder="예: 우리 가족 Netflix 공유방">
-                    </label>
+                                <div class="family-room-info">
+                                    <strong>${room.roomName}</strong>
+                                    <p>
+                                        ${room.serviceName} · ${room.planName} · ${room.currentMemberCount}/${room.memberLimit}명 ·
+                                        결제일 매월 ${room.billingDay}일
+                                    </p>
+                                    <small>
+                                        1인 결제금액 <fmt:formatNumber value="${room.perPersonAmount}" pattern="#,##0" />원
+                                        <c:if test="${not empty room.inviteCode}"> · 초대코드 ${room.inviteCode}</c:if>
+                                    </small>
+                                    <c:if test="${room.status eq 'CLOSE_REQUESTED'}">
+                                        <small class="danger-text">방 삭제 예약됨 · ${room.closeEffectiveDate} 종료 예정</small>
+                                    </c:if>
+                                    <c:if test="${room.status eq 'REPLACE_RECRUITING'}">
+                                        <small class="warn-text">미결제자 발생으로 대체 모집 중</small>
+                                    </c:if>
+                                </div>
 
-                    <label>
-                        결제일
-                        <input type="number" name="billingDay" min="1" max="31" value="1" required>
-                    </label>
-
-                    <input type="hidden" name="planName" class="ott-plan-input">
-                    <input type="hidden" name="totalPrice" class="ott-total-price-input">
-                    <input type="hidden" name="memberLimit" class="ott-member-limit-input">
-
-                    <div class="ott-fixed-plan-preview">
-                        <strong>OTT를 선택하면 최고 멤버십 기준 금액이 자동 적용됩니다.</strong>
-                        <p>구독종류, 전체 구독료, 최대 인원은 직접 입력하지 않고 서비스 규칙으로 고정됩니다.</p>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary full ott-form-submit">공유방 생성</button>
-                </form>
-            </article>
-
-            <article class="card ott-room-list-card">
-                <div class="panel-header">
-                    <div>
-                        <p class="eyebrow">MY ROOMS</p>
-                        <h2>내 공유방</h2>
-                    </div>
-                    <span>${fn:length(myRoomList)}개</span>
-                </div>
-
-                <c:choose>
-                    <c:when test="${not empty myRoomList}">
-                        <div class="ott-room-card-list">
-                            <c:forEach var="room" items="${myRoomList}">
-                                <div class="ott-room-card">
-                                    <div>
-                                        <strong>${room.roomName}</strong>
-                                        <p>${room.serviceName} · ${room.planName} · ${room.currentMemberCount}/${room.memberLimit}명 · 결제일 매월 ${room.billingDay}일</p>
-                                        <c:if test="${room.status eq 'CLOSE_REQUESTED'}">
-                                            <small class="danger-text">방 삭제 예약됨 · ${room.closeEffectiveDate} 종료 예정</small>
-                                        </c:if>
-                                        <c:if test="${room.status eq 'REPLACE_RECRUITING'}">
-                                            <small class="warn-text">미결제자 발생으로 대체 모집 중</small>
-                                        </c:if>
-                                    </div>
-                                    <div class="ott-room-meta">
-                                        <span class="status-pill ${room.status}">${room.status}</span>
-                                        <b><fmt:formatNumber value="${room.perPersonAmount}" pattern="#,##0" />원 / 1인</b>
-                                        <small>분담금 + 수수료 3%</small>
-                                        <small>초대코드 ${room.inviteCode}</small>
-                                        <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-outline btn-mini">대화방</a>
-                                    </div>
+                                <div class="family-room-actions">
+                                    <span class="status-pill ${room.status}">${room.status}</span>
+                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-outline btn-mini">대화방</a>
 
                                     <c:if test="${room.hostMemberId eq loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
-                                        <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form">
+                                        <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form compact-close-form">
                                             <input type="hidden" name="roomId" value="${room.roomId}">
                                             <input type="hidden" name="returnPage" value="friends">
                                             <input type="hidden" name="closeReason" value="파티장 요청">
-                                            <input type="text" name="closeNotice" placeholder="참여자에게 보여줄 종료 공지 입력">
+                                            <input type="text" name="closeNotice" placeholder="종료 공지 입력">
                                             <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('방 삭제 요청을 진행할까요? 이번 이용 기간 종료일까지 유지되고, 다음 이용분 결제 완료 건은 자동 환불됩니다.');">방 삭제 요청</button>
                                         </form>
                                     </c:if>
                                 </div>
-                            </c:forEach>
-                        </div>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="empty-box">아직 참여 중인 지인 공유방이 없습니다.</div>
-                    </c:otherwise>
-                </c:choose>
-            </article>
-        </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="empty-box">아직 가족 지인과 만든 공유방이 없습니다.</div>
+                </c:otherwise>
+            </c:choose>
+        </article>
 
-        <article class="card ott-tab-panel settlement-panel-wide" style="margin-top: 24px;">
+        <article id="createRoom" class="card ott-form-card family-create-card">
             <div class="panel-header">
                 <div>
-                    <p class="eyebrow">SETTLEMENT & STATUS</p>
+                    <p class="eyebrow">CREATE ROOM</p>
+                    <h2>공유방 만들기</h2>
+                </div>
+                <span>가족 · 지인 전용</span>
+            </div>
+
+            <form action="${contextPath}/spendolive/ott/friends/create.do" method="post" class="ott-form-grid ott-fixed-plan-form">
+                <label>
+                    OTT 종류
+                    <select name="ottServiceId" class="ott-service-select" required>
+                        <option value="">선택</option>
+                        <c:forEach var="service" items="${serviceList}">
+                            <option value="${service.ottServiceId}"
+                                    data-service-name="${service.serviceName}"
+                                    data-plan="${service.fixedPlanName}"
+                                    data-base-price="${service.basePrice}"
+                                    data-extra-fee="${service.extraMemberFee}"
+                                    data-extra-count="${service.extraMemberCount}"
+                                    data-total-price="${service.defaultPrice}"
+                                    data-member-limit="${service.maxMemberLimit}"
+                                    data-share-amount="${service.shareAmount}"
+                                    data-fee-amount="${service.feeAmount}"
+                                    data-person-amount="${service.perPersonAmount}">
+                                ${service.serviceName}
+                            </option>
+                        </c:forEach>
+                    </select>
+                </label>
+
+                <label>
+                    공유방 이름
+                    <input type="text" name="roomName" placeholder="예: 우리 가족 Netflix 공유방">
+                </label>
+
+                <label>
+                    결제일
+                    <input type="number" name="billingDay" min="1" max="31" value="1" required>
+                </label>
+
+                <input type="hidden" name="planName" class="ott-plan-input">
+                <input type="hidden" name="totalPrice" class="ott-total-price-input">
+                <input type="hidden" name="memberLimit" class="ott-member-limit-input">
+
+                <div class="ott-fixed-plan-preview">
+                    <strong>OTT를 선택하면 최고 멤버십 기준 금액이 자동 적용됩니다.</strong>
+                    <p>구독종류, 전체 구독료, 최대 인원은 직접 입력하지 않고 서비스 규칙으로 고정됩니다.</p>
+                </div>
+
+                <button type="submit" class="btn btn-primary full ott-form-submit">공유방 생성</button>
+            </form>
+        </article>
+
+        <article class="card ott-tab-panel settlement-panel-wide family-settlement-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">SETTLEMENT</p>
                     <h2>정산 관리</h2>
                 </div>
-                <span>지인 공유방 정산 요청과 상태 확인</span>
+                <span>가족 지인 공유방만 표시</span>
             </div>
 
             <div class="settlement-stack">
@@ -185,7 +192,7 @@
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <div class="empty-box">방장으로 만든 공유방이 없습니다.</div>
+                            <div class="empty-box">방장으로 만든 가족 지인 공유방이 없습니다.</div>
                         </c:otherwise>
                     </c:choose>
                 </section>
@@ -194,7 +201,7 @@
                     <div class="settlement-sub-header">
                         <div>
                             <h3>정산 상태</h3>
-                            <p>결제 가능 기간, 마감일, 이용 기간, 내 결제 상태를 확인합니다.</p>
+                            <p>가족 지인 공유방의 결제 가능 기간, 마감일, 내 결제 상태를 확인합니다.</p>
                         </div>
                     </div>
 
@@ -230,9 +237,27 @@
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <div class="empty-box">아직 정산 내역이 없습니다.</div>
+                            <div class="empty-box">아직 가족 지인 공유방 정산 내역이 없습니다.</div>
                         </c:otherwise>
                     </c:choose>
+
+                    <c:if test="${not empty hostedSettlementPaymentList}">
+                        <div class="team-payment-status-box">
+                            <h3>팀원별 정산 상태</h3>
+                            <div class="team-payment-list">
+                                <c:forEach var="payment" items="${hostedSettlementPaymentList}">
+                                    <div class="team-payment-row">
+                                        <span>
+                                            <strong>${payment.roomName}</strong>
+                                            <small>${payment.settlementMonth} 이용분 · ${payment.memberName}(${payment.memberId})</small>
+                                        </span>
+                                        <b><fmt:formatNumber value="${payment.totalAmount}" pattern="#,##0" />원</b>
+                                        <em class="${payment.paymentStatus eq 'PAID' or payment.paymentStatus eq 'CONFIRMED' ? 'done' : 'wait'}">${payment.paymentStatus}</em>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </div>
+                    </c:if>
                 </section>
             </div>
         </article>

@@ -39,6 +39,13 @@ CREATE TABLE member_tb (
 
 CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
 
+ALTER TABLE member_tb ADD (
+    open_bank_user_seq_no VARCHAR2(50),  -- 금융결제원에서 받은 사용자 고유 일련번호
+    open_bank_token       VARCHAR2(500)  -- 이 사람 계좌에서 돈 뺄 때 쓸 치트키(Access Token)
+);
+
+update member_tb set open_bank_user_seq_no ='123123' ,open_bank_token ='123123123211' where id ='host' -- OTT페이지 접속을 위한 계좌임시 데이터
+
 CREATE OR REPLACE TRIGGER trg_member_bi
 BEFORE INSERT ON member_tb
 FOR EACH ROW

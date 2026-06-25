@@ -26,6 +26,9 @@ import com.example.spendolive.ott.service.OttService;
 @RequestMapping("/spendolive")
 public class OttController {
 
+    private static final String OPEN_BANK_REQUIRED_MESSAGE =
+            "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !";
+
     private final OttService ottService;
 
     public OttController(OttService ottService) {
@@ -35,12 +38,12 @@ public class OttController {
     @GetMapping("/ott.do")
     public String ottMain(Model model, HttpSession session) {
         ottService.processScheduledOttJobs();
+
         String loginId = getLoginId(session);
-        
-        
+
         model.addAttribute("serviceList", ottService.getShareableServices());
         model.addAttribute("recruitRoomCount", ottService.getRecruitRoomCount());
-        
+
         if (loginId != null) {
             model.addAttribute("myRoomCount", ottService.getMyRoomCount(loginId));
         } else {
@@ -54,36 +57,44 @@ public class OttController {
     @GetMapping("/ott/friends.do")
     public String friends(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         ottService.processScheduledOttJobs();
-        String loginId = getLoginId(session);
-        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String open_bank_token = memberVO.getOpen_bank_token();
-        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
-        if (loginId == null) {   
+
+        MemberVO memberVO = getLoginMember(session);
+        String loginId = getLoginId(memberVO);
+
+        if (loginId == null) {
             return "redirect:/member/loginForm.do";
         }
-        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
 
-            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+        if (!hasOpenBankInfo(memberVO)) {
+            redirectAttributes.addFlashAttribute("msg", OPEN_BANK_REQUIRED_MESSAGE);
             return "redirect:/spendolive/main.do";
         }
+
         addCommonOttModel(model, loginId);
-        model.addAttribute("myRoomList", ottService.getMyRooms(loginId));
-        model.addAttribute("hostedRoomList", ottService.getHostedRooms(loginId));
-        model.addAttribute("settlementList", ottService.getMySettlements(loginId));
+        model.addAttribute("myRoomList", ottService.getFriendRooms(loginId));
+        model.addAttribute("hostedRoomList", ottService.getHostedFriendRooms(loginId));
+        model.addAttribute("settlementList", ottService.getFriendSettlements(loginId));
+        model.addAttribute("hostedSettlementPaymentList", ottService.getHostedSettlementPayments(loginId, "FRIEND"));
         model.addAttribute("body_page", "/WEB-INF/views/ott/ottFriends.jsp");
         return "common/layout";
     }
 
     @PostMapping("/ott/friends/create.do")
-    public String createFriendRoom(@ModelAttribute OttRoomDTO roomDTO, HttpSession session) {
-        String loginId = getLoginId(session);
-        
+    public String createFriendRoom(@ModelAttribute OttRoomDTO roomDTO,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        MemberVO memberVO = getLoginMember(session);
+        String loginId = getLoginId(memberVO);
+
         if (loginId == null) {
-            
             return "redirect:/member/loginForm.do";
         }
-        
-        
+
+        if (!hasOpenBankInfo(memberVO)) {
+            redirectAttributes.addFlashAttribute("msg", OPEN_BANK_REQUIRED_MESSAGE);
+            return "redirect:/spendolive/main.do";
+        }
+
         ottService.createFriendRoom(roomDTO, loginId);
         return "redirect:/spendolive/ott/friends.do?result=created";
     }
@@ -94,44 +105,51 @@ public class OttController {
                           RedirectAttributes redirectAttributes,
                           HttpSession session) {
         ottService.processScheduledOttJobs();
-        String loginId = getLoginId(session);
-        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String open_bank_token = memberVO.getOpen_bank_token();
-        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
+
+        MemberVO memberVO = getLoginMember(session);
+        String loginId = getLoginId(memberVO);
+
         if (loginId == null) {
-            
             return "redirect:/member/loginForm.do";
         }
-        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
 
-            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+        if (!hasOpenBankInfo(memberVO)) {
+            redirectAttributes.addFlashAttribute("msg", OPEN_BANK_REQUIRED_MESSAGE);
             return "redirect:/spendolive/main.do";
         }
+
+        if ("apply".equals(tab)) {
+            tab = "manage";
+        }
+
         addCommonOttModel(model, loginId);
         model.addAttribute("tab", tab);
         model.addAttribute("recruitRoomList", ottService.getRecruitRooms(loginId));
-        model.addAttribute("hostedRoomList", ottService.getHostedRooms(loginId));
+        model.addAttribute("hostedRoomList", ottService.getHostedRecruitRooms(loginId));
+        model.addAttribute("joinedRoomList", ottService.getJoinedRecruitRooms(loginId));
         model.addAttribute("hostedRoomMemberList", ottService.getHostedRoomMembers(loginId));
-        model.addAttribute("settlementList", ottService.getMySettlements(loginId));
+        model.addAttribute("settlementList", ottService.getRecruitSettlements(loginId));
+        model.addAttribute("hostedSettlementPaymentList", ottService.getHostedSettlementPayments(loginId, "RECRUIT"));
         model.addAttribute("body_page", "/WEB-INF/views/ott/ottRecruit.jsp");
         return "common/layout";
     }
 
     @PostMapping("/ott/recruit/create.do")
-    public String createRecruitRoom(@ModelAttribute OttRoomDTO roomDTO, HttpSession session, RedirectAttributes redirectAttributes) {
-        String loginId = getLoginId(session);
+    public String createRecruitRoom(@ModelAttribute OttRoomDTO roomDTO,
+                                    HttpSession session,
+                                    RedirectAttributes redirectAttributes) {
+        MemberVO memberVO = getLoginMember(session);
+        String loginId = getLoginId(memberVO);
 
         if (loginId == null) {
             return "redirect:/member/loginForm.do";
         }
-        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String open_bank_token = memberVO.getOpen_bank_token();
-        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
-        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
 
-            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+        if (!hasOpenBankInfo(memberVO)) {
+            redirectAttributes.addFlashAttribute("msg", OPEN_BANK_REQUIRED_MESSAGE);
             return "redirect:/spendolive/main.do";
         }
+
         ottService.createRecruitRoom(roomDTO, loginId);
         return "redirect:/spendolive/ott/recruit.do?tab=all&result=created";
     }
@@ -145,7 +163,7 @@ public class OttController {
         }
 
         ottService.applyRecruitRoom(roomId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=applied";
+        return "redirect:/spendolive/ott/recruit.do?tab=manage&result=applied";
     }
 
     @PostMapping("/ott/recruit/application/approve.do")
@@ -157,7 +175,7 @@ public class OttController {
         }
 
         ottService.approveApplication(roomMemberId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=approved";
+        return "redirect:/spendolive/ott/recruit.do?tab=manage&result=approved";
     }
 
     @PostMapping("/ott/recruit/application/reject.do")
@@ -169,7 +187,7 @@ public class OttController {
         }
 
         ottService.rejectApplication(roomMemberId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=rejected";
+        return "redirect:/spendolive/ott/recruit.do?tab=manage&result=rejected";
     }
 
     @GetMapping("/ott/chat/room.do")
@@ -281,7 +299,7 @@ public class OttController {
         ottService.requestRoomClose(roomId, loginId, closeNotice, closeReason);
 
         if ("recruit".equals(returnPage)) {
-            return "redirect:/spendolive/ott/recruit.do?tab=apply&result=closeRequested";
+            return "redirect:/spendolive/ott/recruit.do?tab=manage&result=closeRequested";
         }
 
         return "redirect:/spendolive/ott/friends.do?result=closeRequested";
@@ -298,9 +316,30 @@ public class OttController {
         model.addAttribute("settlementGuide", "OTT별 최고 멤버십 기준 금액을 N분의 1로 나누고 서비스 수수료 3%를 더해 정산합니다. 결제 마감일은 이용 시작일 5일 전으로 자동 계산됩니다.");
     }
 
-    private String getLoginId(HttpSession session) {
-        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+    private MemberVO getLoginMember(HttpSession session) {
+        Object memberInfo = session.getAttribute("memberInfo");
+        if (memberInfo instanceof MemberVO) {
+            return (MemberVO) memberInfo;
+        }
 
+        Object memberVO = session.getAttribute("memberVO");
+        if (memberVO instanceof MemberVO) {
+            return (MemberVO) memberVO;
+        }
+
+        Object loginMember = session.getAttribute("loginMember");
+        if (loginMember instanceof MemberVO) {
+            return (MemberVO) loginMember;
+        }
+
+        return null;
+    }
+
+    private String getLoginId(HttpSession session) {
+        return getLoginId(getLoginMember(session));
+    }
+
+    private String getLoginId(MemberVO memberInfo) {
         if (memberInfo == null) {
             return null;
         }
@@ -309,6 +348,23 @@ public class OttController {
             return memberInfo.getId();
         }
 
-        return String.valueOf(memberInfo.getMember_id());
+        if (memberInfo.getMember_id() > 0) {
+            return String.valueOf(memberInfo.getMember_id());
+        }
+
+        return null;
+    }
+
+    private boolean hasOpenBankInfo(MemberVO memberVO) {
+        if (memberVO == null) {
+            return false;
+        }
+
+        return hasText(memberVO.getOpen_bank_token())
+                && hasText(memberVO.getOpen_bank_user_seq_no());
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

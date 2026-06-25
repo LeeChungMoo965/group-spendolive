@@ -300,6 +300,7 @@ CREATE TABLE ott_room_tb (
     total_price          NUMBER NOT NULL,
     billing_day          NUMBER NOT NULL,
     member_limit         NUMBER DEFAULT 4 NOT NULL,
+    room_mode            VARCHAR2(20) DEFAULT 'RECRUIT' NOT NULL,
     status               VARCHAR2(30) DEFAULT 'RECRUITING' NOT NULL,
     invite_code          VARCHAR2(50),
     close_requested_at   DATE,
@@ -316,6 +317,7 @@ CREATE TABLE ott_room_tb (
     CONSTRAINT ck_ott_room_price CHECK (total_price >= 0),
     CONSTRAINT ck_ott_room_billing_day CHECK (billing_day BETWEEN 1 AND 31),
     CONSTRAINT ck_ott_room_member_limit CHECK (member_limit BETWEEN 1 AND 6),
+    CONSTRAINT ck_ott_room_mode CHECK (room_mode IN ('FRIEND', 'RECRUIT')),
     CONSTRAINT ck_ott_room_status CHECK (
         status IN (
             'RECRUITING',
@@ -342,6 +344,7 @@ END;
 /
 
 CREATE INDEX idx_ott_room_host ON ott_room_tb(host_member_id);
+CREATE INDEX idx_ott_room_mode ON ott_room_tb(room_mode, status, created_at);
 CREATE INDEX idx_ott_room_status ON ott_room_tb(status, created_at);
 CREATE INDEX idx_ott_room_close ON ott_room_tb(status, close_effective_date);
 
