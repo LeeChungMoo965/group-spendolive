@@ -1,4 +1,4 @@
-package com.example.spendolive.member.repository;
+package com.example.spendolive.mypage.repository;
 
 import java.time.LocalDate;
 import java.time.YearMonth;

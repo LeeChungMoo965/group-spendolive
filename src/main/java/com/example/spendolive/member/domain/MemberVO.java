@@ -23,5 +23,8 @@ public class MemberVO {
 	private String last_login_at;
 	private String open_bank_user_seq_no;
 	private String open_bank_token;
+	private String fintech_use_num;
+
+	
 }
 

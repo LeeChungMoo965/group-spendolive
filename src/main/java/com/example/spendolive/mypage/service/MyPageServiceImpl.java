@@ -1,11 +1,12 @@
-package com.example.spendolive.member.service;
+package com.example.spendolive.mypage.service;
 
 import org.springframework.stereotype.Service;
 
 import com.example.spendolive.member.domain.MemberVO;
-import com.example.spendolive.member.domain.MyPageDTO;
-import com.example.spendolive.member.repository.MyPageReportRepository;
-import com.example.spendolive.member.repository.MyPageRepository;
+import com.example.spendolive.member.service.MemberService;
+import com.example.spendolive.mypage.domain.MyPageDTO;
+import com.example.spendolive.mypage.repository.MyPageReportRepository;
+import com.example.spendolive.mypage.repository.MyPageRepository;
 import com.example.spendolive.ott.service.OttService;
 
 @Service

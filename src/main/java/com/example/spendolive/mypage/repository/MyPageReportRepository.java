@@ -1,4 +1,4 @@
-package com.example.spendolive.member.repository;
+package com.example.spendolive.mypage.repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import com.example.spendolive.member.domain.MyPageReportDTO;
+import com.example.spendolive.mypage.domain.MyPageReportDTO;
 
 @Repository
 public class MyPageReportRepository {

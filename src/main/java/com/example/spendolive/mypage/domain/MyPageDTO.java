@@ -1,7 +1,8 @@
-package com.example.spendolive.member.domain;
+package com.example.spendolive.mypage.domain;
 
 import java.util.List;
 
+import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.domain.OttRoomDTO;
 
 import lombok.Getter;

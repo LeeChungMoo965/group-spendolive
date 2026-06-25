@@ -28,7 +28,7 @@ public class SpendOliveController {
         mav.setViewName("redirect:/spendolive/expense/list.do");
         return mav;
     }
-
+    
     private ModelAndView layout(String bodyPage) {
         ModelAndView mav = new ModelAndView();
         mav.setViewName("common/layout");

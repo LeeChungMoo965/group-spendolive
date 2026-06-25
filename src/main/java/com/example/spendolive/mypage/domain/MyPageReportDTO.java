@@ -1,4 +1,4 @@
-package com.example.spendolive.member.domain;
+package com.example.spendolive.mypage.domain;
 
 import lombok.Getter;
 import lombok.Setter;

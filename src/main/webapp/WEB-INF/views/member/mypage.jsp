@@ -17,7 +17,19 @@
             <div class="mypage-alert done">회원정보가 수정되었습니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'passwordMismatch'}">
-            <div class="mypage-alert warn">비밀번호와 비밀번호 확인이 일치하지 않습니다.</div>
+            <div class="mypage-alert warn">새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.</div>
+        </c:if>
+        <c:if test="${param.profileError == 'currentPasswordMismatch'}">
+            <div class="mypage-alert warn">현재 비밀번호가 일치하지 않습니다.</div>
+        </c:if>
+        <c:if test="${param.profileError == 'passwordCheckRequired'}">
+            <div class="mypage-alert warn">비밀번호 변경 전 확인 버튼을 눌러주세요.</div>
+        </c:if>
+        <c:if test="${param.profileError == 'emailNotVerified'}">
+            <div class="mypage-alert warn">이메일을 변경하려면 이메일 인증을 완료해야 합니다.</div>
+        </c:if>
+        <c:if test="${param.profileError == 'phoneNotVerified'}">
+            <div class="mypage-alert warn">전화번호를 변경하려면 전화번호 인증을 완료해야 합니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'updateFailed'}">
             <div class="mypage-alert warn">회원정보 수정 중 오류가 발생했습니다. 이메일/전화번호 중복 여부를 확인해 주세요.</div>
@@ -88,7 +100,13 @@
                 <span>비밀번호 변경 시 확인 입력이 필요합니다.</span>
             </div>
 
-            <form action="${contextPath}/spendolive/mypage/update.do" method="post" class="mypage-edit-form">
+            <form action="${contextPath}/spendolive/mypage/update.do" method="post" class="mypage-edit-form" id="mypageProfileForm">
+                <input type="hidden" id="originalEmail" value="${memberInfo.email}">
+                <input type="hidden" id="originalPhone" value="${memberInfo.phone}">
+                <input type="hidden" id="emailVerified" value="N">
+                <input type="hidden" id="phoneVerified" value="N">
+                <input type="hidden" id="passwordChecked" name="passwordChecked" value="N">
+
                 <label>
                     이름
                     <input type="text" name="member_name" value="${memberInfo.member_name}" required>
@@ -97,22 +115,56 @@
                     닉네임
                     <input type="text" name="nickname" value="${memberInfo.nickname}">
                 </label>
+
+                <div class="mypage-verify-group">
+                    <label>
+                        이메일
+                        <input type="email" name="email" id="mypageEmail" value="${memberInfo.email}" required>
+                    </label>
+                    <div class="mypage-inline-actions">
+                        <button type="button" class="btn btn-outline" onclick="sendMyPageEmailCode()">이메일 인증</button>
+                    </div>
+                    <div class="mypage-code-row">
+                        <input type="text" id="mypageEmailCode" placeholder="이메일 인증번호 입력">
+                        <button type="button" class="btn btn-primary" onclick="verifyMyPageEmailCode()">확인</button>
+                    </div>
+                    <p class="mypage-help" id="emailVerifyMessage">이메일을 변경할 때만 인증이 필요합니다.</p>
+                </div>
+
+                <div class="mypage-verify-group">
+                    <label>
+                        전화번호
+                        <input type="text" name="phone" id="mypagePhone" value="${memberInfo.phone}">
+                    </label>
+                    <div class="mypage-inline-actions">
+                        <button type="button" class="btn btn-outline" onclick="sendMyPagePhoneCode()">전화번호 인증</button>
+                    </div>
+                    <div class="mypage-code-row">
+                        <input type="text" id="mypagePhoneCode" placeholder="문자 인증번호 입력">
+                        <button type="button" class="btn btn-primary" onclick="verifyMyPagePhoneCode()">확인</button>
+                    </div>
+                    <p class="mypage-help" id="phoneVerifyMessage">전화번호를 변경할 때만 인증이 필요합니다.</p>
+                </div>
+
                 <label>
-                    이메일
-                    <input type="email" name="email" value="${memberInfo.email}" required>
-                </label>
-                <label>
-                    전화번호
-                    <input type="text" name="phone" value="${memberInfo.phone}">
+                    현재 비밀번호
+                    <input type="password" name="currentPassword" id="currentPassword" placeholder="비밀번호 변경 시 입력">
                 </label>
                 <label>
                     새 비밀번호
-                    <input type="password" name="password" placeholder="변경할 때만 입력">
+                    <input type="password" name="password" id="newPassword" placeholder="변경할 때만 입력">
                 </label>
-                <label>
-                    새 비밀번호 확인
-                    <input type="password" name="passwordConfirm" placeholder="비밀번호 확인">
-                </label>
+                <div class="mypage-verify-group">
+                    <label>
+                        새 비밀번호 확인
+                        <input type="password" name="passwordConfirm" id="passwordConfirm" placeholder="새 비밀번호 재입력">
+                    </label>
+                    <div class="mypage-inline-actions">
+                        <button type="button" class="btn btn-outline" onclick="checkMyPagePassword()">비밀번호 확인</button>
+                    </div>
+                    <p class="mypage-help" id="passwordCheckMessage">비밀번호를 변경할 때는 현재 비밀번호와 새 비밀번호 확인이 필요합니다.</p>
+                </div>
+
                 <div class="mypage-form-actions">
                     <button type="submit" class="btn btn-primary">수정 완료</button>
                     <a href="${contextPath}/spendolive/mypage.do" class="btn btn-outline">취소</a>
@@ -269,3 +321,196 @@
         </article>
     </div>
 </section>
+<script>
+(function () {
+    const emailInput = document.getElementById('mypageEmail');
+    const phoneInput = document.getElementById('mypagePhone');
+    const passwordFields = ['currentPassword', 'newPassword', 'passwordConfirm'];
+
+    if (emailInput) {
+        emailInput.addEventListener('input', function () {
+            document.getElementById('emailVerified').value = 'N';
+            setMessage('emailVerifyMessage', '이메일을 변경했다면 인증을 다시 진행해주세요.', 'warn');
+        });
+    }
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            document.getElementById('phoneVerified').value = 'N';
+            setMessage('phoneVerifyMessage', '전화번호를 변경했다면 인증을 다시 진행해주세요.', 'warn');
+        });
+    }
+
+    passwordFields.forEach(function (fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function () {
+                document.getElementById('passwordChecked').value = 'N';
+                setMessage('passwordCheckMessage', '비밀번호 변경 전 확인 버튼을 눌러주세요.', 'warn');
+            });
+        }
+    });
+
+    const form = document.getElementById('mypageProfileForm');
+    if (form) {
+        form.addEventListener('submit', function (event) {
+            const emailChanged = document.getElementById('mypageEmail').value.trim() !== document.getElementById('originalEmail').value.trim();
+            const phoneChanged = document.getElementById('mypagePhone').value.trim() !== document.getElementById('originalPhone').value.trim();
+            const newPassword = document.getElementById('newPassword').value.trim();
+
+            if (emailChanged && document.getElementById('emailVerified').value !== 'Y') {
+                alert('이메일을 변경하려면 이메일 인증을 완료해주세요.');
+                event.preventDefault();
+                return;
+            }
+
+            if (phoneChanged && document.getElementById('phoneVerified').value !== 'Y') {
+                alert('전화번호를 변경하려면 전화번호 인증을 완료해주세요.');
+                event.preventDefault();
+                return;
+            }
+
+            if (newPassword && document.getElementById('passwordChecked').value !== 'Y') {
+                alert('비밀번호 변경 전 비밀번호 확인 버튼을 눌러주세요.');
+                event.preventDefault();
+            }
+        });
+    }
+})();
+
+function postForm(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        },
+        body: new URLSearchParams(data)
+    });
+}
+
+function setMessage(id, message, type) {
+    const target = document.getElementById(id);
+    if (!target) {
+        return;
+    }
+    target.textContent = message;
+    target.classList.remove('success', 'warn');
+    if (type) {
+        target.classList.add(type);
+    }
+}
+
+function sendMyPageEmailCode() {
+    const email = document.getElementById('mypageEmail').value.trim();
+    if (!email) {
+        alert('이메일을 입력해주세요.');
+        return;
+    }
+
+    postForm('${contextPath}/spendolive/mypage/email/send.do', { email: email })
+        .then(function (res) { return res.text(); })
+        .then(function (result) {
+            if (result === 'SUCCESS') {
+                document.getElementById('emailVerified').value = 'N';
+                setMessage('emailVerifyMessage', '인증번호를 발송했습니다. 이메일을 확인해주세요.', 'success');
+            } else {
+                setMessage('emailVerifyMessage', '인증번호 발송에 실패했습니다.', 'warn');
+            }
+        })
+        .catch(function () {
+            setMessage('emailVerifyMessage', '인증번호 발송 중 오류가 발생했습니다.', 'warn');
+        });
+}
+
+function verifyMyPageEmailCode() {
+    const email = document.getElementById('mypageEmail').value.trim();
+    const inputCode = document.getElementById('mypageEmailCode').value.trim();
+    if (!inputCode) {
+        alert('이메일 인증번호를 입력해주세요.');
+        return;
+    }
+
+    postForm('${contextPath}/spendolive/mypage/email/verify.do', { email: email, inputCode: inputCode })
+        .then(function (res) { return res.text(); })
+        .then(function (result) {
+            if (result === 'true') {
+                document.getElementById('emailVerified').value = 'Y';
+                setMessage('emailVerifyMessage', '이메일 인증이 완료되었습니다.', 'success');
+            } else {
+                document.getElementById('emailVerified').value = 'N';
+                setMessage('emailVerifyMessage', '인증번호가 일치하지 않습니다.', 'warn');
+            }
+        })
+        .catch(function () {
+            setMessage('emailVerifyMessage', '이메일 인증 확인 중 오류가 발생했습니다.', 'warn');
+        });
+}
+
+function sendMyPagePhoneCode() {
+    const phone = document.getElementById('mypagePhone').value.trim();
+    if (!phone) {
+        alert('전화번호를 입력해주세요.');
+        return;
+    }
+
+    postForm('${contextPath}/spendolive/mypage/phone/send.do', { phone: phone })
+        .then(function (res) { return res.text(); })
+        .then(function (result) {
+            if (result === 'SUCCESS') {
+                document.getElementById('phoneVerified').value = 'N';
+                setMessage('phoneVerifyMessage', '인증번호를 발송했습니다. 문자를 확인해주세요.', 'success');
+            } else {
+                setMessage('phoneVerifyMessage', '인증번호 발송에 실패했습니다.', 'warn');
+            }
+        })
+        .catch(function () {
+            setMessage('phoneVerifyMessage', '인증번호 발송 중 오류가 발생했습니다.', 'warn');
+        });
+}
+
+function verifyMyPagePhoneCode() {
+    const phone = document.getElementById('mypagePhone').value.trim();
+    const inputCode = document.getElementById('mypagePhoneCode').value.trim();
+    if (!inputCode) {
+        alert('문자 인증번호를 입력해주세요.');
+        return;
+    }
+
+    postForm('${contextPath}/spendolive/mypage/phone/verify.do', { phone: phone, inputCode: inputCode })
+        .then(function (res) { return res.text(); })
+        .then(function (result) {
+            if (result === 'true') {
+                document.getElementById('phoneVerified').value = 'Y';
+                setMessage('phoneVerifyMessage', '전화번호 인증이 완료되었습니다.', 'success');
+            } else {
+                document.getElementById('phoneVerified').value = 'N';
+                setMessage('phoneVerifyMessage', '인증번호가 일치하지 않습니다.', 'warn');
+            }
+        })
+        .catch(function () {
+            setMessage('phoneVerifyMessage', '전화번호 인증 확인 중 오류가 발생했습니다.', 'warn');
+        });
+}
+
+function checkMyPagePassword() {
+    const currentPassword = document.getElementById('currentPassword').value.trim();
+    const newPassword = document.getElementById('newPassword').value.trim();
+    const passwordConfirm = document.getElementById('passwordConfirm').value.trim();
+
+    if (!currentPassword || !newPassword || !passwordConfirm) {
+        document.getElementById('passwordChecked').value = 'N';
+        setMessage('passwordCheckMessage', '현재 비밀번호, 새 비밀번호, 새 비밀번호 확인을 모두 입력해주세요.', 'warn');
+        return;
+    }
+
+    if (newPassword !== passwordConfirm) {
+        document.getElementById('passwordChecked').value = 'N';
+        setMessage('passwordCheckMessage', '새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.', 'warn');
+        return;
+    }
+
+    document.getElementById('passwordChecked').value = 'Y';
+    setMessage('passwordCheckMessage', '새 비밀번호 확인이 완료되었습니다. 저장 시 현재 비밀번호도 다시 확인됩니다.', 'success');
+}
+</script>
+

@@ -2086,3 +2086,59 @@
 .mypage-report-card .mypage-report-summary > div strong {
   display: inline !important;
 }
+
+/* 마이페이지 회원정보 수정: 이메일/전화번호 인증 + 비밀번호 확인 */
+.mypage-verify-group {
+  display: grid;
+  gap: 8px;
+}
+
+.mypage-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mypage-code-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.mypage-code-row .btn,
+.mypage-inline-actions .btn {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.mypage-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.mypage-help.success {
+  color: var(--olive-dark);
+}
+
+.mypage-help.warn {
+  color: #9a5f13;
+}
+
+@media(max-width:700px) {
+  .mypage-code-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mypage-inline-actions {
+    justify-content: stretch;
+  }
+
+  .mypage-inline-actions .btn,
+  .mypage-code-row .btn {
+    width: 100%;
+  }
+}

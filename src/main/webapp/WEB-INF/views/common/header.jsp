@@ -22,12 +22,12 @@
             <c:choose>
                 <c:when test="${isLogOn == true && not empty memberInfo}">
                 <c:choose>
-                    <c:when test="${memberInfo.open_bank_token == null && memberInfo.open_bank_user_seq_no == null}">
+                    <c:when test="${memberInfo.open_bank_token == null || memberInfo.open_bank_user_seq_no == null || memberInfo.fintech_use_num == null}">
                         <a class="btn btn-light" href="${contextPath}/member/openBankingAuth.do">🏦 안전한 오픈뱅킹 계좌 연동하기</a>
                     </c:when>
                 </c:choose>
                     <a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
-                    <h4><strong>${memberInfo.member_name}님</strong></h4>
+                    <h4><strong>${memberInfo.member_name}님${memberInfo.fintech_use_num}</strong></h4>
                 </c:when>
                 <c:otherwise>
                     <a class="btn btn-light" href="${contextPath}/member/loginForm.do">로그인</a>
