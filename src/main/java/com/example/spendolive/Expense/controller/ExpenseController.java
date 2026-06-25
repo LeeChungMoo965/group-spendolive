@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.Expense.domain.ExpenseDTO;
 import com.example.spendolive.Expense.service.ExpenseService;
@@ -33,12 +34,14 @@ public class ExpenseController {
 
     @GetMapping("/list.do")
     public String expenseList(@RequestParam(value = "yearMonth", required = false) String yearMonth,
-                              Model model,
-                              HttpSession session) {
+                            Model model,
+                            RedirectAttributes redirectAttributes,  
+                            HttpSession session) {
 
         Long memberId = getLoginMemberId(session);
 
         if (memberId == null) {
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
             return "redirect:/member/loginForm.do";
         }
 
