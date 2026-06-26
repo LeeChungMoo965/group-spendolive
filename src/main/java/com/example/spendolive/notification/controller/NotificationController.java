@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.notification.domain.NotificationDTO;
 import com.example.spendolive.notification.service.NotificationService;
 
@@ -28,25 +29,30 @@ public class NotificationController {
     @GetMapping("/ajax/list.do")
     public List<NotificationDTO> notificationList(HttpSession session) {
 
-        String loginId = (String) session.getAttribute("loginId");
+        MemberVO memberInfo =
+                (MemberVO) session.getAttribute("memberInfo");
 
-        if (loginId == null) {
+        if (memberInfo == null || memberInfo.getId() == null) {
             return Collections.emptyList();
         }
 
-        return notificationService.getNotificationList(loginId);
+        System.out.println("로그인 ID = " + memberInfo.getId());
+
+        return notificationService.getNotificationList(memberInfo.getId());
     }
 
     @GetMapping("/ajax/unreadCount.do")
     public Map<String, Integer> unreadCount(HttpSession session) {
 
-        String loginId = (String) session.getAttribute("loginId");
+        MemberVO memberInfo =
+                (MemberVO) session.getAttribute("memberInfo");
 
-        if (loginId == null) {
+        if (memberInfo == null || memberInfo.getId() == null) {
             return Map.of("unreadCount", 0);
         }
 
-        int unreadCount = notificationService.getUnreadCount(loginId);
+        int unreadCount =
+                notificationService.getUnreadCount(memberInfo.getId());
 
         return Map.of("unreadCount", unreadCount);
     }
@@ -56,13 +62,16 @@ public class NotificationController {
             @RequestParam("notificationId") int notificationId,
             HttpSession session) {
 
-        String loginId = (String) session.getAttribute("loginId");
+        MemberVO memberInfo =
+                (MemberVO) session.getAttribute("memberInfo");
 
-        if (loginId == null) {
+        if (memberInfo == null || memberInfo.getId() == null) {
             return Map.of("result", "LOGIN_REQUIRED");
         }
 
-        notificationService.readNotification(notificationId, loginId);
+        notificationService.readNotification(
+                notificationId,
+                memberInfo.getId());
 
         return Map.of("result", "OK");
     }
@@ -72,13 +81,16 @@ public class NotificationController {
             @RequestParam("notificationId") int notificationId,
             HttpSession session) {
 
-        String loginId = (String) session.getAttribute("loginId");
+        MemberVO memberInfo =
+                (MemberVO) session.getAttribute("memberInfo");
 
-        if (loginId == null) {
+        if (memberInfo == null || memberInfo.getId() == null) {
             return Map.of("result", "LOGIN_REQUIRED");
         }
 
-        notificationService.toggleStar(notificationId, loginId);
+        notificationService.toggleStar(
+                notificationId,
+                memberInfo.getId());
 
         return Map.of("result", "OK");
     }
