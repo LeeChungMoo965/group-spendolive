@@ -5,11 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 
-import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.OverridesAttribute;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +16,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.util.UriComponentsBuilder;
+
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.service.MemberService;
@@ -75,7 +72,6 @@ public class MemberControllerImpl implements MemberController{
                             + "&redirect_uri=" +kakaoredirectUri
                             + "&response_type=code";
         ModelAndView mav = new ModelAndView();
-        HttpSession session = request.getSession();
         mav.addObject("kakaoAuthUrl", kakaoAuthUrl);
         mav.setViewName("member/loginForm");
 
@@ -333,7 +329,6 @@ public class MemberControllerImpl implements MemberController{
         message += " </script>";
         e.printStackTrace();
     }
-    resEntity = new ResponseEntity(message, responseHeaders, HttpStatus.OK);
-    return resEntity;
+    return new ResponseEntity(message, responseHeaders, HttpStatus.OK);
 }
 }

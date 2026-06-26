@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.example.spendolive.payment.domain.EscrowVO;
-import com.example.spendolive.payment.domain.SettlementPaymentVO;
+import com.example.spendolive.payment.domain.*;
+
 
 @Repository("paymentDAO")
 public class PaymentRepositoryImpl implements PaymentRepository{
@@ -19,7 +19,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     }
 
     @Override
-    public void insertEscrow(EscrowVO escrow) {
+    public void insertEscrow(EscrowPayoutVO escrow) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'insertEscrow'");
     }

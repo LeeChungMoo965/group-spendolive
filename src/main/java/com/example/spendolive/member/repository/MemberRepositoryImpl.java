@@ -1,7 +1,5 @@
 package com.example.spendolive.member.repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +16,7 @@ public class MemberRepositoryImpl implements MemberRepository{
 
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     
-    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, "
+    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num,account_num,bank_code, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
@@ -29,7 +27,7 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" from member_tb where email =?";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
     +" from member_tb where phone =?";
-    private final String updatePinNO = "update member_tb set open_bank_user_seq_no =? ,open_bank_token =? ,fintech_use_num =?"
+    private final String updatePinNO = "update member_tb set open_bank_user_seq_no =? ,open_bank_token =? ,fintech_use_num =?, bank_code =?, account_num =?"
     +" where id =? ";
 
 
@@ -111,6 +109,8 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setOpen_bank_token(rs.getString("open_bank_token"));
         member.setOpen_bank_user_seq_no(rs.getString("open_bank_user_seq_no"));
         member.setFintech_use_num(rs.getString("fintech_use_num"));
+        member.setAccount_num(rs.getString("account_num"));
+        member.setBank_code(rs.getString("bank_code"));
         return member;
         },id, password);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -120,8 +120,14 @@ public class MemberRepositoryImpl implements MemberRepository{
     }
 
     @Override
-    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num) throws DataAccessException {
-        jdbcTemplate.update(updatePinNO, userSeqNo, accessToken, fintech_num, userId);
+    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num, String bank_code, String account_num) throws DataAccessException {
+        jdbcTemplate.update(updatePinNO,
+        userSeqNo,
+        accessToken,
+        fintech_num,
+        bank_code,
+        account_num,
+        userId);
     }
     
 }
