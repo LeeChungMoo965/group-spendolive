@@ -27,10 +27,17 @@
                 <strong>${recruitRoomCount}</strong>
                 <p>현재 모집 중인 공개 OTT 파티</p>
             </div>
-            <div class="ott-stat-card">
+            <div class="ott-stat-card ott-service-logo-card">
                 <span>공유 가능 OTT</span>
-                <strong>${fn:length(serviceList)}</strong>
-                <p>DB의 ott_service_tb 기준</p>
+                <div class="ott-logo-strip" aria-label="공유 가능한 OTT 목록">
+                    <img src="${contextPath}/resources/images/ott/net.png" alt="Netflix">
+                    <img src="${contextPath}/resources/images/ott/tving.png" alt="TVING">
+                    <img src="${contextPath}/resources/images/ott/disney.png" alt="Disney+">
+                    <img src="${contextPath}/resources/images/ott/wave.png" alt="Wavve">
+                    <img src="${contextPath}/resources/images/ott/watcha.png" alt="Watcha">
+                    <img src="${contextPath}/resources/images/ott/laftel.png" alt="Laftel">
+                </div>
+                <p>인기 OTT 6종 지원</p>
             </div>
         </div>
 

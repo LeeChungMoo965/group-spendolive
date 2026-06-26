@@ -32,6 +32,26 @@ public class OttServiceImpl implements OttService {
     }
 
     @Override
+    public List<OttRoomDTO> getFriendRooms(String loginId) {
+        return ottRepository.selectFriendRooms(loginId);
+    }
+
+    @Override
+    public List<OttRoomDTO> getHostedFriendRooms(String loginId) {
+        return ottRepository.selectHostedFriendRooms(loginId);
+    }
+
+    @Override
+    public List<OttRoomDTO> getHostedRecruitRooms(String loginId) {
+        return ottRepository.selectHostedRecruitRooms(loginId);
+    }
+
+    @Override
+    public List<OttRoomDTO> getJoinedRecruitRooms(String loginId) {
+        return ottRepository.selectJoinedRecruitRooms(loginId);
+    }
+
+    @Override
     public List<OttRoomDTO> getMyRooms(String loginId) {
         return ottRepository.selectMyRooms(loginId);
     }
@@ -49,6 +69,21 @@ public class OttServiceImpl implements OttService {
     @Override
     public List<OttSettlementDTO> getMySettlements(String loginId) {
         return ottRepository.selectMySettlements(loginId);
+    }
+
+    @Override
+    public List<OttSettlementDTO> getFriendSettlements(String loginId) {
+        return ottRepository.selectMySettlements(loginId, "FRIEND");
+    }
+
+    @Override
+    public List<OttSettlementDTO> getRecruitSettlements(String loginId) {
+        return ottRepository.selectMySettlements(loginId, "RECRUIT");
+    }
+
+    @Override
+    public List<OttSettlementDTO> getHostedSettlementPayments(String loginId, String roomMode) {
+        return ottRepository.selectHostedSettlementPayments(loginId, roomMode);
     }
 
     @Override
@@ -83,12 +118,14 @@ public class OttServiceImpl implements OttService {
 
     @Override
     public void createFriendRoom(OttRoomDTO roomDTO, String loginId) {
+        roomDTO.setRoomMode("FRIEND");
         prepareRoomDefaultValues(roomDTO);
         ottRepository.insertRoom(roomDTO, loginId, "ACTIVE");
     }
 
     @Override
     public void createRecruitRoom(OttRoomDTO roomDTO, String loginId) {
+        roomDTO.setRoomMode("RECRUIT");
         prepareRoomDefaultValues(roomDTO);
         ottRepository.insertRoom(roomDTO, loginId, "RECRUITING");
     }

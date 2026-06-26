@@ -16,6 +16,14 @@ public interface OttRepository {
 
     List<OttRoomDTO> selectRecruitRooms(String loginId);
 
+    List<OttRoomDTO> selectFriendRooms(String loginId);
+
+    List<OttRoomDTO> selectHostedFriendRooms(String loginId);
+
+    List<OttRoomDTO> selectHostedRecruitRooms(String loginId);
+
+    List<OttRoomDTO> selectJoinedRecruitRooms(String loginId);
+
     List<OttRoomDTO> selectMyRooms(String loginId);
 
     List<OttRoomDTO> selectHostedRooms(String loginId);
@@ -23,6 +31,10 @@ public interface OttRepository {
     List<OttRoomMemberDTO> selectHostedRoomMembers(String loginId);
 
     List<OttSettlementDTO> selectMySettlements(String loginId);
+
+    List<OttSettlementDTO> selectMySettlements(String loginId, String roomMode);
+
+    List<OttSettlementDTO> selectHostedSettlementPayments(String loginId, String roomMode);
 
     List<OttChatRoomDTO> selectMyChatRooms(String loginId);
 

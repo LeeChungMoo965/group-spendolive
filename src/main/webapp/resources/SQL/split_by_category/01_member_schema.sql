@@ -38,11 +38,19 @@ CREATE TABLE member_tb (
 );
 
 CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
+
+/* =========================================================
+   2. [develop + 마이페이지/OTT 반영] 오픈뱅킹 계좌 연동 컬럼
+      - open_bank_user_seq_no : 금융결제원 사용자 일련번호
+      - open_bank_token       : 오픈뱅킹 Access Token
+      - fintech_use_num       : 실제 계좌 출금/이체에 사용하는 핀테크 이용번호
+   ========================================================= */
 ALTER TABLE member_tb ADD (
     open_bank_user_seq_no VARCHAR2(50),
     open_bank_token       VARCHAR2(500),
-    fintech_use_num VARCHAR2(24)
+    fintech_use_num       VARCHAR2(24)
 );
+
 CREATE OR REPLACE TRIGGER trg_member_bi
 BEFORE INSERT ON member_tb
 FOR EACH ROW

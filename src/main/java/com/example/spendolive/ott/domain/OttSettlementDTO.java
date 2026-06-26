@@ -27,4 +27,14 @@ public class OttSettlementDTO {
     private Long paymentId;
     private String myPaymentStatus;
     private Integer myTotalAmount;
+
+    // 방장이 보는 팀원별 정산 상태 표시용
+    private String memberId;
+    private String memberName;
+    private String memberNickname;
+    private Integer baseAmount;
+    private Integer feeAmount;
+    private Integer totalAmount;
+    private String paymentStatus;
+    private String paidAt;
 }

@@ -14,6 +14,14 @@ public interface OttService {
 
     List<OttRoomDTO> getRecruitRooms(String loginId);
 
+    List<OttRoomDTO> getFriendRooms(String loginId);
+
+    List<OttRoomDTO> getHostedFriendRooms(String loginId);
+
+    List<OttRoomDTO> getHostedRecruitRooms(String loginId);
+
+    List<OttRoomDTO> getJoinedRecruitRooms(String loginId);
+
     List<OttRoomDTO> getMyRooms(String loginId);
 
     List<OttRoomDTO> getHostedRooms(String loginId);
@@ -21,6 +29,12 @@ public interface OttService {
     List<OttRoomMemberDTO> getHostedRoomMembers(String loginId);
 
     List<OttSettlementDTO> getMySettlements(String loginId);
+
+    List<OttSettlementDTO> getFriendSettlements(String loginId);
+
+    List<OttSettlementDTO> getRecruitSettlements(String loginId);
+
+    List<OttSettlementDTO> getHostedSettlementPayments(String loginId, String roomMode);
 
     List<OttChatRoomDTO> getMyChatRooms(String loginId);
 

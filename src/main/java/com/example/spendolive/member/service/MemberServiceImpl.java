@@ -224,6 +224,16 @@ import tools.jackson.databind.ObjectMapper;
             return userInfoMap;
         }
         //오픈뱅킹
+
+        @Override
+        public MemberVO getMemberById(String id) throws Exception {
+            return memberRepository.selectMemberById(id);
+        }
+
+        @Override
+        public void updateMyInfo(MemberVO memberVO, String newPassword) throws Exception {
+            memberRepository.updateMyInfo(memberVO, newPassword);
+        }
         @Override
         public void registerOpenBankingToken(String code, String userId,HttpHeaders headers,ResponseEntity<Map> response) throws Exception {
         

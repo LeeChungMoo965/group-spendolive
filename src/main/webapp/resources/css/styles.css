@@ -391,6 +391,33 @@
       color: #6a7567;
       line-height: 1.7;
   }
+
+  .ott-service-logo-card {
+      min-height: 156px;
+  }
+
+  .ott-logo-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 44px);
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0 12px;
+  }
+
+  .ott-logo-strip img {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      object-fit: cover;
+      box-shadow: 0 8px 16px rgba(33, 42, 31, 0.14);
+  }
+
+  .ott-room-card-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+  }
+
   
   .ott-choice-grid,
   .ott-room-layout,
@@ -813,6 +840,18 @@
       .apply-price-box {
           justify-items: start;
       }
+
+      .ott-logo-strip {
+          grid-template-columns: repeat(3, 44px);
+      }
+
+      .ott-room-card-footer {
+          justify-content: stretch;
+      }
+
+      .ott-room-card-footer .btn {
+          width: 100%;
+      }
   
       .chat-widget-panel {
           right: -10px;
@@ -1218,22 +1257,32 @@
    OTT 선결제/마감/방삭제 예약 시스템 UI 보강
    ========================================================= */
 .ott-system-guide {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 18px;
-    align-items: center;
+    display: block;
     margin-bottom: 24px;
-    padding: 18px 20px;
+    padding: 20px 24px;
 }
 
 .ott-system-guide strong {
+    display: block;
     color: #263238;
-    margin-right: 8px;
+    margin-bottom: 10px;
+    font-size: 16px;
 }
 
-.ott-system-guide span {
+.ott-system-guide ol {
+    margin: 0;
+    padding-left: 22px;
+}
+
+.ott-system-guide li {
+    margin-bottom: 6px;
     font-size: 14px;
+    line-height: 1.7;
     color: #607d3b;
+}
+
+.ott-system-guide li:last-child {
+    margin-bottom: 0;
 }
 
 .room-close-form {
@@ -1530,4 +1579,566 @@
     .ott-tab-menu a {
         width: 100%;
     }
+}
+
+/* =========================================================
+   OTT 페이지 구조 재정리: 가족 지인 / 외부 모집글 분리
+   ========================================================= */
+.family-room-section,
+.family-create-card,
+.family-settlement-panel,
+.manage-panel {
+    margin-top: 24px;
+}
+
+.family-room-list,
+.manage-room-list {
+    gap: 14px;
+}
+
+.family-room-card,
+.manage-room-card {
+    position: relative;
+    align-items: stretch;
+    padding-left: 58px;
+}
+
+.room-index-badge {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: #eef3df;
+    color: #6d7f2e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 13px;
+}
+
+.family-room-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.family-room-info strong {
+    display: block;
+    color: #1f321e;
+    font-size: 17px;
+    line-height: 1.45;
+}
+
+.family-room-info small {
+    display: block;
+    margin-top: 6px;
+}
+
+.family-room-actions {
+    display: grid;
+    justify-items: end;
+    align-content: start;
+    gap: 8px;
+    min-width: 220px;
+}
+
+.compact-close-form {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) auto;
+    gap: 8px;
+    width: 100%;
+}
+
+.compact-close-form input {
+    min-width: 0;
+}
+
+.recruit-card-badges {
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+}
+
+.owner-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: #fff3c9;
+    color: #7b6a19;
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.my-recruit-card {
+    border-color: #d9df8f;
+    background: #fffef8;
+}
+
+.manage-section + .manage-section {
+    margin-top: 30px;
+    padding-top: 26px;
+    border-top: 1px solid #e8efdf;
+}
+
+.application-mini-list {
+    grid-column: 1 / -1;
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px dashed #dfe9d5;
+}
+
+.application-mini-list h4 {
+    margin: 0 0 10px;
+    color: #31462c;
+    font-size: 15px;
+}
+
+.application-mini-list .apply-manage-row {
+    margin-top: 8px;
+    padding: 12px;
+    border-radius: 14px;
+}
+
+.team-payment-status-box {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #e7efdf;
+}
+
+.team-payment-status-box h3 {
+    margin: 0 0 12px;
+    color: #20391e;
+}
+
+.team-payment-list {
+    display: grid;
+    gap: 10px;
+}
+
+.team-payment-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e4eee2;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.team-payment-row span,
+.team-payment-row small {
+    display: block;
+}
+
+.team-payment-row small {
+    margin-top: 4px;
+    color: #748070;
+}
+
+.team-payment-row b {
+    white-space: nowrap;
+    color: #20391e;
+}
+
+.team-payment-row em {
+    min-width: 88px;
+    text-align: center;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 12px;
+    background: #f0f4ea;
+    color: #6f7b66;
+}
+
+.team-payment-row em.done {
+    background: #e8f5e6;
+    color: #2f7d35;
+}
+
+.team-payment-row em.wait {
+    background: #fff4d7;
+    color: #8a6716;
+}
+
+@media (max-width: 900px) {
+    .family-room-card,
+    .manage-room-card {
+        flex-direction: column;
+        padding-left: 48px;
+    }
+
+    .family-room-actions {
+        justify-items: stretch;
+        min-width: 0;
+    }
+
+    .compact-close-form {
+        grid-template-columns: 1fr;
+    }
+
+    .team-payment-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* MyPage renewal */
+.mypage-container {
+  width: min(1320px, calc(100% - 56px));
+}
+
+.mypage-page {
+  padding-top: 52px;
+}
+
+.mypage-alert {
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-weight: 900;
+  border: 1px solid var(--line);
+}
+
+.mypage-alert.done {
+  background: #eef6dd;
+  color: var(--olive-dark);
+}
+
+.mypage-alert.warn {
+  background: #fff1d6;
+  color: #9a5f13;
+}
+
+.mypage-top-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.12fr 1.12fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 22px;
+}
+
+.mypage-profile-card,
+.mypage-stat-card,
+.mypage-bank-card,
+.mypage-report-card,
+.mypage-panel {
+  padding: 26px;
+}
+
+.mypage-profile-card {
+  display: grid;
+  gap: 14px;
+}
+
+.mypage-profile-card h3,
+.mypage-stat-card h3,
+.mypage-bank-card h3,
+.mypage-report-card h3,
+.mypage-panel h2 {
+  margin: 0;
+  letter-spacing: -.035em;
+}
+
+.mypage-stat-card strong {
+  display: block;
+  margin: 16px 0 8px;
+  color: var(--olive-dark);
+  font-size: 34px;
+  letter-spacing: -.04em;
+}
+
+.mypage-muted {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.mypage-account-box,
+.mypage-report-summary {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--cream);
+}
+
+.mypage-account-box span,
+.mypage-report-summary span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.mypage-account-box strong,
+.mypage-report-summary strong {
+  color: var(--olive-dark);
+  font-size: 18px;
+}
+
+.mypage-report-summary {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.mypage-report-summary > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.mypage-report-summary > div span,
+.mypage-report-summary > div strong {
+  display: inline-block;
+}
+
+.mypage-panel {
+  margin-top: 22px;
+}
+
+.mypage-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.mypage-panel-head span {
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.mypage-edit-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.mypage-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.mypage-table small,
+.mypage-room-card small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mypage-reason {
+  max-width: 420px;
+  white-space: normal;
+  line-height: 1.55;
+}
+
+.muted-chip {
+  background: #f2f3ec;
+  color: var(--muted);
+}
+
+.mypage-empty {
+  padding: 22px;
+  border: 1px dashed #cdd8b8;
+  border-radius: 16px;
+  background: #fbfdf6;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 850;
+}
+
+.mypage-empty.small {
+  padding: 18px;
+  text-align: left;
+}
+
+.mypage-room-list {
+  display: grid;
+  gap: 12px;
+}
+
+.mypage-room-list.compact {
+  margin-top: 12px;
+}
+
+.mypage-room-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--cream);
+}
+
+.mypage-room-card strong {
+  display: block;
+  color: var(--olive-dark);
+  font-size: 17px;
+}
+
+.mypage-room-card p {
+  margin: 7px 0 0;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.mypage-room-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.mypage-room-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.mypage-room-two-col h3 {
+  margin: 0 0 12px;
+  color: var(--olive-dark);
+}
+
+@media(max-width:1180px) {
+  .mypage-top-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mypage-edit-form,
+  .mypage-room-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(max-width:700px) {
+  .mypage-container {
+    width: min(100% - 26px, 1140px);
+  }
+
+  .mypage-top-grid,
+  .mypage-room-card {
+    grid-template-columns: 1fr;
+  }
+
+  .mypage-panel-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mypage-form-actions,
+  .mypage-room-actions {
+    justify-content: stretch;
+  }
+
+  .mypage-form-actions .btn,
+  .mypage-room-actions .btn,
+  .mypage-room-card .btn {
+    width: 100%;
+  }
+}
+
+
+/* 마이페이지 신고/차단 요약: 항목을 한 줄씩 세로로 표시 */
+.mypage-report-summary.mypage-report-summary-vertical,
+.mypage-report-card .mypage-report-summary {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+}
+
+.mypage-report-summary-vertical .mypage-report-line,
+.mypage-report-card .mypage-report-summary > div {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: flex-start !important;
+  gap: 6px !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+}
+
+.mypage-report-summary-vertical .mypage-report-line span,
+.mypage-report-summary-vertical .mypage-report-line strong,
+.mypage-report-card .mypage-report-summary > div span,
+.mypage-report-card .mypage-report-summary > div strong {
+  display: inline !important;
+}
+
+/* 마이페이지 회원정보 수정: 이메일/전화번호 인증 + 비밀번호 확인 */
+.mypage-verify-group {
+  display: grid;
+  gap: 8px;
+}
+
+.mypage-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mypage-code-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.mypage-code-row .btn,
+.mypage-inline-actions .btn {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.mypage-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.mypage-help.success {
+  color: var(--olive-dark);
+}
+
+.mypage-help.warn {
+  color: #9a5f13;
+}
+
+@media(max-width:700px) {
+  .mypage-code-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mypage-inline-actions {
+    justify-content: stretch;
+  }
+
+  .mypage-inline-actions .btn,
+  .mypage-code-row .btn {
+    width: 100%;
+  }
 }
