@@ -18,6 +18,6 @@ public class NoticeDTO {
     private String createdAt;
     private String updatedAt;
     private String readYn;
-
+    private String starYn;
    
 }

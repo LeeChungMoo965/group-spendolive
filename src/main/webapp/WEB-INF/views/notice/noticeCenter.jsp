@@ -85,4 +85,8 @@
     </div>
 </section>
 
+<script>
+    const loginYn = ${loginYn};
+</script>
+
 <script src="${contextPath}/resources/js/notice.js"></script>
