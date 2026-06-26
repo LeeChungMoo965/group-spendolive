@@ -253,6 +253,37 @@ CREATE TABLE ott_chat_read_tb (
    역할: 방장이 만든 '이번 달/다음 달 정산 요청 묶음' 저장
    정산팀 핵심 테이블 1
    ========================================================= */
+<<<<<<< HEAD
+CREATE TABLE ott_room_block_tb (
+    room_block_id NUMBER NOT NULL,
+    room_id       NUMBER NOT NULL,
+    id            VARCHAR2(20) NOT NULL,
+    blocked_by    VARCHAR2(20) NOT NULL,
+    block_reason  VARCHAR2(500),
+    blocked_at    DATE DEFAULT SYSDATE NOT NULL,
+
+    CONSTRAINT pk_ott_room_block PRIMARY KEY (room_block_id),
+    CONSTRAINT fk_room_block_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
+    CONSTRAINT fk_room_block_member FOREIGN KEY (id) REFERENCES member_tb(id),
+    CONSTRAINT fk_room_block_by FOREIGN KEY (blocked_by) REFERENCES member_tb(id),
+    CONSTRAINT uk_room_block_member UNIQUE (room_id, id)
+);
+
+CREATE SEQUENCE seq_ott_room_block START WITH 1 INCREMENT BY 1 NOCACHE;
+
+CREATE OR REPLACE TRIGGER trg_ott_room_block_bi
+BEFORE INSERT ON ott_room_block_tb
+FOR EACH ROW
+WHEN (NEW.room_block_id IS NULL)
+BEGIN
+    SELECT seq_ott_room_block.NEXTVAL INTO :NEW.room_block_id FROM dual;
+END;
+/
+
+CREATE INDEX idx_room_block_room ON ott_room_block_tb(room_id);
+CREATE INDEX idx_room_block_member ON ott_room_block_tb(id);
+
+=======
 CREATE TABLE settlement_tb (
     settlement_id      NUMBER NOT NULL,               -- 정산 요청 PK
     room_id            NUMBER NOT NULL,               -- 공유방 ID
@@ -449,3 +480,4 @@ CREATE INDEX idx_refund_room ON settlement_refund_tb(room_id, refund_status);
    SELECT * FROM ott_service_tb ORDER BY ott_service_id;
    SELECT table_name FROM user_tables WHERE table_name LIKE 'OTT_%' OR table_name LIKE 'SETTLEMENT_%';
    ========================================================= */
+>>>>>>> develop

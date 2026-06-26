@@ -1,32 +1,20 @@
 package com.example.spendolive.payment.domain;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import java.time.LocalDateTime;
 
-/**
- * 11. 팀원별 입금 상태 테이블 도메인 객체
- */
-@Getter
-@Setter
-@ToString
+@Data
 public class SettlementPaymentVO {
-
-    private int payment_id;             // 입금 내역 고유 ID (PK, 시퀀스 자동 생성) 00
-    private int settlement_id;          // 월별 정산 고유 ID (FK) 00
-    private String id;                  // 회원 아이디 (FK, member_tb) 00
-    private int base_amount;            // 수수료 미포함 순수 이용 금액
-    private double fee_rate;            // 적용된 수수료율 (기본값: 3.00%)
-    private int fee_amount;             // 계산된 수수료 금액 (기본값: 0)
-    private int total_amount;           // 회원이 최종 결제해야 할 총 금액 (이용료 + 수수료) 00
-    
-    // 상태값: UNPAID, PAID, CONFIRMED, EXPIRED, CANCELLED, REFUND_REQUESTED, REFUNDED
-    private String payment_status;      // 팀원의 입금 상태 (기본값: 'UNPAID') 00
-    
-    private LocalDateTime paid_at;      // 팀원이 실제 돈을 보낸 일시 00
-    private LocalDateTime confirmed_at; // 파티장 혹은 시스템이 입금 확인을 확정한 일시
-    private LocalDateTime expired_at;    // 결제 마감일까지 미결제되어 만료 처리된 일시
-    private LocalDateTime cancelled_at;  // 결제 취소 처리된 일시
-    private String memo;                // 정산/입금 관련 특이사항 메모
+    private int paymentId;         // PK
+    private int settlementId;      // 정산 마스터 외래키
+    private String id;              // 파티원 ID (member_tb 외래키)
+    private int baseAmount;        // 순수 분담금 (넷플릭스 1/N 가격)
+    private Double feeRate;         // 수수료율 (ex: 3.00)
+    private int feeAmount;         // 수수료 금액 (플랫폼 수익)
+    private int totalAmount;       // 최종 토스 결제 금액 (분담금 + 수수료)
+    private String paymentStatus;   // 상태 (UNPAID, PAID, CONFIRMED, REFUNDED 등)
+    private LocalDateTime paidAt;       // 토스 카드 결제 완료 시점
+    private LocalDateTime confirmedAt;  // 정산 확정 시점 (방장에게 돈 가도 된다고 확정)
+    private LocalDateTime expiredAt;    // 안 내고 버티다 추방된 시점
+    private LocalDateTime cancelledAt;  // 환불/취소 완료 시점
+    private String memo;                // 환불 사유 등 비고란
 }

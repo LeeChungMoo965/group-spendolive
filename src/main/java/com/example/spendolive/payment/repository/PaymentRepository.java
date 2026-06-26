@@ -9,6 +9,6 @@ public interface PaymentRepository {
 
     void updatePaymentStatus(SettlementPaymentVO paymentInfo);
 
-    void insertEscrow(EscrowVO escrow);
+    void insertEscrow(EscrowPayoutVO escrow);
     
 }
