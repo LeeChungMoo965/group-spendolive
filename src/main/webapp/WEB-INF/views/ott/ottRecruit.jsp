@@ -48,6 +48,38 @@
                             <span>${fn:length(recruitRoomList)}개</span>
                         </div>
 
+                        <form action="${contextPath}/spendolive/ott/recruit.do" method="get" class="recruit-search-form">
+                            <input type="hidden" name="tab" value="all">
+
+                            <label>
+                                <span>OTT 종류</span>
+                                <select name="ottServiceId">
+                                    <option value="">전체 OTT</option>
+                                    <c:forEach var="service" items="${serviceList}">
+                                        <option value="${service.ottServiceId}" ${selectedOttServiceId eq service.ottServiceId ? 'selected' : ''}>
+                                            ${service.serviceName}
+                                        </option>
+                                    </c:forEach>
+                                </select>
+                            </label>
+
+                            <label class="recruit-search-keyword">
+                                <span>방 제목</span>
+                                <input type="text" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}" placeholder="예) 모집합니다">
+                            </label>
+
+                            <div class="recruit-search-actions">
+                                <button type="submit" class="btn btn-primary">검색</button>
+                                <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="btn btn-outline">초기화</a>
+                            </div>
+                        </form>
+
+                        <c:if test="${not empty selectedOttServiceId or not empty roomNameKeyword}">
+                            <div class="recruit-search-result-text">
+                                검색 조건에 맞는 모집글 <strong>${fn:length(recruitRoomList)}</strong>개가 조회되었습니다.
+                            </div>
+                        </c:if>
+
                         <c:choose>
                             <c:when test="${not empty recruitRoomList}">
                                 <div class="recruit-card-grid">
@@ -102,6 +134,8 @@
                                                 <c:otherwise>
                                                     <button type="button" class="btn btn-outline full" disabled>
                                                         <c:choose>
+                                                            <c:when test="${room.myApplicationStatus eq 'APPLIED'}">승인 대기중</c:when>
+                                                            <c:when test="${room.myApplicationStatus eq 'REJECTED'}">거절됨</c:when>
                                                             <c:when test="${room.myApplicationStatus ne 'NONE'}">${room.myApplicationStatus}</c:when>
                                                             <c:otherwise>${room.status}</c:otherwise>
                                                         </c:choose>
@@ -113,7 +147,12 @@
                                 </div>
                             </c:when>
                             <c:otherwise>
-                                <div class="empty-box">현재 모집글이 없습니다.</div>
+                                <div class="empty-box">
+                                    <c:choose>
+                                        <c:when test="${not empty selectedOttServiceId or not empty roomNameKeyword}">검색 조건에 맞는 모집글이 없습니다.</c:when>
+                                        <c:otherwise>현재 모집글이 없습니다.</c:otherwise>
+                                    </c:choose>
+                                </div>
                             </c:otherwise>
                         </c:choose>
                     </article>
@@ -210,8 +249,8 @@
                         <section class="manage-section joined-section">
                             <div class="settlement-sub-header">
                                 <div>
-                                    <h3>내가 참여한 방</h3>
-                                    <p>수락되어 참여 중인 외부 모집글 공유방입니다.</p>
+                                    <h3>내가 신청/참여한 방</h3>
+                                    <p>신청 승인 대기, 수락, 거절 상태를 함께 확인할 수 있습니다.</p>
                                 </div>
                                 <span>${fn:length(joinedRoomList)}개</span>
                             </div>
@@ -228,15 +267,25 @@
                                                     <small>1인 결제금액 <fmt:formatNumber value="${room.perPersonAmount}" pattern="#,##0" />원 · 방장 ${room.hostNickname}</small>
                                                 </div>
                                                 <div class="family-room-actions">
-                                                    <span class="status-pill ${room.status}">${room.status}</span>
-                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary btn-mini">대화방</a>
+                                                    <span class="status-pill ${room.myApplicationStatus}">
+                                                        <c:choose>
+                                                            <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">참여중</c:when>
+                                                            <c:when test="${room.myApplicationStatus eq 'APPLIED'}">승인 대기중</c:when>
+                                                            <c:when test="${room.myApplicationStatus eq 'REJECTED'}">거절됨</c:when>
+                                                            <c:otherwise>${room.myApplicationStatus}</c:otherwise>
+                                                        </c:choose>
+                                                    </span>
+
+                                                    <c:if test="${room.myApplicationStatus eq 'ACTIVE'}">
+                                                        <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary btn-mini">대화방</a>
+                                                    </c:if>
                                                 </div>
                                             </div>
                                         </c:forEach>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
-                                    <div class="empty-box">아직 참여 중인 외부 모집글 공유방이 없습니다.</div>
+                                    <div class="empty-box">아직 신청하거나 참여 중인 외부 모집글 공유방이 없습니다.</div>
                                 </c:otherwise>
                             </c:choose>
                         </section>

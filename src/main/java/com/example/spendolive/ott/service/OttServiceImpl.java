@@ -32,6 +32,14 @@ public class OttServiceImpl implements OttService {
     }
 
     @Override
+    public List<OttRoomDTO> getRecruitRooms(String loginId, Long ottServiceId, String roomNameKeyword) {
+        Long selectedOttServiceId = normalizeOttServiceId(ottServiceId);
+        String searchRoomNameKeyword = normalizeKeyword(roomNameKeyword);
+
+        return ottRepository.selectRecruitRooms(loginId, selectedOttServiceId, searchRoomNameKeyword);
+    }
+
+    @Override
     public List<OttRoomDTO> getFriendRooms(String loginId) {
         return ottRepository.selectFriendRooms(loginId);
     }
@@ -177,6 +185,23 @@ public class OttServiceImpl implements OttService {
     @Override
     public void markChatRoomAsRead(Long roomId, String loginId) {
         ottRepository.markChatRoomAsRead(roomId, loginId);
+    }
+
+
+    private Long normalizeOttServiceId(Long ottServiceId) {
+        if (ottServiceId == null || ottServiceId <= 0) {
+            return null;
+        }
+
+        return ottServiceId;
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return null;
+        }
+
+        return keyword.trim();
     }
 
     private void prepareRoomDefaultValues(OttRoomDTO roomDTO) {

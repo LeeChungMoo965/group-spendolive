@@ -16,6 +16,8 @@ public interface OttRepository {
 
     List<OttRoomDTO> selectRecruitRooms(String loginId);
 
+    List<OttRoomDTO> selectRecruitRooms(String loginId, Long ottServiceId, String roomNameKeyword);
+
     List<OttRoomDTO> selectFriendRooms(String loginId);
 
     List<OttRoomDTO> selectHostedFriendRooms(String loginId);
