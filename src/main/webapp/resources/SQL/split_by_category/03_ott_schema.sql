@@ -1,35 +1,60 @@
 /* =========================================================
-   03. OTT 공유방 / 정산 / 결제 최소 테이블 SQL
+   03. OTT 통합 SQL - 공유방 / 모집글 / 채팅 / 정산 / 기본 OTT 데이터
    =========================================================
+   이 파일 하나로 처리하는 내용:
+   1) OTT 서비스 기준 테이블 생성
+   2) 가족·지인 공유방 / 외부 모집방 테이블 생성
+   3) 공유방 참여자·신청자 테이블 생성
+   4) 공유방 채팅 테이블 생성
+   5) 월별 정산 요청 테이블 생성
+   6) 참여자별 결제 상태 테이블 생성
+   7) 방 삭제 요청 시 환불 기록 테이블 생성
+   8) Netflix, Disney+, TVING, Wavve, Watcha, Laftel 기본 데이터 입력
+
    실행 순서:
-   1) 01_member_schema.sql 먼저 실행
-   2) 이 파일 실행
-   3) OTT 신청/정산 알림까지 테스트하려면 04_notice_inquiry_alert_schema.sql 실행
+   1) 00_reset_all_objects.sql          -- 전체 초기화가 필요할 때만 실행
+   2) 01_member_schema.sql              -- member_tb가 먼저 있어야 함
+   3) 02_expense_calendar_schema.sql    -- 지출/캘린더가 필요하면 실행
+   4) 03_ott_schema.sql                 -- 현재 파일
+   5) 04_notice_inquiry_alert_schema.sql -- OTT 신청/정산 알림까지 테스트할 때 실행
 
-   정리 기준:
-   - 실제 화면/기능에서 바로 필요한 테이블만 유지
-   - 보관금, 플랫폼 수익, 방장 지급처럼 PG/정산 고도화용 테이블은 제거
-   - 정산 담당자는 settlement_tb, settlement_payment_tb 중심으로 보면 됨
+   기존 OTT 관련 파일 정리:
+   - 예전에는 03_ott_schema.sql, 08_seed_ott_services.sql,
+     12_patch_ott_pickle_rules.sql, 13_patch_ott_room_mode.sql,
+     14_patch_ott_login_id_column_names.sql을 따로 관리했습니다.
+   - 이제 새 DB를 만드는 기준에서는 이 03번 파일 하나만 실행하면 됩니다.
+   - 12/13/14 패치 내용은 최신 CREATE TABLE 구조에 이미 반영했습니다.
+   - 08번 OTT 서비스 기본 데이터도 이 파일 아래쪽에 통합했습니다.
 
-   유지한 테이블:
-   1. ott_service_tb          : OTT 서비스/요금제 기준 정보
-   2. ott_room_tb             : 공유방/모집방 정보
-   3. ott_room_member_tb      : 공유방 멤버/신청자 정보
-   4. ott_chat_message_tb     : 대화방 메시지
-   5. ott_chat_read_tb        : 대화방 읽음 기준
-   6. settlement_tb           : 방별/월별 정산 요청 묶음
-   7. settlement_payment_tb   : 사용자별 결제 요청/결제 상태
-   8. settlement_refund_tb    : 방 삭제 요청 등으로 생기는 환불 기록
+   현재 지원 OTT:
+   - Netflix
+   - Disney+
+   - TVING
+   - Wavve
+   - Watcha
+   - Laftel
 
-   컬럼명 정리:
-   - OTT 테이블에서 member_id처럼 보이지만 실제로는 member_tb.id(로그인 ID)를 참조하던 컬럼을
-     member_login_id / host_login_id로 변경해서 member_tb.member_id(숫자 PK)와 헷갈리지 않게 정리
+   금액 계산 기준:
+   - OTT는 최고 멤버십 기준으로 고정합니다.
+   - 추가 IP/추가 멤버 비용이 있는 OTT는 기본 멤버십 금액에 추가 비용을 더합니다.
+   - 1인 금액은 Java 코드에서 아래 방식으로 계산합니다.
+       (총 금액 / 최대 인원) + 서비스 수수료 3%
+   - DB에는 계산 기준이 되는 base_price, extra_member_fee,
+     extra_member_count, default_price, max_member_limit, platform_fee_rate를 저장합니다.
 
-   제거한 테이블:
-   - ott_room_block_tb        : 현재 코드에서 직접 사용하지 않음. 신고/차단은 별도 신고 테이블로 관리 권장
-   - escrow_tb                : 실제 PG 보관금 기능 전까지 불필요
-   - platform_revenue_tb      : 수수료는 settlement_payment_tb.fee_amount 합계로 조회 가능
-   - payout_tb                : 방장 지급액은 settlement_payment_tb/settlement_tb에서 계산 가능
+   컬럼명 정리 기준:
+   - member_tb.member_id는 숫자 PK입니다.
+   - OTT 화면과 코드에서는 로그인 ID 문자열을 기준으로 방장/참여자를 다룹니다.
+   - 그래서 OTT 테이블에서는 member_id라는 이름 대신
+     host_login_id, member_login_id를 사용합니다.
+
+   현재 사용하지 않는 과거 테이블:
+   - ott_room_block_tb
+   - escrow_tb
+   - platform_revenue_tb
+   - payout_tb
+   위 테이블들은 현재 최소 구조에서 제외했습니다.
+   신고/차단은 report_tb, warning_tb 쪽에서 관리하는 방향이 더 깔끔합니다.
    ========================================================= */
 
 SET DEFINE OFF;
@@ -82,7 +107,7 @@ CREATE TABLE ott_room_tb (
     host_login_id       VARCHAR2(20) NOT NULL,        -- 방장 ID. member_tb.id 참조
     ott_service_id       NUMBER NOT NULL,              -- OTT 서비스 ID
     room_name            VARCHAR2(100) NOT NULL,       -- 공유방 이름
-    plan_name            VARCHAR2(50) DEFAULT '기본' NOT NULL, -- 요금제명
+    plan_name            VARCHAR2(50) DEFAULT '프리미엄' NOT NULL, -- 요금제명
     total_price          NUMBER NOT NULL,              -- 방 전체 기준 금액
     billing_day          NUMBER NOT NULL,              -- 매월 결제일. 1~31
     member_limit         NUMBER DEFAULT 4 NOT NULL,    -- 최대 인원
@@ -391,6 +416,8 @@ CREATE INDEX idx_refund_payment ON settlement_refund_tb(payment_id);
 CREATE INDEX idx_refund_member_login ON settlement_refund_tb(member_login_id, refund_status);
 CREATE INDEX idx_refund_room ON settlement_refund_tb(room_id, refund_status);
 
+
+
 /* =========================================================
    정산/결제 구현 기준 요약
    =========================================================
@@ -414,4 +441,11 @@ CREATE INDEX idx_refund_room ON settlement_refund_tb(room_id, refund_status);
    5) 방 삭제 요청
       - ott_room_tb.status = 'CLOSE_REQUESTED'
       - 다음 이용분 결제 완료자는 settlement_refund_tb에 환불 기록 생성
+   ========================================================= */
+
+/* =========================================================
+   실행 완료 후 확인용 쿼리
+   =========================================================
+   SELECT * FROM ott_service_tb ORDER BY ott_service_id;
+   SELECT table_name FROM user_tables WHERE table_name LIKE 'OTT_%' OR table_name LIKE 'SETTLEMENT_%';
    ========================================================= */
