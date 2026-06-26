@@ -69,9 +69,9 @@ public class OttController {
             return "redirect:/spendolive/main.do";
         }
         addCommonOttModel(model, loginId);
-        model.addAttribute("myRoomList", ottService.getMyRooms(loginId));
-        model.addAttribute("hostedRoomList", ottService.getHostedRooms(loginId));
-        model.addAttribute("settlementList", ottService.getMySettlements(loginId));
+        model.addAttribute("myRoomList", ottService.getFriendRooms(loginId));
+        model.addAttribute("hostedRoomList", ottService.getHostedFriendRooms(loginId));
+        model.addAttribute("settlementList", ottService.getFriendSettlements(loginId));
         model.addAttribute("body_page", "/WEB-INF/views/ott/ottFriends.jsp");
         return "common/layout";
     }
@@ -92,6 +92,8 @@ public class OttController {
 
     @GetMapping("/ott/recruit.do")
     public String recruit(@RequestParam(value = "tab", required = false, defaultValue = "all") String tab,
+                          @RequestParam(value = "ottServiceId", required = false) String ottServiceId,
+                          @RequestParam(value = "roomNameKeyword", required = false) String roomNameKeyword,
                           Model model,
                           RedirectAttributes redirectAttributes,
                           HttpSession session) {
@@ -110,12 +112,17 @@ public class OttController {
             redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
             return "redirect:/spendolive/main.do";
         }
+        Long selectedOttServiceId = parseOttServiceId(ottServiceId);
+
         addCommonOttModel(model, loginId);
         model.addAttribute("tab", tab);
-        model.addAttribute("recruitRoomList", ottService.getRecruitRooms(loginId));
-        model.addAttribute("hostedRoomList", ottService.getHostedRooms(loginId));
+        model.addAttribute("selectedOttServiceId", selectedOttServiceId);
+        model.addAttribute("roomNameKeyword", roomNameKeyword);
+        model.addAttribute("recruitRoomList", ottService.getRecruitRooms(loginId, selectedOttServiceId, roomNameKeyword));
+        model.addAttribute("hostedRoomList", ottService.getHostedRecruitRooms(loginId));
+        model.addAttribute("joinedRoomList", ottService.getJoinedRecruitRooms(loginId));
         model.addAttribute("hostedRoomMemberList", ottService.getHostedRoomMembers(loginId));
-        model.addAttribute("settlementList", ottService.getMySettlements(loginId));
+        model.addAttribute("settlementList", ottService.getRecruitSettlements(loginId));
         model.addAttribute("body_page", "/WEB-INF/views/ott/ottRecruit.jsp");
         return "common/layout";
     }
@@ -290,6 +297,19 @@ public class OttController {
         }
 
         return "redirect:/spendolive/ott/friends.do?result=closeRequested";
+    }
+
+
+    private Long parseOttServiceId(String ottServiceId) {
+        if (ottServiceId == null || ottServiceId.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(ottServiceId);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private void addCommonOttModel(Model model, String loginId) {

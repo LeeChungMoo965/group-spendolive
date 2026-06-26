@@ -129,6 +129,35 @@ public class MyPageController {
         return mav;
     }
 
+
+    @PostMapping("/mypage/withdraw.do")
+    public ModelAndView withdrawMember(@RequestParam(value = "withdrawConfirm", required = false) String withdrawConfirm,
+                                       HttpSession session) {
+        ModelAndView mav = new ModelAndView();
+        MemberVO loginMember = (MemberVO) session.getAttribute("memberInfo");
+
+        if (loginMember == null || loginMember.getId() == null || loginMember.getId().isBlank()) {
+            mav.setViewName("redirect:/member/loginForm.do");
+            return mav;
+        }
+
+        if (withdrawConfirm == null || !"탈퇴합니다".equals(withdrawConfirm.trim())) {
+            mav.setViewName("redirect:/spendolive/mypage.do?withdrawError=confirmRequired#withdraw-section");
+            return mav;
+        }
+
+        try {
+            myPageService.withdrawMember(loginMember.getId());
+            session.invalidate();
+            mav.setViewName("redirect:/member/loginForm.do?withdraw=Y");
+        } catch (Exception e) {
+            e.printStackTrace();
+            mav.setViewName("redirect:/spendolive/mypage.do?withdrawError=failed#withdraw-section");
+        }
+
+        return mav;
+    }
+
     @PostMapping("/mypage/email/send.do")
     @ResponseBody
     public String sendMyPageEmailCode(@RequestParam("email") String email, HttpSession session) {

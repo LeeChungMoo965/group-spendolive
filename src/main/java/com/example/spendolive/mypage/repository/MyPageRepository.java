@@ -46,4 +46,27 @@ public class MyPageRepository {
             return 0;
         }
     }
+
+    /**
+     * 회원탈퇴 처리.
+     * 실제 데이터를 바로 삭제하지 않고 status를 LEAVE로 바꾸는 소프트 삭제 방식이다.
+     * 로그인 재사용을 막기 위해 비밀번호를 임의 문자열로 변경하고,
+     * 오픈뱅킹 토큰/핀테크 이용번호는 개인정보 보호 차원에서 제거한다.
+     */
+    public int withdrawMember(String loginId) {
+        String sql = """
+                UPDATE member_tb
+                SET status = 'LEAVE',
+                    password = 'LEAVE_' || RAWTOHEX(SYS_GUID()),
+                    open_bank_user_seq_no = NULL,
+                    open_bank_token = NULL,
+                    fintech_use_num = NULL,
+                    updated_at = SYSDATE
+                WHERE id = ?
+                  AND status <> 'LEAVE'
+                """;
+
+        return jdbcTemplate.update(sql, loginId);
+    }
+
 }

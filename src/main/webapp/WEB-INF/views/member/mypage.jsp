@@ -35,6 +35,13 @@
             <div class="mypage-alert warn">회원정보 수정 중 오류가 발생했습니다. 이메일/전화번호 중복 여부를 확인해 주세요.</div>
         </c:if>
 
+        <c:if test="${param.withdrawError == 'confirmRequired'}">
+            <div class="mypage-alert warn">회원탈퇴를 진행하려면 확인 문구를 정확히 입력해주세요.</div>
+        </c:if>
+        <c:if test="${param.withdrawError == 'failed'}">
+            <div class="mypage-alert warn">회원탈퇴 처리 중 오류가 발생했습니다. 다시 시도해 주세요.</div>
+        </c:if>
+
         <div class="mypage-top-grid">
             <article class="card mypage-profile-card">
                 <div class="avatar">${profileInitial}</div>
@@ -107,62 +114,85 @@
                 <input type="hidden" id="phoneVerified" value="N">
                 <input type="hidden" id="passwordChecked" name="passwordChecked" value="N">
 
-                <label>
-                    이름
-                    <input type="text" name="member_name" value="${memberInfo.member_name}" required>
-                </label>
-                <label>
-                    닉네임
-                    <input type="text" name="nickname" value="${memberInfo.nickname}">
-                </label>
-
-                <div class="mypage-verify-group">
-                    <label>
-                        이메일
-                        <input type="email" name="email" id="mypageEmail" value="${memberInfo.email}" required>
-                    </label>
-                    <div class="mypage-inline-actions">
-                        <button type="button" class="btn btn-outline" onclick="sendMyPageEmailCode()">이메일 인증</button>
+                <div class="mypage-form-section">
+                    <div class="mypage-form-section-head">
+                        <h3>기본 정보</h3>
+                        <p>이름과 닉네임을 수정합니다.</p>
                     </div>
-                    <div class="mypage-code-row">
-                        <input type="text" id="mypageEmailCode" placeholder="이메일 인증번호 입력">
-                        <button type="button" class="btn btn-primary" onclick="verifyMyPageEmailCode()">확인</button>
+                    <div class="mypage-form-stack">
+                        <label class="mypage-field">
+                            이름
+                            <input type="text" name="member_name" value="${memberInfo.member_name}" required>
+                        </label>
+                        <label class="mypage-field">
+                            닉네임
+                            <input type="text" name="nickname" value="${memberInfo.nickname}">
+                        </label>
                     </div>
-                    <p class="mypage-help" id="emailVerifyMessage">이메일을 변경할 때만 인증이 필요합니다.</p>
                 </div>
 
-                <div class="mypage-verify-group">
-                    <label>
-                        전화번호
-                        <input type="text" name="phone" id="mypagePhone" value="${memberInfo.phone}">
-                    </label>
-                    <div class="mypage-inline-actions">
-                        <button type="button" class="btn btn-outline" onclick="sendMyPagePhoneCode()">전화번호 인증</button>
+                <div class="mypage-form-section">
+                    <div class="mypage-form-section-head">
+                        <h3>연락처 인증</h3>
+                        <p>이메일 또는 전화번호를 바꿀 때만 인증을 진행하면 됩니다.</p>
                     </div>
-                    <div class="mypage-code-row">
-                        <input type="text" id="mypagePhoneCode" placeholder="문자 인증번호 입력">
-                        <button type="button" class="btn btn-primary" onclick="verifyMyPagePhoneCode()">확인</button>
+
+                    <div class="mypage-verify-group">
+                        <div class="mypage-field-with-button">
+                            <label class="mypage-field">
+                                이메일
+                                <input type="email" name="email" id="mypageEmail" value="${memberInfo.email}" required>
+                            </label>
+                            <button type="button" class="btn btn-outline" onclick="sendMyPageEmailCode()">이메일 인증</button>
+                        </div>
+                        <div class="mypage-code-row">
+                            <input type="text" id="mypageEmailCode" placeholder="이메일 인증번호 입력">
+                            <button type="button" class="btn btn-primary" onclick="verifyMyPageEmailCode()">확인</button>
+                        </div>
+                        <p class="mypage-help" id="emailVerifyMessage">이메일을 변경할 때만 인증이 필요합니다.</p>
                     </div>
-                    <p class="mypage-help" id="phoneVerifyMessage">전화번호를 변경할 때만 인증이 필요합니다.</p>
+
+                    <div class="mypage-verify-group">
+                        <div class="mypage-field-with-button">
+                            <label class="mypage-field">
+                                전화번호
+                                <input type="text" name="phone" id="mypagePhone" value="${memberInfo.phone}">
+                            </label>
+                            <button type="button" class="btn btn-outline" onclick="sendMyPagePhoneCode()">전화번호 인증</button>
+                        </div>
+                        <div class="mypage-code-row">
+                            <input type="text" id="mypagePhoneCode" placeholder="문자 인증번호 입력">
+                            <button type="button" class="btn btn-primary" onclick="verifyMyPagePhoneCode()">확인</button>
+                        </div>
+                        <p class="mypage-help" id="phoneVerifyMessage">전화번호를 변경할 때만 인증이 필요합니다.</p>
+                    </div>
                 </div>
 
-                <label>
-                    현재 비밀번호
-                    <input type="password" name="currentPassword" id="currentPassword" placeholder="비밀번호 변경 시 입력">
-                </label>
-                <label>
-                    새 비밀번호
-                    <input type="password" name="password" id="newPassword" placeholder="변경할 때만 입력">
-                </label>
-                <div class="mypage-verify-group">
-                    <label>
-                        새 비밀번호 확인
-                        <input type="password" name="passwordConfirm" id="passwordConfirm" placeholder="새 비밀번호 재입력">
-                    </label>
-                    <div class="mypage-inline-actions">
-                        <button type="button" class="btn btn-outline" onclick="checkMyPagePassword()">비밀번호 확인</button>
+                <div class="mypage-form-section">
+                    <div class="mypage-form-section-head">
+                        <h3>비밀번호 변경</h3>
+                        <p>비밀번호를 바꾸지 않을 경우 아래 입력칸은 비워두면 됩니다.</p>
                     </div>
-                    <p class="mypage-help" id="passwordCheckMessage">비밀번호를 변경할 때는 현재 비밀번호와 새 비밀번호 확인이 필요합니다.</p>
+                    <div class="mypage-form-stack">
+                        <label class="mypage-field">
+                            현재 비밀번호
+                            <input type="password" name="currentPassword" id="currentPassword" placeholder="비밀번호 변경 시 입력">
+                        </label>
+                        <label class="mypage-field">
+                            새 비밀번호
+                            <input type="password" name="password" id="newPassword" placeholder="변경할 때만 입력">
+                        </label>
+                        <div class="mypage-verify-group">
+                            <div class="mypage-field-with-button">
+                                <label class="mypage-field">
+                                    새 비밀번호 확인
+                                    <input type="password" name="passwordConfirm" id="passwordConfirm" placeholder="새 비밀번호 재입력">
+                                </label>
+                                <button type="button" class="btn btn-outline" onclick="checkMyPagePassword()">비밀번호 확인</button>
+                            </div>
+                            <p class="mypage-help" id="passwordCheckMessage">비밀번호를 변경할 때는 현재 비밀번호와 새 비밀번호 확인이 필요합니다.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mypage-form-actions">
@@ -296,10 +326,10 @@
                 </section>
 
                 <section>
-                    <h3>내가 참여한 방</h3>
+                    <h3>내가 신청/참여한 방</h3>
                     <c:choose>
                         <c:when test="${empty joinedRecruitRoomList}">
-                            <div class="mypage-empty small">내가 참여한 외부 모집방이 없습니다.</div>
+                            <div class="mypage-empty small">내가 신청하거나 참여한 외부 모집방이 없습니다.</div>
                         </c:when>
                         <c:otherwise>
                             <div class="mypage-room-list compact">
@@ -308,9 +338,25 @@
                                         <div>
                                             <strong>${room.roomName}</strong>
                                             <p>${room.serviceName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
-                                            <small>참여중 · 방장 ${room.hostNickname}</small>
+                                            <small>방장 ${room.hostNickname}</small>
+                                            <c:choose>
+                                                <c:when test="${room.myApplicationStatus eq 'APPLIED'}">
+                                                    <span class="status-pill APPLIED">승인 대기중</span>
+                                                </c:when>
+                                                <c:when test="${room.myApplicationStatus eq 'REJECTED'}">
+                                                    <span class="status-pill REJECTED">거절됨</span>
+                                                </c:when>
+                                                <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
+                                                    <span class="status-pill ACTIVE">참여중</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="status-pill ACTIVE">참여중</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
-                                        <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                        <c:if test="${room.myApplicationStatus eq 'ACTIVE' or empty room.myApplicationStatus}">
+                                            <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                        </c:if>
                                     </div>
                                 </c:forEach>
                             </div>
@@ -319,8 +365,39 @@
                 </section>
             </div>
         </article>
+
+        <div id="withdraw-section" class="mypage-withdraw-row">
+            <button type="button" class="btn mypage-danger-outline" onclick="openWithdrawModal()">회원탈퇴</button>
+        </div>
+
     </div>
 </section>
+
+<div class="mypage-withdraw-modal" id="withdrawModal" aria-hidden="true">
+    <div class="mypage-withdraw-modal-box">
+        <button type="button" class="mypage-withdraw-close" onclick="closeWithdrawModal()" aria-label="회원탈퇴 창 닫기">×</button>
+        <p class="eyebrow">ACCOUNT DELETE</p>
+        <h2>회원탈퇴</h2>
+        <p class="mypage-muted">회원탈퇴를 하면 현재 계정으로 다시 로그인할 수 없습니다. 오픈뱅킹 연결 정보도 함께 해제됩니다.</p>
+        <ul class="mypage-withdraw-list">
+            <li>회원 상태가 탈퇴 상태로 변경됩니다.</li>
+            <li>로그인 세션이 즉시 종료됩니다.</li>
+            <li>기존 지출/정산 이력은 서비스 기록 보존을 위해 바로 삭제하지 않습니다.</li>
+        </ul>
+        <form action="${contextPath}/spendolive/mypage/withdraw.do" method="post" id="withdrawForm">
+            <label class="mypage-field">
+                확인 문구 입력
+                <input type="text" name="withdrawConfirm" id="withdrawConfirm" placeholder="탈퇴합니다">
+            </label>
+            <p class="mypage-help warn">위 입력칸에 <strong>탈퇴합니다</strong>를 정확히 입력해야 탈퇴할 수 있습니다.</p>
+            <div class="mypage-withdraw-actions">
+                <button type="button" class="btn btn-outline" onclick="closeWithdrawModal()">취소</button>
+                <button type="button" class="btn mypage-danger-btn" onclick="submitWithdrawForm()">회원탈퇴 진행</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 (function () {
     const emailInput = document.getElementById('mypageEmail');
@@ -491,6 +568,60 @@ function verifyMyPagePhoneCode() {
             setMessage('phoneVerifyMessage', '전화번호 인증 확인 중 오류가 발생했습니다.', 'warn');
         });
 }
+
+
+function openWithdrawModal() {
+    const modal = document.getElementById('withdrawModal');
+    const confirmInput = document.getElementById('withdrawConfirm');
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+    if (confirmInput) {
+        confirmInput.value = '';
+        setTimeout(function () {
+            confirmInput.focus();
+        }, 80);
+    }
+}
+
+function closeWithdrawModal() {
+    const modal = document.getElementById('withdrawModal');
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+function submitWithdrawForm() {
+    const confirmInput = document.getElementById('withdrawConfirm');
+    const form = document.getElementById('withdrawForm');
+
+    if (!confirmInput || !form) {
+        return;
+    }
+
+    if (confirmInput.value.trim() !== '탈퇴합니다') {
+        alert('확인 문구를 정확히 입력해주세요.');
+        confirmInput.focus();
+        return;
+    }
+
+    if (confirm('정말 회원탈퇴를 진행할까요? 탈퇴 후에는 현재 계정으로 다시 로그인할 수 없습니다.')) {
+        form.submit();
+    }
+}
+
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('withdrawModal');
+    if (modal && event.target === modal) {
+        closeWithdrawModal();
+    }
+});
 
 function checkMyPagePassword() {
     const currentPassword = document.getElementById('currentPassword').value.trim();

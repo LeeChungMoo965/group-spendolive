@@ -2,6 +2,44 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
+<style>
+    .chat-message-row.system {
+        justify-content: center;
+    }
+
+    .chat-system-bubble {
+        max-width: min(720px, 90%);
+        padding: 11px 16px;
+        border-radius: 999px;
+        border: 1px dashed #c8d6a1;
+        background: #f8f6dd;
+        color: #5c5f20;
+        text-align: center;
+        box-shadow: 0 8px 18px rgba(70, 78, 38, 0.06);
+    }
+
+    .chat-system-bubble strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .chat-system-bubble p {
+        margin: 0;
+        line-height: 1.5;
+        word-break: keep-all;
+    }
+
+    .chat-system-bubble small {
+        display: block;
+        margin-top: 5px;
+        font-size: 11px;
+        color: #85884a;
+    }
+</style>
+
 <section class="page-hero ott-sub-hero chat-page-hero">
     <div class="container ott-wide-container">
         <p class="eyebrow">SHARE CHAT</p>
@@ -35,13 +73,26 @@
                 <c:choose>
                     <c:when test="${not empty chatMessageList}">
                         <c:forEach var="message" items="${chatMessageList}">
-                            <div class="chat-message-row ${message.mineYn eq 'Y' ? 'mine' : 'other'}">
-                                <div class="chat-message-bubble">
-                                    <strong>${message.senderName}</strong>
-                                    <p>${message.messageContent}</p>
-                                    <small>${message.createdAt}</small>
-                                </div>
-                            </div>
+                            <c:choose>
+                                <c:when test="${message.systemYn eq 'Y'}">
+                                    <div class="chat-message-row system">
+                                        <div class="chat-system-bubble">
+                                            <strong>${message.senderName}</strong>
+                                            <p>${message.messageContent}</p>
+                                            <small>${message.createdAt}</small>
+                                        </div>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="chat-message-row ${message.mineYn eq 'Y' ? 'mine' : 'other'}">
+                                        <div class="chat-message-bubble">
+                                            <strong>${message.senderName}</strong>
+                                            <p>${message.messageContent}</p>
+                                            <small>${message.createdAt}</small>
+                                        </div>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
@@ -68,11 +119,14 @@
     const input = document.getElementById('chatMessageInput');
 
     function makeMessageRow(message) {
+        const isSystem = message.systemYn === 'Y';
         const row = document.createElement('div');
-        row.className = 'chat-message-row ' + (message.mineYn === 'Y' ? 'mine' : 'other');
+        row.className = isSystem
+            ? 'chat-message-row system'
+            : 'chat-message-row ' + (message.mineYn === 'Y' ? 'mine' : 'other');
 
         const bubble = document.createElement('div');
-        bubble.className = 'chat-message-bubble';
+        bubble.className = isSystem ? 'chat-system-bubble' : 'chat-message-bubble';
 
         const sender = document.createElement('strong');
         sender.textContent = message.senderName || message.senderId || '알 수 없음';
