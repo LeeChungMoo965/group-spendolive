@@ -33,11 +33,14 @@ public class NoticeController {
         MemberVO memberInfo =
                 (MemberVO) session.getAttribute("memberInfo");
 
+
         String id =
                 memberInfo == null ? null : memberInfo.getId();
+      
 
         ModelAndView mav = new ModelAndView();
 
+        mav.addObject("loginYn", memberInfo != null);
         mav.setViewName("common/layout");
         mav.addObject("body_page", "/WEB-INF/views/notice/noticeCenter.jsp");
         mav.addObject("tab", tab);
@@ -45,6 +48,7 @@ public class NoticeController {
         mav.addObject("noticeList", noticeService.getNoticeList(id));
         mav.addObject("noticeCount", noticeService.getNoticeCount());
         mav.addObject("importantCount", noticeService.getPinnedCount());
+        
 
         return mav;
     }
@@ -112,4 +116,6 @@ public class NoticeController {
         return noticeService.getUnreadNoticeList(
                 memberInfo.getId());
     }
+
+    
 }
