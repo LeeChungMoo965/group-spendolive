@@ -31,6 +31,10 @@ public class OttRepositoryImpl implements OttRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // =========================================================
+    // 1. OTT 서비스/요금제 기준 조회
+    // =========================================================
+
     @Override
     public List<OttServiceDTO> selectShareableServices() {
         String sql = """
@@ -85,12 +89,16 @@ public class OttRepositoryImpl implements OttRepository {
         }
     }
 
+    // =========================================================
+    // 2. 공유방/모집방 조회
+    // =========================================================
+
     @Override
     public List<OttRoomDTO> selectRecruitRooms(String loginId) {
         String sql = """
                 SELECT r.room_id,
-                       r.host_member_id,
-                       NVL(m.nickname, r.host_member_id) AS host_nickname,
+                       r.host_login_id,
+                       NVL(m.nickname, r.host_login_id) AS host_nickname,
                        r.ott_service_id,
                        s.service_name,
                        r.room_name,
@@ -98,6 +106,7 @@ public class OttRepositoryImpl implements OttRepository {
                        r.total_price,
                        r.billing_day,
                        r.member_limit,
+                       NVL(r.room_mode, 'RECRUIT') AS room_mode,
                        r.status,
                        r.invite_code,
                        TO_CHAR(r.close_requested_at, 'YYYY-MM-DD') AS close_requested_at,
@@ -111,16 +120,17 @@ public class OttRepositoryImpl implements OttRepository {
                             SELECT MAX(mine.status)
                             FROM ott_room_member_tb mine
                             WHERE mine.room_id = r.room_id
-                              AND mine.member_id = ?
+                              AND mine.member_login_id = ?
                        ), 'NONE') AS my_application_status
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
-                LEFT JOIN member_tb m ON r.host_member_id = m.id
+                LEFT JOIN member_tb m ON r.host_login_id = m.id
                 LEFT JOIN ott_room_member_tb rm ON r.room_id = rm.room_id
-                WHERE r.status IN ('RECRUITING', 'REPLACE_RECRUITING')
+                WHERE NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
+                  AND r.status <> 'CLOSED'
                 GROUP BY r.room_id,
-                         r.host_member_id,
-                         NVL(m.nickname, r.host_member_id),
+                         r.host_login_id,
+                         NVL(m.nickname, r.host_login_id),
                          r.ott_service_id,
                          s.service_name,
                          r.room_name,
@@ -128,6 +138,7 @@ public class OttRepositoryImpl implements OttRepository {
                          r.total_price,
                          r.billing_day,
                          r.member_limit,
+                         NVL(r.room_mode, 'RECRUIT'),
                          r.status,
                          r.invite_code,
                          TO_CHAR(r.close_requested_at, 'YYYY-MM-DD'),
@@ -143,11 +154,41 @@ public class OttRepositoryImpl implements OttRepository {
     }
 
     @Override
+    public List<OttRoomDTO> selectFriendRooms(String loginId) {
+        return selectMyRoomsByMode(loginId, "FRIEND");
+    }
+
+    @Override
+    public List<OttRoomDTO> selectHostedFriendRooms(String loginId) {
+        return selectHostedRoomsByMode(loginId, "FRIEND");
+    }
+
+    @Override
+    public List<OttRoomDTO> selectHostedRecruitRooms(String loginId) {
+        return selectHostedRoomsByMode(loginId, "RECRUIT");
+    }
+
+    @Override
+    public List<OttRoomDTO> selectJoinedRecruitRooms(String loginId) {
+        return selectJoinedRoomsByMode(loginId, "RECRUIT");
+    }
+
+    @Override
     public List<OttRoomDTO> selectMyRooms(String loginId) {
+        return selectMyRoomsByMode(loginId, null);
+    }
+
+    @Override
+    public List<OttRoomDTO> selectHostedRooms(String loginId) {
+        return selectHostedRoomsByMode(loginId, null);
+    }
+
+
+    private List<OttRoomDTO> selectMyRoomsByMode(String loginId, String roomMode) {
         String sql = """
                 SELECT r.room_id,
-                       r.host_member_id,
-                       NVL(m.nickname, r.host_member_id) AS host_nickname,
+                       r.host_login_id,
+                       NVL(m.nickname, r.host_login_id) AS host_nickname,
                        r.ott_service_id,
                        s.service_name,
                        r.room_name,
@@ -155,6 +196,7 @@ public class OttRepositoryImpl implements OttRepository {
                        r.total_price,
                        r.billing_day,
                        r.member_limit,
+                       NVL(r.room_mode, 'RECRUIT') AS room_mode,
                        r.status,
                        r.invite_code,
                        TO_CHAR(r.close_requested_at, 'YYYY-MM-DD') AS close_requested_at,
@@ -166,22 +208,23 @@ public class OttRepositoryImpl implements OttRepository {
                        NVL(COUNT(CASE WHEN rm_all.status = 'ACTIVE' THEN 1 END), 0) AS current_member_count
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
-                LEFT JOIN member_tb m ON r.host_member_id = m.id
+                LEFT JOIN member_tb m ON r.host_login_id = m.id
                 LEFT JOIN ott_room_member_tb rm_all ON r.room_id = rm_all.room_id
                 WHERE r.status <> 'CLOSED'
+                  AND (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
                   AND (
-                       r.host_member_id = ?
+                       r.host_login_id = ?
                        OR EXISTS (
                             SELECT 1
                             FROM ott_room_member_tb mine
                             WHERE mine.room_id = r.room_id
-                              AND mine.member_id = ?
+                              AND mine.member_login_id = ?
                               AND mine.status = 'ACTIVE'
                        )
                   )
                 GROUP BY r.room_id,
-                         r.host_member_id,
-                         NVL(m.nickname, r.host_member_id),
+                         r.host_login_id,
+                         NVL(m.nickname, r.host_login_id),
                          r.ott_service_id,
                          s.service_name,
                          r.room_name,
@@ -189,6 +232,7 @@ public class OttRepositoryImpl implements OttRepository {
                          r.total_price,
                          r.billing_day,
                          r.member_limit,
+                         NVL(r.room_mode, 'RECRUIT'),
                          r.status,
                          r.invite_code,
                          TO_CHAR(r.close_requested_at, 'YYYY-MM-DD'),
@@ -200,15 +244,14 @@ public class OttRepositoryImpl implements OttRepository {
                 ORDER BY r.room_id DESC
                 """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, false), loginId, loginId);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, false), roomMode, roomMode, loginId, loginId);
     }
 
-    @Override
-    public List<OttRoomDTO> selectHostedRooms(String loginId) {
+    private List<OttRoomDTO> selectHostedRoomsByMode(String loginId, String roomMode) {
         String sql = """
                 SELECT r.room_id,
-                       r.host_member_id,
-                       NVL(m.nickname, r.host_member_id) AS host_nickname,
+                       r.host_login_id,
+                       NVL(m.nickname, r.host_login_id) AS host_nickname,
                        r.ott_service_id,
                        s.service_name,
                        r.room_name,
@@ -216,6 +259,7 @@ public class OttRepositoryImpl implements OttRepository {
                        r.total_price,
                        r.billing_day,
                        r.member_limit,
+                       NVL(r.room_mode, 'RECRUIT') AS room_mode,
                        r.status,
                        r.invite_code,
                        TO_CHAR(r.close_requested_at, 'YYYY-MM-DD') AS close_requested_at,
@@ -227,13 +271,14 @@ public class OttRepositoryImpl implements OttRepository {
                        NVL(COUNT(CASE WHEN rm.status = 'ACTIVE' THEN 1 END), 0) AS current_member_count
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
-                LEFT JOIN member_tb m ON r.host_member_id = m.id
+                LEFT JOIN member_tb m ON r.host_login_id = m.id
                 LEFT JOIN ott_room_member_tb rm ON r.room_id = rm.room_id
-                WHERE r.host_member_id = ?
-                  AND r.status NOT IN ('CLOSED')
+                WHERE r.host_login_id = ?
+                  AND r.status <> 'CLOSED'
+                  AND (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
                 GROUP BY r.room_id,
-                         r.host_member_id,
-                         NVL(m.nickname, r.host_member_id),
+                         r.host_login_id,
+                         NVL(m.nickname, r.host_login_id),
                          r.ott_service_id,
                          s.service_name,
                          r.room_name,
@@ -241,6 +286,7 @@ public class OttRepositoryImpl implements OttRepository {
                          r.total_price,
                          r.billing_day,
                          r.member_limit,
+                         NVL(r.room_mode, 'RECRUIT'),
                          r.status,
                          r.invite_code,
                          TO_CHAR(r.close_requested_at, 'YYYY-MM-DD'),
@@ -252,8 +298,73 @@ public class OttRepositoryImpl implements OttRepository {
                 ORDER BY r.room_id DESC
                 """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, false), loginId);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, false), loginId, roomMode, roomMode);
     }
+
+    private List<OttRoomDTO> selectJoinedRoomsByMode(String loginId, String roomMode) {
+        String sql = """
+                SELECT r.room_id,
+                       r.host_login_id,
+                       NVL(m.nickname, r.host_login_id) AS host_nickname,
+                       r.ott_service_id,
+                       s.service_name,
+                       r.room_name,
+                       r.plan_name,
+                       r.total_price,
+                       r.billing_day,
+                       r.member_limit,
+                       NVL(r.room_mode, 'RECRUIT') AS room_mode,
+                       r.status,
+                       r.invite_code,
+                       TO_CHAR(r.close_requested_at, 'YYYY-MM-DD') AS close_requested_at,
+                       TO_CHAR(r.close_effective_date, 'YYYY-MM-DD') AS close_effective_date,
+                       r.close_reason,
+                       r.close_notice,
+                       TO_CHAR(r.closed_at, 'YYYY-MM-DD') AS closed_at,
+                       TO_CHAR(r.created_at, 'YYYY-MM-DD') AS created_at,
+                       NVL(COUNT(CASE WHEN rm_all.status = 'ACTIVE' THEN 1 END), 0) AS current_member_count
+                FROM ott_room_tb r
+                JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
+                LEFT JOIN member_tb m ON r.host_login_id = m.id
+                LEFT JOIN ott_room_member_tb rm_all ON r.room_id = rm_all.room_id
+                WHERE r.status <> 'CLOSED'
+                  AND r.host_login_id <> ?
+                  AND (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
+                  AND EXISTS (
+                        SELECT 1
+                        FROM ott_room_member_tb mine
+                        WHERE mine.room_id = r.room_id
+                          AND mine.member_login_id = ?
+                          AND mine.status = 'ACTIVE'
+                  )
+                GROUP BY r.room_id,
+                         r.host_login_id,
+                         NVL(m.nickname, r.host_login_id),
+                         r.ott_service_id,
+                         s.service_name,
+                         r.room_name,
+                         r.plan_name,
+                         r.total_price,
+                         r.billing_day,
+                         r.member_limit,
+                         NVL(r.room_mode, 'RECRUIT'),
+                         r.status,
+                         r.invite_code,
+                         TO_CHAR(r.close_requested_at, 'YYYY-MM-DD'),
+                         TO_CHAR(r.close_effective_date, 'YYYY-MM-DD'),
+                         r.close_reason,
+                         r.close_notice,
+                         TO_CHAR(r.closed_at, 'YYYY-MM-DD'),
+                         TO_CHAR(r.created_at, 'YYYY-MM-DD')
+                ORDER BY r.room_id DESC
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, false), loginId, roomMode, roomMode, loginId);
+    }
+
+    // =========================================================
+    // 3. 신청자/참여자 관리 조회
+    // =========================================================
 
     @Override
     public List<OttRoomMemberDTO> selectHostedRoomMembers(String loginId) {
@@ -262,9 +373,9 @@ public class OttRepositoryImpl implements OttRepository {
                        rm.room_id,
                        r.room_name,
                        s.service_name,
-                       rm.member_id,
-                       NVL(m.nickname, rm.member_id) AS member_nickname,
-                       NVL(m.member_name, rm.member_id) AS member_name,
+                       rm.member_login_id AS member_id,
+                       NVL(m.nickname, rm.member_login_id) AS member_nickname,
+                       NVL(m.member_name, rm.member_login_id) AS member_name,
                        rm.member_role,
                        rm.share_amount,
                        rm.fee_rate,
@@ -275,8 +386,9 @@ public class OttRepositoryImpl implements OttRepository {
                 FROM ott_room_member_tb rm
                 JOIN ott_room_tb r ON rm.room_id = r.room_id
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
-                LEFT JOIN member_tb m ON rm.member_id = m.id
-                WHERE r.host_member_id = ?
+                LEFT JOIN member_tb m ON rm.member_login_id = m.id
+                WHERE r.host_login_id = ?
+                  AND NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
                   AND rm.member_role = 'MEMBER'
                   AND rm.status IN ('APPLIED', 'ACTIVE', 'REJECTED', 'KICKED')
                   AND r.status <> 'CLOSED'
@@ -294,8 +406,17 @@ public class OttRepositoryImpl implements OttRepository {
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoomMember(rs), loginId);
     }
 
+    // =========================================================
+    // 4. 정산/결제 조회
+    // =========================================================
+
     @Override
     public List<OttSettlementDTO> selectMySettlements(String loginId) {
+        return selectMySettlements(loginId, null);
+    }
+
+    @Override
+    public List<OttSettlementDTO> selectMySettlements(String loginId, String roomMode) {
         String sql = """
                 SELECT st.settlement_id,
                        st.room_id,
@@ -314,7 +435,7 @@ public class OttRepositoryImpl implements OttRepository {
                        TO_CHAR(st.replace_end_date, 'YYYY-MM-DD') AS replace_end_date,
                        st.status,
                        TO_CHAR(st.created_at, 'YYYY-MM-DD') AS created_at,
-                       CASE WHEN r.host_member_id = ? THEN 'HOST' ELSE 'MEMBER' END AS my_role,
+                       CASE WHEN r.host_login_id = ? THEN 'HOST' ELSE 'MEMBER' END AS my_role,
                        sp.payment_id AS my_payment_id,
                        sp.payment_status AS my_payment_status,
                        sp.total_amount AS my_total_amount
@@ -323,15 +444,57 @@ public class OttRepositoryImpl implements OttRepository {
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
                 LEFT JOIN settlement_payment_tb sp
                        ON st.settlement_id = sp.settlement_id
-                      AND sp.id = ?
-                WHERE r.host_member_id = ?
-                   OR EXISTS (
-                        SELECT 1
-                        FROM ott_room_member_tb rm
-                        WHERE rm.room_id = r.room_id
-                          AND rm.member_id = ?
-                   )
+                      AND sp.member_login_id = ?
+                WHERE (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
+                  AND (
+                       r.host_login_id = ?
+                       OR EXISTS (
+                            SELECT 1
+                            FROM ott_room_member_tb rm
+                            WHERE rm.room_id = r.room_id
+                              AND rm.member_login_id = ?
+                       )
+                  )
                 ORDER BY st.settlement_month DESC, st.settlement_id DESC
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapMySettlement(rs), loginId, loginId, roomMode, roomMode, loginId, loginId);
+    }
+
+    @Override
+    public List<OttSettlementDTO> selectHostedSettlementPayments(String loginId, String roomMode) {
+        String sql = """
+                SELECT st.settlement_id,
+                       st.room_id,
+                       r.room_name,
+                       s.service_name,
+                       st.settlement_month,
+                       st.status,
+                       TO_CHAR(st.payment_start_date, 'YYYY-MM-DD') AS payment_start_date,
+                       TO_CHAR(st.payment_close_date, 'YYYY-MM-DD') AS payment_close_date,
+                       TO_CHAR(st.service_start_date, 'YYYY-MM-DD') AS service_start_date,
+                       TO_CHAR(st.service_end_date, 'YYYY-MM-DD') AS service_end_date,
+                       sp.payment_id,
+                       sp.member_login_id AS member_id,
+                       NVL(m.member_name, sp.member_login_id) AS member_name,
+                       NVL(m.nickname, sp.member_login_id) AS member_nickname,
+                       sp.base_amount,
+                       sp.fee_amount,
+                       sp.total_amount,
+                       sp.payment_status,
+                       TO_CHAR(sp.paid_at, 'YYYY-MM-DD') AS paid_at
+                FROM settlement_tb st
+                JOIN ott_room_tb r ON st.room_id = r.room_id
+                JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
+                JOIN settlement_payment_tb sp ON st.settlement_id = sp.settlement_id
+                LEFT JOIN member_tb m ON sp.member_login_id = m.id
+                WHERE r.host_login_id = ?
+                  AND (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
+                ORDER BY st.settlement_month DESC,
+                         st.settlement_id DESC,
+                         r.room_id DESC,
+                         sp.payment_status,
+                         sp.member_login_id
                 """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
@@ -341,25 +504,53 @@ public class OttRepositoryImpl implements OttRepository {
             settlement.setRoomName(rs.getString("room_name"));
             settlement.setServiceName(rs.getString("service_name"));
             settlement.setSettlementMonth(rs.getString("settlement_month"));
-            settlement.setTotalPrice(rs.getInt("total_price"));
-            settlement.setTotalFee(rs.getInt("total_fee"));
-            settlement.setTotalPayAmount(rs.getInt("total_pay_amount"));
-            settlement.setDueDate(rs.getString("due_date"));
+            settlement.setStatus(rs.getString("status"));
             settlement.setPaymentStartDate(rs.getString("payment_start_date"));
             settlement.setPaymentCloseDate(rs.getString("payment_close_date"));
             settlement.setServiceStartDate(rs.getString("service_start_date"));
             settlement.setServiceEndDate(rs.getString("service_end_date"));
-            settlement.setReplaceStartDate(rs.getString("replace_start_date"));
-            settlement.setReplaceEndDate(rs.getString("replace_end_date"));
-            settlement.setStatus(rs.getString("status"));
-            settlement.setCreatedAt(rs.getString("created_at"));
-            settlement.setMyRole(rs.getString("my_role"));
-            settlement.setPaymentId(getNullableLong(rs, "my_payment_id"));
-            settlement.setMyPaymentStatus(rs.getString("my_payment_status"));
-            settlement.setMyTotalAmount(rs.getInt("my_total_amount"));
+            settlement.setPaymentId(getNullableLong(rs, "payment_id"));
+            settlement.setMemberId(rs.getString("member_id"));
+            settlement.setMemberName(rs.getString("member_name"));
+            settlement.setMemberNickname(rs.getString("member_nickname"));
+            settlement.setBaseAmount(rs.getInt("base_amount"));
+            settlement.setFeeAmount(rs.getInt("fee_amount"));
+            settlement.setTotalAmount(rs.getInt("total_amount"));
+            settlement.setPaymentStatus(rs.getString("payment_status"));
+            settlement.setPaidAt(rs.getString("paid_at"));
             return settlement;
-        }, loginId, loginId, loginId, loginId);
+        }, loginId, roomMode, roomMode);
     }
+
+    private OttSettlementDTO mapMySettlement(java.sql.ResultSet rs) throws java.sql.SQLException {
+        OttSettlementDTO settlement = new OttSettlementDTO();
+        settlement.setSettlementId(rs.getLong("settlement_id"));
+        settlement.setRoomId(rs.getLong("room_id"));
+        settlement.setRoomName(rs.getString("room_name"));
+        settlement.setServiceName(rs.getString("service_name"));
+        settlement.setSettlementMonth(rs.getString("settlement_month"));
+        settlement.setTotalPrice(rs.getInt("total_price"));
+        settlement.setTotalFee(rs.getInt("total_fee"));
+        settlement.setTotalPayAmount(rs.getInt("total_pay_amount"));
+        settlement.setDueDate(rs.getString("due_date"));
+        settlement.setPaymentStartDate(rs.getString("payment_start_date"));
+        settlement.setPaymentCloseDate(rs.getString("payment_close_date"));
+        settlement.setServiceStartDate(rs.getString("service_start_date"));
+        settlement.setServiceEndDate(rs.getString("service_end_date"));
+        settlement.setReplaceStartDate(rs.getString("replace_start_date"));
+        settlement.setReplaceEndDate(rs.getString("replace_end_date"));
+        settlement.setStatus(rs.getString("status"));
+        settlement.setCreatedAt(rs.getString("created_at"));
+        settlement.setMyRole(rs.getString("my_role"));
+        settlement.setPaymentId(getNullableLong(rs, "my_payment_id"));
+        settlement.setMyPaymentStatus(rs.getString("my_payment_status"));
+        settlement.setMyTotalAmount(rs.getInt("my_total_amount"));
+        return settlement;
+    }
+
+    // =========================================================
+    // 5. 채팅 조회
+    // =========================================================
 
     @Override
     public List<OttChatRoomDTO> selectMyChatRooms(String loginId) {
@@ -381,19 +572,19 @@ public class OttRepositoryImpl implements OttRepository {
                                     SELECT cr.last_read_at
                                     FROM ott_chat_read_tb cr
                                     WHERE cr.room_id = r.room_id
-                                      AND cr.member_id = ?
+                                      AND cr.member_login_id = ?
                               ), TO_DATE('1900-01-01', 'YYYY-MM-DD'))
                        ), 0) AS unread_count
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
                 WHERE r.status <> 'CLOSED'
                   AND (
-                       r.host_member_id = ?
+                       r.host_login_id = ?
                        OR EXISTS (
                             SELECT 1
                             FROM ott_room_member_tb rm
                             WHERE rm.room_id = r.room_id
-                              AND rm.member_id = ?
+                              AND rm.member_login_id = ?
                               AND rm.status = 'ACTIVE'
                        )
                   )
@@ -464,7 +655,7 @@ public class OttRepositoryImpl implements OttRepository {
 
     @Override
     public int countRecruitRooms() {
-        String sql = "SELECT COUNT(*) FROM ott_room_tb WHERE status IN ('RECRUITING', 'REPLACE_RECRUITING')";
+        String sql = "SELECT COUNT(*) FROM ott_room_tb WHERE NVL(room_mode, 'RECRUIT') = 'RECRUIT' AND status <> 'CLOSED'";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
         return count == null ? 0 : count;
     }
@@ -476,12 +667,12 @@ public class OttRepositoryImpl implements OttRepository {
                 FROM ott_room_tb r
                 WHERE r.status <> 'CLOSED'
                   AND (
-                       r.host_member_id = ?
+                       r.host_login_id = ?
                        OR EXISTS (
                             SELECT 1
                             FROM ott_room_member_tb rm
                             WHERE rm.room_id = r.room_id
-                              AND rm.member_id = ?
+                              AND rm.member_login_id = ?
                               AND rm.status = 'ACTIVE'
                        )
                   )
@@ -499,12 +690,12 @@ public class OttRepositoryImpl implements OttRepository {
                 WHERE cm.sender_id <> ?
                   AND r.status <> 'CLOSED'
                   AND (
-                        r.host_member_id = ?
+                        r.host_login_id = ?
                         OR EXISTS (
                             SELECT 1
                             FROM ott_room_member_tb rm
                             WHERE rm.room_id = r.room_id
-                              AND rm.member_id = ?
+                              AND rm.member_login_id = ?
                               AND rm.status = 'ACTIVE'
                         )
                   )
@@ -512,12 +703,16 @@ public class OttRepositoryImpl implements OttRepository {
                         SELECT cr.last_read_at
                         FROM ott_chat_read_tb cr
                         WHERE cr.room_id = cm.room_id
-                          AND cr.member_id = ?
+                          AND cr.member_login_id = ?
                   ), TO_DATE('1900-01-01', 'YYYY-MM-DD'))
                 """;
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, loginId, loginId, loginId, loginId);
         return count == null ? 0 : count;
     }
+
+    // =========================================================
+    // 6. 공유방 생성/신청/승인/거절
+    // =========================================================
 
     @Override
     @Transactional
@@ -530,16 +725,17 @@ public class OttRepositoryImpl implements OttRepository {
         String sql = """
                 INSERT INTO ott_room_tb (
                     room_id,
-                    host_member_id,
+                    host_login_id,
                     ott_service_id,
                     room_name,
                     plan_name,
                     total_price,
                     billing_day,
                     member_limit,
+                    room_mode,
                     status,
                     invite_code
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         jdbcTemplate.update(sql,
@@ -551,6 +747,7 @@ public class OttRepositoryImpl implements OttRepository {
                 roomDTO.getTotalPrice(),
                 roomDTO.getBillingDay(),
                 roomDTO.getMemberLimit(),
+                normalizeRoomMode(roomDTO.getRoomMode()),
                 status,
                 inviteCode);
 
@@ -566,7 +763,7 @@ public class OttRepositoryImpl implements OttRepository {
                 INSERT INTO ott_room_member_tb (
                     room_member_id,
                     room_id,
-                    member_id,
+                    member_login_id,
                     member_role,
                     share_amount,
                     fee_rate,
@@ -615,7 +812,7 @@ public class OttRepositoryImpl implements OttRepository {
                         kicked_reason = NULL,
                         left_at = NULL
                     WHERE room_id = ?
-                      AND member_id = ?
+                      AND member_login_id = ?
                     """;
             jdbcTemplate.update(updateSql, roomId, loginId);
         } else {
@@ -624,7 +821,7 @@ public class OttRepositoryImpl implements OttRepository {
                     INSERT INTO ott_room_member_tb (
                         room_member_id,
                         room_id,
-                        member_id,
+                        member_login_id,
                         member_role,
                         share_amount,
                         fee_rate,
@@ -732,6 +929,10 @@ public class OttRepositoryImpl implements OttRepository {
                 "/spendolive/ott/recruit.do");
     }
 
+    // =========================================================
+    // 7. 정산 요청/결제 처리
+    // =========================================================
+
     @Override
     @Transactional
     public void createSettlement(Long roomId, String hostId, String settlementMonth, String dueDate) {
@@ -817,7 +1018,7 @@ public class OttRepositoryImpl implements OttRepository {
                     INSERT INTO settlement_payment_tb (
                         payment_id,
                         settlement_id,
-                        id,
+                        member_login_id,
                         base_amount,
                         fee_rate,
                         fee_amount,
@@ -879,7 +1080,7 @@ public class OttRepositoryImpl implements OttRepository {
                     paid_at = SYSDATE,
                     memo = NVL(sp.memo, '') || ' / 사용자 결제완료 처리'
                 WHERE sp.payment_id = ?
-                  AND sp.id = ?
+                  AND sp.member_login_id = ?
                   AND sp.payment_status = 'UNPAID'
                   AND EXISTS (
                         SELECT 1
@@ -902,6 +1103,10 @@ public class OttRepositoryImpl implements OttRepository {
                     "/spendolive/ott/recruit.do?tab=settlement&roomId=" + roomId);
         }
     }
+
+    // =========================================================
+    // 8. 방 삭제 요청/환불 처리
+    // =========================================================
 
     @Override
     @Transactional
@@ -929,7 +1134,7 @@ public class OttRepositoryImpl implements OttRepository {
                     close_notice = ?,
                     updated_at = SYSDATE
                 WHERE room_id = ?
-                  AND host_member_id = ?
+                  AND host_login_id = ?
                 """;
         jdbcTemplate.update(updateRoomSql, Date.valueOf(closeEffectiveDate), reason, notice, roomId, hostId);
 
@@ -976,13 +1181,13 @@ public class OttRepositoryImpl implements OttRepository {
                 MERGE INTO ott_chat_read_tb cr
                 USING (
                     SELECT ? AS room_id,
-                           ? AS member_id
+                           ? AS member_login_id
                     FROM dual
                 ) src
-                ON (cr.room_id = src.room_id AND cr.member_id = src.member_id)
+                ON (cr.room_id = src.room_id AND cr.member_login_id = src.member_login_id)
                 WHEN MATCHED THEN UPDATE SET cr.last_read_at = SYSDATE
-                WHEN NOT MATCHED THEN INSERT (room_id, member_id, last_read_at)
-                VALUES (src.room_id, src.member_id, SYSDATE)
+                WHEN NOT MATCHED THEN INSERT (room_id, member_login_id, last_read_at)
+                VALUES (src.room_id, src.member_login_id, SYSDATE)
                 """;
         jdbcTemplate.update(sql, roomId, loginId);
     }
@@ -1016,7 +1221,7 @@ public class OttRepositoryImpl implements OttRepository {
                         FROM settlement_payment_tb sp
                         JOIN settlement_tb st ON sp.settlement_id = st.settlement_id
                         WHERE st.room_id = rm.room_id
-                          AND sp.id = rm.member_id
+                          AND sp.member_login_id = rm.member_login_id
                           AND sp.payment_status = 'EXPIRED'
                           AND st.payment_close_date < TRUNC(SYSDATE)
                   )
@@ -1088,7 +1293,7 @@ public class OttRepositoryImpl implements OttRepository {
                     payment_id,
                     settlement_id,
                     room_id,
-                    id,
+                    member_login_id,
                     refund_amount,
                     refund_reason,
                     refund_status,
@@ -1099,7 +1304,7 @@ public class OttRepositoryImpl implements OttRepository {
                        sp.payment_id,
                        st.settlement_id,
                        st.room_id,
-                       sp.id,
+                       sp.member_login_id AS member_id,
                        sp.total_amount,
                        'ROOM_CLOSE',
                        'COMPLETED',
@@ -1181,7 +1386,7 @@ public class OttRepositoryImpl implements OttRepository {
 
     private void alertActiveMembers(Long roomId, String alertType, String title, String content, String targetUrl, String exceptMemberId) {
         String sql = """
-                SELECT member_id
+                SELECT member_login_id
                 FROM ott_room_member_tb
                 WHERE room_id = ?
                   AND status = 'ACTIVE'
@@ -1194,6 +1399,10 @@ public class OttRepositoryImpl implements OttRepository {
             insertAlert(memberId, alertType, title, content, targetUrl);
         }
     }
+
+    // =========================================================
+    // 10. RowMapper / 내부 유틸
+    // =========================================================
 
     private OttServiceDTO mapOttService(java.sql.ResultSet rs) throws java.sql.SQLException {
         OttServiceDTO service = new OttServiceDTO();
@@ -1221,7 +1430,7 @@ public class OttRepositoryImpl implements OttRepository {
     private OttRoomDTO mapRoom(java.sql.ResultSet rs, boolean hasMyStatus) throws java.sql.SQLException {
         OttRoomDTO room = new OttRoomDTO();
         room.setRoomId(rs.getLong("room_id"));
-        room.setHostMemberId(rs.getString("host_member_id"));
+        room.setHostMemberId(rs.getString("host_login_id"));
         room.setHostNickname(rs.getString("host_nickname"));
         room.setOttServiceId(rs.getLong("ott_service_id"));
         room.setServiceName(rs.getString("service_name"));
@@ -1230,6 +1439,7 @@ public class OttRepositoryImpl implements OttRepository {
         room.setTotalPrice(rs.getInt("total_price"));
         room.setBillingDay(rs.getInt("billing_day"));
         room.setMemberLimit(rs.getInt("member_limit"));
+        room.setRoomMode(rs.getString("room_mode"));
         room.setCurrentMemberCount(rs.getInt("current_member_count"));
         room.setStatus(rs.getString("status"));
         room.setInviteCode(rs.getString("invite_code"));
@@ -1273,8 +1483,8 @@ public class OttRepositoryImpl implements OttRepository {
     private OttRoomDTO selectRoom(Long roomId) {
         String sql = """
                 SELECT r.room_id,
-                       r.host_member_id,
-                       NVL(m.nickname, r.host_member_id) AS host_nickname,
+                       r.host_login_id,
+                       NVL(m.nickname, r.host_login_id) AS host_nickname,
                        r.ott_service_id,
                        s.service_name,
                        r.room_name,
@@ -1282,6 +1492,7 @@ public class OttRepositoryImpl implements OttRepository {
                        r.total_price,
                        r.billing_day,
                        r.member_limit,
+                       NVL(r.room_mode, 'RECRUIT') AS room_mode,
                        r.status,
                        r.invite_code,
                        TO_CHAR(r.close_requested_at, 'YYYY-MM-DD') AS close_requested_at,
@@ -1298,7 +1509,7 @@ public class OttRepositoryImpl implements OttRepository {
                        ), 0) AS current_member_count
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
-                LEFT JOIN member_tb m ON r.host_member_id = m.id
+                LEFT JOIN member_tb m ON r.host_login_id = m.id
                 WHERE r.room_id = ?
                 """;
 
@@ -1315,9 +1526,9 @@ public class OttRepositoryImpl implements OttRepository {
                        rm.room_id,
                        r.room_name,
                        s.service_name,
-                       rm.member_id,
-                       NVL(m.nickname, rm.member_id) AS member_nickname,
-                       NVL(m.member_name, rm.member_id) AS member_name,
+                       rm.member_login_id AS member_id,
+                       NVL(m.nickname, rm.member_login_id) AS member_nickname,
+                       NVL(m.member_name, rm.member_login_id) AS member_name,
                        rm.member_role,
                        rm.share_amount,
                        rm.fee_rate,
@@ -1328,7 +1539,7 @@ public class OttRepositoryImpl implements OttRepository {
                 FROM ott_room_member_tb rm
                 JOIN ott_room_tb r ON rm.room_id = r.room_id
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
-                LEFT JOIN member_tb m ON rm.member_id = m.id
+                LEFT JOIN member_tb m ON rm.member_login_id = m.id
                 WHERE rm.room_id = ?
                   AND rm.status = 'ACTIVE'
                 ORDER BY rm.member_role DESC, rm.joined_at
@@ -1344,12 +1555,12 @@ public class OttRepositoryImpl implements OttRepository {
                 WHERE r.room_id = ?
                   AND r.status <> 'CLOSED'
                   AND (
-                        r.host_member_id = ?
+                        r.host_login_id = ?
                         OR EXISTS (
                             SELECT 1
                             FROM ott_room_member_tb rm
                             WHERE rm.room_id = r.room_id
-                              AND rm.member_id = ?
+                              AND rm.member_login_id = ?
                               AND rm.status = 'ACTIVE'
                         )
                   )
@@ -1363,7 +1574,7 @@ public class OttRepositoryImpl implements OttRepository {
                 SELECT status
                 FROM ott_room_member_tb
                 WHERE room_id = ?
-                  AND member_id = ?
+                  AND member_login_id = ?
                 """;
         try {
             return jdbcTemplate.queryForObject(sql, String.class, roomId, loginId);
@@ -1388,8 +1599,8 @@ public class OttRepositoryImpl implements OttRepository {
         String sql = """
                 SELECT rm.room_member_id,
                        rm.room_id,
-                       rm.member_id,
-                       r.host_member_id,
+                       rm.member_login_id AS member_id,
+                       r.host_login_id AS host_member_id,
                        r.room_name,
                        r.total_price,
                        r.member_limit,
@@ -1409,13 +1620,13 @@ public class OttRepositoryImpl implements OttRepository {
     private Map<String, Object> selectPaymentMap(Long paymentId) {
         String sql = """
                 SELECT sp.payment_id,
-                       sp.id,
+                       sp.member_login_id AS id,
                        sp.payment_status,
                        sp.total_amount,
                        st.settlement_id,
                        st.room_id,
                        st.settlement_month,
-                       r.host_member_id,
+                       r.host_login_id AS host_member_id,
                        r.room_name,
                        r.status AS room_status
                 FROM settlement_payment_tb sp
@@ -1514,6 +1725,13 @@ public class OttRepositoryImpl implements OttRepository {
             return "프리미엄";
         }
         return planName.trim();
+    }
+
+    private String normalizeRoomMode(String roomMode) {
+        if ("FRIEND".equals(roomMode)) {
+            return "FRIEND";
+        }
+        return "RECRUIT";
     }
 
     private String normalizeCloseNotice(String closeNotice) {

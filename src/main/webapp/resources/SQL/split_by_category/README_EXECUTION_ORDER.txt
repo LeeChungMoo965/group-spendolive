@@ -18,9 +18,10 @@ SpendOlive SQL 분리 실행 안내
    - 지출관리/캘린더 화면에 필요합니다.
 
 4. 03_ott_schema.sql
-   - OTT 서비스, 공유방, 참여자, 채팅, 차단, 정산, 입금, 환불, 보관금, 수익, 지급 테이블입니다.
+   - OTT 서비스, 공유방, 참여자, 채팅, 정산, 결제, 환불에 필요한 최소 테이블입니다.
    - 01번 실행 후 실행합니다.
    - 실제 OTT 신청/승인/정산/방삭제 요청 흐름은 알림을 생성하므로 04번도 함께 실행하는 것을 권장합니다.
+   - escrow/platform_revenue/payout 같은 PG 고도화용 테이블은 최소 구조에서 제거했습니다.
 
 5. 04_notice_inquiry_alert_schema.sql
    - 공지사항, FAQ, 문의, 문의답변, 알림, 공지 즐겨찾기 테이블입니다.
@@ -87,3 +88,10 @@ OTT 페이지만 먼저 확인:
 12_patch_ott_pickle_rules.sql
 - 기존 DB를 삭제하지 않고 OTT별 최고 멤버십 고정 규칙만 추가/갱신할 때 사용합니다.
 - 새로 DB를 만드는 경우에는 03_ott_schema.sql, 08_seed_ott_services.sql에 이미 반영되어 있으므로 12번은 실행하지 않아도 됩니다.
+
+
+[추가 안내 - OTT 로그인 ID 컬럼명 정리 패치]
+14_patch_ott_login_id_column_names.sql
+- 기존 DB를 삭제하지 않고, 예전 OTT 테이블을 계속 사용할 때만 실행합니다.
+- ott_room_tb.host_member_id, ott_room_member_tb.member_id처럼 member_tb.member_id 숫자 PK와 헷갈리던 컬럼명을 host_login_id/member_login_id로 바꿉니다.
+- 새로 DB를 만드는 경우에는 03_ott_schema.sql에 이미 반영되어 있으므로 14번은 실행하지 않아도 됩니다.

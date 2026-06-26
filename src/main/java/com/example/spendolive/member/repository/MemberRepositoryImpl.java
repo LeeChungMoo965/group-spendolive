@@ -1,5 +1,7 @@
 package com.example.spendolive.member.repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +31,11 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" from member_tb where phone =?";
     private final String updatePinNO = "update member_tb set open_bank_user_seq_no =? ,open_bank_token =? ,fintech_use_num =?, bank_code =?, account_num =?"
     +" where id =? ";
-
-
+    private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, "
+    + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
+    + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+    + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
+    + "FROM member_tb WHERE id = ?";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -128,6 +133,83 @@ public class MemberRepositoryImpl implements MemberRepository{
         bank_code,
         account_num,
         userId);
+    }
+
+    @Override
+    public MemberVO selectMemberById(String id) throws DataAccessException {
+        try {
+            return jdbcTemplate.queryForObject(selectMemberByIdSql, (rs, rowNum) -> mapMember(rs), id);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void updateMyInfo(MemberVO memberVO, String newPassword) throws DataAccessException {
+        boolean changePassword = newPassword != null && !newPassword.isBlank();
+
+        if (changePassword) {
+            String sql = """
+                    UPDATE member_tb
+                    SET member_name = ?,
+                        nickname = ?,
+                        email = ?,
+                        phone = ?,
+                        password = ?,
+                        updated_at = SYSDATE
+                    WHERE id = ?
+                    """;
+            jdbcTemplate.update(
+                    sql,
+                    memberVO.getMember_name(),
+                    memberVO.getNickname(),
+                    memberVO.getEmail(),
+                    memberVO.getPhone(),
+                    newPassword,
+                    memberVO.getId()
+            );
+        } else {
+            String sql = """
+                    UPDATE member_tb
+                    SET member_name = ?,
+                        nickname = ?,
+                        email = ?,
+                        phone = ?,
+                        updated_at = SYSDATE
+                    WHERE id = ?
+                    """;
+            jdbcTemplate.update(
+                    sql,
+                    memberVO.getMember_name(),
+                    memberVO.getNickname(),
+                    memberVO.getEmail(),
+                    memberVO.getPhone(),
+                    memberVO.getId()
+            );
+        }
+    }
+    private MemberVO mapMember(ResultSet rs) throws SQLException {
+        MemberVO member = new MemberVO();
+        member.setMember_id(rs.getInt("member_id"));
+        member.setWarning_count(rs.getInt("warning_count"));
+        member.setId(rs.getString("id"));
+        member.setEmail(rs.getString("email"));
+        member.setLogin_type(rs.getString("login_type"));
+        member.setVerify_type(rs.getString("verify_type"));
+        member.setMember_name(rs.getString("member_name"));
+        member.setNickname(rs.getString("nickname"));
+        member.setPassword(rs.getString("password"));
+        member.setPhone(rs.getString("phone"));
+        member.setRole(rs.getString("role"));
+        member.setStatus(rs.getString("status"));
+        member.setCreated_at(rs.getString("created_at"));
+        member.setUpdate_at(rs.getString("updated_at"));
+        member.setBlocked_until(rs.getString("blocked_until"));
+        member.setLast_login_at(rs.getString("last_login_at"));
+        member.setOpen_bank_token(rs.getString("open_bank_token"));
+        member.setOpen_bank_user_seq_no(rs.getString("open_bank_user_seq_no"));
+        member.setFintech_use_num(rs.getString("fintech_use_num"));
+        return member;
     }
     
 }
