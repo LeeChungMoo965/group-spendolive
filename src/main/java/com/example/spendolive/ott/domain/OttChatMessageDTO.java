@@ -13,4 +13,5 @@ public class OttChatMessageDTO {
     private String messageContent;
     private String createdAt;
     private String mineYn;
+    private String systemYn;
 }

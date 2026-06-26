@@ -14,6 +14,8 @@ public interface OttService {
 
     List<OttRoomDTO> getRecruitRooms(String loginId);
 
+    List<OttRoomDTO> getRecruitRooms(String loginId, Long ottServiceId, String roomNameKeyword);
+
     List<OttRoomDTO> getFriendRooms(String loginId);
 
     List<OttRoomDTO> getHostedFriendRooms(String loginId);

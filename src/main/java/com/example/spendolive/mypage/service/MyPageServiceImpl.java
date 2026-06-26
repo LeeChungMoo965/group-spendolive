@@ -1,6 +1,7 @@
 package com.example.spendolive.mypage.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.service.MemberService;
@@ -47,6 +48,20 @@ public class MyPageServiceImpl implements MyPageService {
         myPage.setJoinedRecruitRoomList(ottService.getJoinedRecruitRooms(loginId));
 
         return myPage;
+    }
+
+
+    @Override
+    @Transactional
+    public void withdrawMember(String loginId) throws Exception {
+        if (loginId == null || loginId.isBlank()) {
+            throw new IllegalArgumentException("회원탈퇴 대상 아이디가 없습니다.");
+        }
+
+        int updatedCount = myPageRepository.withdrawMember(loginId);
+        if (updatedCount == 0) {
+            throw new IllegalStateException("이미 탈퇴했거나 존재하지 않는 회원입니다.");
+        }
     }
 
     private boolean isAccountConnected(MemberVO memberInfo) {

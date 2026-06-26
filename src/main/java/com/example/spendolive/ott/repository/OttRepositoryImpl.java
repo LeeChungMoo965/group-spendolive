@@ -95,6 +95,11 @@ public class OttRepositoryImpl implements OttRepository {
 
     @Override
     public List<OttRoomDTO> selectRecruitRooms(String loginId) {
+        return selectRecruitRooms(loginId, null, null);
+    }
+
+    @Override
+    public List<OttRoomDTO> selectRecruitRooms(String loginId, Long ottServiceId, String roomNameKeyword) {
         String sql = """
                 SELECT r.room_id,
                        r.host_login_id,
@@ -128,6 +133,8 @@ public class OttRepositoryImpl implements OttRepository {
                 LEFT JOIN ott_room_member_tb rm ON r.room_id = rm.room_id
                 WHERE NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
                   AND r.status <> 'CLOSED'
+                  AND (? IS NULL OR r.ott_service_id = ?)
+                  AND (? IS NULL OR LOWER(r.room_name) LIKE '%' || LOWER(?) || '%')
                 GROUP BY r.room_id,
                          r.host_login_id,
                          NVL(m.nickname, r.host_login_id),
@@ -150,7 +157,13 @@ public class OttRepositoryImpl implements OttRepository {
                 ORDER BY r.room_id DESC
                 """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, true), loginId);
+        return jdbcTemplate.query(sql,
+                (rs, rowNum) -> mapRoom(rs, true),
+                loginId,
+                ottServiceId,
+                ottServiceId,
+                roomNameKeyword,
+                roomNameKeyword);
     }
 
     @Override
@@ -322,21 +335,20 @@ public class OttRepositoryImpl implements OttRepository {
                        r.close_notice,
                        TO_CHAR(r.closed_at, 'YYYY-MM-DD') AS closed_at,
                        TO_CHAR(r.created_at, 'YYYY-MM-DD') AS created_at,
-                       NVL(COUNT(CASE WHEN rm_all.status = 'ACTIVE' THEN 1 END), 0) AS current_member_count
+                       NVL(COUNT(CASE WHEN rm_all.status = 'ACTIVE' THEN 1 END), 0) AS current_member_count,
+                       mine.status AS my_application_status
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
+                JOIN ott_room_member_tb mine
+                  ON mine.room_id = r.room_id
+                 AND mine.member_login_id = ?
+                 AND mine.member_role = 'MEMBER'
+                 AND mine.status IN ('APPLIED', 'ACTIVE', 'REJECTED')
                 LEFT JOIN member_tb m ON r.host_login_id = m.id
                 LEFT JOIN ott_room_member_tb rm_all ON r.room_id = rm_all.room_id
                 WHERE r.status <> 'CLOSED'
                   AND r.host_login_id <> ?
                   AND (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
-                  AND EXISTS (
-                        SELECT 1
-                        FROM ott_room_member_tb mine
-                        WHERE mine.room_id = r.room_id
-                          AND mine.member_login_id = ?
-                          AND mine.status = 'ACTIVE'
-                  )
                 GROUP BY r.room_id,
                          r.host_login_id,
                          NVL(m.nickname, r.host_login_id),
@@ -355,11 +367,18 @@ public class OttRepositoryImpl implements OttRepository {
                          r.close_reason,
                          r.close_notice,
                          TO_CHAR(r.closed_at, 'YYYY-MM-DD'),
-                         TO_CHAR(r.created_at, 'YYYY-MM-DD')
-                ORDER BY r.room_id DESC
+                         TO_CHAR(r.created_at, 'YYYY-MM-DD'),
+                         mine.status
+                ORDER BY CASE mine.status
+                            WHEN 'ACTIVE' THEN 1
+                            WHEN 'APPLIED' THEN 2
+                            WHEN 'REJECTED' THEN 3
+                            ELSE 4
+                         END,
+                         r.room_id DESC
                 """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, false), loginId, roomMode, roomMode, loginId);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, true), loginId, loginId, roomMode, roomMode);
     }
 
     // =========================================================
@@ -617,10 +636,21 @@ public class OttRepositoryImpl implements OttRepository {
                         SELECT cm.message_id,
                                cm.room_id,
                                cm.sender_id,
-                               NVL(m.member_name, cm.sender_id) AS sender_name,
-                               cm.message_content,
+                               CASE
+                                   WHEN cm.message_content LIKE '[SYSTEM] %' THEN '시스템 알림'
+                                   ELSE NVL(m.member_name, cm.sender_id)
+                               END AS sender_name,
+                               CASE
+                                   WHEN cm.message_content LIKE '[SYSTEM] %' THEN SUBSTR(cm.message_content, 10)
+                                   ELSE cm.message_content
+                               END AS message_content,
                                TO_CHAR(cm.created_at, 'YYYY-MM-DD HH24:MI') AS created_at,
-                               CASE WHEN cm.sender_id = ? THEN 'Y' ELSE 'N' END AS mine_yn
+                               CASE
+                                   WHEN cm.message_content LIKE '[SYSTEM] %' THEN 'N'
+                                   WHEN cm.sender_id = ? THEN 'Y'
+                                   ELSE 'N'
+                               END AS mine_yn,
+                               CASE WHEN cm.message_content LIKE '[SYSTEM] %' THEN 'Y' ELSE 'N' END AS system_yn
                         FROM ott_chat_message_tb cm
                         LEFT JOIN member_tb m ON cm.sender_id = m.id
                         WHERE cm.room_id = ?
@@ -640,6 +670,7 @@ public class OttRepositoryImpl implements OttRepository {
             message.setMessageContent(rs.getString("message_content"));
             message.setCreatedAt(rs.getString("created_at"));
             message.setMineYn(rs.getString("mine_yn"));
+            message.setSystemYn(rs.getString("system_yn"));
             return message;
         }, loginId, roomId);
     }
@@ -838,6 +869,10 @@ public class OttRepositoryImpl implements OttRepository {
                 "새로운 OTT 모집 신청",
                 loginId + "님이 " + room.getRoomName() + "에 신청했습니다. 신청관리에서 수락 또는 거절해 주세요.",
                 "/spendolive/ott/recruit.do?tab=apply&roomId=" + roomId);
+
+        int pendingCount = countAppliedRoomMembers(roomId);
+        insertSystemChatMessage(roomId, loginId,
+                "새로운 신청자가 있습니다. 현재 승인 대기 " + pendingCount + "명입니다. 파티장은 참여방 관리에서 수락 또는 거절해 주세요.");
     }
 
     @Override
@@ -1165,6 +1200,15 @@ public class OttRepositoryImpl implements OttRepository {
     @Override
     public void insertChatMessage(Long roomId, String senderId, String messageContent) {
         if (!canUseChatRoom(roomId, senderId)) {
+            return;
+        }
+
+        // 일반 사용자가 [SYSTEM] 접두어로 시스템 알림처럼 위장하지 못하도록 제거한다.
+        if (messageContent != null && messageContent.trim().startsWith("[SYSTEM]")) {
+            messageContent = messageContent.trim().replaceFirst("^\\[SYSTEM\\]\\s*", "").trim();
+        }
+
+        if (messageContent == null || messageContent.isBlank()) {
             return;
         }
 
@@ -1589,6 +1633,12 @@ public class OttRepositoryImpl implements OttRepository {
         return count == null ? 0 : count;
     }
 
+    private int countAppliedRoomMembers(Long roomId) {
+        String sql = "SELECT COUNT(*) FROM ott_room_member_tb WHERE room_id = ? AND status = 'APPLIED'";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, roomId);
+        return count == null ? 0 : count;
+    }
+
     private boolean existsSettlement(Long roomId, String settlementMonth) {
         String sql = "SELECT COUNT(*) FROM settlement_tb WHERE room_id = ? AND settlement_month = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, roomId, settlementMonth);
@@ -1669,6 +1719,13 @@ public class OttRepositoryImpl implements OttRepository {
                 ) VALUES (?, ?, ?, ?)
                 """;
         jdbcTemplate.update(sql, messageId, roomId, senderId, messageContent);
+    }
+
+    private void insertSystemChatMessage(Long roomId, String senderId, String messageContent) {
+        // ott_chat_message_tb.sender_id는 member_tb.id를 참조하는 FK가 있으므로
+        // 존재하지 않는 'SYSTEM' 값을 넣으면 ORA-02291 오류가 발생한다.
+        // 그래서 실제 신청자 id를 sender_id로 저장하고, 내용 접두어로 시스템 메시지를 구분한다.
+        insertChatMessageInternal(roomId, senderId, "[SYSTEM] " + messageContent);
     }
 
     private String makeRoomName(OttRoomDTO roomDTO) {
