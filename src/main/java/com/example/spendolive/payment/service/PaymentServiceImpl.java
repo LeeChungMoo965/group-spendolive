@@ -2,6 +2,7 @@ package com.example.spendolive.payment.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -39,6 +40,8 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Value("${openbanking.cntr-account-holder}")
     private String cntrAccountHolder;
+    @Value("${toss.secret-key}")
+    private String secretKey;
 
     @Override
     @Transactional(rollbackFor = Exception.class) // 💥 돈 관련 로직이므로 에러 나면 무조건 DB 롤백!
@@ -72,7 +75,7 @@ public class PaymentServiceImpl implements PaymentService{
         bodyMap.put("fintech_use_num", "199000000000000000000001"); 
         
         bodyMap.put("wd_print_text", "스펜드올리브출금");          // 파티원 통장에 찍힐 문구
-        bodyMap.put("tran_amt", paymentInfo.getTotal_amount()); // 출금할 금액 (이용료 + 수수료)
+        bodyMap.put("tran_amt", paymentInfo.getTotalAmount()); // 출금할 금액 (이용료 + 수수료)
         bodyMap.put("tran_dtime", tranDtime);
         bodyMap.put("req_client_name", "홍길동");             // 파티원 이름
         bodyMap.put("req_client_num", memberInfo.getId());      // 파티원 ID
@@ -94,19 +97,19 @@ public class PaymentServiceImpl implements PaymentService{
             
             if ("A0000".equals(rspCode)) {
                 // 🚀 [성공] 1단계: 팀원별 입금 장부(SettlementPayment) 상태를 PAID로 변경
-                paymentInfo.setPayment_status("PAID");
-                paymentInfo.setPaid_at(LocalDateTime.now());
+                paymentInfo.setPaymentStatus("PAID");
+                paymentInfo.setPaidAt(LocalDateTime.now());
                 paymentRepository.updatePaymentStatus(paymentInfo); // 레포지토리에 반영
 
                 // 🚀 [성공] 2단계: 먹튀 방지를 위해 에스크로(Escrow) 금고 테이블에 돈 묶어두기
-                EscrowVO escrow = new EscrowVO();
-                escrow.setSettlement_id(paymentInfo.getSettlement_id());
+                EscrowPayoutVO escrow = new EscrowPayoutVO();
+                escrow.setSettlementId(paymentInfo.getSettlementId());
                 // 방의 룸 ID와 방장 ID는 원래 룸 정보에서 꺼내와야 하므로 데이터 바인딩 필요
-                escrow.setRoom_id(1); // 예시 ID
-                escrow.setPayer_id(paymentInfo.getId());
-                escrow.setHost_id("방장ID_조회필요");
-                escrow.setAmount(paymentInfo.getBase_amount()); // 수수료 뺀 원금 보관
-                escrow.setEscrow_status("HELD"); // 보관 상태로 지정
+                escrow.setRoomId(1); // 예시 ID
+                escrow.setPayerId(paymentInfo.getId());
+                escrow.setHostId("방장ID_조회필요");
+                escrow.setAmount(paymentInfo.getBaseAmount()); // 수수료 뺀 원금 보관
+                escrow.setStatus("HELD"); // 보관 상태로 지정
                 
                 paymentRepository.insertEscrow(escrow); // 에스크로 인서트
                 
@@ -120,5 +123,51 @@ public class PaymentServiceImpl implements PaymentService{
         
         return false;
     }
+    @Override
+public void issueAndSaveBillingKey(String customerKey, String authKey) throws Exception {
+    RestTemplate restTemplate = new RestTemplate();
+    
+    // 1. 최신 2024-06-01 버전 규격 엔드포인트 주소
+    String url = "https://api.tosspayments.com/v1/billing/authorizations/issue";
+
+    // 💥 [임시 조치]properties에서 읽어오는 게 문제일 수 있으니, 대시보드에 있는 진짜 test_sk_... 값을 여기에 생으로 넣어버려 형!
+    String myRealSecretKey = secretKey; 
+    
+    // 토스 규격대로 뒤에 콜론(:)을 붙이고 Base64로 인코딩
+    String rawKey = myRealSecretKey.trim() + ":";
+    String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
+
+    // 헤더 설정
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Authorization", "Basic " + encodedSecretKey); // Basic 뒤에 한 칸 공백 필수
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    // 바디 설정
+    Map<String, String> body = new HashMap<>();
+    body.put("customerKey", customerKey);
+    body.put("authKey", authKey);
+
+    HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+
+    try {
+        // String으로 생으로 받아서 꼬임 방지
+        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+        System.out.println("👉 [토스 응답 바디] : " + response.getBody());
+
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
+            Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
+
+            String billingKey = (String) resBody.get("billingKey"); 
+            System.out.println("=================================================");
+            System.out.println("🎉 [토스 빌링키 발급 최종 성공] 👉 " + billingKey);
+            System.out.println("=================================================");
+        }
+    } catch (Exception e) {
+        System.out.println("❌ [최종 에러 디버깅] : " + e.getMessage());
+        throw new RuntimeException("토스 통신 실패: " + e.getMessage());
+    }
+}
 }
 

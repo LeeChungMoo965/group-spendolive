@@ -22,8 +22,6 @@
     import org.springframework.mail.javamail.JavaMailSender;
     import org.springframework.mail.javamail.MimeMessageHelper;
     import org.springframework.stereotype.Service;
-    import org.springframework.transaction.annotation.Propagation;
-    import org.springframework.transaction.annotation.Transactional;
     import org.springframework.util.LinkedMultiValueMap;
     import org.springframework.util.MultiValueMap;
     import org.springframework.web.client.RestTemplate;
@@ -284,13 +282,17 @@ import tools.jackson.databind.ObjectMapper;
 
                 if(response.getStatusCode() == HttpStatus.OK) {
                 List<Map<String, Object>> resList = (List<Map<String, Object>>) response.getBody().get("res_list");
+                Map<String, Object> firstAccount = resList.get(0);
                 if(resList != null && !resList.isEmpty()) {
                 // 💥 첫 번째 계좌의 24자리 핀테크이용번호를 쏙 뽑아옴!
-                String fintechUseNum = (String) resList.get(0).get("fintech_use_num");
-
+                String fintechUseNum = (String) firstAccount.get("fintech_use_num");
+                String accountNum = (String) firstAccount.get("account_num_masked");
+                String bankCode = (String) firstAccount.get("bank_code_std");
                 // 이 24자리 값을 DB의 OPEN_BANK_USER_SEQ_NO 컬럼에 업데이트 하거나 별도로 저장해서 출금할 때 써야 합니다!
                 System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
-                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo, fintechUseNum);
+                System.out.println("👉 진짜 24자리 번호 획득: " + bankCode);
+                System.out.println("👉 진짜 24자리 번호 획득: " + accountNum);
+                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo, fintechUseNum, bankCode, accountNum);
                 }
                 }
                 // 6. DB에 저장 (내 서비스 기획에 맞게 마이바티스나 JPA로 쿼리 실행)

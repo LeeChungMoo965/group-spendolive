@@ -31,6 +31,8 @@ public class NotificationRepository {
             FROM notification_tb
             WHERE id = ?
             ORDER BY star_yn DESC, read_yn ASC, created_at DESC
+
+    
         """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
@@ -86,4 +88,6 @@ public class NotificationRepository {
 
         jdbcTemplate.update(sql, notificationId, id);
     }
+
+   
 }

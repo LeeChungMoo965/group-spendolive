@@ -18,8 +18,8 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public List<NoticeDTO> getNoticeList() {
-        return noticeRepository.findAll();
+    public List<NoticeDTO> getNoticeList(String id) {
+        return noticeRepository.findAll(id);
     }
 
     @Override
@@ -38,7 +38,19 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public List<NoticeDTO> getImportantList() {
-    return noticeRepository.findImportant();
+    public List<NoticeDTO> getImportantList(String id) {
+    return noticeRepository.findImportantList(id);
+    }
+
+    @Override
+    public void readNotice(int noticeId, String id) {
+        noticeRepository.insertNoticeRead(noticeId, id);
+    }
+
+
+    @Override
+    public List<NoticeDTO> getUnreadNoticeList(String id) {
+    return noticeRepository.findUnreadByMemberId(id);
 }
+
 }
