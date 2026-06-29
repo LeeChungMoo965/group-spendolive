@@ -4,6 +4,8 @@
     <c:set var="contextPath" value="${pageContext.request.contextPath}" />
     <c:set var="requestURI" value="${pageContext.request.requestURI}" />
 
+    <link rel="stylesheet" href="${contextPath}/resources/css/bellIcon.css">
+
 
     <header class="site-header">
         <div class="container header-inner">
@@ -13,7 +15,15 @@
             </a>
 
             <nav class="nav">
-                <a href="${contextPath}/spendolive/notice/center.do" class="${fn:contains(requestURI, '/notice') ? 'active' : ''}">🔔</a>
+                <a href="${contextPath}/spendolive/notice/center.do"
+                class="header-bell ${fn:contains(requestURI, '/notice') ? 'active' : ''}">
+
+                    <span class="bell-icon">🔔</span>
+
+                    <span id="notificationBadge"
+                        class="notification-badge"
+                        style="display:none;"></span>
+                </a>
             </nav>
 
             <div class="header-actions">
@@ -53,6 +63,7 @@
     </header>
     <script src="https://js.tosspayments.com/v2/standard"></script>
     <script src="${contextPath}/resources/js/app.js"></script>
+    <script src="${contextPath}/resources/js/bellIcon.js"></script>
     <script>
     (function() {
         var btn = document.getElementById('soMenuBtn');
@@ -70,10 +81,10 @@
                 if (!popover.contains(e.target) && e.target !== btn) {
                     popover.classList.remove('is-open');
                 }
-            });
+            }); 
         }
     })();
-    const clientKey = "";
+    /*const clientKey = "";
         const customerKey = "${not empty memberInfo.id ? memberInfo.id : 'CHUNGMOO_TEST_USER'}";
         const tossPayments = TossPayments(clientKey);
 
@@ -92,5 +103,5 @@
             customerEmail: '${memberInfo.email}',
             customerName: '${memberInfo.member_name}',
             });
-        }
+        }*/
     </script>

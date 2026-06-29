@@ -303,3 +303,27 @@
 .notice-list-section td:nth-child(4) {
     padding-left: 16px;
 }
+
+.notice-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.notice-page-btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #dfe5c8;
+    background: #eef1db;
+    color: var(--olive-dark);
+    border-radius: 50%;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.notice-page-btn.active {
+    background: var(--olive);
+    color: #fff;
+    border-color: var(--olive);
+}
