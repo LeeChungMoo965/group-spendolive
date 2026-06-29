@@ -26,6 +26,8 @@ public interface OttRepository {
 
     List<OttRoomDTO> selectJoinedRecruitRooms(String loginId);
 
+    OttRoomDTO selectRoomByInviteCode(String inviteCode);
+
     List<OttRoomDTO> selectMyRooms(String loginId);
 
     List<OttRoomDTO> selectHostedRooms(String loginId);
@@ -56,13 +58,11 @@ public interface OttRepository {
 
     void applyRoom(Long roomId, String loginId);
 
-    void approveApplication(Long roomMemberId, String hostId);
-
-    void rejectApplication(Long roomMemberId, String hostId);
-
     void createSettlement(Long roomId, String hostId, String settlementMonth, String dueDate);
 
     void markPaymentPaid(Long paymentId, String loginId);
+
+    void completePaidRoomEntry(Long roomId, String loginId);
 
     void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason);
 

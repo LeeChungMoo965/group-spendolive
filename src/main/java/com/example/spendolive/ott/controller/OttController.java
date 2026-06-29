@@ -155,33 +155,20 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
+        // 신청/승인 상태를 만들지 않고 결제 담당자가 연결할 화면으로 넘긴다.
         ottService.applyRecruitRoom(roomId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=applied";
+        return redirectToRoomPayment(roomId, "RECRUIT", null);
     }
 
-    @PostMapping("/ott/recruit/application/approve.do")
-    public String approveApplication(@RequestParam("roomMemberId") Long roomMemberId, HttpSession session) {
-        String loginId = getLoginId(session);
+    @GetMapping("/ott/friends/invite.do")
+    public String enterFriendRoomByInvite(@RequestParam("code") String inviteCode) {
+        OttRoomDTO room = ottService.getRoomByInviteCode(inviteCode);
 
-        if (loginId == null) {
-            return "redirect:/member/loginForm.do";
+        if (room == null || !"FRIEND".equals(room.getRoomMode()) || "CLOSED".equals(room.getStatus())) {
+            return "redirect:/spendolive/ott.do?error=invalidInvite";
         }
 
-        ottService.approveApplication(roomMemberId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=approved";
-    }
-
-    @PostMapping("/ott/recruit/application/reject.do")
-    public String rejectApplication(@RequestParam("roomMemberId") Long roomMemberId, HttpSession session) {
-        String loginId = getLoginId(session);
-
-        if (loginId == null) {
-            
-            return "redirect:/member/loginForm.do";
-        }
-
-        ottService.rejectApplication(roomMemberId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=rejected";
+        return redirectToRoomPayment(room.getRoomId(), "FRIEND", room.getInviteCode());
     }
 
     @GetMapping("/ott/chat/room.do")
@@ -299,6 +286,16 @@ public class OttController {
         return "redirect:/spendolive/ott/friends.do?result=closeRequested";
     }
 
+
+    private String redirectToRoomPayment(Long roomId, String roomMode, String inviteCode) {
+        String redirectUrl = "redirect:/payment/detail.do?roomId=" + roomId + "&roomMode=" + roomMode;
+
+        if (inviteCode != null && !inviteCode.isBlank()) {
+            redirectUrl += "&inviteCode=" + inviteCode;
+        }
+
+        return redirectUrl;
+    }
 
     private Long parseOttServiceId(String ottServiceId) {
         if (ottServiceId == null || ottServiceId.isBlank()) {

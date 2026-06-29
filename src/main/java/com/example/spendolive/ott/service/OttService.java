@@ -56,13 +56,14 @@ public interface OttService {
 
     void applyRecruitRoom(Long roomId, String loginId);
 
-    void approveApplication(Long roomMemberId, String hostId);
+    OttRoomDTO getRoomByInviteCode(String inviteCode);
 
-    void rejectApplication(Long roomMemberId, String hostId);
 
     void requestSettlement(Long roomId, String hostId, String settlementMonth, String dueDate);
 
     void markPaymentPaid(Long paymentId, String loginId);
+
+    void completePaidRoomEntry(Long roomId, String loginId);
 
     void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason);
 

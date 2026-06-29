@@ -144,13 +144,8 @@ public class OttServiceImpl implements OttService {
     }
 
     @Override
-    public void approveApplication(Long roomMemberId, String hostId) {
-        ottRepository.approveApplication(roomMemberId, hostId);
-    }
-
-    @Override
-    public void rejectApplication(Long roomMemberId, String hostId) {
-        ottRepository.rejectApplication(roomMemberId, hostId);
+    public OttRoomDTO getRoomByInviteCode(String inviteCode) {
+        return ottRepository.selectRoomByInviteCode(inviteCode);
     }
 
     @Override
@@ -161,6 +156,11 @@ public class OttServiceImpl implements OttService {
     @Override
     public void markPaymentPaid(Long paymentId, String loginId) {
         ottRepository.markPaymentPaid(paymentId, loginId);
+    }
+
+    @Override
+    public void completePaidRoomEntry(Long roomId, String loginId) {
+        ottRepository.completePaidRoomEntry(roomId, loginId);
     }
 
     @Override

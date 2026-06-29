@@ -343,7 +343,7 @@ public class OttRepositoryImpl implements OttRepository {
                   ON mine.room_id = r.room_id
                  AND mine.member_login_id = ?
                  AND mine.member_role = 'MEMBER'
-                 AND mine.status IN ('APPLIED', 'ACTIVE', 'REJECTED')
+                 AND mine.status = 'ACTIVE'
                 LEFT JOIN member_tb m ON r.host_login_id = m.id
                 LEFT JOIN ott_room_member_tb rm_all ON r.room_id = rm_all.room_id
                 WHERE r.status <> 'CLOSED'
@@ -369,20 +369,14 @@ public class OttRepositoryImpl implements OttRepository {
                          TO_CHAR(r.closed_at, 'YYYY-MM-DD'),
                          TO_CHAR(r.created_at, 'YYYY-MM-DD'),
                          mine.status
-                ORDER BY CASE mine.status
-                            WHEN 'ACTIVE' THEN 1
-                            WHEN 'APPLIED' THEN 2
-                            WHEN 'REJECTED' THEN 3
-                            ELSE 4
-                         END,
-                         r.room_id DESC
+                ORDER BY r.room_id DESC
                 """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, true), loginId, loginId, roomMode, roomMode);
     }
 
     // =========================================================
-    // 3. 신청자/참여자 관리 조회
+    // 3. 참여자 조회
     // =========================================================
 
     @Override
@@ -409,16 +403,9 @@ public class OttRepositoryImpl implements OttRepository {
                 WHERE r.host_login_id = ?
                   AND NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
                   AND rm.member_role = 'MEMBER'
-                  AND rm.status IN ('APPLIED', 'ACTIVE', 'REJECTED', 'KICKED')
+                  AND rm.status = 'ACTIVE'
                   AND r.status <> 'CLOSED'
-                ORDER BY CASE rm.status
-                            WHEN 'APPLIED' THEN 1
-                            WHEN 'ACTIVE' THEN 2
-                            WHEN 'KICKED' THEN 3
-                            WHEN 'REJECTED' THEN 4
-                            ELSE 5
-                         END,
-                         r.room_id DESC,
+                ORDER BY r.room_id DESC,
                          rm.joined_at DESC
                 """;
 
@@ -637,7 +624,9 @@ public class OttRepositoryImpl implements OttRepository {
                                cm.room_id,
                                cm.sender_id,
                                CASE
-                                   WHEN cm.message_content LIKE '[SYSTEM] %' THEN '시스템 알림'
+                                   WHEN cm.message_content LIKE '[SYSTEM] %'
+                                        OR cm.message_content LIKE '%공유방에 참여했습니다.%'
+                                   THEN '시스템 알림'
                                    ELSE NVL(m.member_name, cm.sender_id)
                                END AS sender_name,
                                CASE
@@ -646,11 +635,18 @@ public class OttRepositoryImpl implements OttRepository {
                                END AS message_content,
                                TO_CHAR(cm.created_at, 'YYYY-MM-DD HH24:MI') AS created_at,
                                CASE
-                                   WHEN cm.message_content LIKE '[SYSTEM] %' THEN 'N'
+                                   WHEN cm.message_content LIKE '[SYSTEM] %'
+                                        OR cm.message_content LIKE '%공유방에 참여했습니다.%'
+                                   THEN 'N'
                                    WHEN cm.sender_id = ? THEN 'Y'
                                    ELSE 'N'
                                END AS mine_yn,
-                               CASE WHEN cm.message_content LIKE '[SYSTEM] %' THEN 'Y' ELSE 'N' END AS system_yn
+                               CASE
+                                   WHEN cm.message_content LIKE '[SYSTEM] %'
+                                        OR cm.message_content LIKE '%공유방에 참여했습니다.%'
+                                   THEN 'Y'
+                                   ELSE 'N'
+                               END AS system_yn
                         FROM ott_chat_message_tb cm
                         LEFT JOIN member_tb m ON cm.sender_id = m.id
                         WHERE cm.room_id = ?
@@ -742,7 +738,7 @@ public class OttRepositoryImpl implements OttRepository {
     }
 
     // =========================================================
-    // 6. 공유방 생성/신청/승인/거절
+    // 6. 공유방 생성/결제 연결
     // =========================================================
 
     @Override
@@ -783,7 +779,7 @@ public class OttRepositoryImpl implements OttRepository {
                 inviteCode);
 
         insertHostMember(roomId, loginId);
-        insertChatMessageInternal(roomId, loginId, roomName + " 공유방이 만들어졌습니다.");
+        insertSystemChatMessage(roomId, loginId, roomName + " 공유방이 만들어졌습니다.");
         return roomId;
     }
 
@@ -811,157 +807,27 @@ public class OttRepositoryImpl implements OttRepository {
     public void applyRoom(Long roomId, String loginId) {
         OttRoomDTO room = selectRoom(roomId);
 
-        if (room == null || !("RECRUITING".equals(room.getStatus()) || "REPLACE_RECRUITING".equals(room.getStatus()))) {
+        if (room == null || loginId == null || loginId.equals(room.getHostMemberId())) {
             return;
         }
 
-        if (loginId.equals(room.getHostMemberId())) {
+        if (!"RECRUIT".equals(room.getRoomMode())) {
+            return;
+        }
+
+        if (!("RECRUITING".equals(room.getStatus()) || "REPLACE_RECRUITING".equals(room.getStatus()))) {
             return;
         }
 
         if (countActiveRoomMembers(roomId) >= room.getMemberLimit()) {
-            jdbcTemplate.update("UPDATE ott_room_tb SET status = 'ACTIVE', updated_at = SYSDATE WHERE room_id = ? AND status <> 'CLOSE_REQUESTED'", roomId);
-            return;
+            jdbcTemplate.update(
+                    "UPDATE ott_room_tb SET status = 'ACTIVE', updated_at = SYSDATE WHERE room_id = ? AND status <> 'CLOSE_REQUESTED'",
+                    roomId);
         }
 
-        String existingStatus = selectRoomMemberStatus(roomId, loginId);
-        if ("ACTIVE".equals(existingStatus) || "APPLIED".equals(existingStatus)) {
-            return;
-        }
-
-        if ("REJECTED".equals(existingStatus) || "OUT".equals(existingStatus) || "KICKED".equals(existingStatus)) {
-            String updateSql = """
-                    UPDATE ott_room_member_tb
-                    SET member_role = 'MEMBER',
-                        share_amount = 0,
-                        fee_rate = 0,
-                        fee_amount = 0,
-                        pay_amount = 0,
-                        status = 'APPLIED',
-                        joined_at = SYSDATE,
-                        kicked_at = NULL,
-                        kicked_reason = NULL,
-                        left_at = NULL
-                    WHERE room_id = ?
-                      AND member_login_id = ?
-                    """;
-            jdbcTemplate.update(updateSql, roomId, loginId);
-        } else {
-            Long roomMemberId = jdbcTemplate.queryForObject("SELECT seq_ott_room_member.NEXTVAL FROM dual", Long.class);
-            String insertSql = """
-                    INSERT INTO ott_room_member_tb (
-                        room_member_id,
-                        room_id,
-                        member_login_id,
-                        member_role,
-                        share_amount,
-                        fee_rate,
-                        fee_amount,
-                        pay_amount,
-                        status
-                    ) VALUES (?, ?, ?, 'MEMBER', 0, 0, 0, 0, 'APPLIED')
-                    """;
-            jdbcTemplate.update(insertSql, roomMemberId, roomId, loginId);
-        }
-
-        insertAlert(room.getHostMemberId(),
-                "ROOM_APPLY",
-                "새로운 OTT 모집 신청",
-                loginId + "님이 " + room.getRoomName() + "에 신청했습니다. 신청관리에서 수락 또는 거절해 주세요.",
-                "/spendolive/ott/recruit.do?tab=apply&roomId=" + roomId);
-
-        int pendingCount = countAppliedRoomMembers(roomId);
-        insertSystemChatMessage(roomId, loginId,
-                "새로운 신청자가 있습니다. 현재 승인 대기 " + pendingCount + "명입니다. 파티장은 참여방 관리에서 수락 또는 거절해 주세요.");
-    }
-
-    @Override
-    @Transactional
-    public void approveApplication(Long roomMemberId, String hostId) {
-        Map<String, Object> data = selectApplicationMap(roomMemberId);
-        if (data == null) {
-            return;
-        }
-
-        String roomHostId = (String) data.get("HOST_MEMBER_ID");
-        if (!hostId.equals(roomHostId)) {
-            return;
-        }
-
-        Long roomId = numberToLong(data.get("ROOM_ID"));
-        String memberId = (String) data.get("MEMBER_ID");
-        Integer totalPrice = numberToInt(data.get("TOTAL_PRICE"));
-        Integer memberLimit = numberToInt(data.get("MEMBER_LIMIT"));
-        String roomName = (String) data.get("ROOM_NAME");
-        String roomStatus = (String) data.get("STATUS");
-
-        if ("CLOSE_REQUESTED".equals(roomStatus) || "CLOSED".equals(roomStatus)) {
-            jdbcTemplate.update("UPDATE ott_room_member_tb SET status = 'REJECTED' WHERE room_member_id = ?", roomMemberId);
-            return;
-        }
-
-        if (countActiveRoomMembers(roomId) >= memberLimit) {
-            jdbcTemplate.update("UPDATE ott_room_member_tb SET status = 'REJECTED' WHERE room_member_id = ?", roomMemberId);
-            insertAlert(memberId,
-                    "ROOM_REJECTED",
-                    "OTT 모집 신청 거절",
-                    roomName + " 모집 인원이 이미 마감되어 신청이 거절되었습니다.",
-                    "/spendolive/ott/recruit.do");
-            return;
-        }
-
-        int baseAmount = safeDivide(totalPrice, memberLimit);
-        int feeAmount = (int) Math.round(baseAmount * 0.03);
-        int payAmount = baseAmount + feeAmount;
-
-        String updateSql = """
-                UPDATE ott_room_member_tb
-                SET status = 'ACTIVE',
-                    share_amount = ?,
-                    fee_rate = 3,
-                    fee_amount = ?,
-                    pay_amount = ?,
-                    joined_at = SYSDATE
-                WHERE room_member_id = ?
-                  AND status = 'APPLIED'
-                """;
-        jdbcTemplate.update(updateSql, baseAmount, feeAmount, payAmount, roomMemberId);
-
-        if (countActiveRoomMembers(roomId) >= memberLimit) {
-            jdbcTemplate.update("UPDATE ott_room_tb SET status = 'ACTIVE', updated_at = SYSDATE WHERE room_id = ? AND status IN ('RECRUITING', 'REPLACE_RECRUITING')", roomId);
-        }
-
-        insertAlert(memberId,
-                "ROOM_APPROVED",
-                "OTT 모집 신청 수락",
-                roomName + " 신청이 수락되었습니다. 이제 공유방 대화에 참여할 수 있습니다.",
-                "/spendolive/ott/chat/room.do?roomId=" + roomId);
-        insertChatMessageInternal(roomId, hostId, memberId + "님이 공유방에 참여했습니다.");
-    }
-
-    @Override
-    @Transactional
-    public void rejectApplication(Long roomMemberId, String hostId) {
-        Map<String, Object> data = selectApplicationMap(roomMemberId);
-        if (data == null) {
-            return;
-        }
-
-        String roomHostId = (String) data.get("HOST_MEMBER_ID");
-        if (!hostId.equals(roomHostId)) {
-            return;
-        }
-
-        String memberId = (String) data.get("MEMBER_ID");
-        String roomName = (String) data.get("ROOM_NAME");
-
-        jdbcTemplate.update("UPDATE ott_room_member_tb SET status = 'REJECTED' WHERE room_member_id = ? AND status = 'APPLIED'", roomMemberId);
-
-        insertAlert(memberId,
-                "ROOM_REJECTED",
-                "OTT 모집 신청 거절",
-                roomName + " 신청이 거절되었습니다.",
-                "/spendolive/ott/recruit.do");
+        // 신청/승인 시스템 제거 후에는 APPLIED/REJECTED 데이터를 만들지 않는다.
+        // 이 버튼은 결제 담당자가 연결할 결제 화면으로 이동시키는 역할만 한다.
+        // 결제 성공 이후 ott_room_member_tb ACTIVE 등록은 결제 콜백 쪽에서 처리한다.
     }
 
     // =========================================================
@@ -1081,7 +947,7 @@ public class OttRepositoryImpl implements OttRepository {
         }
 
         jdbcTemplate.update("UPDATE ott_room_tb SET status = 'PAYMENT_OPEN', updated_at = SYSDATE WHERE room_id = ? AND status <> 'CLOSE_REQUESTED'", roomId);
-        insertChatMessageInternal(roomId, hostId, targetMonthText + " 이용분 결제가 열렸습니다. 결제 마감일은 " + paymentCloseDate + "입니다.");
+        insertSystemChatMessage(roomId, hostId, targetMonthText + " 이용분 결제가 열렸습니다. 결제 마감일은 " + paymentCloseDate + "입니다.");
     }
 
     @Override
@@ -1139,6 +1005,87 @@ public class OttRepositoryImpl implements OttRepository {
         }
     }
 
+    @Override
+    @Transactional
+    public void completePaidRoomEntry(Long roomId, String loginId) {
+        OttRoomDTO room = selectRoom(roomId);
+
+        if (room == null || loginId == null || loginId.equals(room.getHostMemberId())) {
+            return;
+        }
+
+        if ("CLOSE_REQUESTED".equals(room.getStatus()) || "CLOSED".equals(room.getStatus())) {
+            return;
+        }
+
+        String currentStatus = selectRoomMemberStatus(roomId, loginId);
+        if ("ACTIVE".equals(currentStatus)) {
+            return;
+        }
+
+        if (countActiveRoomMembers(roomId) >= room.getMemberLimit()) {
+            jdbcTemplate.update(
+                    "UPDATE ott_room_tb SET status = 'ACTIVE', updated_at = SYSDATE WHERE room_id = ? AND status IN ('RECRUITING', 'REPLACE_RECRUITING')",
+                    roomId);
+            return;
+        }
+
+        int shareAmount = safeDivide(room.getTotalPrice(), room.getMemberLimit());
+        double feeRate = 3.0;
+        int feeAmount = calculateFeeAmount(shareAmount, feeRate);
+        int payAmount = shareAmount + feeAmount;
+
+        if (currentStatus == null) {
+            Long roomMemberId = jdbcTemplate.queryForObject("SELECT seq_ott_room_member.NEXTVAL FROM dual", Long.class);
+            String insertSql = """
+                    INSERT INTO ott_room_member_tb (
+                        room_member_id,
+                        room_id,
+                        member_login_id,
+                        member_role,
+                        share_amount,
+                        fee_rate,
+                        fee_amount,
+                        pay_amount,
+                        status
+                    ) VALUES (?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE')
+                    """;
+            jdbcTemplate.update(insertSql, roomMemberId, roomId, loginId, shareAmount, feeRate, feeAmount, payAmount);
+        } else {
+            String updateSql = """
+                    UPDATE ott_room_member_tb
+                    SET member_role = 'MEMBER',
+                        share_amount = ?,
+                        fee_rate = ?,
+                        fee_amount = ?,
+                        pay_amount = ?,
+                        status = 'ACTIVE',
+                        joined_at = SYSDATE,
+                        kicked_at = NULL,
+                        kicked_reason = NULL,
+                        left_at = NULL
+                    WHERE room_id = ?
+                      AND member_login_id = ?
+                    """;
+            jdbcTemplate.update(updateSql, shareAmount, feeRate, feeAmount, payAmount, roomId, loginId);
+        }
+
+        if (countActiveRoomMembers(roomId) >= room.getMemberLimit()) {
+            jdbcTemplate.update(
+                    "UPDATE ott_room_tb SET status = 'ACTIVE', updated_at = SYSDATE WHERE room_id = ? AND status IN ('RECRUITING', 'REPLACE_RECRUITING')",
+                    roomId);
+        }
+
+        String memberName = selectMemberDisplayName(loginId);
+        insertSystemChatMessage(roomId, loginId, memberName + "님이 결제를 완료하고 공유방에 입장했습니다.");
+        alertActiveMembers(roomId,
+                "ROOM_MEMBER_JOINED",
+                "OTT 공유방 입장 알림",
+                memberName + "님이 " + room.getRoomName() + " 공유방에 입장했습니다.",
+                "/spendolive/ott/chat/room.do?roomId=" + roomId,
+                loginId);
+    }
+
     // =========================================================
     // 8. 방 삭제 요청/환불 처리
     // =========================================================
@@ -1173,7 +1120,6 @@ public class OttRepositoryImpl implements OttRepository {
                 """;
         jdbcTemplate.update(updateRoomSql, Date.valueOf(closeEffectiveDate), reason, notice, roomId, hostId);
 
-        jdbcTemplate.update("UPDATE ott_room_member_tb SET status = 'REJECTED' WHERE room_id = ? AND status = 'APPLIED'", roomId);
 
         insertRefundsForRoomClose(roomId, closeEffectiveDate);
         cancelUnpaidFuturePayments(roomId, closeEffectiveDate);
@@ -1181,7 +1127,7 @@ public class OttRepositoryImpl implements OttRepository {
 
         String message = "파티장이 방 삭제를 요청했습니다. 기존 참여자는 " + closeEffectiveDate.minusDays(1)
                 + "까지 이용할 수 있으며, 이미 결제된 다음 이용분은 자동 환불 처리됩니다.";
-        insertChatMessageInternal(roomId, hostId, message);
+        insertSystemChatMessage(roomId, hostId, message);
         alertActiveMembers(roomId,
                 "ROOM_CLOSE_REQUESTED",
                 "OTT 공유방 종료 예정",
@@ -1524,6 +1470,52 @@ public class OttRepositoryImpl implements OttRepository {
         return member;
     }
 
+    @Override
+    public OttRoomDTO selectRoomByInviteCode(String inviteCode) {
+        if (inviteCode == null || inviteCode.isBlank()) {
+            return null;
+        }
+
+        String sql = """
+                SELECT r.room_id,
+                       r.host_login_id,
+                       NVL(m.nickname, r.host_login_id) AS host_nickname,
+                       r.ott_service_id,
+                       s.service_name,
+                       r.room_name,
+                       r.plan_name,
+                       r.total_price,
+                       r.billing_day,
+                       r.member_limit,
+                       NVL(r.room_mode, 'RECRUIT') AS room_mode,
+                       r.status,
+                       r.invite_code,
+                       TO_CHAR(r.close_requested_at, 'YYYY-MM-DD') AS close_requested_at,
+                       TO_CHAR(r.close_effective_date, 'YYYY-MM-DD') AS close_effective_date,
+                       r.close_reason,
+                       r.close_notice,
+                       TO_CHAR(r.closed_at, 'YYYY-MM-DD') AS closed_at,
+                       TO_CHAR(r.created_at, 'YYYY-MM-DD') AS created_at,
+                       NVL((
+                            SELECT COUNT(*)
+                            FROM ott_room_member_tb rm
+                            WHERE rm.room_id = r.room_id
+                              AND rm.status = 'ACTIVE'
+                       ), 0) AS current_member_count
+                FROM ott_room_tb r
+                JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
+                LEFT JOIN member_tb m ON r.host_login_id = m.id
+                WHERE r.invite_code = ?
+                  AND r.status <> 'CLOSED'
+                """;
+
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRoom(rs, false), inviteCode.trim().toUpperCase());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
     private OttRoomDTO selectRoom(Long roomId) {
         String sql = """
                 SELECT r.room_id,
@@ -1633,38 +1625,10 @@ public class OttRepositoryImpl implements OttRepository {
         return count == null ? 0 : count;
     }
 
-    private int countAppliedRoomMembers(Long roomId) {
-        String sql = "SELECT COUNT(*) FROM ott_room_member_tb WHERE room_id = ? AND status = 'APPLIED'";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, roomId);
-        return count == null ? 0 : count;
-    }
-
     private boolean existsSettlement(Long roomId, String settlementMonth) {
         String sql = "SELECT COUNT(*) FROM settlement_tb WHERE room_id = ? AND settlement_month = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, roomId, settlementMonth);
         return count != null && count > 0;
-    }
-
-    private Map<String, Object> selectApplicationMap(Long roomMemberId) {
-        String sql = """
-                SELECT rm.room_member_id,
-                       rm.room_id,
-                       rm.member_login_id AS member_id,
-                       r.host_login_id AS host_member_id,
-                       r.room_name,
-                       r.total_price,
-                       r.member_limit,
-                       r.status
-                FROM ott_room_member_tb rm
-                JOIN ott_room_tb r ON rm.room_id = r.room_id
-                WHERE rm.room_member_id = ?
-                  AND rm.status = 'APPLIED'
-                """;
-        try {
-            return jdbcTemplate.queryForMap(sql, roomMemberId);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
     }
 
     private Map<String, Object> selectPaymentMap(Long paymentId) {
@@ -1708,6 +1672,19 @@ public class OttRepositoryImpl implements OttRepository {
         jdbcTemplate.update(sql, alertId, loginId, alertType, title, content, targetUrl);
     }
 
+    private String selectMemberDisplayName(String loginId) {
+        String sql = """
+                SELECT NVL(member_name, NVL(nickname, id))
+                FROM member_tb
+                WHERE id = ?
+                """;
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class, loginId);
+        } catch (EmptyResultDataAccessException e) {
+            return loginId;
+        }
+    }
+
     private void insertChatMessageInternal(Long roomId, String senderId, String messageContent) {
         Long messageId = jdbcTemplate.queryForObject("SELECT seq_ott_chat_message.NEXTVAL FROM dual", Long.class);
         String sql = """
@@ -1724,7 +1701,7 @@ public class OttRepositoryImpl implements OttRepository {
     private void insertSystemChatMessage(Long roomId, String senderId, String messageContent) {
         // ott_chat_message_tb.sender_id는 member_tb.id를 참조하는 FK가 있으므로
         // 존재하지 않는 'SYSTEM' 값을 넣으면 ORA-02291 오류가 발생한다.
-        // 그래서 실제 신청자 id를 sender_id로 저장하고, 내용 접두어로 시스템 메시지를 구분한다.
+        // 그래서 실제 회원 id를 sender_id로 저장하고, 내용 접두어로 시스템 메시지를 구분한다.
         insertChatMessageInternal(roomId, senderId, "[SYSTEM] " + messageContent);
     }
 
