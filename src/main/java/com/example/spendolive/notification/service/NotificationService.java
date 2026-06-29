@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.spendolive.notification.domain.NotificationDTO;
+import org.springframework.dao.DataAccessException;
 import com.example.spendolive.notification.repository.NotificationRepository;
 
 @Service
@@ -30,5 +31,9 @@ public class NotificationService {
 
     public void toggleStar(int notificationId, String id) {
         notificationRepository.toggleStar(notificationId, id);
+    }
+
+    public NotificationDTO getNotificationDetail(int notificationId, String id) {
+        return notificationRepository.findByNotificationId(notificationId, id);
     }
 }

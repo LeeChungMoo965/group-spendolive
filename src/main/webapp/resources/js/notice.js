@@ -1,3 +1,9 @@
+let currentPage = 1;
+const pageSize = 5;
+let currentNoticeData = [];
+
+
+
 function setBoardTab(mode) {
     const eyebrow = document.getElementById("listEyebrow");
     const title = document.getElementById("listTitle");
@@ -68,143 +74,212 @@ function setBoardTab(mode) {
 
     function loadNoticeList(filter = "all") {
 
-        const url =
-        filter === "unread"
+        // 비로그인 + 안 읽은 공지 필터 → 전체를 받아서 클라이언트에서 걸러냄
+        const url = (filter === "unread" && loginYn)
             ? "/spendolive/notice/ajax/unreadNoticeList.do"
             : "/spendolive/notice/ajax/noticeList.do";
 
-        fetch(url)
-
+        fetch(url, { credentials: 'same-origin' })
             .then(response => response.json())
             .then(data => {
-                const tbody = document.getElementById("noticeTableBody");
-                let html = "";
 
-                if (data.length === 0) {
-                    html = `
-                        <tr>
-                            <td colspan="6" class="notice-empty">
-                                공지사항이 없습니다.
-                            </td>
-                        </tr>
-                    `;
-                } else {
-                    data.forEach((notice, index) => {
-
-                        const star = notice.starYn === "Y" ? "★" : "☆";
-
-
-                        const pinnedBadge = notice.pinnedYn === "Y"
-                            ? `<span class="chip notice-important">중요</span>`
-                            : `<span class="chip notice-normal">일반</span>`;
-
-                        const titleClass = notice.readYn === "Y"
-                            ? "notice-read-title"
-                            : "notice-unread-title";
-                                        
-
-                            html += `
-                            <tr>
-                                <td>${index + 1}</td>
-                            
-                                <td>
-                                    <button
-                                        type="button"
-                                        class="notice-list-star-btn"
-                                        onclick="toggleNoticeStar(event, ${notice.noticeId}, this)">
-                                        ${star}
-                                    </button>
-                                </td>
-                            
-                                <td>${pinnedBadge}</td>
-                            
-                                <td>
-                                    <a class="notice-title-link ${titleClass}"
-                                       href="/spendolive/notice/detail.do?noticeId=${notice.noticeId}">
-                                        ${notice.title}
-                                    </a>
-                                </td>
-                            
-                                <td>${notice.adminId}</td>
-                                <td>${notice.createdAt}</td>
-                            </tr>
-                            `;
-
-                    });
+                // 비로그인 안 읽은 공지: localStorage 기준으로 필터링
+                if (filter === "unread" && !loginYn) {
+                    data = data.filter(notice =>
+                        localStorage.getItem("notice_read_" + notice.noticeId) !== "Y"
+                    );
                 }
 
-        tbody.innerHTML = html;
-    });
+                currentNoticeData = data;
+                currentPage = 1;
+                drawNoticePage();
+            });
 }
 
-    function loadNotificationList(filter = "all") {
-        fetch("/spendolive/notification/ajax/list.do")
-            .then(response => response.json())
-            .then(data => {
-                if (filter === "unread") {
-                    data = data.filter(notification => notification.readYn === "N");
-                }
+function drawNoticePage() {
+    const tbody = document.getElementById("noticeTableBody");
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pageData = currentNoticeData.slice(start, end);
 
-                const tbody = document.getElementById("noticeTableBody");
-                let html = "";
+    let html = "";
 
-                if (data.length === 0) {
-                    html = `
-                        <tr>
-                            <td colspan="6" class="notice-empty">
-                                알림이 없습니다.
-                            </td>
-                        </tr>
-                    `;
-                } else {
-                    data.forEach((notification, index) => {
-                        const star = notification.starYn === "Y" ? "★" : "☆";
-                        const readBadge = notification.readYn === "N"
-                            ? `<span class="chip notice-important">NEW</span>`
-                            : `<span class="chip notice-normal">읽음</span>`;
+    if (pageData.length === 0) {
+        html = `
+            <tr>
+                <td colspan="6" class="notice-empty">
+                    공지사항이 없습니다.
+                </td>
+            </tr>
+        `;
+    } else {
+        pageData.forEach((notice, index) => {
+            const star = notice.starYn === "Y" ? "★" : "☆";
 
-                        const titleClass = notification.readYn === "Y"
-                            ? "notice-read-title"
-                            : "notice-unread-title";    
+            const pinnedBadge = notice.pinnedYn === "Y"
+                ? `<span class="chip notice-important">중요</span>`
+                : `<span class="chip notice-normal">일반</span>`;
 
-                        html += `
-                            
-                            <tr>
-                            <td>${index + 1}</td>
-                        
-                            <td>
-                                <button
-                                    type="button"
-                                    class="notice-list-star-btn"
-                                    onclick="toggleNotificationStar(event, ${notification.notificationId}, this)">
+            const localRead =
+                localStorage.getItem("notice_read_" + notice.noticeId) === "Y";
+
+            const titleClass =
+                notice.readYn === "Y" || (!loginYn && localRead)
+                    ? "notice-read-title"
+                    : "notice-unread-title";
+
+            html += `
+                <tr>
+                    <td>${start + index + 1}</td>
+                    <td>
+                        ${
+                            loginYn
+                            ? `<button type="button"
+                                       class="notice-list-star-btn"
+                                       onclick="toggleNoticeStar(event, ${notice.noticeId}, this)">
                                     ${star}
-                                </button>
-                            </td>
-                        
-                            <td>${readBadge}</td>
-
-                                <td>
-                                <a href="#"
-                                class="notice-title-link ${titleClass}"
-                                onclick="readNotification(event, ${notification.notificationId}, '${notification.linkUrl || ""}')">
-                                 ${notification.title}
-                             </a>
-                                </td>
-                                
-                                <td>${notification.notificationType}</td>
-                                <td>${notification.createdAt}</td>
-                            </tr>
-                        `;
-                    });
-                }
-
-                tbody.innerHTML = html;
-            });
-        
+                               </button>`
+                            : ""
+                        }
+                    </td>
+                    <td>${pinnedBadge}</td>
+                    <td>
+                        <a class="notice-title-link ${titleClass}"
+                           href="/spendolive/notice/detail.do?noticeId=${notice.noticeId}"
+                           onclick="saveNoticeReadLocal(${notice.noticeId})">
+                            ${notice.title}
+                        </a>
+                    </td>
+                    <td>${notice.adminId}</td>
+                    <td>${notice.createdAt}</td>
+                </tr>
+            `;
+        });
     }
 
+    tbody.innerHTML = html;
+    drawPagination();
+}
+
+function drawPagination() {
+    const pagination = document.getElementById("noticePagination");
+    if (!pagination) return;
+
+    const totalPage = Math.ceil(currentNoticeData.length / pageSize);
+    let html = "";
+
+    for (let i = 1; i <= totalPage; i++) {
+        html += `
+            <button type="button"
+                    class="notice-page-btn ${i === currentPage ? "active" : ""}"
+                    onclick="moveNoticePage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+
+    pagination.innerHTML = html;
+}
+
+function moveNoticePage(page) {
+    currentPage = page;
+    drawNoticePage();
+}
+
+let currentNotifData   = [];
+let currentNotifPage   = 1;
+const notifPageSize    = 5;
+let currentNotifFilter = "all";   // 현재 필터 기억 (읽음 처리 후 같은 필터로 재렌더)
+
+function loadNotificationList(filter = "all") {
+    currentNotifFilter = filter;
+
+    fetch("/spendolive/notification/ajax/list.do", { credentials: 'same-origin' })
+        .then(response => response.json())
+        .then(data => {
+            if (filter === "unread") {
+                data = data.filter(n => n.readYn === "N");
+            }
+            currentNotifData = data;
+            currentNotifPage = 1;
+            drawNotifPage();
+        })
+        .catch(() => {
+            document.getElementById("noticeTableBody").innerHTML = `
+                <tr><td colspan="6" class="notice-empty">알림을 불러오는 중 오류가 발생했습니다.</td></tr>`;
+        });
+}
+
+function drawNotifPage() {
+    const tbody = document.getElementById("noticeTableBody");
+    const start = (currentNotifPage - 1) * notifPageSize;
+    const pageData = currentNotifData.slice(start, start + notifPageSize);
+
+    let html = "";
+
+    if (pageData.length === 0) {
+        html = `<tr><td colspan="6" class="notice-empty">
+                    ${currentNotifFilter === "unread" ? "안 읽은 알림이 없습니다." : "알림이 없습니다."}
+                </td></tr>`;
+    } else {
+        pageData.forEach((notification, index) => {
+            const star = notification.starYn === "Y" ? "★" : "☆";
+            const readBadge = notification.readYn === "N"
+                ? `<span class="chip notice-important">NEW</span>`
+                : `<span class="chip notice-normal">읽음</span>`;
+            const titleClass = notification.readYn === "Y"
+                ? "notice-read-title"
+                : "notice-unread-title";
+
+            html += `
+                <tr>
+                    <td>${start + index + 1}</td>
+                    <td>
+                        <button type="button"
+                                class="notice-list-star-btn"
+                                onclick="toggleNotificationStar(event, ${notification.notificationId}, this)">
+                            ${star}
+                        </button>
+                    </td>
+                    <td>${readBadge}</td>
+                    <td>
+                        <a href="#"
+                           class="notice-title-link ${titleClass}"
+                           onclick="readNotification(event, ${notification.notificationId}, '${notification.linkUrl || ""}')">
+                            ${notification.title}
+                        </a>
+                    </td>
+                    <td>${notification.notificationType}</td>
+                    <td>${notification.createdAt}</td>
+                </tr>`;
+        });
+    }
+
+    tbody.innerHTML = html;
+    drawNotifPagination();
+}
+
+function drawNotifPagination() {
+    const pagination = document.getElementById("noticePagination");
+    if (!pagination) return;
+
+    const totalPage = Math.ceil(currentNotifData.length / notifPageSize);
+    let html = "";
+    for (let i = 1; i <= totalPage; i++) {
+        html += `<button type="button"
+                         class="notice-page-btn ${i === currentNotifPage ? "active" : ""}"
+                         onclick="moveNotifPage(${i})">${i}</button>`;
+    }
+    pagination.innerHTML = html;
+}
+
+function moveNotifPage(page) {
+    currentNotifPage = page;
+    drawNotifPage();
+}
+
     function loadImportantNoticeList() {
-        fetch("/spendolive/notice/ajax/importantList.do")
+        fetch("/spendolive/notice/ajax/importantList.do", { credentials: 'same-origin' })
             .then(response => response.json())
             .then(data => {
 
@@ -227,22 +302,36 @@ function setBoardTab(mode) {
 
                     data.forEach((notice, index) => {
 
+                        const star = notice.starYn === "Y" ? "★" : "☆";
+
                         const pinnedBadge =
                             `<span class="chip notice-important">중요</span>`;
                     
                         const titleClass =
-                            notice.readYn === "Y"
+                            notice.readYn === "Y" || (!loginYn && localStorage.getItem("notice_read_" + notice.noticeId) === "Y")
                                 ? "notice-read-title"
                                 : "notice-unread-title";
                     
                         html += `
                             <tr>
                                 <td>${index + 1}</td>
+                                <td>
+                                    ${
+                                        loginYn
+                                        ? `<button type="button"
+                                                   class="notice-list-star-btn"
+                                                   onclick="toggleNoticeStar(event, ${notice.noticeId}, this)">
+                                                ${star}
+                                           </button>`
+                                        : ""
+                                    }
+                                </td>
                                 <td>${pinnedBadge}</td>
                     
                                 <td>
                                     <a class="notice-title-link ${titleClass}"
-                                       href="/spendolive/notice/detail.do?noticeId=${notice.noticeId}">
+                                       href="/spendolive/notice/detail.do?noticeId=${notice.noticeId}"
+                                       onclick="saveNoticeReadLocal(${notice.noticeId})">
                                         ${notice.title}
                                     </a>
                                 </td>
@@ -261,26 +350,39 @@ function setBoardTab(mode) {
 
 
 
-    function readNotification(event, notificationId, linkUrl) {
+function readNotification(event, notificationId, linkUrl) {
     event.preventDefault();
 
     fetch("/spendolive/notification/ajax/read.do", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
+        credentials: 'same-origin',
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: "notificationId=" + notificationId
     })
     .then(response => response.json())
     .then(data => {
         if (data.result === "OK") {
-            if (linkUrl && linkUrl !== "null") {
+            // 로컬 데이터 즉시 읽음 처리
+            const item = currentNotifData.find(n => n.notificationId === notificationId);
+            if (item) item.readYn = "Y";
+
+            // 헤더 배지 갱신
+            if (typeof loadNotificationBadge === "function") loadNotificationBadge();
+
+            if (linkUrl && linkUrl !== "null" && linkUrl !== "") {
+                // linkUrl 있으면 해당 페이지로 이동 (공지 상세 등)
                 location.href = linkUrl;
             } else {
-                loadNotificationList("all");
+                // linkUrl 없으면 알림 상세 페이지로 이동
+                location.href = "/spendolive/notification/detail.do?notificationId=" + notificationId;
             }
+        } else if (data.result === "LOGIN_REQUIRED") {
+            alert("로그인이 필요합니다.");
+        } else {
+            alert("읽음 처리 중 오류가 발생했습니다.");
         }
-    });
+    })
+    .catch(() => alert("네트워크 오류가 발생했습니다."));
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -288,12 +390,33 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+function saveNoticeReadLocal(noticeId) {
+    localStorage.setItem("notice_read_" + noticeId, "Y");
+}
+
 function toggleNoticeStar(event, noticeId, button) {
     event.preventDefault();
     event.stopPropagation();
 
-    button.textContent =
-        button.textContent.trim() === "★" ? "☆" : "★";
+    if (!loginYn) {
+        return;
+    }
+
+    fetch("/spendolive/notice/ajax/star.do", {
+        method: "POST",
+        credentials: 'same-origin',
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "noticeId=" + noticeId
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.result === "OK") {
+            button.textContent =
+                button.textContent.trim() === "★" ? "☆" : "★";
+        }
+    });
 }
 
 function toggleNotificationStar(event, notificationId, button) {
@@ -302,6 +425,7 @@ function toggleNotificationStar(event, notificationId, button) {
 
     fetch("/spendolive/notification/ajax/star.do", {
         method: "POST",
+        credentials: 'same-origin',
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },

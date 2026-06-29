@@ -20,6 +20,10 @@ public interface NoticeService {
 
     List<NoticeDTO> getUnreadNoticeList(String id);
 
+    void toggleNoticeStar(int noticeId, String id);
 
-
+    // 관리자 기능
+    int insertNotice(NoticeDTO notice);
+    void updateNotice(NoticeDTO notice);
+    void deleteNotice(int noticeId);
 }
