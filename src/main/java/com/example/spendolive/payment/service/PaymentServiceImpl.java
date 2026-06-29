@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.repository.MemberRepository;
 import com.example.spendolive.payment.domain.*;
 import com.example.spendolive.payment.repository.PaymentRepository;
 
@@ -28,7 +30,8 @@ import tools.jackson.databind.ObjectMapper;
 public class PaymentServiceImpl implements PaymentService{
     @Autowired
     private PaymentRepository paymentRepository;
-
+    @Autowired
+    private MemberRepository memberRepository;
     @Value("${openbanking.useorg-code}")
     private String useorgCode;
 
@@ -124,50 +127,139 @@ public class PaymentServiceImpl implements PaymentService{
         return false;
     }
     @Override
-public void issueAndSaveBillingKey(String customerKey, String authKey) throws Exception {
+    public void issueAndSaveBillingKey(String customerKey, String authKey, String userId) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 1. 최신 2024-06-01 버전 규격 엔드포인트 주소
+        String url = "https://api.tosspayments.com/v1/billing/authorizations/issue";
+
+        // 💥 [임시 조치]properties에서 읽어오는 게 문제일 수 있으니, 대시보드에 있는 진짜 test_sk_... 값을 여기에 생으로 넣어버려 형!
+        String myRealSecretKey = secretKey; 
+        
+        // 토스 규격대로 뒤에 콜론(:)을 붙이고 Base64로 인코딩
+        String rawKey = myRealSecretKey.trim() + ":";
+        String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
+
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + encodedSecretKey); // Basic 뒤에 한 칸 공백 필수
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 바디 설정
+        Map<String, String> body = new HashMap<>();
+        body.put("customerKey", customerKey);
+        body.put("authKey", authKey);
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+
+        try {
+            // String으로 생으로 받아서 꼬임 방지
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+            System.out.println("👉 [토스 응답 바디] : " + response.getBody());
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
+                Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
+                String billingKey = (String) resBody.get("billingKey"); 
+                Map<String, Object> cardInfo = (Map<String, Object>) resBody.get("card");
+                
+                String card_num = null;
+                String card_company = null;
+                if (cardInfo != null) {
+                    card_num = (String) cardInfo.get("number"); 
+                    card_company = (String) cardInfo.get("issuerCode"); // "신한카드" 형태로 나옴 (만약 안 나오면 "company"로 테스트)
+                }
+               
+               
+                memberRepository.updateTossInfo(userId, card_num, card_company, billingKey);
+                
+            }
+        } catch (Exception e) {
+            System.out.println("❌ [최종 에러 디버깅] : " + e.getMessage());
+            throw new RuntimeException("토스 통신 실패: " + e.getMessage());
+        }
+    }
+    @Override
+public void executeAutomaticPayment(String userId, int amount, int room_id) throws Exception {
     RestTemplate restTemplate = new RestTemplate();
     
-    // 1. 최신 2024-06-01 버전 규격 엔드포인트 주소
-    String url = "https://api.tosspayments.com/v1/billing/authorizations/issue";
-
-    // 💥 [임시 조치]properties에서 읽어오는 게 문제일 수 있으니, 대시보드에 있는 진짜 test_sk_... 값을 여기에 생으로 넣어버려 형!
-    String myRealSecretKey = secretKey; 
+    // 💥 한글 깨짐 방지 처리 (주문명 한글 깨짐 방지)
+    restTemplate.getMessageConverters().add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
+    System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    System.out.println("🚨 [서비스 입구] 컨트롤러가 나한테 넘겨준 userId 값 : [" + userId + "]");
+    System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // 1. DB에서 해당 유저의 빌링키와 카드 정보 조회해오기
+    // 형이 만든 MEMBER_CARD_TB에서 가져오는 레포지토리 메서드가 있다고 가정할게!
+    MemberCardVO cardVo = memberRepository.getCardInfoByUserId(userId);
+    if (cardVo == null || cardVo.getBillingKey() == null) {
+        throw new RuntimeException("등록된 결제 카드가 없습니다.");
+    }
     
-    // 토스 규격대로 뒤에 콜론(:)을 붙이고 Base64로 인코딩
+    String billingKey = cardVo.getBillingKey();
+
+    // 2. 토스 자동결제 엔드포인트 URL (패스 배리어블에 빌링키 꽂기!)
+    String url = "https://api.tosspayments.com/v1/billing/" + billingKey;
+
+    // 3. 인증 헤더 세팅 (Basic Auth)
+    String myRealSecretKey = secretKey; 
     String rawKey = myRealSecretKey.trim() + ":";
     String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
 
-    // 헤더 설정
     HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", "Basic " + encodedSecretKey); // Basic 뒤에 한 칸 공백 필수
+    headers.set("Authorization", "Basic " + encodedSecretKey);
     headers.setContentType(MediaType.APPLICATION_JSON);
 
-    // 바디 설정
-    Map<String, String> body = new HashMap<>();
-    body.put("customerKey", customerKey);
-    body.put("authKey", authKey);
+    // 4. 매 결제마다 고유해야 하는 주문번호(orderId) 생성 (UUID 기반)
+    String orderId = "SPENDOLIVE_" + java.util.UUID.randomUUID().toString().substring(0, 12).toUpperCase();
 
-    HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+    // 5. 토스 규격 필수 바디 파라미터 조립
+    Map<String, Object> body = new HashMap<>();
+    body.put("customerKey", userId); // 토스 구분을 위한 고객 고유키
+    body.put("amount", amount);                // 결제 금액
+    body.put("orderId", orderId);              // 주문 번호
+    body.put("orderName", "spendOlive OTT 정산");          // 주문명 (ex: 정기 구독권)
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
     try {
-        // String으로 생으로 받아서 꼬임 방지
+        System.out.println("💳 [자동결제 요청 시작] 유저: " + userId + " | 금액: " + amount + "원");
+        
+        // 토스 서버로 결제 승인 요청 (POST)
         ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
-        System.out.println("👉 [토스 응답 바디] : " + response.getBody());
+        System.out.println("👉 [토스 결제 응답 바디] : " + response.getBody());
 
+        // 6. 🔥 철칙 준수: 토스 응답이 확실하게 200 OK일 때만 내부 비즈니스 로직 진행!
         if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
             tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
             Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
 
-            String billingKey = (String) resBody.get("billingKey"); 
-            System.out.println("=================================================");
-            System.out.println("🎉 [토스 빌링키 발급 최종 성공] 👉 " + billingKey);
-            System.out.println("=================================================");
-            
+            // 토스 응답에서 결제 고유 번호(paymentKey) 추출 (나중에 혹시 취소/환불할 때 무조건 필요함!)
+            String paymentKey = (String) resBody.get("paymentKey");
+            String status = (String) resBody.get("status"); // DONE 이면 결제 완료
+
+            System.out.println("✅ [결제 성공 확인] paymentKey: " + paymentKey + " | 상태: " + status);
+
+            if ("DONE".equals(status)) {
+                
+                // =================================================================
+                // 💥 여기에 형이 원하는 실제 비즈니스 로직(DB 작업)을 작성하는 거야!
+                // 예: 결제 내역 테이블(HISTORY_TB)에 INSERT 행 추가
+                // 예: 유저 등급 업데이트 또는 이용권 만료일 +30일 연장 등
+                // =================================================================
+                System.out.println("🎉 회원 [" + userId + "] DB 비즈니스 로직 반영 완료!");
+            } else {
+                throw new RuntimeException("결제가 완료되지 않은 상태입니다: " + status);
+            }
         }
     } catch (Exception e) {
-        System.out.println("❌ [최종 에러 디버깅] : " + e.getMessage());
-        throw new RuntimeException("토스 통신 실패: " + e.getMessage());
+        // 7. 🚨 타임아웃, 한도초과, 잔액부족, 카드정지 등 외부 에러 발생 시 잡아내기
+        System.out.println("❌ [자동결제 승인 실패 에러 대피소] : " + e.getMessage());
+        
+        // 형이 말했던 예외 처리 로직 작동 구역
+        // 여기서는 우리 DB에 아무 작업도 안 가했기 때문에 데이터 정합성이 깨질 일이 없어 형! (안전)
+        throw new RuntimeException("자동결제 시스템 오류로 승인이 실패했습니다: " + e.getMessage());
     }
 }
 }
