@@ -1,9 +1,8 @@
 package com.example.spendolive.member.domain;
 
-import lombok.Setter;
-import lombok.Getter;
-@Getter
-@Setter
+import lombok.Data;
+
+@Data
 public class MemberVO {
 	private int member_id;
 	private int warning_count;

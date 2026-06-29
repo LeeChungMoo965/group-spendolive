@@ -9,9 +9,10 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
 
-@Repository("memberDAO")
+@Repository
 public class MemberRepositoryImpl implements MemberRepository{
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -29,13 +30,16 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" from member_tb where email =?";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
     +" from member_tb where phone =?";
-    private final String updatePinNO = "update member_tb set open_bank_user_seq_no =? ,open_bank_token =? ,fintech_use_num =?, bank_code =?, account_num =?"
-    +" where id =? ";
+    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance) "
+    +" values(?,?,?,?,?,?,?) ";
+    private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
+    +" values(?,?,?,?) ";
     private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
     + "FROM member_tb WHERE id = ?";
+    private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -123,16 +127,26 @@ public class MemberRepositoryImpl implements MemberRepository{
         return null; 
     }
     }
-
     @Override
-    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num, String bank_code, String account_num) throws DataAccessException {
+	public void updateTossInfo(String userId, String card_num, String card_company, String billingkey)throws DataAccessException {
+        jdbcTemplate.update(updateBillingKey,
+        userId,
+        card_num,
+        card_company,
+        billingkey
+        );
+    }
+    @Override
+    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num, String bank_code, String account_num, int balance) throws DataAccessException {
         jdbcTemplate.update(updatePinNO,
-        userSeqNo,
-        accessToken,
-        fintech_num,
+        userId,
         bank_code,
         account_num,
-        userId);
+        fintech_num,
+        accessToken,
+        userSeqNo,
+        balance
+        );
     }
 
     @Override
@@ -210,6 +224,22 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setOpen_bank_user_seq_no(rs.getString("open_bank_user_seq_no"));
         member.setFintech_use_num(rs.getString("fintech_use_num"));
         return member;
+    }
+
+    @Override
+    public MemberCardVO getCardInfoByUserId(String userId) {
+    try{
+        return jdbcTemplate.queryForObject(selectMemverCardById, (rs, rowNum) ->{
+            MemberCardVO card = new MemberCardVO();
+            card.setBillingKey(rs.getString("billing_key"));
+            card.setCardCompany(rs.getString("card_company"));
+            card.setCardNumber(rs.getString("card_number"));
+            return card;
+        }, userId);
+    }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
     }
     
 }

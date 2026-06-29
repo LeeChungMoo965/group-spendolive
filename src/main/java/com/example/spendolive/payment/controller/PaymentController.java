@@ -18,4 +18,7 @@ public interface PaymentController {
         HttpServletRequest request, HttpServletResponse response,
         HttpSession session) throws Exception;
     public void requestTossBillingKey(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception;
+    public void payment(
+            HttpServletRequest request, HttpServletResponse response,
+            HttpSession session) throws Exception;
 }

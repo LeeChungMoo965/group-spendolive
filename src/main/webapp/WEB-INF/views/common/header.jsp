@@ -54,7 +54,8 @@
                         <li><a class="so-menu-link ${fn:contains(requestURI, '/ott') ? 'active' : ''}" href="${contextPath}/spendolive/ott.do"><strong>OTT관리</strong></a></li>
                         <li><a class="so-menu-link ${fn:contains(requestURI, '/mypage') ? 'active' : ''}" href="${contextPath}/spendolive/mypage.do"><strong>마이페이지</strong></a></li>
                         <li><a class="so-menu-link" href="${contextPath}/member/openBankingAuth.do"><strong>🏦계좌 연동하기</strong></a></li>
-                        <li><button class="button" style="margin-top: 30px" onclick="requestBillingAuth()"><strong>카드 등록하기</strong></button></li>
+                        <li><a class="so-menu-link" href="${contextPath}/payment/paymenting.do"><strong>정산하기</strong></a></li>
+                        <li><a class="so-menu-link" onclick="requestBillingAuth()"><strong>카드 등록하기</strong></a></li>
                     </ul>
                 </div>
                 </strong>
@@ -84,15 +85,15 @@
             }); 
         }
     })();
-    /*const clientKey = "";
-        const customerKey = "${not empty memberInfo.id ? memberInfo.id : 'CHUNGMOO_TEST_USER'}";
+    const clientKey = "";
+        const customerKey = "${memberInfo.id}";
         const tossPayments = TossPayments(clientKey);
 
         //@docs https://docs.tosspayments.com/sdk/v2/js#tosspaymentspayment
         //const payment = tossPayments.payment({ customerKey });
         // 비회원 결제
-        const payment = tossPayments.payment({customerKey: TossPayments.ANONYMOUS})
-        // ------ '카드 등록하기' 버튼 누르면 결제창 띄우기 ------
+        const payment = tossPayments.payment({ customerKey })
+        // ------ '카드 등록하기' 버튼 누르면 결제창 띄우기 ------  
         //@docs https://docs.tosspayments.com/sdk/v2/js#paymentrequestpayment
         async function requestBillingAuth() {
             const contextPath = "${contextPath}";

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import com.example.spendolive.payment.domain.*;
 
 
-@Repository("paymentDAO")
+@Repository
 public class PaymentRepositoryImpl implements PaymentRepository{
     @Autowired
     private JdbcTemplate jdbcTemplate;
