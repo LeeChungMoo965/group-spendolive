@@ -37,16 +37,21 @@
             </button>
             </div>
 
+            <%-- DB 오류 등 서버 오류 메시지 --%>
+            <c:if test="${not empty errorMsg}">
+                <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;
+                            padding:12px 18px;border-radius:8px;margin-bottom:16px;">
+                    ⚠ ${errorMsg}
+                </div>
+            </c:if>
+
             <div class="card table-card notice-board-card">
                 <div class="notice-row-title">
                     <div>
                         <p class="eyebrow" id="listEyebrow">NOTICE LIST</p>
                         <h2 id="listTitle">공지사항</h2>
 
-
-                     
                      <div id="boardFilter" class="notification-filter"></div>
-                        
                     </div>
                 </div>
 
@@ -78,7 +83,9 @@
                                   
                         </tbody>
                     </table>
-                </div>
+                    </div>
+
+                    <div id="noticePagination" class="notice-pagination"></div>
             </div>
 
         </div>
@@ -86,7 +93,8 @@
 </section>
 
 <script>
-    const loginYn = ${loginYn};
+    <%-- loginYn이 model에 없으면 false로 fallback --%>
+    const loginYn = ${not empty loginYn ? loginYn : false};
 </script>
 
 <script src="${contextPath}/resources/js/notice.js"></script>

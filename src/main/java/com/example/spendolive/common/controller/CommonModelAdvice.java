@@ -25,6 +25,14 @@ public class CommonModelAdvice {
     public void addCommonModel(Model model, HttpSession session) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
 
+
+        // ── 로그인 여부 + memberInfo 항상 model에 주입 ──────────────
+        // header.jsp 등 공통 레이아웃에서 ${isLogOn}, ${memberInfo} 사용
+        boolean isLogOn = (memberInfo != null);
+        model.addAttribute("isLogOn", isLogOn);
+        model.addAttribute("memberInfo", memberInfo);
+
+        
         if (memberInfo == null) {
             model.addAttribute("chatRoomSummaryList", Collections.emptyList());
             model.addAttribute("chatTotalUnreadCount", 0);
