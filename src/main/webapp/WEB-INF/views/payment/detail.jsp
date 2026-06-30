@@ -7,7 +7,7 @@
 <div class="container">
         <div class="table-card card" >
             <div class="table-wrap">
-            <h2>방이름</h2>
+            <h2>aaa</h2>
                             <table>
                                 <thead>
                                     <tr>
@@ -26,7 +26,7 @@
                                             <strong>OTT 사용료</strong>
                                         </td>
                                         <td>
-                                            <strong>10,000원</strong>
+                                            <strong>${Settlement_PaymentInfo.base_amount}</strong>
                                         </td>
                                         <td>
                                             <strong>+</strong>
@@ -34,10 +34,10 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>수수료(3%)</strong>
+                                            <strong>수수료(${Settlement_PaymentInfo.fee_rate}%)</strong>
                                         </td>
                                         <td>
-                                            <strong>300원</strong>
+                                            <strong>${Settlement_PaymentInfo.fee_amount}</strong>
                                         </td>
                                         <td>
                                             <strong>+</strong>
@@ -48,7 +48,7 @@
                                             <h3>최종 출금 금액</h3>
                                         </td>
                                         <td>
-                                            <h3>10,300원</h3>
+                                            <h3>${Settlement_PaymentInfo.total_amount}</h3>
                                         </td>
                                         
                                     </tr>
@@ -57,7 +57,7 @@
                         </div>
             <table align="center" width="90%">
                 <tr>
-                    <th align="left" width="20%"><a href="${contextPath}/payment/payment.do" class="btn btn-primary full ott-main-btn">정산하기</a></th>
+                    <th align="left" width="20%"><a href="${contextPath}/payment/paymenting.do" class="btn btn-primary full ott-main-btn">정산하기</a></th>
                     <th align="right" width="20%"><a href="${contextPath}/spendolive/ott/friends.do" class="btn btn-primary full ott-main-btn">취소하기</a></th>
                 </tr>
             </table>

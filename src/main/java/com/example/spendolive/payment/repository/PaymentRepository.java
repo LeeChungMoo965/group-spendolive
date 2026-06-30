@@ -8,7 +8,8 @@ import com.example.spendolive.payment.domain.*;
 public interface PaymentRepository {
 
     void updatePaymentStatus(SettlementPaymentVO paymentInfo);
-
+    public SettlementPaymentVO settlement_paymentByroomId(String userId, int roomId) throws DataAccessException;
     void insertEscrow(EscrowPayoutVO escrow);
+    
     
 }

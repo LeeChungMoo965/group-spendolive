@@ -27,6 +27,6 @@ public class SettlementRefundVO {
     private String refund_status;       // 환불 처리 상태 (기본값: 'REQUESTED')
     
     private LocalDateTime requested_at; // 환불 요청 일시 (기본값: SYSDATE)
-    private LocalDateTime completed_at; // 환불 최종 완료 일시
+    private LocalDateTime completed_at; //  환불 최종 완료 일시
     private String memo;                // 환불 실패 사유 등 상세 메모
 }

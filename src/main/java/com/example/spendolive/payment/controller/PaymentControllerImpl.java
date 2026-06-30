@@ -2,6 +2,7 @@ package com.example.spendolive.payment.controller;
 
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +33,15 @@ public class PaymentControllerImpl implements PaymentController{
     private String baseUrl;
     @Override
     @RequestMapping(value = "/detail.do", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView calendar(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public ModelAndView detail(@RequestParam Map<String, Object> roomid, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        HttpSession session = request.getSession();
+        String roomIdStr = request.getParameter("roomId");
+        int roomId = Integer.parseInt(roomIdStr);
+        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        String userId = memberVO.getId();
+        SettlementPaymentVO settlement_PaymentInfo =  paymentService.getSettlement_PaymentByRoomId(userId, roomId);
+        session.setAttribute("Settlement_PaymentInfo", settlement_PaymentInfo);
+        session.setAttribute("roomId", roomId);  
         return layout("/WEB-INF/views/payment/detail.jsp");
     }
 
@@ -41,16 +50,16 @@ public class PaymentControllerImpl implements PaymentController{
         mav.setViewName("common/layout");
         mav.addObject("body_page", bodyPage);
         return mav;
-    }
+    }/*
     @Override
     @RequestMapping(value = "/payment.do", method = {RequestMethod.GET})
     public ModelAndView payment(SettlementPaymentVO paymentInfo , HttpServletRequest request, HttpServletResponse response) throws Exception {
         HttpSession session = request.getSession();
-        paymentInfo.setTotalAmount(10000);
+        paymentInfo.setTotal_amount(10000);
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         paymentService.processWithdraw(paymentInfo, memberInfo);
         return layout("/WEB-INF/views/payment/detail.jsp");
-    }
+    } */
     @Override
     @GetMapping("/tossRequest.do")
     public void requestTossBillingKey(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
