@@ -36,7 +36,7 @@ public class PaymentControllerImpl implements PaymentController{
     public ModelAndView detail(@RequestParam Map<String, Object> roomid, HttpServletRequest request, HttpServletResponse response) throws Exception {
         HttpSession session = request.getSession();
         String roomIdStr = request.getParameter("roomId");
-        int roomId = Integer.parseInt(roomIdStr);
+        int roomId = 1; //Integer.parseInt(roomIdStr);
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         String userId = memberVO.getId();
         SettlementPaymentVO settlement_PaymentInfo =  paymentService.getSettlement_PaymentByRoomId(userId, roomId);
@@ -133,7 +133,7 @@ public class PaymentControllerImpl implements PaymentController{
 
         try {
             // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
-            paymentService.executeAutomaticPayment(userId, 10000, 2);
+            paymentService.executeAutomaticPayment(userId, 5150, 1);
 
             // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
             out.print("<script>");

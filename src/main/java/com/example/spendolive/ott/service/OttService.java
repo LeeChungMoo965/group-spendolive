@@ -56,13 +56,14 @@ public interface OttService {
 
     void applyRecruitRoom(Long roomId, String loginId);
 
-    void approveApplication(Long roomMemberId, String hostId);
+    OttRoomDTO getRoomByInviteCode(String inviteCode);
 
-    void rejectApplication(Long roomMemberId, String hostId);
 
-    void requestSettlement(Long roomId, String hostId, String settlementMonth, String dueDate);
+    void requestSettlement(Long roomId, String hostId, String settlementMonth, String dueDate); // 정산 요청 생성용 서비스 메서드
 
     void markPaymentPaid(Long paymentId, String loginId);
+
+    void completePaidRoomEntry(Long roomId, String loginId); // 결제 완료 후 방 입장
 
     void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason);
 

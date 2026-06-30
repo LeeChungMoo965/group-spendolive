@@ -51,6 +51,33 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public List<NoticeDTO> getUnreadNoticeList(String id) {
     return noticeRepository.findUnreadByMemberId(id);
-}
+    }
 
+    @Override
+    public void toggleNoticeStar(int noticeId, String id) {
+        noticeRepository.toggleNoticeStar(noticeId, id);
+    }
+
+    @Override
+    public int insertNotice(NoticeDTO notice) {
+        int newId = noticeRepository.insertNotice(notice);
+        if (newId > 0) {
+            try {
+                noticeRepository.insertNoticeAlertForAll(notice.getTitle(), String.valueOf(newId));
+            } catch (Exception e) {
+                System.err.println("[NoticeServiceImpl] 알림 발송 실패 (공지는 등록됨): " + e.getMessage());
+            }
+        }
+        return newId;
+    }
+
+    @Override
+    public void updateNotice(NoticeDTO notice) {
+        noticeRepository.updateNotice(notice);
+    }
+
+    @Override
+    public void deleteNotice(int noticeId) {
+        noticeRepository.deleteNotice(noticeId);
+    }
 }

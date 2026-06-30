@@ -45,7 +45,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
             settlementPaymentVO.setId(rs.getString("id"));
             settlementPaymentVO.setMemo(rs.getString("memo"));
             settlementPaymentVO.setOrderId(rs.getString("orderId"));
-            settlementPaymentVO.setPaymentKey(rs.getString("patmentKey"));
+            settlementPaymentVO.setPaymentKey(rs.getString("paymentKey"));
             settlementPaymentVO.setPayment_id(rs.getInt("payment_id"));
             settlementPaymentVO.setPayment_status(rs.getString("payment_status"));
             settlementPaymentVO.setSettlement_id(rs.getInt("settlement_id"));

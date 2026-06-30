@@ -4,12 +4,70 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
+<style>
+    .invite-share-box {
+        margin-top: 14px;
+        padding: 14px;
+        border: 1px solid rgba(126, 144, 61, 0.18);
+        border-radius: 16px;
+        background: rgba(255, 253, 238, 0.75);
+    }
+
+    .invite-share-box strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+
+    .invite-url-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .invite-url-input {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px;
+        border: 1px solid #d9dfbd;
+        border-radius: 12px;
+        background: #fff;
+        font-size: 13px;
+    }
+
+    .invite-share-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .invite-qr-box {
+        display: none;
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 14px;
+        background: #fff;
+        text-align: center;
+    }
+
+    .invite-qr-box.show {
+        display: block;
+    }
+
+    .invite-qr-box img {
+        width: 180px;
+        height: 180px;
+    }
+</style>
+
 <section class="page-hero ott-sub-hero">
     <div class="container ott-wide-container">
         <p class="eyebrow">FRIENDS SHARE ROOM</p>
         <h1>가족 · 지인 공유방</h1>
         <p class="hero-text">
-            가족 또는 지인과 함께 쓸 OTT 공유방만 모아서 보고, 다음 달 이용분 선결제·마감·환불 상태까지 관리합니다.
+            가족 또는 지인과 함께 쓸 OTT 공유방을 만들고, 초대 URL·QR·카카오톡 링크로 결제 화면까지 바로 연결합니다.
         </p>
         <div class="ott-page-actions">
             <a href="${contextPath}/spendolive/ott.do" class="btn btn-outline">OTT관리로 돌아가기</a>
@@ -24,7 +82,7 @@
             <strong>정산 규칙</strong>
             <ol>
                 <li>${settlementGuide}</li>
-                <li>결제 마감일이 지나면 미결제자는 자동 추방되고, 결제일 전까지 빈자리 재모집 상태로 전환됩니다.</li>
+                <li>가족방은 승인 없이 초대 URL 또는 QR을 통해 결제 화면으로 이동합니다.</li>
                 <li>방 삭제 요청 시 이번 이용 기간까지만 유지되며, 다음 이용분 결제 완료 건은 자동 환불 처리됩니다.</li>
             </ol>
         </div>
@@ -60,6 +118,31 @@
                                     </c:if>
                                     <c:if test="${room.status eq 'REPLACE_RECRUITING'}">
                                         <small class="warn-text">미결제자 발생으로 대체 모집 중</small>
+                                    </c:if>
+
+                                    <c:if test="${room.hostMemberId eq loginId and not empty room.inviteCode and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
+                                        <div class="invite-share-box" data-room-name="${fn:escapeXml(room.roomName)}">
+                                            <strong>초대 링크 공유</strong>
+                                            <small>URL 복사, QR 코드, 카카오톡 공유 중 하나로 초대할 수 있습니다. 링크를 타고 들어오면 결제 화면으로 이동합니다.</small>
+
+                                            <div class="invite-url-row">
+                                                <input type="text"
+                                                       class="invite-url-input"
+                                                       readonly
+                                                       value="${pageContext.request.scheme}://${pageContext.request.serverName}:${pageContext.request.serverPort}${contextPath}/spendolive/ott/friends/invite.do?code=${room.inviteCode}">
+                                                <button type="button" class="btn btn-outline btn-mini invite-copy-btn">URL 복사</button>
+                                            </div>
+
+                                            <div class="invite-share-actions">
+                                                <button type="button" class="btn btn-outline btn-mini invite-qr-btn">QR 코드 보기</button>
+                                                <button type="button" class="btn btn-primary btn-mini invite-kakao-btn">카카오톡 공유</button>
+                                            </div>
+
+                                            <div class="invite-qr-box">
+                                                <img alt="가족방 초대 QR 코드">
+                                                <small>QR을 스캔하면 결제 화면으로 이동합니다.</small>
+                                            </div>
+                                        </div>
                                     </c:if>
                                 </div>
 
@@ -263,3 +346,84 @@
         </article>
     </div>
 </section>
+
+<script>
+(function () {
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            return navigator.clipboard.writeText(text);
+        }
+
+        var temp = document.createElement('textarea');
+        temp.value = text;
+        temp.style.position = 'fixed';
+        temp.style.left = '-9999px';
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        return Promise.resolve();
+    }
+
+    document.querySelectorAll('.invite-share-box').forEach(function (box) {
+        var input = box.querySelector('.invite-url-input');
+        var copyBtn = box.querySelector('.invite-copy-btn');
+        var qrBtn = box.querySelector('.invite-qr-btn');
+        var kakaoBtn = box.querySelector('.invite-kakao-btn');
+        var qrBox = box.querySelector('.invite-qr-box');
+        var qrImg = qrBox ? qrBox.querySelector('img') : null;
+        var roomName = box.dataset.roomName || 'SpendOlive 가족방';
+
+        if (copyBtn && input) {
+            copyBtn.addEventListener('click', function () {
+                copyText(input.value).then(function () {
+                    alert('초대 URL을 복사했습니다.');
+                });
+            });
+        }
+
+        if (qrBtn && input && qrBox && qrImg) {
+            qrBtn.addEventListener('click', function () {
+                if (!qrImg.src) {
+                    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(input.value);
+                }
+                qrBox.classList.toggle('show');
+            });
+        }
+
+        if (kakaoBtn && input) {
+            kakaoBtn.addEventListener('click', function () {
+                if (window.Kakao && window.Kakao.Share) {
+                    window.Kakao.Share.sendDefault({
+                        objectType: 'feed',
+                        content: {
+                            title: roomName,
+                            description: 'SpendOlive 가족방 초대 링크입니다. 링크를 열면 결제 화면으로 이동합니다.',
+                            imageUrl: window.location.origin + '${contextPath}/resources/images/logo.png',
+                            link: {
+                                mobileWebUrl: input.value,
+                                webUrl: input.value
+                            }
+                        },
+                        buttons: [
+                            {
+                                title: '결제하러 가기',
+                                link: {
+                                    mobileWebUrl: input.value,
+                                    webUrl: input.value
+                                }
+                            }
+                        ]
+                    });
+                    return;
+                }
+
+                copyText(input.value).then(function () {
+                    alert('카카오 SDK가 아직 연결되지 않아 초대 URL을 대신 복사했습니다.');
+                });
+            });
+        }
+    });
+})();
+</script>

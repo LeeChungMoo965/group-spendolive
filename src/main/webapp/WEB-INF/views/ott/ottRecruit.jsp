@@ -9,7 +9,7 @@
         <p class="eyebrow">OTT RECRUIT</p>
         <h1>모든 모집글</h1>
         <p class="hero-text">
-            외부 다른 사람들과 함께 이용할 OTT 파티를 찾고, 모집글 작성·참여방 관리·정산 상태를 관리합니다.
+            외부 다른 사람들과 함께 이용할 OTT 파티를 찾고, 신청 버튼을 통해 결제 화면으로 이동합니다.
         </p>
         <div class="ott-page-actions">
             <a href="${contextPath}/spendolive/ott.do" class="btn btn-outline">OTT관리로 돌아가기</a>
@@ -24,8 +24,8 @@
             <strong>정산 규칙</strong>
             <ol>
                 <li>${settlementGuide}</li>
-                <li>결제 마감 후 미결제자는 자동 추방되고, 결제일 전 5일 동안 빈자리 대체 모집이 가능합니다.</li>
-                <li>방 삭제 요청 상태의 파티는 신규 신청과 다음 이용분 결제가 막히고, 결제 완료 건은 환불됩니다.</li>
+                <li>신청 버튼은 결제 화면으로 연결되며, 결제 완료 후 참여방 입장이 처리됩니다.</li>
+                <li>방 삭제 요청 상태의 파티는 신규 결제 입장과 다음 이용분 결제가 막히고, 결제 완료 건은 환불됩니다.</li>
             </ol>
         </div>
 
@@ -128,18 +128,8 @@
                                                         <button type="submit" class="btn btn-primary full">신청하기</button>
                                                     </form>
                                                 </c:when>
-                                                <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
-                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary full">대화방 입장</a>
-                                                </c:when>
                                                 <c:otherwise>
-                                                    <button type="button" class="btn btn-outline full" disabled>
-                                                        <c:choose>
-                                                            <c:when test="${room.myApplicationStatus eq 'APPLIED'}">승인 대기중</c:when>
-                                                            <c:when test="${room.myApplicationStatus eq 'REJECTED'}">거절됨</c:when>
-                                                            <c:when test="${room.myApplicationStatus ne 'NONE'}">${room.myApplicationStatus}</c:when>
-                                                            <c:otherwise>${room.status}</c:otherwise>
-                                                        </c:choose>
-                                                    </button>
+                                                    <button type="button" class="btn btn-outline full" disabled>모집 마감</button>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
@@ -172,7 +162,7 @@
                             <div class="settlement-sub-header">
                                 <div>
                                     <h3>내가 만든방</h3>
-                                    <p>내가 만든 모집글 목록과 해당 방에 신청한 사람을 관리합니다.</p>
+                                    <p>내가 만든 모집글 목록과 결제 완료 후 참여 중인 사람을 확인합니다.</p>
                                 </div>
                                 <span>${fn:length(hostedRoomList)}개</span>
                             </div>
@@ -203,38 +193,26 @@
                                                 </div>
 
                                                 <div class="application-mini-list">
-                                                    <h4>신청관리</h4>
+                                                    <h4>참여자 현황</h4>
+                                                    <c:set var="hasParticipant" value="false" />
                                                     <c:forEach var="member" items="${hostedRoomMemberList}">
                                                         <c:if test="${member.roomId eq room.roomId}">
-                                                            <div class="apply-manage-row application-row ${member.status}">
+                                                            <c:set var="hasParticipant" value="true" />
+                                                            <div class="apply-manage-row application-row ACTIVE">
                                                                 <div>
                                                                     <strong>${member.memberName}</strong>
-                                                                    <p>아이디: ${member.memberId} · 신청일 ${member.joinedAt}</p>
-                                                                    <small>상태 ${member.status}</small>
+                                                                    <p>아이디: ${member.memberId} · 참여일 ${member.joinedAt}</p>
                                                                 </div>
-                                                                <c:choose>
-                                                                    <c:when test="${member.status eq 'APPLIED'}">
-                                                                        <div class="application-actions">
-                                                                            <form action="${contextPath}/spendolive/ott/recruit/application/approve.do" method="post">
-                                                                                <input type="hidden" name="roomMemberId" value="${member.roomMemberId}">
-                                                                                <button type="submit" class="btn btn-primary btn-mini">수락</button>
-                                                                            </form>
-                                                                            <form action="${contextPath}/spendolive/ott/recruit/application/reject.do" method="post">
-                                                                                <input type="hidden" name="roomMemberId" value="${member.roomMemberId}">
-                                                                                <button type="submit" class="btn btn-outline btn-mini">거절</button>
-                                                                            </form>
-                                                                        </div>
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <div class="apply-price-box">
-                                                                            <span>${member.status}</span>
-                                                                            <b><fmt:formatNumber value="${member.payAmount}" pattern="#,##0" />원</b>
-                                                                        </div>
-                                                                    </c:otherwise>
-                                                                </c:choose>
+                                                                <div class="apply-price-box">
+                                                                    <span>참여중</span>
+                                                                    <b><fmt:formatNumber value="${member.payAmount}" pattern="#,##0" />원</b>
+                                                                </div>
                                                             </div>
                                                         </c:if>
                                                     </c:forEach>
+                                                    <c:if test="${not hasParticipant}">
+                                                        <div class="empty-box">아직 결제 완료 후 참여 중인 사람이 없습니다.</div>
+                                                    </c:if>
                                                 </div>
                                             </div>
                                         </c:forEach>
@@ -249,8 +227,8 @@
                         <section class="manage-section joined-section">
                             <div class="settlement-sub-header">
                                 <div>
-                                    <h3>내가 신청/참여한 방</h3>
-                                    <p>신청 승인 대기, 수락, 거절 상태를 함께 확인할 수 있습니다.</p>
+                                    <h3>내가 참여한 방</h3>
+                                    <p>결제 완료 후 참여 중인 외부 모집글 공유방입니다.</p>
                                 </div>
                                 <span>${fn:length(joinedRoomList)}개</span>
                             </div>
@@ -267,25 +245,14 @@
                                                     <small>1인 결제금액 <fmt:formatNumber value="${room.perPersonAmount}" pattern="#,##0" />원 · 방장 ${room.hostNickname}</small>
                                                 </div>
                                                 <div class="family-room-actions">
-                                                    <span class="status-pill ${room.myApplicationStatus}">
-                                                        <c:choose>
-                                                            <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">참여중</c:when>
-                                                            <c:when test="${room.myApplicationStatus eq 'APPLIED'}">승인 대기중</c:when>
-                                                            <c:when test="${room.myApplicationStatus eq 'REJECTED'}">거절됨</c:when>
-                                                            <c:otherwise>${room.myApplicationStatus}</c:otherwise>
-                                                        </c:choose>
-                                                    </span>
-
-                                                    <c:if test="${room.myApplicationStatus eq 'ACTIVE'}">
-                                                        <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary btn-mini">대화방</a>
-                                                    </c:if>
+                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary btn-mini">대화방</a>
                                                 </div>
                                             </div>
                                         </c:forEach>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
-                                    <div class="empty-box">아직 신청하거나 참여 중인 외부 모집글 공유방이 없습니다.</div>
+                                    <div class="empty-box">아직 참여 중인 외부 모집글 공유방이 없습니다.</div>
                                 </c:otherwise>
                             </c:choose>
                         </section>
@@ -333,7 +300,7 @@
 
                                                         <div class="settlement-auto-guide">
                                                             <b>자동 계산</b>
-                                                            <small>전월 결제일 ~ 결제일 5일 전까지 결제 가능</small>
+                                                            <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 5일 전</small>
                                                         </div>
 
                                                         <button type="submit" class="btn btn-primary settlement-send-btn">정산 요청 보내기</button>
@@ -422,7 +389,7 @@
                                 <p class="eyebrow">WRITE POST</p>
                                 <h2>모집글 작성</h2>
                             </div>
-                            <span>모집글은 수락 방식으로 운영됩니다</span>
+                            <span>신청 버튼은 결제 화면으로 연결됩니다</span>
                         </div>
 
                         <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form ott-fixed-plan-form">
