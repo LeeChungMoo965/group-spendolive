@@ -85,8 +85,8 @@
             }); 
         }
     })();
-
-    const clientKey = "test_ck_yZqmkKeP8gBgMeYDwNpprbQRxB9l";
+    /*
+    const clientKey = "";
         const customerKey = "${memberInfo.id}";
         const tossPayments = TossPayments(clientKey);
 
