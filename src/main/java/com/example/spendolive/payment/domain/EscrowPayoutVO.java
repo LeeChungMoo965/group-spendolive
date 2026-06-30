@@ -16,3 +16,4 @@ public class EscrowPayoutVO {
     private LocalDate payoutDueDate; // 방장 정산 예정일 (이용 기간 끝나고 몇 일 뒤)
     private LocalDateTime payoutAt;  // 방장 계좌로 입금이체(or 포인트) 쏴준 시점
 }
+//

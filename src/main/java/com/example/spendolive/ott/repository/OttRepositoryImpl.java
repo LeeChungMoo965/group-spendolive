@@ -450,7 +450,7 @@ public class OttRepositoryImpl implements OttRepository {
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
                 LEFT JOIN settlement_payment_tb sp
                        ON st.settlement_id = sp.settlement_id
-                      AND sp.member_login_id = ?
+                      AND sp.id = ?
                 WHERE (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
                   AND (
                        r.host_login_id = ?
@@ -481,9 +481,9 @@ public class OttRepositoryImpl implements OttRepository {
                        TO_CHAR(st.service_start_date, 'YYYY-MM-DD') AS service_start_date,
                        TO_CHAR(st.service_end_date, 'YYYY-MM-DD') AS service_end_date,
                        sp.payment_id,
-                       sp.member_login_id AS member_id,
-                       NVL(m.member_name, sp.member_login_id) AS member_name,
-                       NVL(m.nickname, sp.member_login_id) AS member_nickname,
+                       sp.id AS member_id,
+                       NVL(m.member_name, sp.id) AS member_name,
+                       NVL(m.nickname, sp.id) AS member_nickname,
                        sp.base_amount,
                        sp.fee_amount,
                        sp.total_amount,
@@ -493,14 +493,14 @@ public class OttRepositoryImpl implements OttRepository {
                 JOIN ott_room_tb r ON st.room_id = r.room_id
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
                 JOIN settlement_payment_tb sp ON st.settlement_id = sp.settlement_id
-                LEFT JOIN member_tb m ON sp.member_login_id = m.id
+                LEFT JOIN member_tb m ON sp.id = m.id
                 WHERE r.host_login_id = ?
                   AND (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
                 ORDER BY st.settlement_month DESC,
                          st.settlement_id DESC,
                          r.room_id DESC,
                          sp.payment_status,
-                         sp.member_login_id
+                         sp.id
                 """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
@@ -981,7 +981,7 @@ public class OttRepositoryImpl implements OttRepository {
                     paid_at = SYSDATE,
                     memo = NVL(sp.memo, '') || ' / 사용자 결제완료 처리'
                 WHERE sp.payment_id = ?
-                  AND sp.member_login_id = ?
+                  AND sp.id = ?
                   AND sp.payment_status = 'UNPAID'
                   AND EXISTS (
                         SELECT 1
@@ -1211,7 +1211,7 @@ public class OttRepositoryImpl implements OttRepository {
                         FROM settlement_payment_tb sp
                         JOIN settlement_tb st ON sp.settlement_id = st.settlement_id
                         WHERE st.room_id = rm.room_id
-                          AND sp.member_login_id = rm.member_login_id
+                          AND sp.id = rm.member_login_id
                           AND sp.payment_status = 'EXPIRED'
                           AND st.payment_close_date < TRUNC(SYSDATE)
                   )
@@ -1294,7 +1294,7 @@ public class OttRepositoryImpl implements OttRepository {
                        sp.payment_id,
                        st.settlement_id,
                        st.room_id,
-                       sp.member_login_id AS member_id,
+                       sp.id AS member_id,
                        sp.total_amount,
                        'ROOM_CLOSE',
                        'COMPLETED',
@@ -1634,7 +1634,7 @@ public class OttRepositoryImpl implements OttRepository {
     private Map<String, Object> selectPaymentMap(Long paymentId) {
         String sql = """
                 SELECT sp.payment_id,
-                       sp.member_login_id AS id,
+                       sp.id AS id,
                        sp.payment_status,
                        sp.total_amount,
                        st.settlement_id,

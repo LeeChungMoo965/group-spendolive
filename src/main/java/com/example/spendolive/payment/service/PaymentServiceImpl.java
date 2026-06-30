@@ -1,6 +1,7 @@
 package com.example.spendolive.payment.service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class PaymentServiceImpl implements PaymentService{
     private String cntrAccountHolder;
     @Value("${toss.secret-key}")
     private String secretKey;
-
+/*
     @Override
     @Transactional(rollbackFor = Exception.class) // 💥 돈 관련 로직이므로 에러 나면 무조건 DB 롤백!
     public boolean processWithdraw(SettlementPaymentVO paymentInfo, MemberVO memberInfo) throws Exception {
@@ -78,7 +79,7 @@ public class PaymentServiceImpl implements PaymentService{
         bodyMap.put("fintech_use_num", "199000000000000000000001"); 
         
         bodyMap.put("wd_print_text", "스펜드올리브출금");          // 파티원 통장에 찍힐 문구
-        bodyMap.put("tran_amt", paymentInfo.getTotalAmount()); // 출금할 금액 (이용료 + 수수료)
+        bodyMap.put("tran_amt", paymentInfo.getTotal_amount()); // 출금할 금액 (이용료 + 수수료)
         bodyMap.put("tran_dtime", tranDtime);
         bodyMap.put("req_client_name", "홍길동");             // 파티원 이름
         bodyMap.put("req_client_num", memberInfo.getId());      // 파티원 ID
@@ -100,7 +101,7 @@ public class PaymentServiceImpl implements PaymentService{
             
             if ("A0000".equals(rspCode)) {
                 // 🚀 [성공] 1단계: 팀원별 입금 장부(SettlementPayment) 상태를 PAID로 변경
-                paymentInfo.setPaymentStatus("PAID");
+                paymentInfo.setPayment_status("PAID");
                 paymentInfo.setPaidAt(LocalDateTime.now());
                 paymentRepository.updatePaymentStatus(paymentInfo); // 레포지토리에 반영
 
@@ -126,6 +127,7 @@ public class PaymentServiceImpl implements PaymentService{
         
         return false;
     }
+     */
     @Override
     public void issueAndSaveBillingKey(String customerKey, String authKey, String userId) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
@@ -234,20 +236,32 @@ public void executeAutomaticPayment(String userId, int amount, int room_id) thro
         if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
             tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
             Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
-
+            Map<String, Object> cardInfo = (Map<String, Object>) resBody.get("card");
             // 토스 응답에서 결제 고유 번호(paymentKey) 추출 (나중에 혹시 취소/환불할 때 무조건 필요함!)
             String paymentKey = (String) resBody.get("paymentKey");
             String status = (String) resBody.get("status"); // DONE 이면 결제 완료
-
+            String orderid = (String) resBody.get("orderId");
+            int totalamount = (int) resBody.get("totalAmount");
+            String approvedAtStr = (String) resBody.get("approvedAt");
+            LocalDateTime approved_at = OffsetDateTime.parse(approvedAtStr).toLocalDateTime();
+            String cardnumber = (String) cardInfo.get("number");
+            String cardcompany = (String) cardInfo.get("issuerCode");
+            
+            SettlementPaymentVO paymentInfo = new SettlementPaymentVO();
+            paymentInfo.setId(userId);
+            paymentInfo.setOrderId(orderid);
+            paymentInfo.setPaymentKey(paymentKey);
+            paymentInfo.setTotal_amount(totalamount);
+            paymentInfo.setCard_number(cardnumber);
+            paymentInfo.setCard_company(cardcompany);
+            paymentInfo.setPaid_at(approved_at);
+            paymentInfo.setPayment_status("PAID");
+            
             System.out.println("✅ [결제 성공 확인] paymentKey: " + paymentKey + " | 상태: " + status);
 
             if ("DONE".equals(status)) {
-                
-                // =================================================================
-                // 💥 여기에 형이 원하는 실제 비즈니스 로직(DB 작업)을 작성하는 거야!
-                // 예: 결제 내역 테이블(HISTORY_TB)에 INSERT 행 추가
-                // 예: 유저 등급 업데이트 또는 이용권 만료일 +30일 연장 등
-                // =================================================================
+                paymentRepository.updatePaymentStatus(paymentInfo);
+               
                 System.out.println("🎉 회원 [" + userId + "] DB 비즈니스 로직 반영 완료!");
             } else {
                 throw new RuntimeException("결제가 완료되지 않은 상태입니다: " + status);
@@ -262,5 +276,9 @@ public void executeAutomaticPayment(String userId, int amount, int room_id) thro
         throw new RuntimeException("자동결제 시스템 오류로 승인이 실패했습니다: " + e.getMessage());
     }
 }
+    @Override
+    public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int roomId) throws Exception {
+        return paymentRepository.settlement_paymentByroomId(userId, roomId);
+    }
 }
 

@@ -122,11 +122,8 @@
                                                 <c:when test="${room.hostMemberId eq loginId}">
                                                     <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-outline full">내 모집글 대화방</a>
                                                 </c:when>
-                                                <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
-                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary full">대화방 입장</a>
-                                                </c:when>
-                                                <c:when test="${room.status eq 'RECRUITING' or room.status eq 'REPLACE_RECRUITING'}">
-                                                    <form action="${contextPath}/spendolive/ott/recruit/apply.do" method="post">
+                                                <c:when test="${(room.status eq 'RECRUITING' or room.status eq 'REPLACE_RECRUITING') and room.myApplicationStatus eq 'NONE'}">
+                                                    <form action="${contextPath}/payment/detail.do" method="post">
                                                         <input type="hidden" name="roomId" value="${room.roomId}">
                                                         <button type="submit" class="btn btn-primary full">신청하기</button>
                                                     </form>
