@@ -147,6 +147,7 @@ public class OttController {
         return "redirect:/spendolive/ott/recruit.do?tab=all&result=created";
     }
 
+    // 신청하기 로직
     @PostMapping("/ott/recruit/apply.do")
     public String applyRecruitRoom(@RequestParam("roomId") Long roomId, HttpSession session) {
         String loginId = getLoginId(session);
@@ -155,9 +156,11 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        // 신청/승인 상태를 만들지 않고 결제 담당자가 연결할 화면으로 넘긴다.
-        ottService.applyRecruitRoom(roomId, loginId);
-        return redirectToRoomPayment(roomId, "RECRUIT", null);
+        // 신청하기 누르면 바로 방 구성원으로 등록
+        ottService.completePaidRoomEntry(roomId, loginId);
+
+        // 바로 채팅방 입장
+        return "redirect:/spendolive/ott/chat/room.do?roomId=" + roomId;
     }
 
     @GetMapping("/ott/friends/invite.do")
