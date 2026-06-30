@@ -151,7 +151,7 @@ public class OttServiceImpl implements OttService {
     @Override
     public void requestSettlement(Long roomId, String hostId, String settlementMonth, String dueDate) {
         ottRepository.createSettlement(roomId, hostId, settlementMonth, dueDate);
-    }
+    } //
 
     @Override
     public void markPaymentPaid(Long paymentId, String loginId) {
@@ -161,7 +161,7 @@ public class OttServiceImpl implements OttService {
     @Override
     public void completePaidRoomEntry(Long roomId, String loginId) {
         ottRepository.completePaidRoomEntry(roomId, loginId);
-    }
+    } // 결제 완료 후 사용자를 방에 ACTIVE로 넣는 메서드
 
     @Override
     public void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason) {
