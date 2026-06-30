@@ -1,7 +1,7 @@
 package com.example.spendolive.payment.domain;
 import lombok.Data;
 import java.time.LocalDateTime;
-
+//미사용 회원 카드 테이블로 처리함
 @Data
 public class MemberBillingVO {
     private int billingId;       // PK (시퀀스)

@@ -86,15 +86,17 @@ public class PaymentControllerImpl implements PaymentController{
 
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
+        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        String userId = memberVO.getId();
 
         try {
             // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
-            paymentService.issueAndSaveBillingKey(customerKey, authKey);
+            paymentService.issueAndSaveBillingKey(customerKey, authKey, userId);
 
             // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
             out.print("<script>");
             out.print("alert('결제 카드가 정상적으로 등록되었습니다! 정산 준비 완료.');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/mypage.do';");
+            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
             out.print("</script>");
             out.flush();
             out.close();
@@ -103,6 +105,39 @@ public class PaymentControllerImpl implements PaymentController{
             e.printStackTrace();
             out.print("<script>");
             out.print("alert('카드 등록 최종 승인 중 에러가 발생했습니다.');");
+            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
+            out.print("</script>");
+            out.flush();
+            out.close();
+        }
+    }
+    @Override
+    @GetMapping("/paymenting.do")
+    public void payment(
+            HttpServletRequest request, HttpServletResponse response,
+            HttpSession session) throws Exception {
+
+        response.setContentType("text/html; charset=UTF-8");
+        PrintWriter out = response.getWriter();
+        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        String userId = memberVO.getId();
+
+        try {
+            // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
+            paymentService.executeAutomaticPayment(userId, 10000, 2);
+
+            // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
+            out.print("<script>");
+            out.print("alert('송금 완료!!');");
+            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
+            out.print("</script>");
+            out.flush();
+            out.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            out.print("<script>");
+            out.print("alert('송금 싪패');");
             out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
             out.print("</script>");
             out.flush();

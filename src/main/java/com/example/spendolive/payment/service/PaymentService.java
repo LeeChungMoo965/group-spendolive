@@ -5,6 +5,6 @@ import com.example.spendolive.payment.domain.*;
 
 public interface PaymentService {
     public boolean processWithdraw(SettlementPaymentVO paymentInfo,  MemberVO memberInfo) throws Exception;
-    public void issueAndSaveBillingKey(String customerKey, String authKey) throws Exception;
-    
+    public void issueAndSaveBillingKey(String customerKey, String authKey, String userId) throws Exception;
+    public void executeAutomaticPayment(String userId, int amount, int room_id) throws Exception;
 }

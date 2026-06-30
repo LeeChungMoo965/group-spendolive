@@ -292,7 +292,33 @@ import tools.jackson.databind.ObjectMapper;
                 System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
                 System.out.println("👉 진짜 24자리 번호 획득: " + bankCode);
                 System.out.println("👉 진짜 24자리 번호 획득: " + accountNum);
-                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo, fintechUseNum, bankCode, accountNum);
+                // 🕵️‍♂️ 1. 잔액조회 API URL 생성 (GET 방식이므로 파라미터를 뒤에 주렁주렁 붙임)
+                // 현재 요청하는 일시(종료시각 포함)를 생성 (예: 20260629094000) -> 금융 데이터 필수 규격
+                String tranDtime = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                
+                String balanceUrl = "https://testapi.openbanking.or.kr/v2.0/account/balance/fintech_use_num"
+                        + "?fintech_use_num=" + fintechUseNum
+                        + "&tran_dtime=" + tranDtime;
+
+                // 🕵️‍♂️ 2. 헤더는 기존 Authorization 토큰이 들어있는 headers를 그대로 재사용
+                HttpEntity<String> balanceEntity = new HttpEntity<>(headers);
+                
+                // 🕵️‍♂️ 3. API 전송 및 결과 처리
+                ResponseEntity<Map> balanceResponse = restTemplate.exchange(balanceUrl, HttpMethod.GET, balanceEntity, Map.class);
+                
+                int balance = 0; // 기본값 세팅
+                
+                if (balanceResponse.getStatusCode() == HttpStatus.OK && balanceResponse.getBody() != null) {
+                    Map<String, Object> balanceBody = balanceResponse.getBody();
+                    
+                    // 금결원 명세서상 잔액 필드명은 "balance_amt" 임! (문자열로 오므로 숫자로 파싱)
+                    String balanceAmtStr = (String) balanceBody.get("balance_amt");
+                    if (balanceAmtStr != null) {
+                        balance = Integer.parseInt(balanceAmtStr);
+                    }
+                    System.out.println("💰 실시간 계좌 잔액 확인 완료: " + balance + "원");
+                }
+                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo, fintechUseNum, bankCode, accountNum, balance);
                 }
                 }
                 // 6. DB에 저장 (내 서비스 기획에 맞게 마이바티스나 JPA로 쿼리 실행)
