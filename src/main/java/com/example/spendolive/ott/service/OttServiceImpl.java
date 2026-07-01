@@ -135,7 +135,12 @@ public class OttServiceImpl implements OttService {
     public void createRecruitRoom(OttRoomDTO roomDTO, String loginId) {
         roomDTO.setRoomMode("RECRUIT");
         prepareRoomDefaultValues(roomDTO);
-        ottRepository.insertRoom(roomDTO, loginId, "RECRUITING");
+        
+            // 1. 모집방 생성
+        Long roomId = ottRepository.insertRoom(roomDTO, loginId, "RECRUITING");
+
+        // 2. 결제/정산 연결용 기본 정산 데이터 생성
+        ottRepository.createReadySettlement(roomId, loginId);
     }
 
     @Override
