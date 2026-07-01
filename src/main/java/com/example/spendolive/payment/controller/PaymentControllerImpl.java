@@ -2,6 +2,7 @@ package com.example.spendolive.payment.controller;
 
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.payment.domain.SettlementPaymentVO;
 import com.example.spendolive.payment.service.PaymentService;
 
@@ -40,7 +42,18 @@ public class PaymentControllerImpl implements PaymentController{
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         String userId = memberVO.getId();
         SettlementPaymentVO settlement_PaymentInfo =  paymentService.getSettlement_PaymentByRoomId(userId, roomId);
+        OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(roomId);
+        session.setAttribute("settlementInfo", settlementInfo);
+        int member_limit = settlementInfo.getMember_limit();
+        Integer totalPrice = settlementInfo.getTotalPrice();
+        Integer base_amount = totalPrice / member_limit;
+        Integer fee_amount = (base_amount / 100) * member_limit;
+        totalPrice = base_amount + fee_amount;
+        session.setAttribute("total_amount", totalPrice);
+        session.setAttribute("base_amount", base_amount);
+        session.setAttribute("fee_amount", fee_amount);
         session.setAttribute("Settlement_PaymentInfo", settlement_PaymentInfo);
+       
         session.setAttribute("roomId", roomId);  
         return layout("/WEB-INF/views/payment/detail.jsp");
     }
@@ -96,6 +109,7 @@ public class PaymentControllerImpl implements PaymentController{
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        
         String userId = memberVO.getId();
 
         try {
@@ -129,16 +143,24 @@ public class PaymentControllerImpl implements PaymentController{
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
+        int base_amount = (int) session.getAttribute("total_amount");
+        int member_limit = settlementInfo.getMember_limit();
+        int fee_amount = (base_amount / 100) * member_limit;
+        int total_price = base_amount + fee_amount; 
+        String host_id = settlementInfo.getHost_id();
         String userId = memberVO.getId();
+        int settlement_id = (int) settlementInfo.getSettlementId().longValue();
+        int roomId = (int) settlementInfo.getRoomId().longValue();
 
         try {
             // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
-            paymentService.executeAutomaticPayment(userId, 5150, 1);
+            paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);
 
             // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
             out.print("<script>");
             out.print("alert('송금 완료!!');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
+            out.print("location.href='" + request.getContextPath() + "/spendolive/ott/recruit/apply.do';");
             out.print("</script>");
             out.flush();
             out.close();

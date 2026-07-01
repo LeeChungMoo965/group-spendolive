@@ -26,7 +26,7 @@
                                             <strong>OTT 사용료</strong>
                                         </td>
                                         <td>
-                                            <strong>${Settlement_PaymentInfo.base_amount}</strong>
+                                            <strong>${base_amount}</strong>
                                         </td>
                                         <td>
                                             <strong>+</strong>
@@ -34,10 +34,10 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>수수료(${Settlement_PaymentInfo.fee_rate}%)</strong>
+                                            <strong>수수료(3%)</strong>
                                         </td>
                                         <td>
-                                            <strong>${Settlement_PaymentInfo.fee_amount}</strong>
+                                            <strong>${fee_amount}</strong>
                                         </td>
                                         <td>
                                             <strong>+</strong>
@@ -48,7 +48,7 @@
                                             <h3>최종 출금 금액</h3>
                                         </td>
                                         <td>
-                                            <h3>${Settlement_PaymentInfo.total_amount}</h3>
+                                            <h3>${total_amount}</h3>
                                         </td>
                                         
                                     </tr>

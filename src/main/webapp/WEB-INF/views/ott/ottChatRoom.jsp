@@ -80,7 +80,6 @@
                                             <strong>${message.senderName}</strong>
                                             <p>${message.messageContent}</p>
                                             <small>${message.createdAt}</small>
-                                            <a href="#">신고하기</a>
                                         </div>
                                     </div>
                                 </c:when>
@@ -90,6 +89,7 @@
                                             <strong>${message.senderName}</strong>
                                             <p>${message.messageContent}</p>
                                             <small>${message.createdAt}</small>
+                                            
                                         </div>
                                     </div>
                                 </c:otherwise>
@@ -137,7 +137,20 @@
 
         const time = document.createElement('small');
         time.textContent = message.createdAt || '';
+        if (!isSystem && message.mineYn !== 'Y') {
+                const reportLink = document.createElement('a');
+                reportLink.href = '#';
+                reportLink.textContent = ' 신고하기';
+                reportLink.className = 'danger-outline';
+                // 필요한 경우 여기에 신고하기 클릭 이벤트 리스너를 달 수 있습니다.
+                reportLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // 예: reportMessage(message.messageId); 
+                    alert('신고 기능 구현 필요');
+                });
 
+                time.appendChild(reportLink);
+            }
         bubble.appendChild(sender);
         bubble.appendChild(content);
         bubble.appendChild(time);
@@ -194,6 +207,6 @@
     });
 
     scrollToBottom();
-    setInterval(loadMessages, 3000);
+    setInterval(loadMessages, 1500);
 })();
 </script>
