@@ -24,6 +24,7 @@ public class OttSettlementDTO {
     private String status;
     private String createdAt;
     private String myRole;
+    private int member_limit;
     private Long paymentId;
     private String myPaymentStatus;
     private Integer myTotalAmount;
@@ -37,4 +38,6 @@ public class OttSettlementDTO {
     private Integer totalAmount;
     private String paymentStatus;
     private String paidAt;
+    //방장 아이디
+    private String host_id;
 }

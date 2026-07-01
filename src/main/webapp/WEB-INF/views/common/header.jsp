@@ -85,8 +85,8 @@
             }); 
         }
     })();
-    /*
-    const clientKey = "";
+    
+    const clientKey = "test_ck_yZqmkKeP8gBgMeYDwNpprbQRxB9l";
         const customerKey = "${memberInfo.id}";
         const tossPayments = TossPayments(clientKey);
 
@@ -105,5 +105,5 @@
             customerEmail: '${memberInfo.email}',
             customerName: '${memberInfo.member_name}',
             });
-        }*/
+        }
     </script>

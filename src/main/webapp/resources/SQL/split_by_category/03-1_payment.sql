@@ -89,3 +89,21 @@ END;
 
 CREATE INDEX idx_ep_settlement ON escrow_payout_tb(settlement_id);
 CREATE INDEX idx_ep_host_status ON escrow_payout_tb(host_id, status);
+
+
+CREATE TABLE platform_revenue_tb (
+    revenue_id       NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 자동 증가 PK (시퀀스 대용)
+    settlement_id    NUMBER NOT NULL,                                  -- 월별 정산 고유 ID (FK)
+    room_id          NUMBER NOT NULL,                                  -- OTT 매칭방 고유 ID (FK)
+    payer_id         VARCHAR2(20) NOT NULL,                            -- 수수료를 지불한 회원 아이디 (FK)
+    base_amount      NUMBER NOT NULL,                                  -- 수수료 계산의 기준이 된 원금
+    fee_rate         NUMBER(5, 2) DEFAULT 3.00,                        -- 적용 수수료율 (ex: 3.00)
+    fee_amount       NUMBER NOT NULL,                                  -- 최종 수수료 수익 금액
+    status   VARCHAR2(20) DEFAULT 'EARNED',                            -- 상태 (EARNED, REFUNDED 등)
+    created_at       DATE DEFAULT SYSDATE,                             -- 발생 일시 (기본값 현재날짜)
+
+    -- 외래키 제약조건 (실제 존재하는 상대 테이블명/컬럼명에 맞춰 필요시 주석 해제하여 사용)
+    CONSTRAINT fk_revenue_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
+    CONSTRAINT fk_revenue_status CHECK (status IN ('EARNED', 'REFUNDED', 'CANCELLED')),
+    CONSTRAINT fk_revenue_payer FOREIGN KEY (payer_id) REFERENCES member_tb(id)
+);

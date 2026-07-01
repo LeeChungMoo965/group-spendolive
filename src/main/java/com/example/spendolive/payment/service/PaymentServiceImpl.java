@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,6 +23,8 @@ import org.springframework.web.client.RestTemplate;
 import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.repository.MemberRepository;
+import com.example.spendolive.ott.domain.OttSettlementDTO;
+import com.example.spendolive.ott.repository.OttRepository;
 import com.example.spendolive.payment.domain.*;
 import com.example.spendolive.payment.repository.PaymentRepository;
 
@@ -33,6 +36,8 @@ public class PaymentServiceImpl implements PaymentService{
     private PaymentRepository paymentRepository;
     @Autowired
     private MemberRepository memberRepository;
+    @Autowired
+    private OttRepository ottRepository;
     @Value("${openbanking.useorg-code}")
     private String useorgCode;
 
@@ -184,7 +189,8 @@ public class PaymentServiceImpl implements PaymentService{
         }
     }
     @Override
-    public void executeAutomaticPayment(String userId, int amount, int room_id) throws Exception {
+    @Transactional
+    public void executeAutomaticPayment(String userId, int amount, int room_id, int fee, int base, int settlement_id, String host_id) throws Exception {
     RestTemplate restTemplate = new RestTemplate();
     
     // 💥 한글 깨짐 방지 처리 (주문명 한글 깨짐 방지)
@@ -245,6 +251,7 @@ public class PaymentServiceImpl implements PaymentService{
             String cardcompany = (String) cardInfo.get("issuerCode");
             
             SettlementPaymentVO paymentInfo = new SettlementPaymentVO();
+            
             paymentInfo.setId(userId);
             paymentInfo.setOrderId(orderid);
             paymentInfo.setPaymentKey(paymentKey);
@@ -253,12 +260,44 @@ public class PaymentServiceImpl implements PaymentService{
             paymentInfo.setCard_company(cardcompany);
             paymentInfo.setPaid_at(approved_at);
             paymentInfo.setPayment_status("PAID");
+            paymentInfo.setBase_amount(base);
+            paymentInfo.setFee_amount(fee);
+            paymentInfo.setFee_rate(3D);
+            paymentInfo.setMemo("OTT 사용료");   
+            paymentInfo.setSettlement_id(settlement_id);
+
+            EscrowPayoutVO escrowInfo = new EscrowPayoutVO();
+
+            escrowInfo.setAmount(base);
+            escrowInfo.setCreated_at(approved_at);
+            escrowInfo.setHost_id(host_id);
+            escrowInfo.setPayer_id(userId);
+            escrowInfo.setRoom_id(room_id);
+            escrowInfo.setSettlement_id(settlement_id);
+            escrowInfo.setStatus("HELD");
             
+            PlatformRevenueVO revenueInfo = new PlatformRevenueVO();
+            revenueInfo.setBase_amount(base);
+            revenueInfo.setCreated_at(approved_at);
+            revenueInfo.setFee_amount(fee);
+            revenueInfo.setFee_rate(3D);
+            revenueInfo.setPayer_id(userId);
+            revenueInfo.setRoom_id(room_id);
+            revenueInfo.setSettlement_id(settlement_id);
+            revenueInfo.setStatus("EARNED");
+            
+
             System.out.println("✅ [결제 성공 확인] paymentKey: " + paymentKey + " | 상태: " + status);
 
             if ("DONE".equals(status)) {
-                paymentRepository.updatePaymentStatus(paymentInfo);
-               
+                try{
+                    paymentRepository.updatePaymentStatus(paymentInfo);
+                    paymentRepository.insertEscrow(escrowInfo);
+                    paymentRepository.insertPlatfoem_Revenue(revenueInfo);
+                }catch(Exception e){
+                    //취소 api 요청
+                    throw new RuntimeException("결제 완료 후 데이터 저장 중 오류 발생   결제를 취소하겠습니다: " + status);
+                }
                 System.out.println("🎉 회원 [" + userId + "] DB 비즈니스 로직 반영 완료!");
             } else {
                 throw new RuntimeException("결제가 완료되지 않은 상태입니다: " + status);
@@ -276,6 +315,10 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int roomId) throws Exception {
         return paymentRepository.settlement_paymentByroomId(userId, roomId);
+    }
+    @Override
+    public OttSettlementDTO selectMySettlements(int roomId)  throws Exception{
+        return paymentRepository.settlementByroomId(roomId);
     }
 }
 

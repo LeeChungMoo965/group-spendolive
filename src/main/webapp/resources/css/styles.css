@@ -2537,3 +2537,7 @@ margin-top: 12px;
   display: grid;
 }
 }
+.danger-outline {
+  font-weight: 400;
+  color: #b8422e;
+  }

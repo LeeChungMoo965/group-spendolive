@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.domain.OttChatMessageDTO;
 import com.example.spendolive.ott.domain.OttRoomDTO;
+import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.service.OttService;
 
 @Controller
@@ -148,10 +149,11 @@ public class OttController {
     }
 
     // 신청하기 로직
-    @PostMapping("/ott/recruit/apply.do")
-    public String applyRecruitRoom(@RequestParam("roomId") Long roomId, HttpSession session) {
+    @GetMapping("/ott/recruit/apply.do")
+    public String applyRecruitRoom( HttpSession session) {
         String loginId = getLoginId(session);
-
+        OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
+        Long roomId = settlementInfo.getRoomId().longValue();
         if (loginId == null) {
             return "redirect:/member/loginForm.do";
         }
