@@ -36,7 +36,7 @@ public class PaymentControllerImpl implements PaymentController{
     public ModelAndView detail(@RequestParam Map<String, Object> roomid, HttpServletRequest request, HttpServletResponse response) throws Exception {
         HttpSession session = request.getSession();
         String roomIdStr = request.getParameter("roomId");
-        int roomId = 1; //Integer.parseInt(roomIdStr);
+        int roomId = Integer.parseInt(roomIdStr);
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         String userId = memberVO.getId();
         SettlementPaymentVO settlement_PaymentInfo =  paymentService.getSettlement_PaymentByRoomId(userId, roomId);

@@ -80,6 +80,7 @@
                                             <strong>${message.senderName}</strong>
                                             <p>${message.messageContent}</p>
                                             <small>${message.createdAt}</small>
+                                            <a href="#">신고하기</a>
                                         </div>
                                     </div>
                                 </c:when>

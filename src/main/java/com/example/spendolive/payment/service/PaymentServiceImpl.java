@@ -129,6 +129,7 @@ public class PaymentServiceImpl implements PaymentService{
     }
      */
     @Override
+    @Transactional
     public void issueAndSaveBillingKey(String customerKey, String authKey, String userId) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         
@@ -170,10 +171,10 @@ public class PaymentServiceImpl implements PaymentService{
                 String card_company = null;
                 if (cardInfo != null) {
                     card_num = (String) cardInfo.get("number"); 
-                    card_company = (String) cardInfo.get("issuerCode"); // "신한카드" 형태로 나옴 (만약 안 나오면 "company"로 테스트)
+                    card_company = (String) cardInfo.get("issuerCode"); 
                 }
                
-               
+                
                 memberRepository.updateTossInfo(userId, card_num, card_company, billingKey);
                 
             }
@@ -183,16 +184,12 @@ public class PaymentServiceImpl implements PaymentService{
         }
     }
     @Override
-public void executeAutomaticPayment(String userId, int amount, int room_id) throws Exception {
+    public void executeAutomaticPayment(String userId, int amount, int room_id) throws Exception {
     RestTemplate restTemplate = new RestTemplate();
     
     // 💥 한글 깨짐 방지 처리 (주문명 한글 깨짐 방지)
     restTemplate.getMessageConverters().add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
-    System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    System.out.println("🚨 [서비스 입구] 컨트롤러가 나한테 넘겨준 userId 값 : [" + userId + "]");
-    System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     // 1. DB에서 해당 유저의 빌링키와 카드 정보 조회해오기
-    // 형이 만든 MEMBER_CARD_TB에서 가져오는 레포지토리 메서드가 있다고 가정할게!
     MemberCardVO cardVo = memberRepository.getCardInfoByUserId(userId);
     if (cardVo == null || cardVo.getBillingKey() == null) {
         throw new RuntimeException("등록된 결제 카드가 없습니다.");

@@ -1067,7 +1067,6 @@ public class OttRepositoryImpl implements OttRepository {
     }
 
     @Override
-    @Transactional
     public void completePaidRoomEntry(Long roomId, String loginId) {
         OttRoomDTO room = selectRoom(roomId);
 
