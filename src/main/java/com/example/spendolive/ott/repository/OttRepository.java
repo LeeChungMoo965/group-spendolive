@@ -71,4 +71,6 @@ public interface OttRepository {
     void insertChatMessage(Long roomId, String senderId, String messageContent);
 
     void markChatRoomAsRead(Long roomId, String loginId);
+
+    void createReadySettlement(Long roomId, String hostId);
 }

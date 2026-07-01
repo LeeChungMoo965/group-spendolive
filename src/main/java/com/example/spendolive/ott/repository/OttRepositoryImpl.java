@@ -830,6 +830,67 @@ public class OttRepositoryImpl implements OttRepository {
         // 결제 성공 이후 ott_room_member_tb ACTIVE 등록은 결제 콜백 쪽에서 처리한다.
     }
 
+    // 방생성하기 누르면 정산 상태를 'READY' 인상태로 데이터 생성
+    // 방장이 팀원이 들어오고 나서 정산하기를 누르면 PAYMENT_OPEN로 update를 하고 settlement_payment_tb를 만드는 방식으로 가야함
+    @Override
+    @Transactional
+    public void createReadySettlement(Long roomId, String hostId) {
+        OttRoomDTO room = selectRoom(roomId);
+
+        if (room == null || !hostId.equals(room.getHostMemberId())) {
+            return;
+        }
+
+        YearMonth targetMonth = YearMonth.now().plusMonths(1);
+        String targetMonthText = targetMonth.toString();
+
+        if (existsSettlement(roomId, targetMonthText)) {
+            return;
+        }
+
+        LocalDate serviceStartDate = resolveBillingDate(targetMonth, room.getBillingDay());
+        LocalDate serviceEndDate = serviceStartDate.plusMonths(1).minusDays(1);
+        LocalDate paymentStartDate = LocalDate.now();
+        LocalDate paymentCloseDate = serviceStartDate.minusDays(5);
+        LocalDate replaceStartDate = paymentCloseDate;
+        LocalDate replaceEndDate = serviceStartDate.minusDays(1);
+
+        Long settlementId = jdbcTemplate.queryForObject("SELECT seq_settlement.NEXTVAL FROM dual", Long.class);
+
+        String sql = """
+                INSERT INTO settlement_tb (
+                    settlement_id,
+                    room_id,
+                    settlement_month,
+                    total_price,
+                    total_fee,
+                    total_pay_amount,
+                    due_date,
+                    payment_start_date,
+                    payment_close_date,
+                    service_start_date,
+                    service_end_date,
+                    replace_start_date,
+                    replace_end_date,
+                    status
+                ) VALUES (?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, 'READY')
+                """;
+
+        jdbcTemplate.update(sql,
+                settlementId,
+                roomId,
+                targetMonthText,
+                room.getTotalPrice(),
+                Date.valueOf(paymentCloseDate),
+                Date.valueOf(paymentStartDate),
+                Date.valueOf(paymentCloseDate),
+                Date.valueOf(serviceStartDate),
+                Date.valueOf(serviceEndDate),
+                Date.valueOf(replaceStartDate),
+                Date.valueOf(replaceEndDate));
+    }
+
+
     // =========================================================
     // 7. 정산 요청/결제 처리
     // =========================================================
