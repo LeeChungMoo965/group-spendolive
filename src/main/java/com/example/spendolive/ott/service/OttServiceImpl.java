@@ -135,7 +135,12 @@ public class OttServiceImpl implements OttService {
     public void createRecruitRoom(OttRoomDTO roomDTO, String loginId) {
         roomDTO.setRoomMode("RECRUIT");
         prepareRoomDefaultValues(roomDTO);
-        ottRepository.insertRoom(roomDTO, loginId, "RECRUITING");
+        
+            // 1. 모집방 생성
+        Long roomId = ottRepository.insertRoom(roomDTO, loginId, "RECRUITING");
+
+        // 2. 결제/정산 연결용 기본 정산 데이터 생성
+        ottRepository.createReadySettlement(roomId, loginId);
     }
 
     @Override
@@ -144,24 +149,24 @@ public class OttServiceImpl implements OttService {
     }
 
     @Override
-    public void approveApplication(Long roomMemberId, String hostId) {
-        ottRepository.approveApplication(roomMemberId, hostId);
-    }
-
-    @Override
-    public void rejectApplication(Long roomMemberId, String hostId) {
-        ottRepository.rejectApplication(roomMemberId, hostId);
+    public OttRoomDTO getRoomByInviteCode(String inviteCode) {
+        return ottRepository.selectRoomByInviteCode(inviteCode);
     }
 
     @Override
     public void requestSettlement(Long roomId, String hostId, String settlementMonth, String dueDate) {
         ottRepository.createSettlement(roomId, hostId, settlementMonth, dueDate);
-    }
+    } //
 
     @Override
     public void markPaymentPaid(Long paymentId, String loginId) {
         ottRepository.markPaymentPaid(paymentId, loginId);
     }
+
+    @Override
+    public void completePaidRoomEntry(Long roomId, String loginId) {
+        ottRepository.completePaidRoomEntry(roomId, loginId);
+    } // 결제 완료 후 사용자를 방에 ACTIVE로 넣는 메서드
 
     @Override
     public void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason) {

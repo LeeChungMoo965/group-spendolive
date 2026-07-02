@@ -1,16 +1,12 @@
 package com.example.spendolive.payment.domain;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
  * 14. 플랫폼 수익 테이블 도메인 객체
  */
-@Getter
-@Setter
-@ToString
+@Data
 public class PlatformRevenueVO {
 
     private int revenue_id;             // 플랫폼 수익 고유 ID (PK, 시퀀스 자동 생성)
@@ -22,7 +18,7 @@ public class PlatformRevenueVO {
     private int fee_amount;             // 플랫폼이 떼어간 최종 수수료 수익 금액
     
     // 상태값: EARNED(수익 확정), REFUNDED(환불로 인한 수익 취소), CANCELLED(취소됨)
-    private String revenue_status;      // 수수료 수익 상태 (기본값: 'EARNED')
+    private String status;      // 수수료 수익 상태 (기본값: 'EARNED')
     
     private LocalDateTime created_at;   // 플랫폼 수익 발생 일시 (기본값: SYSDATE)
 }

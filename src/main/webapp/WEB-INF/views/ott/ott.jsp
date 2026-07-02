@@ -52,7 +52,7 @@
                 </div>
 
                 <p class="card-desc">
-                    내가 아는 사람들과 공유방을 만들고, OTT 종류별 공유 정보와 정산 상태를 한 곳에서 관리합니다.
+                    내가 아는 사람들과 공유방을 만들고, 초대 URL·QR·카카오톡 링크로 결제 화면까지 바로 연결합니다.
                 </p>
 
                 <div class="ott-guide-grid">
@@ -61,8 +61,8 @@
                         <span>Netflix · Disney+ · TVING 등</span>
                     </div>
                     <div>
-                        <strong>정산 요청</strong>
-                        <span>참여자별 요청/완료 확인</span>
+                        <strong>초대 링크</strong>
+                        <span>URL · QR · 카카오톡 공유</span>
                     </div>
                     <div>
                         <strong>공유방 대화</strong>
@@ -83,7 +83,7 @@
                 </div>
 
                 <p class="card-desc">
-                    모든 모집글을 확인하고, 원하는 OTT 파티에 신청하거나 직접 모집글을 작성할 수 있습니다.
+                    모든 모집글을 확인하고, 신청 버튼을 통해 결제 화면으로 이동하거나 직접 모집글을 작성할 수 있습니다.
                 </p>
 
                 <div class="ott-guide-grid">
@@ -96,8 +96,8 @@
                         <span>OTT 선택 시 최고 멤버십 자동 계산</span>
                     </div>
                     <div>
-                        <strong>신청관리</strong>
-                        <span>신청자와 정산 알림 관리</span>
+                        <strong>결제 후 입장</strong>
+                        <span>승인 없이 결제 완료 후 참여</span>
                     </div>
                 </div>
 

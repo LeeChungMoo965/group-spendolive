@@ -104,5 +104,5 @@
             customerEmail: '${memberInfo.email}',
             customerName: '${memberInfo.member_name}',
             });
-        }*/
+        }
     </script>

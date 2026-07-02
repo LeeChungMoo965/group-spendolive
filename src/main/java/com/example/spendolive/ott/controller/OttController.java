@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.domain.OttChatMessageDTO;
 import com.example.spendolive.ott.domain.OttRoomDTO;
+import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.service.OttService;
 
 @Controller
@@ -147,41 +148,32 @@ public class OttController {
         return "redirect:/spendolive/ott/recruit.do?tab=all&result=created";
     }
 
-    @PostMapping("/ott/recruit/apply.do")
-    public String applyRecruitRoom(@RequestParam("roomId") Long roomId, HttpSession session) {
+    // 신청하기 로직
+    @GetMapping("/ott/recruit/apply.do")
+    public String applyRecruitRoom( HttpSession session) {
         String loginId = getLoginId(session);
-
+        OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
+        Long roomId = settlementInfo.getRoomId().longValue();
         if (loginId == null) {
             return "redirect:/member/loginForm.do";
         }
 
-        ottService.applyRecruitRoom(roomId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=applied";
+        // 신청하기 누르면 바로 방 구성원으로 등록
+        ottService.completePaidRoomEntry(roomId, loginId);
+
+        // 바로 채팅방 입장
+        return "redirect:/spendolive/ott/chat/room.do?roomId=" + roomId;
     }
 
-    @PostMapping("/ott/recruit/application/approve.do")
-    public String approveApplication(@RequestParam("roomMemberId") Long roomMemberId, HttpSession session) {
-        String loginId = getLoginId(session);
+    @GetMapping("/ott/friends/invite.do")
+    public String enterFriendRoomByInvite(@RequestParam("code") String inviteCode) {
+        OttRoomDTO room = ottService.getRoomByInviteCode(inviteCode);
 
-        if (loginId == null) {
-            return "redirect:/member/loginForm.do";
+        if (room == null || !"FRIEND".equals(room.getRoomMode()) || "CLOSED".equals(room.getStatus())) {
+            return "redirect:/spendolive/ott.do?error=invalidInvite";
         }
 
-        ottService.approveApplication(roomMemberId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=approved";
-    }
-
-    @PostMapping("/ott/recruit/application/reject.do")
-    public String rejectApplication(@RequestParam("roomMemberId") Long roomMemberId, HttpSession session) {
-        String loginId = getLoginId(session);
-
-        if (loginId == null) {
-            
-            return "redirect:/member/loginForm.do";
-        }
-
-        ottService.rejectApplication(roomMemberId, loginId);
-        return "redirect:/spendolive/ott/recruit.do?tab=apply&result=rejected";
+        return redirectToRoomPayment(room.getRoomId(), "FRIEND", room.getInviteCode());
     }
 
     @GetMapping("/ott/chat/room.do")
@@ -299,6 +291,16 @@ public class OttController {
         return "redirect:/spendolive/ott/friends.do?result=closeRequested";
     }
 
+
+    private String redirectToRoomPayment(Long roomId, String roomMode, String inviteCode) {
+        String redirectUrl = "redirect:/payment/detail.do?roomId=" + roomId + "&roomMode=" + roomMode;
+
+        if (inviteCode != null && !inviteCode.isBlank()) {
+            redirectUrl += "&inviteCode=" + inviteCode;
+        }
+
+        return redirectUrl;
+    }
 
     private Long parseOttServiceId(String ottServiceId) {
         if (ottServiceId == null || ottServiceId.isBlank()) {

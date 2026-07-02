@@ -45,11 +45,11 @@
         <p class="eyebrow">SHARE CHAT</p>
         <h1>${chatRoom.roomName}</h1>
         <p class="hero-text">
-            ${chatRoom.serviceName} 공유방 대화입니다. 파티장이 수락한 참여자와 방장만 대화방에 들어올 수 있습니다.
+            ${chatRoom.serviceName} 공유방 대화입니다. 결제 완료 후 참여 중인 멤버와 방장만 대화방에 들어올 수 있습니다.
         </p>
         <div class="ott-page-actions">
             <a href="${contextPath}/spendolive/ott/friends.do" class="btn btn-outline">내 공유방</a>
-            <a href="${contextPath}/spendolive/ott/recruit.do?tab=apply" class="btn btn-outline">신청관리</a>
+            <a href="${contextPath}/spendolive/ott/recruit.do?tab=manage" class="btn btn-outline">참여방 관리</a>
         </div>
     </div>
 </section>
@@ -89,6 +89,7 @@
                                             <strong>${message.senderName}</strong>
                                             <p>${message.messageContent}</p>
                                             <small>${message.createdAt}</small>
+                                            
                                         </div>
                                     </div>
                                 </c:otherwise>
@@ -136,7 +137,20 @@
 
         const time = document.createElement('small');
         time.textContent = message.createdAt || '';
+        if (!isSystem && message.mineYn !== 'Y') {
+                const reportLink = document.createElement('a');
+                reportLink.href = '#';
+                reportLink.textContent = ' 신고하기';
+                reportLink.className = 'danger-outline';
+                // 필요한 경우 여기에 신고하기 클릭 이벤트 리스너를 달 수 있습니다.
+                reportLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // 예: reportMessage(message.messageId); 
+                    alert('신고 기능 구현 필요');
+                });
 
+                time.appendChild(reportLink);
+            }
         bubble.appendChild(sender);
         bubble.appendChild(content);
         bubble.appendChild(time);
@@ -193,6 +207,6 @@
     });
 
     scrollToBottom();
-    setInterval(loadMessages, 3000);
+    setInterval(loadMessages, 1500);
 })();
 </script>
