@@ -12,5 +12,6 @@ public interface PaymentService {
     public void executeAutomaticPayment(String userId, int total, int room_id, int fee, int base, int settlement_id, String host_id) throws Exception;
     public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int roomId) throws Exception;
     public OttSettlementDTO selectMySettlements(int roomId)  throws Exception;
+    public void registerSubMall(String userId, String bankCode, String accNum, String holderName,MemberVO memberVO) throws Exception;
     
 }

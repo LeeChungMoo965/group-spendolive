@@ -1,7 +1,9 @@
 package com.example.spendolive.payment.service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
@@ -13,11 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.spendolive.member.domain.MemberCardVO;
@@ -27,6 +31,12 @@ import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.repository.OttRepository;
 import com.example.spendolive.payment.domain.*;
 import com.example.spendolive.payment.repository.PaymentRepository;
+import com.nimbusds.jose.EncryptionMethod;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.JWEObject;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.DirectEncrypter;
 
 import tools.jackson.databind.ObjectMapper;
 
@@ -51,6 +61,7 @@ public class PaymentServiceImpl implements PaymentService{
     private String cntrAccountHolder;
     @Value("${toss.secret-key}")
     private String secretKey;
+    
 /*
     @Override
     @Transactional(rollbackFor = Exception.class) // 💥 돈 관련 로직이므로 에러 나면 무조건 DB 롤백!
@@ -320,5 +331,90 @@ public class PaymentServiceImpl implements PaymentService{
     public OttSettlementDTO selectMySettlements(int roomId)  throws Exception{
         return paymentRepository.settlementByroomId(roomId);
     }
+    @Override
+public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
+    
+    // 🌟 1. 암호화가 전혀 필요 없는 구형 v1 정산 API 주소
+    String TOSS_API_URL = "https://api.tosspayments.com/v1/payouts/sub-malls"; 
+    
+    try {
+        /* 
+        RestTemplate restTemplate = new RestTemplate();
+        String name = memberVO.getMember_name();
+        
+        // v1은 계좌 실시간 조회를 안 하므로 마스킹이 섞여도 포맷만 맞으면 무조건 패스합니다.
+        String cleanNum = accNum.replace("***", "000").replace("-", ""); 
+
+        // 🌟 2. 별도 DTO 없이 Map 구조로 v1 스펙에 맞게 데이터 세팅
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("subMallId", "SELLER_" + userId);   // 고유 식별자
+        requestBody.put("companyName", name);               // 상호명
+        requestBody.put("representativeName", name);        // 대표자명
+        requestBody.put("identityNumber", "0001013111111"); // 예시: 주민번호 앞자리6자리 + 뒷자리7자리 총 13자리
+        requestBody.put("type", "INDIVIDUAL");
+        // 정산 계좌 객체 조립 (v1 필드명: bank, accountNumber, holderName)
+        Map<String, String> accountInfo = new HashMap<>();
+        accountInfo.put("bank", "국민"); 
+        accountInfo.put("accountNumber", cleanNum);
+        accountInfo.put("holderName", name);
+        requestBody.put("account", accountInfo);
+
+        // 🌟 3. HTTP 헤더 세팅 (순수 JSON 통신 설정)
+        HttpHeaders headers = new HttpHeaders();
+        String rawKey = secretKey.trim() + ":";
+        String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
+        
+        headers.set("Authorization", "Basic " + encodedSecretKey);
+        headers.setContentType(MediaType.APPLICATION_JSON); // text/plain 대신 무조건 JSON!
+
+        // Map 객체와 헤더를 바인딩
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        // 🌟 4. 토스 API 호출
+        ResponseEntity<String> response = restTemplate.exchange(
+            TOSS_API_URL,
+            HttpMethod.POST,
+            entity,
+            String.class
+        );
+        
+        
+        if (response.getStatusCode() == HttpStatus.OK) {
+            tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
+            Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
+            
+            // 🌟 5. v1 응답 데이터 구조에 맞춰 파싱 및 DB 저장
+            SellerAccountVO seller = new SellerAccountVO().builder()
+                    .memberId(userId)
+                    .bankName((String) resBody.get("bank"))
+                    .accountNumber((String) resBody.get("accountNumber"))
+                    .traceId(UUID.randomUUID().toString()) // v1은 traceId를 안 주므로 내부용 임의 생성
+                    .build();
+                    */
+            try{
+            String traceId ="1123412312321413243142sadsadadsdsadasd";        
+            SellerAccountVO seller = new SellerAccountVO().builder()
+            .memberId(userId)
+            .bankName(bankCode)
+            .accountNumber(accNum)
+            .traceId(traceId) // v1은 traceId를 안 주므로 내부용 임의 생성
+            .build();
+            paymentRepository.insertSeller(seller);
+            
+            System.out.println("🎉 [토스 셀러 등록 성공] subMallId : SELLER_" + userId);
+            }catch(Exception e){
+                //취소 api요청
+                throw new RuntimeException("서버 오류 로 송금을 취소합니다");
+            }
+        //}
+
+    } catch (HttpClientErrorException e) {
+        System.err.println("🚨 [토스 API 리턴 에러]: " + e.getResponseBodyAsString());
+        throw new RuntimeException("토스 서브몰 등록 중 API 검증 오류 발생");
+    } catch (Exception e) {
+        System.err.println("🚨 [시스템 에러]: " + e.getMessage());
+        throw new RuntimeException("토스 서브몰 등록 중 시스템 오류 발생");
+    }
+}
 }
 
