@@ -29,6 +29,7 @@ public class NoticeRepository {
         notice.setPinnedYn(rs.getString("pinned_yn"));
         notice.setCreatedAt(rs.getString("created_at"));
         notice.setUpdatedAt(rs.getString("updated_at"));
+        
         return notice;
     }
 
@@ -45,12 +46,16 @@ public class NoticeRepository {
                 CASE WHEN nf.notice_id IS NULL THEN 'N' ELSE 'Y' END AS star_yn,
                 TO_CHAR(n.created_at, 'YYYY.MM.DD') AS created_at,
                 TO_CHAR(n.updated_at, 'YYYY.MM.DD') AS updated_at
+               
+                
             FROM notice_tb n
             LEFT JOIN notice_read_tb nr
                 ON n.notice_id = nr.notice_id AND nr.id = ?
             LEFT JOIN notice_favorite_tb nf
                 ON n.notice_id = nf.notice_id AND nf.id = ?
-            ORDER BY n.pinned_yn DESC, n.created_at DESC
+            ORDER BY n.pinned_yn DESC, n.notice_id DESC
+           
+            
         """;
 
         try {
@@ -127,7 +132,7 @@ public class NoticeRepository {
             LEFT JOIN notice_favorite_tb nf
                 ON n.notice_id = nf.notice_id AND nf.id = ?
             WHERE n.pinned_yn = 'Y'
-            ORDER BY n.created_at DESC
+            ORDER BY n.notice_id DESC
         """;
 
         try {
