@@ -77,7 +77,7 @@
                                 <c:when test="${message.systemYn eq 'Y'}">
                                     <div class="chat-message-row system">
                                         <div class="chat-system-bubble">
-                                            <strong>${message.senderName}</strong>
+                                            <strong>${message.senderId}</strong>
                                             <p>${message.messageContent}</p>
                                             <small>${message.createdAt}</small>
                                         </div>
@@ -139,14 +139,16 @@
         time.textContent = message.createdAt || '';
         if (!isSystem && message.mineYn !== 'Y') {
                 const reportLink = document.createElement('a');
-                reportLink.href = '#';
+                reportLink.href = '/report/report.do?reported_member_id='+message.senderId+'?room_id='+roomId+'?chat_text='+message.messageContent;
                 reportLink.textContent = ' 신고하기';
                 reportLink.className = 'danger-outline';
                 // 필요한 경우 여기에 신고하기 클릭 이벤트 리스너를 달 수 있습니다.
                 reportLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     // 예: reportMessage(message.messageId); 
-                    alert('신고 기능 구현 필요');
+                    if (confirm('신고 하시겠습니까?')){
+                        location.href ='/report/report.do?reported_member_id='+message.senderId+'&room_id='+roomId+'&chat_text='+encodeURIComponent(message.messageContent);
+                    }
                 });
 
                 time.appendChild(reportLink);

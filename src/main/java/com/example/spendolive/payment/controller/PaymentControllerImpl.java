@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
@@ -100,11 +101,11 @@ public class PaymentControllerImpl implements PaymentController{
     // ────────────────────────────────────────────────────────
     @Override
     @GetMapping("/callback.do")
-    public void tossCallback(
+    public String tossCallback(
             @RequestParam("customerKey") String customerKey,
             @RequestParam("authKey") String authKey,
             HttpServletRequest request, HttpServletResponse response,
-            HttpSession session) throws Exception {
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
@@ -115,30 +116,20 @@ public class PaymentControllerImpl implements PaymentController{
         try {
             // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
             paymentService.issueAndSaveBillingKey(customerKey, authKey, userId);
-
-            // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
-            out.print("<script>");
-            out.print("alert('결제 카드가 정상적으로 등록되었습니다! 정산 준비 완료.');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
-            out.print("</script>");
-            out.flush();
-            out.close();
+            redirectAttributes.addFlashAttribute("msg", "'결제 카드가 정상적으로 등록되었습니다! 정산 준비 완료.");
+            return "redirect:/spendolive/main.do";
 
         } catch (Exception e) {
-            e.printStackTrace();
-            out.print("<script>");
-            out.print("alert('카드 등록 최종 승인 중 에러가 발생했습니다.');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
-            out.print("</script>");
-            out.flush();
-            out.close();
+           
+            redirectAttributes.addFlashAttribute("msg", "'카드 등록 최종 승인 중 에러가 발생했습니다.");
+            return "redirect:/spendolive/main.do";
         }
     }
     @Override
     @GetMapping("/paymenting.do")
-    public void payment(
+    public String payment(
             HttpServletRequest request, HttpServletResponse response,
-            HttpSession session) throws Exception {
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
@@ -158,21 +149,12 @@ public class PaymentControllerImpl implements PaymentController{
             paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);
 
             // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
-            out.print("<script>");
-            out.print("alert('송금 완료!!');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/ott/recruit/apply.do';");
-            out.print("</script>");
-            out.flush();
-            out.close();
+            redirectAttributes.addFlashAttribute("msg", "자동결제가 완료 되었습니다 !");
+            return "redirect:/spendolive/main.do";
 
         } catch (Exception e) {
-            e.printStackTrace();
-            out.print("<script>");
-            out.print("alert('송금 싪패');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
-            out.print("</script>");
-            out.flush();
-            out.close();
+            redirectAttributes.addFlashAttribute("msg", "자동결제가 실패 되었습니다 다시 시도 해주세요");
+            return "redirect:/spendolive/main.do";
         }
     }
 

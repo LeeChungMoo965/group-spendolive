@@ -13,4 +13,5 @@ public interface PaymentRepository {
     public void insertEscrow(EscrowPayoutVO escrow);
     public OttSettlementDTO settlementByroomId (int roomId) throws  Exception;
     public void insertPlatfoem_Revenue(PlatformRevenueVO revenueInfo);
+    public void insertSeller(SellerAccountVO sellerInfo);
 }

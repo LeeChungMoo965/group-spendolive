@@ -23,6 +23,9 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     private final String insertRevenue = "INSERT INTO platform_revenue_tb ("
     +"SETTLEMENT_ID, ROOM_ID, PAYER_ID, BASE_AMOUNT, FEE_RATE, FEE_AMOUNT, STATUS, CREATED_AT) "
     +" VALUES(?,?,?,?,?,?,?,?) ";
+    private final String insertSeller = "INSERT INTO seller_account_tb ("
+    +"member_id, bank_name, account_number, traceId) "
+    +" VALUES(?,?,?,?) ";
     private final String settlement_paymentByroomId = "select "
     +"sp.payment_id, sp.settlement_id, sp.id, sp.base_amount, sp.fee_rate, sp.fee_amount, sp.total_amount, sp.payment_status, sp.card_number," 
     +"sp.card_company, sp.paid_at, sp.confirmed_at, sp.expired_at, sp.cancelled_at, sp.paymentKey, sp.orderId, sp.memo "
@@ -90,6 +93,10 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     @Override
     public void insertEscrow(EscrowPayoutVO escrowInfo) {
         jdbcTemplate.update(insertEscrow, escrowInfo.getSettlement_id(),escrowInfo.getRoom_id(), escrowInfo.getPayer_id() ,escrowInfo.getHost_id(), escrowInfo.getAmount() ,escrowInfo.getStatus(), escrowInfo.getCreated_at());
+    }
+    @Override
+    public void insertSeller(SellerAccountVO sellerInfo) {
+        jdbcTemplate.update(insertSeller, sellerInfo.getMemberId(), sellerInfo.getBankName(), sellerInfo.getAccountNumber(),sellerInfo.getTraceId());
     }
     @Override
     public void insertPlatfoem_Revenue(PlatformRevenueVO revenueInfo) {

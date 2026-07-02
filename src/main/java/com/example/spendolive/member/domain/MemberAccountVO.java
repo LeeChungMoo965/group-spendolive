@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class MemberAccountVO {
     private int accountIdx;        // account_idx (NUMBER -> int 또는 Integer)
+    private String account_holder_nam;
     private String id;             // id (VARCHAR2)
     private String bankCode;       // bank_code (VARCHAR2)
     private String accountNumber;  // account_number (VARCHAR2)
