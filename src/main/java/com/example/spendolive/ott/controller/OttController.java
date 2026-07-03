@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
@@ -37,19 +38,18 @@ public class OttController {
     public String ottMain(Model model, HttpSession session) {
         ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
-        
-        
+        session.removeAttribute("log");
         model.addAttribute("serviceList", ottService.getShareableServices());
         model.addAttribute("recruitRoomCount", ottService.getRecruitRoomCount());
         
         if (loginId != null) {
             model.addAttribute("myRoomCount", ottService.getMyRoomCount(loginId));
+            model.addAttribute("body_page", "/WEB-INF/views/ott/ott.jsp");
+            return "common/layout";
         } else {
             model.addAttribute("myRoomCount", 0);
+            return "redirect:/member/loginForm.do?log=ott";
         }
-
-        model.addAttribute("body_page", "/WEB-INF/views/ott/ott.jsp");
-        return "common/layout";
     }
 
     @GetMapping("/ott/friends.do")

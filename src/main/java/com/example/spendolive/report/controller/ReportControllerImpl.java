@@ -30,7 +30,10 @@ public class ReportControllerImpl implements ReportController{
             return "redirect:/spendolive/main.do";
 
         } catch (Exception e) {
-           
+            System.out.println(reported_member_id);
+            System.out.println(room_id);
+            System.out.println(chat_text);
+            System.err.println("🚨 [신고 저장 오류]: " + e.getMessage());
             redirectAttributes.addFlashAttribute("msg", "신고에 실패 하였습니다. ");
             return "redirect:/spendolive/main.do";
         }
