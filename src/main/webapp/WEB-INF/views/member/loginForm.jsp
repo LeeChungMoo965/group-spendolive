@@ -87,13 +87,13 @@
                 <label for="loginId">
                     아이디 또는 이메일
                 </label>
-                <input id="loginId" type="text" name="id" placeholder="아이디 또는 이메일을 입력하세요">
+                <input id="loginId" type="text" name="id" placeholder="아이디 또는 이메일을 입력하세요" required>
             </div>
             <div class="auth-form-group">
                 <label for="loginPw">
                     비밀번호
                 </label>
-                <input id="loginPw" type="password" name="password" placeholder="비밀번호를 입력하세요">
+                <input id="loginPw" type="password" name="password" placeholder="비밀번호를 입력하세요" required>
             </div>
             <div class="auth-options">
                 <label>

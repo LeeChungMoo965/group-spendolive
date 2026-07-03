@@ -1,5 +1,5 @@
 let currentPage = 1;
-const pageSize = 5;
+const pageSize = 10;
 let currentNoticeData = [];
 
 
@@ -130,7 +130,7 @@ function drawNoticePage() {
 
             html += `
                 <tr>
-                    <td>${start + index + 1}</td>
+                <td>${notice.pinnedYn === "Y" ? "📌" : currentNoticeData.length - start - index }</td>
                     <td>
                         ${
                             loginYn
@@ -188,7 +188,7 @@ function moveNoticePage(page) {
 
 let currentNotifData   = [];
 let currentNotifPage   = 1;
-const notifPageSize    = 5;
+const notifPageSize    = 10;
 let currentNotifFilter = "all";   // 현재 필터 기억 (읽음 처리 후 같은 필터로 재렌더)
 
 function loadNotificationList(filter = "all") {
@@ -233,7 +233,7 @@ function drawNotifPage() {
 
             html += `
                 <tr>
-                    <td>${start + index + 1}</td>
+                    <td>${currentNotifData.length - start - index }</td>
                     <td>
                         <button type="button"
                                 class="notice-list-star-btn"
@@ -314,7 +314,7 @@ function moveNotifPage(page) {
                     
                         html += `
                             <tr>
-                                <td>${index + 1}</td>
+                                <td>📌</td>
                                 <td>
                                     ${
                                         loginYn

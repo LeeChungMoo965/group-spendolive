@@ -30,8 +30,8 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" from member_tb where email =?";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
     +" from member_tb where phone =?";
-    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance) "
-    +" values(?,?,?,?,?,?,?) ";
+    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,account_holder_nam) "
+    +" values(?,?,?,?,?,?,?,?) ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
     private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, "
@@ -137,7 +137,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         );
     }
     @Override
-    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num, String bank_code, String account_num, int balance) throws DataAccessException {
+    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num, String bank_code, String account_num, int balance,String account_holder_nam) throws DataAccessException {
         jdbcTemplate.update(updatePinNO,
         userId,
         bank_code,
@@ -145,7 +145,8 @@ public class MemberRepositoryImpl implements MemberRepository{
         fintech_num,
         accessToken,
         userSeqNo,
-        balance
+        balance,
+        account_holder_nam
         );
     }
 

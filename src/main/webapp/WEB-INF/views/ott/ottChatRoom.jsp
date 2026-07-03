@@ -77,7 +77,7 @@
                                 <c:when test="${message.systemYn eq 'Y'}">
                                     <div class="chat-message-row system">
                                         <div class="chat-system-bubble">
-                                            <strong>${message.senderName}</strong>
+                                            <strong>${message.senderId}</strong>
                                             <p>${message.messageContent}</p>
                                             <small>${message.createdAt}</small>
                                         </div>
@@ -89,6 +89,7 @@
                                             <strong>${message.senderName}</strong>
                                             <p>${message.messageContent}</p>
                                             <small>${message.createdAt}</small>
+                                            
                                         </div>
                                     </div>
                                 </c:otherwise>
@@ -136,7 +137,22 @@
 
         const time = document.createElement('small');
         time.textContent = message.createdAt || '';
+        if (!isSystem && message.mineYn !== 'Y') {
+                const reportLink = document.createElement('a');
+                reportLink.href = '/report/report.do?reported_member_id='+message.senderId+'?room_id='+roomId+'?chat_text='+message.messageContent;
+                reportLink.textContent = ' 신고하기';
+                reportLink.className = 'danger-outline';
+                // 필요한 경우 여기에 신고하기 클릭 이벤트 리스너를 달 수 있습니다.
+                reportLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // 예: reportMessage(message.messageId); 
+                    if (confirm('신고 하시겠습니까?')){
+                        location.href ='/report/report.do?reported_member_id='+message.senderId+'&room_id='+roomId+'&chat_text='+encodeURIComponent(message.messageContent);
+                    }
+                });
 
+                time.appendChild(reportLink);
+            }
         bubble.appendChild(sender);
         bubble.appendChild(content);
         bubble.appendChild(time);
@@ -193,6 +209,6 @@
     });
 
     scrollToBottom();
-    setInterval(loadMessages, 3000);
+    setInterval(loadMessages, 1500);
 })();
 </script>

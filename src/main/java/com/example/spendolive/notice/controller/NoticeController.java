@@ -34,9 +34,12 @@ public class NoticeController {
             HttpSession session) {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+     
+        
         String id = (memberInfo != null) ? memberInfo.getId() : null;
-
+        
         ModelAndView mav = new ModelAndView("common/layout");
+        mav.setViewName("redirect:/member/loginForm.do?log=notice");
         mav.addObject("body_page", "/WEB-INF/views/notice/noticeCenter.jsp");
         mav.addObject("loginYn", memberInfo != null);
         mav.addObject("tab", tab);
@@ -52,7 +55,7 @@ public class NoticeController {
             mav.addObject("importantCount", 0);
             mav.addObject("errorMsg", "공지사항을 불러오는 중 오류가 발생했습니다.");
         }
-
+        session.removeAttribute("log");
         return mav;
     }
 

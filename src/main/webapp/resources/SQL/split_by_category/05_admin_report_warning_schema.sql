@@ -10,7 +10,7 @@ SET DEFINE OFF;
    21. [팀 원본 사용] 신고 테이블
    ========================================================= */
 CREATE TABLE report_tb (
-    report_id          NUMBER NOT NULL,
+    report_id          NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     reporter_id        VARCHAR2(20) NOT NULL,
     reported_member_id VARCHAR2(20) NOT NULL,
     room_id            NUMBER,
@@ -20,7 +20,6 @@ CREATE TABLE report_tb (
     created_at         DATE DEFAULT SYSDATE NOT NULL,
     processed_at       DATE,
 
-    CONSTRAINT pk_report PRIMARY KEY (report_id),
     CONSTRAINT fk_report_reporter FOREIGN KEY (reporter_id) REFERENCES member_tb(id),
     CONSTRAINT fk_report_reported FOREIGN KEY (reported_member_id) REFERENCES member_tb(id),
     CONSTRAINT fk_report_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),

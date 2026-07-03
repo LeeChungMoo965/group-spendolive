@@ -83,13 +83,13 @@
                     <label for="name">
                         이름
                     </label>
-                    <input id="name" name="member_name" type="readonly" value="${member_name}">
+                    <input id="name" name="member_name" type="readonly" value="${member_name}" required>
                 </div>
                 <div class="auth-form-group">
                     <label for="nickname">
                         닉네임
                     </label>
-                    <input id="nickname"name="nickname" type="text" placeholder="닉네임을 입력하세요">
+                    <input id="nickname"name="nickname" type="text" placeholder="닉네임을 입력하세요" required>
                 </div>
             </div>
                <div class="auth-form-group">
@@ -97,7 +97,7 @@
                     이메일
                 </label>
                 <div class="auth-input-row">
-                    <input id="email" name="email"type="email" placeholder="example@email.com">
+                    <input id="email" name="email"type="email" placeholder="example@email.com" required>
                     <button class="auth-btn auth-btn-light" type="button" onclick="sendEmail()">인증요청</button>
                 </div>
             </div>
@@ -114,7 +114,7 @@
             <div class="auth-form-group">
                 <label for="phone">전화번호</label>
                 <div class="auth-input-row">
-                    <input id="phone" name="phone" type="tel" placeholder="010-0000-0000">
+                    <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required>
                     <button class="auth-btn auth-btn-light" type="button" onclick="sendSms()">인증요청</button>
                 </div>
             </div>
@@ -140,13 +140,13 @@
                     <label for="name">
                         이름
                     </label>
-                    <input id="name" name="member_name" type="text" placeholder="이름을 입력하세요">
+                    <input id="name" name="member_name" type="text" placeholder="이름을 입력하세요" required>
                 </div>
                 <div class="auth-form-group">
                     <label for="nickname">
                         닉네임
                     </label>
-                    <input id="nickname"name="nickname" type="text" placeholder="닉네임을 입력하세요">
+                    <input id="nickname"name="nickname" type="text" placeholder="닉네임을 입력하세요" required>
                 </div>
             </div>
             <div class="auth-form-group">
@@ -154,7 +154,7 @@
                     아이디
                 </label>
                 <div class="auth-input-row">
-                    <input id="userId" type="text" name="id"placeholder="사용할 아이디를 입력하세요">
+                    <input id="userId" type="text" name="id"placeholder="사용할 아이디를 입력하세요" required>
                     <button class="auth-btn auth-btn-light" type="button" onclick="checkId()">
                         중복확인
                     </button>
@@ -168,14 +168,14 @@
                     이메일
                 </label>
                 <div class="auth-input-row">
-                    <input id="email" name="email"type="email" placeholder="example@email.com">
+                    <input id="email" name="email"type="email" placeholder="example@email.com" required>
                     <button class="auth-btn auth-btn-light" type="button" onclick="sendEmail()">인증요청</button>
                 </div>
             </div>
             <div class="auth-form-group" id="emailAuthArea" style="display:none;">
                 <label for="emailAuthCode">인증번호 입력</label>
                 <div class="auth-input-row">
-                    <input id="emailAuthCode" type="text" placeholder="6자리 인증번호를 입력하세요">
+                    <input id="emailAuthCode" type="text" placeholder="6자리 인증번호를 입력하세요" >
                     <button class="auth-btn auth-btn-light" type="button" onclick="verifyEmail()">인증확인</button>
                 </div>
                 <p id="emailAuthResult" class="auth-result-text">이메일로 발송된 인증번호를 입력해 주세요.</p>
@@ -185,7 +185,7 @@
             <div class="auth-form-group">
                 <label for="phone">전화번호</label>
                 <div class="auth-input-row">
-                    <input id="phone" name="phone" type="tel" placeholder="010-0000-0000">
+                    <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required>
                     <button class="auth-btn auth-btn-light" type="button" onclick="sendSms()">인증요청</button>
                 </div>
             </div>
@@ -203,13 +203,13 @@
                     <label for="password">
                         비밀번호
                     </label>
-                    <input id="password" type="password"name="password" placeholder="비밀번호를 입력하세요">
+                    <input id="password" type="password"name="password" placeholder="비밀번호를 입력하세요" required>
                 </div>
                 <div class="auth-form-group">
                     <label for="passwordCheck">
                         비밀번호 확인
                     </label>
-                    <input id="passwordCheck" type="password" placeholder="비밀번호를 다시 입력하세요">
+                    <input id="passwordCheck" type="password" placeholder="비밀번호를 다시 입력하세요" required>
                 </div>
             </div>
            </c:otherwise>

@@ -72,6 +72,8 @@ label{color:#3f4c25;font-weight:900} input,select,textarea{width:100%;margin-top
 .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}.calendar-grid span,.calendar-grid button{min-height:112px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;color:var(--text);text-align:left;padding:12px;cursor:pointer}
 .calendar-grid span{display:grid;place-items:center;min-height:48px;color:var(--muted);font-weight:900;background:#f8f9ef;text-align:center;cursor:default}.calendar-grid button.spend{background:#f0f5de;color:var(--olive-dark);font-weight:900}.calendar-grid button.ottday{background:#fff3d8;color:#8a5b13;font-weight:900}.calendar-grid button.fixedday{background:#edeed3;color:var(--olive-dark);font-weight:900}.calendar-grid small{display:block;margin-top:7px;line-height:1.45}
 .side-panel{padding:24px}.side-panel h3{margin:0 0 16px}.side-event{padding:14px;border-radius:15px;background:var(--cream);border:1px solid var(--line);margin-bottom:10px}.side-event strong{display:block;margin-bottom:4px}.side-event span{color:var(--muted);font-size:13px}
+.fc-daygrid-day-number {cursor: pointer; transition: font-weight 0.1s;}.fc-daygrid-day-number:hover {font-weight: 900; color: var(--olive-dark);}
+
 
 /* OTT */
 .ott-two-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.ott-panel{padding:24px}.panel-header{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:18px}.panel-header h2,.panel-header h3{margin:0}.panel-header span{color:var(--muted);font-weight:850}

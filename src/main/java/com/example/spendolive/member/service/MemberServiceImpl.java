@@ -22,13 +22,16 @@
     import org.springframework.mail.javamail.JavaMailSender;
     import org.springframework.mail.javamail.MimeMessageHelper;
     import org.springframework.stereotype.Service;
-    import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
     import org.springframework.util.MultiValueMap;
     import org.springframework.web.client.RestTemplate;
 
     import com.example.spendolive.member.domain.MemberVO;
     import com.example.spendolive.member.repository.MemberRepository;
-    import com.google.gson.JsonElement;
+import com.example.spendolive.payment.service.PaymentService;
+import com.example.spendolive.payment.service.PaymentServiceImpl;
+import com.google.gson.JsonElement;
     import com.google.gson.JsonObject;
     import com.google.gson.JsonParser;
     import jakarta.mail.internet.MimeMessage;
@@ -38,6 +41,8 @@ import tools.jackson.databind.ObjectMapper;
 
         @Autowired
         private MemberRepository memberRepository;
+        @Autowired
+        private PaymentService paymentService;
         @Autowired
         private JavaMailSender mailSender;
         @Value("${kakao.client.id}")
@@ -233,7 +238,8 @@ import tools.jackson.databind.ObjectMapper;
             memberRepository.updateMyInfo(memberVO, newPassword);
         }
         @Override
-        public void registerOpenBankingToken(String code, String userId,HttpHeaders headers,ResponseEntity<Map> response) throws Exception {
+        @Transactional
+        public void registerOpenBankingToken(String code, String userId,HttpHeaders headers,ResponseEntity<Map> response, MemberVO memberVO) throws Exception {
         
             // 1. 금결원 토큰 발급 요청 주소 (테스트베드 환경이므로 testapi 사용!)
             String tokenUrl = "https://testapi.openbanking.or.kr/oauth/2.0/token";
@@ -288,6 +294,7 @@ import tools.jackson.databind.ObjectMapper;
                 String fintechUseNum = (String) firstAccount.get("fintech_use_num");
                 String accountNum = (String) firstAccount.get("account_num_masked");
                 String bankCode = (String) firstAccount.get("bank_code_std");
+                String account_holder_name = (String) firstAccount.get("account_holder_name");
                 // 이 24자리 값을 DB의 OPEN_BANK_USER_SEQ_NO 컬럼에 업데이트 하거나 별도로 저장해서 출금할 때 써야 합니다!
                 System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
                 System.out.println("👉 진짜 24자리 번호 획득: " + bankCode);
@@ -318,7 +325,8 @@ import tools.jackson.databind.ObjectMapper;
                     }
                     System.out.println("💰 실시간 계좌 잔액 확인 완료: " + balance + "원");
                 }
-                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo, fintechUseNum, bankCode, accountNum, balance);
+                memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo, fintechUseNum, bankCode, accountNum, balance, account_holder_name);
+                paymentService.registerSubMall(userId, bankCode,accountNum, account_holder_name,memberVO);//토스 지급대행을 보안키 지원 안해줘서 api요청은 pass 
                 }
                 }
                 // 6. DB에 저장 (내 서비스 기획에 맞게 마이바티스나 JPA로 쿼리 실행)
@@ -328,6 +336,7 @@ import tools.jackson.databind.ObjectMapper;
                 throw new RuntimeException("금융결제원 토큰 발급 실패");
             }
         }
+        
     }
 
 

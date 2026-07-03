@@ -2,6 +2,8 @@ package com.example.spendolive.payment.controller;
 
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.payment.domain.SettlementPaymentVO;
 import com.example.spendolive.payment.service.PaymentService;
 
@@ -32,7 +36,26 @@ public class PaymentControllerImpl implements PaymentController{
     private String baseUrl;
     @Override
     @RequestMapping(value = "/detail.do", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView calendar(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public ModelAndView detail(@RequestParam Map<String, Object> roomid, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        HttpSession session = request.getSession();
+        String roomIdStr = request.getParameter("roomId");
+        int roomId = Integer.parseInt(roomIdStr);
+        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        String userId = memberVO.getId();
+        SettlementPaymentVO settlement_PaymentInfo =  paymentService.getSettlement_PaymentByRoomId(userId, roomId);
+        OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(roomId);
+        session.setAttribute("settlementInfo", settlementInfo);
+        int member_limit = settlementInfo.getMember_limit();
+        Integer totalPrice = settlementInfo.getTotalPrice();
+        Integer base_amount = totalPrice / member_limit;
+        Integer fee_amount = (base_amount / 100) * member_limit;
+        totalPrice = base_amount + fee_amount;
+        session.setAttribute("total_amount", totalPrice);
+        session.setAttribute("base_amount", base_amount);
+        session.setAttribute("fee_amount", fee_amount);
+        session.setAttribute("Settlement_PaymentInfo", settlement_PaymentInfo);
+       
+        session.setAttribute("roomId", roomId);  
         return layout("/WEB-INF/views/payment/detail.jsp");
     }
 
@@ -41,16 +64,16 @@ public class PaymentControllerImpl implements PaymentController{
         mav.setViewName("common/layout");
         mav.addObject("body_page", bodyPage);
         return mav;
-    }
+    }/*
     @Override
     @RequestMapping(value = "/payment.do", method = {RequestMethod.GET})
     public ModelAndView payment(SettlementPaymentVO paymentInfo , HttpServletRequest request, HttpServletResponse response) throws Exception {
         HttpSession session = request.getSession();
-        paymentInfo.setTotalAmount(10000);
+        paymentInfo.setTotal_amount(10000);
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         paymentService.processWithdraw(paymentInfo, memberInfo);
         return layout("/WEB-INF/views/payment/detail.jsp");
-    }
+    } */
     @Override
     @GetMapping("/tossRequest.do")
     public void requestTossBillingKey(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
@@ -78,70 +101,60 @@ public class PaymentControllerImpl implements PaymentController{
     // ────────────────────────────────────────────────────────
     @Override
     @GetMapping("/callback.do")
-    public void tossCallback(
+    public String tossCallback(
             @RequestParam("customerKey") String customerKey,
             @RequestParam("authKey") String authKey,
             HttpServletRequest request, HttpServletResponse response,
-            HttpSession session) throws Exception {
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        
         String userId = memberVO.getId();
 
         try {
             // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
             paymentService.issueAndSaveBillingKey(customerKey, authKey, userId);
-
-            // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
-            out.print("<script>");
-            out.print("alert('결제 카드가 정상적으로 등록되었습니다! 정산 준비 완료.');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
-            out.print("</script>");
-            out.flush();
-            out.close();
+            redirectAttributes.addFlashAttribute("msg", "'결제 카드가 정상적으로 등록되었습니다! 정산 준비 완료.");
+            return "redirect:/spendolive/main.do";
 
         } catch (Exception e) {
-            e.printStackTrace();
-            out.print("<script>");
-            out.print("alert('카드 등록 최종 승인 중 에러가 발생했습니다.');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
-            out.print("</script>");
-            out.flush();
-            out.close();
+           
+            redirectAttributes.addFlashAttribute("msg", "'카드 등록 최종 승인 중 에러가 발생했습니다.");
+            return "redirect:/spendolive/main.do";
         }
     }
     @Override
     @GetMapping("/paymenting.do")
-    public void payment(
+    public String payment(
             HttpServletRequest request, HttpServletResponse response,
-            HttpSession session) throws Exception {
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
+        int base_amount = (int) session.getAttribute("total_amount");
+        int member_limit = settlementInfo.getMember_limit();
+        int fee_amount = (base_amount / 100) * member_limit;
+        int total_price = base_amount + fee_amount; 
+        String host_id = settlementInfo.getHost_id();
         String userId = memberVO.getId();
+        int settlement_id = (int) settlementInfo.getSettlementId().longValue();
+        int roomId = (int) settlementInfo.getRoomId().longValue();
 
         try {
             // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
-            paymentService.executeAutomaticPayment(userId, 10000, 2);
+            paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);
 
             // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
-            out.print("<script>");
-            out.print("alert('송금 완료!!');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
-            out.print("</script>");
-            out.flush();
-            out.close();
+            redirectAttributes.addFlashAttribute("msg", "자동결제가 완료 되었습니다 !");
+            return "redirect:/spendolive/main.do";
 
         } catch (Exception e) {
-            e.printStackTrace();
-            out.print("<script>");
-            out.print("alert('송금 싪패');");
-            out.print("location.href='" + request.getContextPath() + "/spendolive/main.do';");
-            out.print("</script>");
-            out.flush();
-            out.close();
+            redirectAttributes.addFlashAttribute("msg", "자동결제가 실패 되었습니다 다시 시도 해주세요");
+            return "redirect:/spendolive/main.do";
         }
     }
 

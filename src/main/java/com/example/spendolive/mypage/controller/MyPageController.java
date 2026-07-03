@@ -34,7 +34,7 @@ public class MyPageController {
 
         if (sessionMember == null || sessionMember.getId() == null || sessionMember.getId().isBlank()) {
             ModelAndView loginMav = new ModelAndView();
-            loginMav.setViewName("redirect:/member/loginForm.do");
+            loginMav.setViewName("redirect:/member/loginForm.do?log=mypage");
             return loginMav;
         }
 
@@ -46,7 +46,7 @@ public class MyPageController {
         } else {
             session.setAttribute("memberInfo", memberInfo);
         }
-
+        session.removeAttribute("log");
         ModelAndView mav = layout("/WEB-INF/views/member/mypage.jsp");
         mav.addObject("memberInfo", memberInfo);
         mav.addObject("profileInitial", myPage.getProfileInitial());
