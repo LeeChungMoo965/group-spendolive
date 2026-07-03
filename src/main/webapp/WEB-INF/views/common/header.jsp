@@ -82,6 +82,8 @@
                         <li><a class="so-menu-link ${fn:contains(requestURI, '/calendar') ? 'active' : ''}" href="${contextPath}/spendolive/calendar.do"><strong>캘린더</strong></a></li>
                         <li><a class="so-menu-link ${fn:contains(requestURI, '/ott') ? 'active' : ''}" href="${contextPath}/spendolive/ott.do"><strong>OTT관리</strong></a></li>
                         <li><a class="so-menu-link ${fn:contains(requestURI, '/mypage') ? 'active' : ''}" href="${contextPath}/spendolive/mypage.do"><strong>마이페이지</strong></a></li>
+                        <li><a class="so-menu-link ${fn:contains(requestURI, '/faq') ? 'active' : ''}" href="${contextPath}/spendolive/faq/list.do"><strong>자주 묻는 질문</strong></a></li>
+<li><a class="so-menu-link ${fn:contains(requestURI, '/inquiry') ? 'active' : ''}" href="${contextPath}/spendolive/inquiry/list.do"><strong>내 문의하기</strong></a></li>
                         <li><a class="so-menu-link" href="${contextPath}/member/openBankingAuth.do"><strong>🏦계좌 연동하기</strong></a></li>
                         <li><a class="so-menu-link" href="${contextPath}/payment/paymenting.do"><strong>정산하기</strong></a></li>
                         <li><a class="so-menu-link" onclick="requestBillingAuth()"><strong>카드 등록하기</strong></a></li>
@@ -116,8 +118,7 @@
             }); 
         }
     })();
-    
-    const clientKey = "test_ck_yZqmkKeP8gBgMeYDwNpprbQRxB9l";
+    /*const clientKey = "";
         const customerKey = "${memberInfo.id}";
         const tossPayments = TossPayments(clientKey);
 
@@ -136,5 +137,5 @@
             customerEmail: '${memberInfo.email}',
             customerName: '${memberInfo.member_name}',
             });
-        }
+        }*/
     </script>

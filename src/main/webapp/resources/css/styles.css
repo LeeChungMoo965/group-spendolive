@@ -72,6 +72,8 @@ label{color:#3f4c25;font-weight:900} input,select,textarea{width:100%;margin-top
 .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}.calendar-grid span,.calendar-grid button{min-height:112px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;color:var(--text);text-align:left;padding:12px;cursor:pointer}
 .calendar-grid span{display:grid;place-items:center;min-height:48px;color:var(--muted);font-weight:900;background:#f8f9ef;text-align:center;cursor:default}.calendar-grid button.spend{background:#f0f5de;color:var(--olive-dark);font-weight:900}.calendar-grid button.ottday{background:#fff3d8;color:#8a5b13;font-weight:900}.calendar-grid button.fixedday{background:#edeed3;color:var(--olive-dark);font-weight:900}.calendar-grid small{display:block;margin-top:7px;line-height:1.45}
 .side-panel{padding:24px}.side-panel h3{margin:0 0 16px}.side-event{padding:14px;border-radius:15px;background:var(--cream);border:1px solid var(--line);margin-bottom:10px}.side-event strong{display:block;margin-bottom:4px}.side-event span{color:var(--muted);font-size:13px}
+.fc-daygrid-day-number {cursor: pointer; transition: font-weight 0.1s;}.fc-daygrid-day-number:hover {font-weight: 900; color: var(--olive-dark);}
+
 
 /* OTT */
 .ott-two-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.ott-panel{padding:24px}.panel-header{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:18px}.panel-header h2,.panel-header h3{margin:0}.panel-header span{color:var(--muted);font-weight:850}
@@ -2541,3 +2543,170 @@ margin-top: 12px;
   font-weight: 400;
   color: #b8422e;
   }
+/* =========================================================
+   캘린더 지출 칩 (날짜 칸 안에 뜨는 "금액 · 카테고리" 배지)
+   ========================================================= */
+
+/* FullCalendar 기본 이벤트 박스를 파란색 하나로 깔끔하게 정리
+   (칩이랑 이중으로 안 겹치게, 배경/테두리는 여기서만 준다) */
+   .fc .fc-daygrid-event-harness{
+    margin-bottom:2px;
+  }
+  .fc .fc-daygrid-event,
+  .fc .fc-h-event{
+    background:#d97757;
+    border:none;
+    border-radius:8px;
+    padding:0;
+  }
+  .fc .fc-daygrid-event:hover,
+  .fc .fc-h-event:hover{
+    background:#d8643d
+  }
+  .fc .fc-event-main{
+    padding:0;
+    color:#fff;
+  }
+  
+  .calendar-expense-chip{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    margin-top:3px;
+    padding:5px 8px;
+    font-size:13px;
+    line-height:1.35;
+    overflow:hidden;
+    color:#fff;
+  }
+  .calendar-expense-chip .chip-amount{
+    font-weight:900;
+    font-size:13px;
+    color:#fff;
+  }
+  .calendar-expense-chip .chip-category{
+    color:rgba(255,255,255,.85);
+    font-size:11px;
+  }
+  
+  /* =========================================================
+     FullCalendar "+N개" 더보기 링크
+     ========================================================= */
+  
+  /* 모든 날짜 칸 높이를 고정 — 지출이 있든 없든 행 높이가 똑같이 유지됨
+     (dayMaxEvents: 2 기준으로 날짜숫자 + 칩 2개 + 더보기링크가 다 들어갈 높이) */
+  .fc .fc-daygrid-day-frame{
+    min-height:138px;
+  }
+  
+  .fc .fc-daygrid-more-link{
+    display:inline-block;
+    margin-top:3px;
+    padding:3px 8px;
+    border-radius:8px;
+    background:var(--cream);
+    border:1px solid var(--line);
+    color:var(--olive-dark);
+    font-size:12px;
+    font-weight:900;
+  }
+  .fc .fc-daygrid-more-link:hover{
+    background:var(--olive-soft);
+    text-decoration:none;
+  }
+  
+  /* =========================================================
+     "+N개" 클릭 시 뜨는 팝오버 (숨겨진 지출 목록 보여주는 창)
+     ========================================================= */
+  .fc .fc-popover{
+    border:1px solid var(--line);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .fc .fc-popover-header{
+    padding:10px 14px;
+    background:linear-gradient(135deg,var(--olive-dark),var(--olive));
+    color:#fff;
+    font-weight:900;
+  }
+  .fc .fc-popover-title{
+    color:#fff;
+  }
+  .fc .fc-popover-close{
+    color:#fff;
+    opacity:.85;
+    font-size:16px;
+  }
+  .fc .fc-popover-close:hover{
+    opacity:1;
+  }
+  .fc .fc-popover-body{
+    padding:8px;
+    background:#fff;
+  }
+  .fc .fc-popover-body .calendar-expense-chip{
+    margin:4px 2px;
+  }
+  
+  /* =========================================================
+     사이드패널 (이번 달 주요 지출) 페이지네이션 — 1 2 3 ...
+     ========================================================= */
+  .side-pager{
+    display:flex;
+    gap:4px;
+    justify-content:center;
+    margin:12px 0 16px;
+  }
+  .pager-num-btn{
+    min-width:22px;
+    height:22px;
+    padding:0 5px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:#fff;
+    color:var(--muted);
+    font-weight:800;
+    font-size:11px;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  .pager-num-btn:hover{
+    border-color:var(--olive);
+    color:var(--olive-dark);
+  }
+  .pager-num-btn.active{
+    background:var(--olive);
+    border-color:var(--olive);
+    color:#fff;
+    box-shadow:0 4px 10px rgba(122,127,54,.25);
+  }
+  
+  /* 이번 달 지출 내역이 하나도 없을 때 */
+  .empty-text{
+    padding:14px;
+    border-radius:15px;
+    background:var(--cream);
+    border:1px dashed var(--line);
+    color:var(--muted);
+    font-size:13px;
+    text-align:center;
+    margin:0;
+  }
+  
+  /* =========================================================
+     주말 색상 (토요일 파란색, 일요일 빨간색)
+     ========================================================= */
+  .fc .fc-col-header-cell.fc-day-sun{
+    color:var(--red);
+  }
+  .fc .fc-col-header-cell.fc-day-sat{
+    color:#4d6f8f;
+  }
+  .fc .fc-day-sun .fc-daygrid-day-number{
+    color:var(--red);
+  }
+  .fc .fc-day-sat .fc-daygrid-day-number{
+    color:#4d6f8f;
+  }
+  
