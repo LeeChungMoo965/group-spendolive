@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.report.domain.ReportVO;
 import com.example.spendolive.report.repository.ReportRepository;
+import java.util.List;
 @Service
 public class ReportServiceImpl implements ReportService{
     @Autowired
@@ -21,7 +22,16 @@ public class ReportServiceImpl implements ReportService{
         reportInfo.setReported_member_id(reported_member_id);
         reportInfo.setReporter_id(reporter);
         reportInfo.setRoom_id(roomId);
-        reportInfo.setReport_status("WAIT");
         reportRepository.insertReport(reportInfo);
+    }
+    @Override
+    @Transactional
+    public List<ReportVO> selectReport() throws Exception{
+        return reportRepository.selectReport();
+    }
+    @Override
+    @Transactional
+    public void updateComment(String comment, Long report_id) throws Exception{
+        reportRepository.updateComment(comment, report_id);
     }
 }
