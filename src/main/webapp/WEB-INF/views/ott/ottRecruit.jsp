@@ -39,6 +39,83 @@
         <div class="ott-tab-content">
             <c:choose>
                 <c:when test="${tab eq 'all'}">
+                    <%--
+                        빠른 참가 영역
+                        위치: 상단 탭 메뉴 아래, 모든 모집글 목록 카드 위
+                        역할: 사용자가 OTT 종류만 선택하면 서버에서 가장 오래된 빈 모집방을 자동으로 찾아 입장 처리한다.
+                        주의: 이 JSP는 화면과 요청 전송만 담당한다.
+                             실제 방 찾기/구성원 저장 로직은 Controller → Service → Repository에서 처리한다.
+                    --%>
+                    <article class="card ott-tab-panel quick-join-panel">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">QUICK JOIN</p>
+                                <h2>빠른 참가</h2>
+                                <p class="panel-description">
+                                    원하는 OTT를 선택하면 오래된 모집방 중 자리가 비어있는 방부터 자동으로 참여합니다.
+                                </p>
+                            </div>
+                        </div>
+
+                        <%--
+                            빠른 참가 form
+
+                            일반 신청하기와 차이점:
+                            - 일반 신청하기는 특정 방 카드 안에서 누르기 때문에 roomId를 바로 보낼 수 있다.
+                            - 빠른 참가는 사용자가 방을 직접 고르는 게 아니라 OTT만 고른다.
+                            - 그래서 여기서는 roomId를 보내지 않고 ottServiceId만 보낸다.
+
+                            이후 서버 흐름:
+                            1. ottServiceId를 Controller로 보냄
+                            2. Service/Repository에서 해당 OTT의 모집방 중 가장 오래된 빈 방을 찾음
+                            3. 찾은 방의 roomId를 결제쪽으로 넘김
+                            4. 결제쪽 개발자는 기존 신청하기처럼 roomId만 받아서 처리하면 됨
+                        --%>
+                        <form action="${contextPath}/spendolive/ott/recruit/quick-join.do"
+                            method="post"
+                            class="recruit-filter-form quick-join-form">
+
+                                <%--
+                                    빠른 참가에서는 roomId가 없다.
+                                    사용자가 방을 고른 게 아니라 OTT만 고른 상태이기 때문이다.
+
+                                    여기서 선택한 ottServiceId를 서버로 보내면,
+                                    서버가 이 OTT에 해당하는 빈 모집방을 자동으로 찾는다.
+                                --%>
+                            <div class="recruit-filter-grid quick-join-grid">
+                                <label>
+                                    OTT 종류
+                                    <select name="ottServiceId" class="form-control ott-service-select" required>
+                                        <option value="">OTT 선택</option>
+
+                                <%--
+                                    serviceList는 Controller에서 model에 담아준 OTT 목록이다.
+                                    value="${service.ottServiceId}" 값이 서버로 넘어간다.
+                                --%>
+                                    <c:forEach var="service" items="${serviceList}">
+                                        <option value="${service.ottServiceId}">
+                                            ${service.serviceName}
+                                        </option>
+                                    </c:forEach>
+                                </select>
+                            </label>
+
+                            <%--
+                                빠른 참가 버튼 클릭 시:
+                                /spendolive/ott/recruit/quick-join.do 로 POST 요청이 간다.
+                                이때 넘어가는 값은 ottServiceId 하나다.
+                            --%>
+                                <div class="recruit-search-actions quick-join-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        빠른 참가
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </article>
+
+                    <br>
+
                     <article class="card ott-tab-panel recruit-list-panel">
                         <div class="panel-header">
                             <div>
@@ -395,7 +472,7 @@
                             <span>신청 버튼은 결제 화면으로 연결됩니다</span>
                         </div>
 
-                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form ott-fixed-plan-form">
+                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form ott-fixed-plan-form" data-room-mode="RECRUIT">
                             <label>
                                 OTT 종류
                                 <select name="ottServiceId" class="ott-service-select" required>

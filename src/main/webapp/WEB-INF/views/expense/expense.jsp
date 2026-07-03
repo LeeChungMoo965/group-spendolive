@@ -408,175 +408,300 @@
 </main>
 
 <script>
-    const expenseTypeSelect = document.getElementById('expenseType');
-    const categorySelect = document.getElementById('categoryId');
-    const repeatCycleArea = document.getElementById('repeatCycleArea');
-    const repeatCycleSelect = document.getElementById('repeatCycle');
-    const repeatYnInput = document.getElementById('repeatYn');
-    const fixedYnInput = document.getElementById('fixedYn');
-    const categoryOptions = Array.from(categorySelect.querySelectorAll('option[data-type]'));
+    document.addEventListener('DOMContentLoaded', function () {
+        const expenseTypeSelect = document.getElementById('expenseType');
+        const categorySelect = document.getElementById('categoryId');
+        const repeatCycleArea = document.getElementById('repeatCycleArea');
+        const repeatCycleSelect = document.getElementById('repeatCycle');
+        const repeatYnInput = document.getElementById('repeatYn');
+        const fixedYnInput = document.getElementById('fixedYn');
 
-    function isRepeatTargetType(type) {
-        return type === 'FIXED' || type === 'OTT';
-    }
+        const categoryMasterList = categorySelect
+            ? Array.from(categorySelect.querySelectorAll('option[data-type]')).map(option => ({
+                value: option.value,
+                type: (option.dataset.type || '').trim(),
+                text: option.textContent.trim()
+            }))
+            : [];
 
-    function filterCategories() {
-        const selectedType = expenseTypeSelect.value;
+        function isRepeatTargetType(type) {
+            return type === 'FIXED' || type === 'OTT';
+        }
 
-        categorySelect.innerHTML = '<option value="">카테고리 선택</option>';
+        function makeCategoryOption(category) {
+            const option = document.createElement('option');
+            option.value = category.value;
+            option.dataset.type = category.type;
+            option.textContent = category.text;
+            return option;
+        }
 
-        categoryOptions.forEach(option => {
-            if (option.dataset.type === selectedType) {
-                categorySelect.appendChild(option.cloneNode(true));
+        function renderCategoryOptions(select, selectedType, selectedValue, placeholderText) {
+            if (!select) {
+                return;
             }
-        });
 
-        if (isRepeatTargetType(selectedType)) {
-            repeatCycleArea.style.display = 'block';
-            fixedYnInput.value = 'Y';
-        } else {
-            repeatCycleArea.style.display = 'none';
-            repeatCycleSelect.value = '';
-            repeatYnInput.value = 'N';
-            fixedYnInput.value = 'N';
-        }
+            select.innerHTML = '';
 
-        changeRepeatYn();
-    }
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = placeholderText || '카테고리 선택';
+            select.appendChild(placeholder);
 
-    function changeRepeatYn() {
-        if (isRepeatTargetType(expenseTypeSelect.value) && repeatCycleSelect.value !== '') {
-            repeatYnInput.value = 'Y';
-            fixedYnInput.value = 'Y';
-        } else if (isRepeatTargetType(expenseTypeSelect.value)) {
-            repeatYnInput.value = 'N';
-            fixedYnInput.value = 'Y';
-        } else {
-            repeatYnInput.value = 'N';
-            fixedYnInput.value = 'N';
-        }
-    }
-
-    function changeEditMode(button) {
-        const row = button.closest('tr');
-
-        if (!row) {
-            console.error('수정할 행을 찾을 수 없습니다.');
-            return;
-        }
-
-        row.querySelectorAll('.view-mode').forEach(element => {
-            element.style.display = 'none';
-        });
-
-        row.querySelectorAll('.edit-mode').forEach(element => {
-            element.style.display = 'inline-block';
-        });
-
-        row.querySelector('.edit-btn').style.display = 'none';
-        row.querySelector('.save-btn').style.display = 'inline-block';
-        row.querySelector('.cancel-btn').style.display = 'inline-block';
-        row.querySelector('.delete-btn').style.display = 'none';
-
-        filterEditCategoriesByRow(row);
-        changeEditRepeatYnByRow(row);
-    }
-
-    function cancelEditMode(button) {
-        const row = button.closest('tr');
-
-        if (!row) {
-            return;
-        }
-
-        row.querySelectorAll('.view-mode').forEach(element => {
-            element.style.display = 'inline';
-        });
-
-        row.querySelectorAll('.edit-mode').forEach(element => {
-            element.style.display = 'none';
-        });
-
-        row.querySelector('.edit-btn').style.display = 'inline-block';
-        row.querySelector('.save-btn').style.display = 'none';
-        row.querySelector('.cancel-btn').style.display = 'none';
-        row.querySelector('.delete-btn').style.display = 'inline-block';
-    }
-
-    function filterEditCategoriesFromSelect(select) {
-        const row = select.closest('tr');
-
-        if (!row) {
-            return;
-        }
-
-        filterEditCategoriesByRow(row);
-        changeEditRepeatYnByRow(row);
-    }
-
-    function changeEditRepeatYnFromSelect(select) {
-        const row = select.closest('tr');
-
-        if (!row) {
-            return;
-        }
-
-        changeEditRepeatYnByRow(row);
-    }
-
-    function filterEditCategoriesByRow(row) {
-        const typeSelect = row.querySelector('.edit-expense-type');
-        const categorySelect = row.querySelector('.edit-category');
-
-        if (!typeSelect || !categorySelect) {
-            return;
-        }
-
-        const selectedType = typeSelect.value;
-        const currentCategoryId = categorySelect.value;
-        const allOptions = Array.from(categorySelect.querySelectorAll('option'));
-
-        categorySelect.innerHTML = '';
-
-        allOptions.forEach(option => {
-            if (option.dataset.type === selectedType) {
-                categorySelect.appendChild(option);
+            if (!selectedType) {
+                select.value = '';
+                return;
             }
-        });
 
-        const hasCurrentCategory = Array.from(categorySelect.options).some(option => option.value === currentCategoryId);
+            const filteredList = categoryMasterList.filter(category => category.type === selectedType);
 
-        if (hasCurrentCategory) {
-            categorySelect.value = currentCategoryId;
-        }
-    }
+            if (filteredList.length === 0) {
+                placeholder.textContent = '해당 분류의 카테고리가 없습니다';
+                select.value = '';
+                return;
+            }
 
-    function changeEditRepeatYnByRow(row) {
-        const expenseId = row.dataset.expenseId;
-        const typeSelect = row.querySelector('.edit-expense-type');
-        const repeatCycleSelect = row.querySelector('.edit-repeat-cycle');
-        const repeatYnInput = document.getElementById(`editRepeatYn${expenseId}`);
-        const fixedYnInput = document.getElementById(`editFixedYn${expenseId}`);
+            filteredList.forEach(category => {
+                select.appendChild(makeCategoryOption(category));
+            });
 
-        if (!typeSelect || !repeatCycleSelect || !repeatYnInput || !fixedYnInput) {
-            return;
-        }
+            const hasSelectedValue = filteredList.some(category => category.value === String(selectedValue || ''));
 
-        if (isRepeatTargetType(typeSelect.value)) {
-            fixedYnInput.value = 'Y';
-
-            if (repeatCycleSelect.value !== '') {
-                repeatYnInput.value = 'Y';
+            if (hasSelectedValue) {
+                select.value = selectedValue;
             } else {
-                repeatYnInput.value = 'N';
+                select.value = '';
             }
-        } else {
-            fixedYnInput.value = 'N';
-            repeatYnInput.value = 'N';
-            repeatCycleSelect.value = '';
         }
-    }
 
-    expenseTypeSelect.addEventListener('change', filterCategories);
-    repeatCycleSelect.addEventListener('change', changeRepeatYn);
+        function filterCategories() {
+            if (!expenseTypeSelect || !categorySelect) {
+                return;
+            }
+
+            const selectedType = expenseTypeSelect.value;
+
+            if (!selectedType) {
+                renderCategoryOptions(categorySelect, '', '', '먼저 분류를 선택하세요');
+            } else {
+                renderCategoryOptions(categorySelect, selectedType, categorySelect.value, '카테고리 선택');
+            }
+
+            if (isRepeatTargetType(selectedType)) {
+                if (repeatCycleArea) {
+                    repeatCycleArea.style.display = 'block';
+                }
+
+                if (fixedYnInput) {
+                    fixedYnInput.value = 'Y';
+                }
+            } else {
+                if (repeatCycleArea) {
+                    repeatCycleArea.style.display = 'none';
+                }
+
+                if (repeatCycleSelect) {
+                    repeatCycleSelect.value = '';
+                }
+
+                if (repeatYnInput) {
+                    repeatYnInput.value = 'N';
+                }
+
+                if (fixedYnInput) {
+                    fixedYnInput.value = 'N';
+                }
+            }
+
+            changeRepeatYn();
+        }
+
+        function changeRepeatYn() {
+            if (!expenseTypeSelect) {
+                return;
+            }
+
+            if (isRepeatTargetType(expenseTypeSelect.value) && repeatCycleSelect && repeatCycleSelect.value !== '') {
+                if (repeatYnInput) {
+                    repeatYnInput.value = 'Y';
+                }
+
+                if (fixedYnInput) {
+                    fixedYnInput.value = 'Y';
+                }
+            } else if (isRepeatTargetType(expenseTypeSelect.value)) {
+                if (repeatYnInput) {
+                    repeatYnInput.value = 'N';
+                }
+
+                if (fixedYnInput) {
+                    fixedYnInput.value = 'Y';
+                }
+            } else {
+                if (repeatYnInput) {
+                    repeatYnInput.value = 'N';
+                }
+
+                if (fixedYnInput) {
+                    fixedYnInput.value = 'N';
+                }
+            }
+        }
+
+        function changeEditMode(button) {
+            const row = button.closest('tr');
+
+            if (!row) {
+                console.error('수정할 행을 찾을 수 없습니다.');
+                return;
+            }
+
+            row.querySelectorAll('.view-mode').forEach(element => {
+                element.style.display = 'none';
+            });
+
+            row.querySelectorAll('.edit-mode').forEach(element => {
+                element.style.display = 'inline-block';
+            });
+
+            const editButton = row.querySelector('.edit-btn');
+            const saveButton = row.querySelector('.save-btn');
+            const cancelButton = row.querySelector('.cancel-btn');
+            const deleteButton = row.querySelector('.delete-btn');
+
+            if (editButton) {
+                editButton.style.display = 'none';
+            }
+
+            if (saveButton) {
+                saveButton.style.display = 'inline-block';
+            }
+
+            if (cancelButton) {
+                cancelButton.style.display = 'inline-block';
+            }
+
+            if (deleteButton) {
+                deleteButton.style.display = 'none';
+            }
+
+            filterEditCategoriesByRow(row);
+            changeEditRepeatYnByRow(row);
+        }
+
+        function cancelEditMode(button) {
+            const row = button.closest('tr');
+
+            if (!row) {
+                return;
+            }
+
+            row.querySelectorAll('.view-mode').forEach(element => {
+                element.style.display = 'inline';
+            });
+
+            row.querySelectorAll('.edit-mode').forEach(element => {
+                element.style.display = 'none';
+            });
+
+            const editButton = row.querySelector('.edit-btn');
+            const saveButton = row.querySelector('.save-btn');
+            const cancelButton = row.querySelector('.cancel-btn');
+            const deleteButton = row.querySelector('.delete-btn');
+
+            if (editButton) {
+                editButton.style.display = 'inline-block';
+            }
+
+            if (saveButton) {
+                saveButton.style.display = 'none';
+            }
+
+            if (cancelButton) {
+                cancelButton.style.display = 'none';
+            }
+
+            if (deleteButton) {
+                deleteButton.style.display = 'inline-block';
+            }
+        }
+
+        function filterEditCategoriesFromSelect(select) {
+            const row = select.closest('tr');
+
+            if (!row) {
+                return;
+            }
+
+            filterEditCategoriesByRow(row);
+            changeEditRepeatYnByRow(row);
+        }
+
+        function changeEditRepeatYnFromSelect(select) {
+            const row = select.closest('tr');
+
+            if (!row) {
+                return;
+            }
+
+            changeEditRepeatYnByRow(row);
+        }
+
+        function filterEditCategoriesByRow(row) {
+            const typeSelect = row.querySelector('.edit-expense-type');
+            const editCategorySelect = row.querySelector('.edit-category');
+
+            if (!typeSelect || !editCategorySelect) {
+                return;
+            }
+
+            renderCategoryOptions(
+                editCategorySelect,
+                typeSelect.value,
+                editCategorySelect.value,
+                '카테고리 선택'
+            );
+        }
+
+        function changeEditRepeatYnByRow(row) {
+            const expenseId = row.dataset.expenseId;
+            const typeSelect = row.querySelector('.edit-expense-type');
+            const editRepeatCycleSelect = row.querySelector('.edit-repeat-cycle');
+            const editRepeatYnInput = document.getElementById(`editRepeatYn${expenseId}`);
+            const editFixedYnInput = document.getElementById(`editFixedYn${expenseId}`);
+
+            if (!typeSelect || !editRepeatCycleSelect || !editRepeatYnInput || !editFixedYnInput) {
+                return;
+            }
+
+            if (isRepeatTargetType(typeSelect.value)) {
+                editFixedYnInput.value = 'Y';
+
+                if (editRepeatCycleSelect.value !== '') {
+                    editRepeatYnInput.value = 'Y';
+                } else {
+                    editRepeatYnInput.value = 'N';
+                }
+            } else {
+                editFixedYnInput.value = 'N';
+                editRepeatYnInput.value = 'N';
+                editRepeatCycleSelect.value = '';
+            }
+        }
+
+        window.changeEditMode = changeEditMode;
+        window.cancelEditMode = cancelEditMode;
+        window.filterEditCategoriesFromSelect = filterEditCategoriesFromSelect;
+        window.changeEditRepeatYnFromSelect = changeEditRepeatYnFromSelect;
+
+        if (expenseTypeSelect) {
+            expenseTypeSelect.addEventListener('change', filterCategories);
+        }
+
+        if (repeatCycleSelect) {
+            repeatCycleSelect.addEventListener('change', changeRepeatYn);
+        }
+
+        filterCategories();
+    });
 </script>

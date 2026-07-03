@@ -179,7 +179,7 @@
                 <span>가족 · 지인 전용</span>
             </div>
 
-            <form action="${contextPath}/spendolive/ott/friends/create.do" method="post" class="ott-form-grid ott-fixed-plan-form">
+            <form action="${contextPath}/spendolive/ott/friends/create.do" method="post" class="ott-form-grid ott-fixed-plan-form" data-room-mode="FRIEND">
                 <label>
                     OTT 종류
                     <select name="ottServiceId" class="ott-service-select" required>
