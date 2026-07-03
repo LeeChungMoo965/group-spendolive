@@ -11,12 +11,10 @@
         SpendOlive | 캘린더
     </title>
     <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
-    <script src="
-https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js
-"></script>
+    <script src="${contextPath}/resources/js/app.js"></script>
 <script src="${contextPath}/resources/js/calendar.js"></script>
-<script src="${contextPath}/resources/js/app.js">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
+
 </head>
 <body>
     <main>
@@ -68,24 +66,10 @@ https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js
                     </div>
                     <aside class="side-panel card">
                         <h3>이번 달 주요 지출</h3>
-                        <div class="side-event">
-                            <strong>
-                            06.05 월세
-                            </strong>
-                            <span>
-                                500,000원 · 고정지출
-                            </span>
+                        <div id="sideEventList">
+                            <!-- calendar.js의 renderSidePanel()이 이 안에 지출 목록을 채워줌 -->
                         </div>
-
-                        <div class="side-event">
-                            <strong>
-                            06.10 Netflix
-                            </strong>
-
-                            <span>
-                                17,000원 · OTT지출
-                            </span>
-                        </div>
+                        <!-- 3개 넘으면 calendar.js가 이 아래에 1 2 3 숫자 페이지네이션 자동 생성 -->
 
                         <button class="btn btn-outline full" onclick="location.href='${contextPath}/spendolive/expense.do'">
                             지출관리에서 보기

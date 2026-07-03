@@ -2543,3 +2543,170 @@ margin-top: 12px;
   font-weight: 400;
   color: #b8422e;
   }
+/* =========================================================
+   캘린더 지출 칩 (날짜 칸 안에 뜨는 "금액 · 카테고리" 배지)
+   ========================================================= */
+
+/* FullCalendar 기본 이벤트 박스를 파란색 하나로 깔끔하게 정리
+   (칩이랑 이중으로 안 겹치게, 배경/테두리는 여기서만 준다) */
+   .fc .fc-daygrid-event-harness{
+    margin-bottom:2px;
+  }
+  .fc .fc-daygrid-event,
+  .fc .fc-h-event{
+    background:#d97757;
+    border:none;
+    border-radius:8px;
+    padding:0;
+  }
+  .fc .fc-daygrid-event:hover,
+  .fc .fc-h-event:hover{
+    background:#d8643d
+  }
+  .fc .fc-event-main{
+    padding:0;
+    color:#fff;
+  }
+  
+  .calendar-expense-chip{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    margin-top:3px;
+    padding:5px 8px;
+    font-size:13px;
+    line-height:1.35;
+    overflow:hidden;
+    color:#fff;
+  }
+  .calendar-expense-chip .chip-amount{
+    font-weight:900;
+    font-size:13px;
+    color:#fff;
+  }
+  .calendar-expense-chip .chip-category{
+    color:rgba(255,255,255,.85);
+    font-size:11px;
+  }
+  
+  /* =========================================================
+     FullCalendar "+N개" 더보기 링크
+     ========================================================= */
+  
+  /* 모든 날짜 칸 높이를 고정 — 지출이 있든 없든 행 높이가 똑같이 유지됨
+     (dayMaxEvents: 2 기준으로 날짜숫자 + 칩 2개 + 더보기링크가 다 들어갈 높이) */
+  .fc .fc-daygrid-day-frame{
+    min-height:138px;
+  }
+  
+  .fc .fc-daygrid-more-link{
+    display:inline-block;
+    margin-top:3px;
+    padding:3px 8px;
+    border-radius:8px;
+    background:var(--cream);
+    border:1px solid var(--line);
+    color:var(--olive-dark);
+    font-size:12px;
+    font-weight:900;
+  }
+  .fc .fc-daygrid-more-link:hover{
+    background:var(--olive-soft);
+    text-decoration:none;
+  }
+  
+  /* =========================================================
+     "+N개" 클릭 시 뜨는 팝오버 (숨겨진 지출 목록 보여주는 창)
+     ========================================================= */
+  .fc .fc-popover{
+    border:1px solid var(--line);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .fc .fc-popover-header{
+    padding:10px 14px;
+    background:linear-gradient(135deg,var(--olive-dark),var(--olive));
+    color:#fff;
+    font-weight:900;
+  }
+  .fc .fc-popover-title{
+    color:#fff;
+  }
+  .fc .fc-popover-close{
+    color:#fff;
+    opacity:.85;
+    font-size:16px;
+  }
+  .fc .fc-popover-close:hover{
+    opacity:1;
+  }
+  .fc .fc-popover-body{
+    padding:8px;
+    background:#fff;
+  }
+  .fc .fc-popover-body .calendar-expense-chip{
+    margin:4px 2px;
+  }
+  
+  /* =========================================================
+     사이드패널 (이번 달 주요 지출) 페이지네이션 — 1 2 3 ...
+     ========================================================= */
+  .side-pager{
+    display:flex;
+    gap:4px;
+    justify-content:center;
+    margin:12px 0 16px;
+  }
+  .pager-num-btn{
+    min-width:22px;
+    height:22px;
+    padding:0 5px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:#fff;
+    color:var(--muted);
+    font-weight:800;
+    font-size:11px;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  .pager-num-btn:hover{
+    border-color:var(--olive);
+    color:var(--olive-dark);
+  }
+  .pager-num-btn.active{
+    background:var(--olive);
+    border-color:var(--olive);
+    color:#fff;
+    box-shadow:0 4px 10px rgba(122,127,54,.25);
+  }
+  
+  /* 이번 달 지출 내역이 하나도 없을 때 */
+  .empty-text{
+    padding:14px;
+    border-radius:15px;
+    background:var(--cream);
+    border:1px dashed var(--line);
+    color:var(--muted);
+    font-size:13px;
+    text-align:center;
+    margin:0;
+  }
+  
+  /* =========================================================
+     주말 색상 (토요일 파란색, 일요일 빨간색)
+     ========================================================= */
+  .fc .fc-col-header-cell.fc-day-sun{
+    color:var(--red);
+  }
+  .fc .fc-col-header-cell.fc-day-sat{
+    color:#4d6f8f;
+  }
+  .fc .fc-day-sun .fc-daygrid-day-number{
+    color:var(--red);
+  }
+  .fc .fc-day-sat .fc-daygrid-day-number{
+    color:#4d6f8f;
+  }
+  
