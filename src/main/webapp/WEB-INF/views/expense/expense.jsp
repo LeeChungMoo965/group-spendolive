@@ -136,20 +136,20 @@
 
                 <div id="expense-list" class="expense-table card">
                     <div class="row-title">
-                        <div>
-                            <h3>최근 지출 내역</h3>
-                            <p class="card-desc">선택한 달의 지출만 표시됩니다.</p>
-                        </div>
-
-                        <form action="${contextPath}/spendolive/expense/list.do" method="get">
-                            <select name="yearMonth" onchange="this.form.submit()">
-                                <c:forEach var="month" items="${monthList}">
-                                    <option value="${month}" ${month == selectedYearMonth ? 'selected' : ''}>
-                                        ${month.substring(0, 4)}년 ${month.substring(5, 7)}월
-                                    </option>
-                                </c:forEach>
-                            </select>
-                        </form>
+                    <div>
+                        <h3>최근 지출 내역</h3>
+                        <c:choose>
+                            <c:when test="${not empty selectedDate}">
+                                <fmt:parseDate var="selectedDateParsed" value="${selectedDate}" pattern="yyyy-MM-dd" />
+                                <p class="card-desc">
+                                    <fmt:formatDate value="${selectedDateParsed}" pattern="M월 d일" />의 지출만 표시 중입니다.
+                                    <a href="${contextPath}/spendolive/expense/list.do?yearMonth=${selectedYearMonth}">전체 보기</a>
+                                </p>
+                            </c:when>
+                            <c:otherwise>
+                                <p class="card-desc">선택한 달의 지출만 표시됩니다.</p>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
 
                     <div class="table-wrap">

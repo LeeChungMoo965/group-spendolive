@@ -2710,3 +2710,41 @@ margin-top: 12px;
     color:#4d6f8f;
   }
   
+
+/* FullCalendar 래퍼는 이제 배경 없이 그냥 껍데기 역할만 */
+.fc .fc-daygrid-event,
+.fc .fc-h-event{
+  border:none;
+  padding:0;
+  background:transparent;
+}
+.fc .fc-event-main{
+  padding:0;
+}
+
+/* 배경 + 글자색을 칩 자신이 소유 → 어떤 뷰에 들어가든 항상 동일하게 보임 */
+.calendar-expense-chip{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  margin-top:3px;
+  padding:5px 8px;
+  font-size:13px;
+  line-height:1.35;
+  overflow:hidden;
+  background:#d97757;
+  border-radius:8px;
+  color:#fff;
+}
+.calendar-expense-chip:hover{
+  background:#d8643d;
+}
+.calendar-expense-chip .chip-amount{
+  font-weight:900;
+  font-size:13px;
+  color:#fff;
+}
+.calendar-expense-chip .chip-category{
+  color:rgba(255,255,255,.85);
+  font-size:11px;
+}

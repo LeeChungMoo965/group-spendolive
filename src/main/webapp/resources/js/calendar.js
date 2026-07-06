@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
       initialView: 'dayGridMonth',
       locale: 'ko',
       height: 'auto',
+      dayMaxEvents: 1,
       headerToolbar: false,
+      fixedWeekCount: 1,
       dayMaxEvents: 2, // 날짜 칸당 최대 2개까지만 표시, 넘으면 "+N개" 링크로 숨김 (칸 높이 고정)
       datesSet: function(info) {
         const year = info.view.currentStart.getFullYear();
