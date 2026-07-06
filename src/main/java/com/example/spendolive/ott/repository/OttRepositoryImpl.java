@@ -515,45 +515,45 @@ public class OttRepositoryImpl implements OttRepository {
     @Override
     public List<OttSettlementDTO> selectMySettlements(String loginId, String roomMode) {
         String sql = """
-                SELECT st.settlement_id,
-                       st.room_id,
-                       r.room_name,
-                       s.service_name,
-                       st.settlement_month,
-                       st.total_price,
-                       st.total_fee,
-                       st.total_pay_amount,
-                       TO_CHAR(st.due_date, 'YYYY-MM-DD') AS due_date,
-                       TO_CHAR(st.payment_start_date, 'YYYY-MM-DD') AS payment_start_date,
-                       TO_CHAR(st.payment_close_date, 'YYYY-MM-DD') AS payment_close_date,
-                       TO_CHAR(st.service_start_date, 'YYYY-MM-DD') AS service_start_date,
-                       TO_CHAR(st.service_end_date, 'YYYY-MM-DD') AS service_end_date,
-                       TO_CHAR(st.replace_start_date, 'YYYY-MM-DD') AS replace_start_date,
-                       TO_CHAR(st.replace_end_date, 'YYYY-MM-DD') AS replace_end_date,
-                       st.status,
-                       TO_CHAR(st.created_at, 'YYYY-MM-DD') AS created_at,
-                       CASE WHEN r.host_login_id = ? THEN 'HOST' ELSE 'MEMBER' END AS my_role,
-                       sp.payment_id AS my_payment_id,
-                       sp.payment_status AS my_payment_status,
-                       sp.total_amount AS my_total_amount
-                FROM settlement_tb st
-                JOIN ott_room_tb r ON st.room_id = r.room_id
-                JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
-                LEFT JOIN settlement_payment_tb sp
-                       ON st.settlement_id = sp.settlement_id
-                      AND sp.id = ?
-                WHERE (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
-                  AND (
-                       r.host_login_id = ?
-                       OR EXISTS (
-                            SELECT 1
-                            FROM ott_room_member_tb rm
-                            WHERE rm.room_id = r.room_id
-                              AND rm.member_login_id = ?
-                       )
-                  )
-                ORDER BY st.settlement_month DESC, st.settlement_id DESC
-                """;
+            SELECT st.settlement_id,
+                   st.room_id,
+                   r.room_name,
+                   s.service_name,
+                   st.settlement_month,
+                   st.total_price,
+                   st.total_fee,
+                   st.total_pay_amount,
+                   TO_CHAR(st.due_date, 'YYYY-MM-DD') AS due_date,
+                   TO_CHAR(st.payment_start_date, 'YYYY-MM-DD') AS payment_start_date,
+                   TO_CHAR(st.payment_close_date, 'YYYY-MM-DD') AS payment_close_date,
+                   TO_CHAR(st.service_start_date, 'YYYY-MM-DD') AS service_start_date,
+                   TO_CHAR(st.service_end_date, 'YYYY-MM-DD') AS service_end_date,
+                   TO_CHAR(st.replace_start_date, 'YYYY-MM-DD') AS replace_start_date,
+                   TO_CHAR(st.replace_end_date, 'YYYY-MM-DD') AS replace_end_date,
+                   st.status,
+                   TO_CHAR(st.created_at, 'YYYY-MM-DD') AS created_at,
+                   CASE WHEN r.host_login_id = ? THEN 'HOST' ELSE 'MEMBER' END AS my_role,
+                   sp.payment_id AS my_payment_id,
+                   sp.payment_status AS my_payment_status,
+                   sp.total_amount AS my_total_amount
+            FROM settlement_tb st
+            JOIN ott_room_tb r ON st.room_id = r.room_id
+            JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
+            LEFT JOIN settlement_payment_tb sp
+                   ON st.settlement_id = sp.settlement_id
+                  AND sp.id = ?
+            WHERE (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
+              AND (
+                   r.host_login_id = ?
+                   OR EXISTS (
+                        SELECT 1
+                        FROM ott_room_member_tb rm
+                        WHERE rm.room_id = r.room_id
+                          AND rm.member_login_id = ?
+                   )
+              )
+            ORDER BY st.settlement_month DESC, st.settlement_id DESC
+            """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapMySettlement(rs), loginId, loginId, roomMode, roomMode, loginId, loginId);
     }
@@ -1071,7 +1071,7 @@ public class OttRepositoryImpl implements OttRepository {
                     INSERT INTO settlement_payment_tb (
                         payment_id,
                         settlement_id,
-                        member_login_id,
+                        id,
                         base_amount,
                         fee_rate,
                         fee_amount,
@@ -1356,16 +1356,16 @@ public class OttRepositoryImpl implements OttRepository {
                     kicked_at = SYSDATE,
                     kicked_reason = '다음 이용분 결제 마감일까지 결제하지 않아 자동 추방되었습니다.'
                 WHERE rm.member_role = 'MEMBER'
-                  AND rm.status = 'ACTIVE'
-                  AND EXISTS (
+                AND rm.status = 'ACTIVE'
+                AND EXISTS (
                         SELECT 1
                         FROM settlement_payment_tb sp
                         JOIN settlement_tb st ON sp.settlement_id = st.settlement_id
                         WHERE st.room_id = rm.room_id
-                          AND sp.id = rm.member_login_id
-                          AND sp.payment_status = 'EXPIRED'
-                          AND st.payment_close_date < TRUNC(SYSDATE)
-                  )
+                        AND sp.id = rm.member_login_id
+                        AND sp.payment_status = 'EXPIRED'
+                        AND st.payment_close_date < TRUNC(SYSDATE)
+                )
                 """;
         jdbcTemplate.update(kickMembersSql);
 

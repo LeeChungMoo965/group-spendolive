@@ -1,0 +1,238 @@
+/* =========================================================
+   02-expense
+   지출관리 화면 확장, 인라인 수정, 분석 카드, 월별 요약
+   ========================================================= */
+
+/* Expense page width + inline edit layout fix */
+#expense-form > .container {
+  width: min(1440px, calc(100% - 64px));
+}
+
+#expense-form .expense-layout {
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+#expense-form .expense-form {
+  min-width: 0;
+}
+
+#expense-form .expense-table {
+  min-width: 0;
+  overflow: hidden;
+}
+
+#expense-form .table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#expense-form .expense-table table {
+  min-width: 920px;
+  table-layout: auto;
+}
+
+#expense-form .expense-table th,
+#expense-form .expense-table td {
+  padding: 14px 8px;
+}
+
+#expense-form .edit-mode {
+  margin-top: 0;
+  padding: 10px 11px;
+  border-radius: 12px;
+  min-height: 42px;
+}
+
+#expense-form input.edit-mode[type="date"] {
+  min-width: 145px;
+}
+
+#expense-form input.edit-mode[name="expenseTitle"] {
+  min-width: 135px;
+}
+
+#expense-form select.edit-expense-type {
+  min-width: 88px;
+}
+
+#expense-form select.edit-category {
+  min-width: 100px;
+}
+
+#expense-form input.edit-mode[name="amount"] {
+  min-width: 105px;
+}
+
+#expense-form select.edit-mode[name="paymentMethod"] {
+  min-width: 115px;
+}
+
+#expense-form select.edit-repeat-cycle {
+  min-width: 90px;
+}
+
+@media(max-width:1040px) {
+  #expense-form > .container {
+    width: min(100% - 40px, 1140px);
+  }
+
+  #expense-form .expense-layout {
+    grid-template-columns: 1fr;
+  }
+
+  #expense-form .expense-table table {
+    min-width: 920px;
+  }
+}
+
+/* Expense analytics section */
+#expense-analytics > .container {
+  width: min(1440px, calc(100% - 64px));
+}
+
+#expense-analytics .section-title {
+  margin-bottom: 24px;
+}
+
+#expense-analytics .section-desc {
+  margin: 10px 0 0;
+  max-width: 760px;
+}
+
+#expense-analytics .analytics-grid {
+  grid-template-columns: 1fr 1.05fr 1fr;
+}
+
+#expense-analytics .analytics-card {
+  min-height: 360px;
+}
+
+#expense-analytics .analytics-card h3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+#expense-analytics .expense-month-chart {
+  margin-top: 18px;
+}
+
+.category-analysis-list {
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  margin: 18px 0 0;
+  list-style: none;
+}
+
+.category-analysis-list li {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--cream);
+}
+
+.category-analysis-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.category-analysis-head strong {
+  color: var(--olive-dark);
+}
+
+.category-analysis-head span {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.category-progress {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e8ecd8;
+}
+
+.category-progress span {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--olive), var(--sage));
+}
+
+.category-analysis-list p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.expense-ranking-list li div {
+  display: grid;
+  gap: 4px;
+}
+
+.expense-ranking-list li span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.expense-ranking-list li em {
+  white-space: nowrap;
+}
+
+.empty-analytics {
+  margin: 28px 0 0;
+  padding: 20px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  color: var(--muted);
+  text-align: center;
+  background: var(--cream);
+}
+
+@media(max-width:1040px) {
+  #expense-analytics > .container {
+    width: min(100% - 40px, 1140px);
+  }
+
+  #expense-analytics .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Expense top monthly type summary */
+.expense-type-summary-list div {
+  grid-template-columns: 14px 68px 1fr;
+}
+
+.expense-type-summary-list strong {
+  justify-self: end;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.expense-type-summary-list p {
+  white-space: nowrap;
+}
+
+@media(max-width:700px) {
+  .expense-type-summary-list div {
+    grid-template-columns: 14px 1fr;
+  }
+
+  .expense-type-summary-list strong {
+    grid-column: 2 / 3;
+    justify-self: start;
+  }
+}

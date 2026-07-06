@@ -10,10 +10,10 @@
    /* ---- FAQ 목록 ---- */
    .faq-page .search-bar{display:flex;gap:10px;max-width:520px}
    .faq-page .search-bar input{margin:0}
-   .faq-page .search-bar button{height:48px;padding:0 20px;background:var(--olive);color:#fff;border:0;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer}
-   .faq-page .cats{display:flex;gap:8px;flex-wrap:wrap;margin:32px 0 24px}
-   .faq-page .cat-btn{padding:8px 18px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--muted);font-size:13px;font-weight:900;cursor:pointer;transition:.2s}
-   .faq-page .cat-btn:hover,.faq-page .cat-btn.active{background:var(--olive-soft);border-color:var(--olive);color:var(--olive-dark)}
+   .faq-page .search-bar button{height:48px;min-width:64px;padding:0 20px;background:var(--olive);color:#fff;border:0;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;word-break:keep-all;writing-mode:horizontal-tb;line-height:1;flex:0 0 auto}
+   .faq-page .cats{display:flex;gap:10px;flex-wrap:wrap;margin:32px 0 24px}
+   .faq-page .cat-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border:1px solid #dbe7d4;border-radius:999px;background:#fff;color:#40523d;font-size:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 18px rgba(52, 74, 48, .05);transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease;white-space:nowrap}
+   .faq-page .cat-btn:hover,.faq-page .cat-btn.active{background:var(--olive);border-color:var(--olive);color:#fff;transform:translateY(-1px)}
    .faq-page .section-label{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--olive);margin-bottom:14px;margin-top:36px}
    .faq-page .faq-list{display:grid;gap:10px}
    .faq-page .faq-item{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:.2s}
@@ -73,9 +73,9 @@
    /* ---- 내 문의 조회 ---- */
    .faq-page .board-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;margin-top:32px;flex-wrap:wrap;gap:12px}
    .faq-page .board-header h2{font-size:22px;letter-spacing:-.04em}
-   .faq-page .filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-   .faq-page .filter-btn{padding:7px 16px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--muted);font-size:13px;font-weight:900;cursor:pointer;transition:.15s}
-   .faq-page .filter-btn:hover,.faq-page .filter-btn.active{background:var(--olive-soft);border-color:var(--olive);color:var(--olive-dark)}
+   .faq-page .filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+   .faq-page .filter-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border:1px solid #dbe7d4;border-radius:999px;background:#fff;color:#40523d;font-size:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 18px rgba(52, 74, 48, .05);transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease;white-space:nowrap}
+   .faq-page .filter-btn:hover,.faq-page .filter-btn.active{background:var(--olive);border-color:var(--olive);color:#fff;transform:translateY(-1px)}
    .faq-page .inq-list{display:grid;gap:10px}
    .faq-page .inq-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px 22px;cursor:pointer;transition:.2s}
    .faq-page .inq-card:hover{border-color:var(--sage)}
