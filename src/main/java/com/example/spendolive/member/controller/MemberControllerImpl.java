@@ -272,7 +272,7 @@ public class MemberControllerImpl implements MemberController{
                 
             }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
             }
-            // TODO: userInfo.get("id") 값을 바탕으로 DB 조회 후
+
             // 기존 회원이면 로그인 처리, 신규 회원이면 회원가입 페이지 이동 혹은 자동 가입 로직 추가 가능
 
             // 성공 시 메인 화면으로 이동

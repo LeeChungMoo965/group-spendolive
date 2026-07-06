@@ -5,9 +5,10 @@
     <c:set var="requestURI" value="${pageContext.request.requestURI}" />
 
     <link rel="stylesheet" href="${contextPath}/resources/css/bellIcon.css">
-    <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
+
 <c:choose>
     <c:when test="${memberInfo.role == 'ADMIN'}">
+    <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
 <header class="site-header">
         <div class="container header-inner">
             <a class="admin-brand" href="index.html" aria-label="SpendOlive Admin Home">
