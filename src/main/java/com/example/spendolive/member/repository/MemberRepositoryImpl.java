@@ -23,13 +23,13 @@ public class MemberRepositoryImpl implements MemberRepository{
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
-    + "FROM member_tb WHERE id = ? AND password = ?";
+    + "FROM member_tb WHERE id = ? AND password = ? AND STATUS ='ACTIVE'";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
-    +" from member_tb where id =?";
+    +" from member_tb where id =? AND STATUS ='ACTIVE'";
     private final String checkEmail = "select decode(count(*),1, 'false', 0, 'true') as email"
-    +" from member_tb where email =?";
+    +" from member_tb where email =? AND STATUS ='ACTIVE'";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
-    +" from member_tb where phone =?";
+    +" from member_tb where phone =? AND STATUS ='ACTIVE'";
     private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,account_holder_nam) "
     +" values(?,?,?,?,?,?,?,?) ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
@@ -38,7 +38,7 @@ public class MemberRepositoryImpl implements MemberRepository{
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
-    + "FROM member_tb WHERE id = ?";
+    + "FROM member_tb WHERE id = ? AND STATUS ='ACTIVE'";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
