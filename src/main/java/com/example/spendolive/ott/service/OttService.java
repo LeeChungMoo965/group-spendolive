@@ -56,6 +56,9 @@ public interface OttService {
 
     void applyRecruitRoom(Long roomId, String loginId);
 
+    // 빠른 참가용 방 찾기
+    Long findQuickJoinRecruitRoomId(Long ottServiceId, String loginId);
+
     OttRoomDTO getRoomByInviteCode(String inviteCode);
 
 

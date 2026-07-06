@@ -5,8 +5,36 @@
     <c:set var="requestURI" value="${pageContext.request.requestURI}" />
 
     <link rel="stylesheet" href="${contextPath}/resources/css/bellIcon.css">
-
-
+    <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
+<c:choose>
+    <c:when test="${memberInfo.role == 'ADMIN'}">
+<header class="site-header">
+        <div class="container header-inner">
+            <a class="admin-brand" href="index.html" aria-label="SpendOlive Admin Home">
+                <div class="admin-logo">SO</div>
+                <div class="brand-title">
+                    <strong>SpendOlive</strong>
+                    <span>ADMIN</span>
+                </div>
+            </a>
+            <nav class="admin-nav">
+                <a href="index.html" data-nav="dashboard">대시보드</a>
+                <a href="member.html" data-nav="member">회원관리</a>
+                <a href="ott.html" data-nav="ott">OTT 관리</a>
+                <a href="party.html" data-nav="party">파티관리</a>
+                <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>
+                <a href="inquiry.html" data-nav="inquiry">문의관리</a>
+                <a href="notice.html" data-nav="notice">공지사항 관리</a>
+            </nav>
+            <div class="admin-actions">
+                <span class="admin-pill">관리자 모드</span>
+                <strong><a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
+                        ${memberInfo.member_name}님
+            </div>
+        </div>
+    </header>
+    </c:when>
+    <c:otherwise>
     <header class="site-header">
         <div class="container header-inner">
             <a href="${contextPath}/spendolive/main.do" class="logo">
@@ -29,6 +57,7 @@
             <div class="header-actions">
                 <c:choose>
                     <c:when test="${isLogOn == true && not empty memberInfo}">
+                    
                     <c:choose>
                         <c:when test="${memberInfo.open_bank_token == null || memberInfo.open_bank_user_seq_no == null || memberInfo.fintech_use_num == null}">
                             <a class="btn btn-light" href="${contextPath}/member/openBankingAuth.do">🏦 안전한 오픈뱅킹 계좌 연동하기</a>
@@ -64,6 +93,8 @@
             </div>
         </div>
     </header>
+    </c:otherwise>
+    </c:choose>
     <script src="https://js.tosspayments.com/v2/standard"></script>
     <script src="${contextPath}/resources/js/app.js"></script>
     <script src="${contextPath}/resources/js/bellIcon.js"></script>
@@ -87,7 +118,7 @@
             }); 
         }
     })();
-    /*const clientKey = "";
+        const clientKey = "test_ck_yZqmkKeP8gBgMeYDwNpprbQRxB9l";
         const customerKey = "${memberInfo.id}";
         const tossPayments = TossPayments(clientKey);
 
@@ -106,5 +137,5 @@
             customerEmail: '${memberInfo.email}',
             customerName: '${memberInfo.member_name}',
             });
-        }*/
+        }
     </script>

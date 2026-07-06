@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
@@ -37,19 +38,18 @@ public class OttController {
     public String ottMain(Model model, HttpSession session) {
         ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
-        
-        
+        session.removeAttribute("log");
         model.addAttribute("serviceList", ottService.getShareableServices());
         model.addAttribute("recruitRoomCount", ottService.getRecruitRoomCount());
         
         if (loginId != null) {
             model.addAttribute("myRoomCount", ottService.getMyRoomCount(loginId));
+            model.addAttribute("body_page", "/WEB-INF/views/ott/ott.jsp");
+            return "common/layout";
         } else {
             model.addAttribute("myRoomCount", 0);
+            return "redirect:/member/loginForm.do?log=ott";
         }
-
-        model.addAttribute("body_page", "/WEB-INF/views/ott/ott.jsp");
-        return "common/layout";
     }
 
     @GetMapping("/ott/friends.do")
@@ -163,6 +163,47 @@ public class OttController {
 
         // 바로 채팅방 입장
         return "redirect:/spendolive/ott/chat/room.do?roomId=" + roomId;
+    }
+
+        /**
+     * 빠른 참가 처리
+     * 빠른 참가도 최종적으로는 기존 신청하기와 똑같이 roomId를 결제 화면에 넘긴다.
+     */
+    @PostMapping("/ott/recruit/quick-join.do")
+    public String quickJoinRecruitRoom(@RequestParam(value = "ottServiceId", required = false) String ottServiceId,
+                                    HttpSession session,
+                                    RedirectAttributes redirectAttributes) {
+        String loginId = getLoginId(session);
+
+        if (loginId == null) {
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능입니다.");
+            return "redirect:/member/loginForm.do";
+        }
+
+        //    parseOttServiceId()는 OttController 안에 이미 있는 변환용 메서드
+        Long selectedOttServiceId = parseOttServiceId(ottServiceId);
+
+        if (selectedOttServiceId == null) {
+            redirectAttributes.addFlashAttribute("msg", "빠른 참가를 하려면 OTT 종류를 먼저 선택해 주세요.");
+            return "redirect:/spendolive/ott/recruit.do?tab=all";
+        }
+
+        // 선택한 OTT 기준으로 참가 가능한 가장 오래된 빈 방의 roomId를 찾는다.
+        // 여기서는 아직 DB에 참여자로 저장하지 않는다.
+        // 결제 흐름을 거쳐야 하므로 "방 찾기"만 한다.
+        Long roomId = ottService.findQuickJoinRecruitRoomId(selectedOttServiceId, loginId);
+
+        // 참가 가능한 방이 없는 경우
+        if (roomId == null) {
+            redirectAttributes.addFlashAttribute("msg", "참가 가능한 모집방이 없습니다.");
+            return "redirect:/spendolive/ott/recruit.do?tab=all&ottServiceId=" + selectedOttServiceId;
+        }
+
+        // 기존 신청하기와 동일한 결제 흐름으로 이동
+        // 일반 신청하기도 최종적으로 roomId를 결제쪽으로 넘긴다.
+        // 빠른 참가는 서버에서 자동으로 찾은 roomId를 넘긴다는 점만 다르다.
+        // 결제쪽은 기존 roomId 기반 결제 로직을 그대로 사용하면 된다.
+        return redirectToRoomPayment(roomId, "RECRUIT", null);
     }
 
     @GetMapping("/ott/friends/invite.do")

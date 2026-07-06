@@ -52,9 +52,13 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
-          
-            
-            mav.setViewName("redirect:/spendolive/main.do");  
+            try{String log = (String) session.getAttribute("log");
+                if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
+                else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
+                else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
+                
+        }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
+              
         }
         //로그인 실피 시 로그인 화면 유지
         else {
@@ -67,7 +71,10 @@ public class MemberControllerImpl implements MemberController{
     }
     @Override
     @RequestMapping(value="/loginForm.do" , method = {RequestMethod.POST, RequestMethod.GET})
-    public ModelAndView loginForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public ModelAndView loginForm(@RequestParam(value = "log", required = false) String log, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        
+        HttpSession session = request.getSession();
+        session.setAttribute("log", log);
         String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
                             + "?client_id=" + kakaoclientId 
                             + "&redirect_uri=" +kakaoredirectUri
@@ -135,13 +142,6 @@ public class MemberControllerImpl implements MemberController{
         
         return mav;
     }
-    
-    @Override
-    public ResponseEntity overlapped(String id, HttpServletRequest request, HttpServletResponse response)
-            throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'overlapped'");
-    }
     @Override
     @ResponseBody
     @RequestMapping(value="/sendEmail", method = RequestMethod.POST)
@@ -184,7 +184,8 @@ public class MemberControllerImpl implements MemberController{
         @ResponseBody
         public String sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
             // 가상 시뮬레이터 가동해서 6자리 번호 획득
-            String verificationCode = memberService.sendSmsVerification(phone);
+            
+            String verificationCode = memberService.sendSmsVerification(phone.replace("-", ""));
             
             // 이메일 때처럼 서버 세션을 열어서 발급된 인증번호를 임시 저장
             HttpSession session = request.getSession();
@@ -230,8 +231,7 @@ public class MemberControllerImpl implements MemberController{
         public boolean checkPhone(@RequestParam("phone") String phone) throws Exception {
             return memberService.checkPhone(phone);
         }
-    // 카카오
-    // ... 기존 코드 (login, loginForm 등) ...
+
 
     // 카카오 로그인 콜백 (Redirect URI로 설정된 주소)
     @Override
@@ -264,7 +264,12 @@ public class MemberControllerImpl implements MemberController{
                 session.setAttribute("memberInfo", memberVO);
                 session.setAttribute("isLogOn", true);
                 session.setAttribute("login_type", "KAKAO");
-                mav.setViewName("redirect:/spendolive/main.do"); // 메인 이동은 redirect 권장
+                try{String log = (String) session.getAttribute("log");
+                if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
+                else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
+                else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
+                
+            }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
             }
             // TODO: userInfo.get("id") 값을 바탕으로 DB 조회 후
             // 기존 회원이면 로그인 처리, 신규 회원이면 회원가입 페이지 이동 혹은 자동 가입 로직 추가 가능
