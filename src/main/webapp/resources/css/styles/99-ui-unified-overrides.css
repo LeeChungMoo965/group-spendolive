@@ -282,3 +282,205 @@ td {
     min-height: 44px;
   }
 }
+
+/* =========================================================
+   Header 메뉴 드롭다운 + 왼쪽 사이드 서브메뉴
+========================================================= */
+
+.so-menu-wrapper {
+  position: relative;
+}
+
+.so-menu-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 210px;
+  padding: 10px;
+  margin: 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid var(--line, #dce5c4);
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(40, 49, 28, 0.14);
+  z-index: 1000;
+  display: none;
+}
+
+.so-menu-popover.is-open {
+  display: block;
+}
+
+.so-menu-item {
+  position: relative;
+}
+
+.so-menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #26331f;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.so-menu-link:hover,
+.so-menu-link.active {
+  background: #eef5dc;
+  color: #7d842c;
+}
+
+.so-menu-arrow {
+  font-size: 13px;
+  color: #8a9140;
+}
+
+/* 왼쪽으로 나오는 하위 메뉴 */
+.so-submenu {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 8px);
+  min-width: 180px;
+  padding: 10px;
+  margin: 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid var(--line, #dce5c4);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(40, 49, 28, 0.14);
+  display: none;
+  z-index: 1001;
+}
+
+/* 마우스 올렸을 때 왼쪽 서브메뉴 표시 */
+.so-menu-item.has-submenu:hover > .so-submenu,
+.so-menu-item.has-submenu:focus-within > .so-submenu {
+  display: block;
+}
+
+/* 서브메뉴 안쪽 링크는 조금 가볍게 */
+.so-submenu .so-menu-link {
+  font-weight: 700;
+  padding: 11px 13px;
+}
+
+/* 모바일에서는 왼쪽으로 빼면 화면 밖으로 나갈 수 있으니 아래로 표시 */
+@media (max-width: 768px) {
+  .so-menu-popover {
+      right: 0;
+      min-width: 220px;
+  }
+
+  .so-submenu {
+      position: static;
+      display: none;
+      margin-top: 6px;
+      box-shadow: none;
+      border-radius: 12px;
+      background: #f8fbef;
+  }
+
+  .so-menu-item.has-submenu:hover > .so-submenu,
+  .so-menu-item.has-submenu:focus-within > .so-submenu {
+      display: block;
+  }
+
+  .so-menu-arrow {
+      transform: rotate(-90deg);
+  }
+}
+
+/* =========================================================
+   Header 메뉴 자연스러운 애니메이션 + 서브메뉴 끊김 방지
+========================================================= */
+
+/* 메인 메뉴 기본 상태 */
+.so-menu-popover {
+  display: block !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition:
+      opacity 0.18s ease,
+      transform 0.18s ease,
+      visibility 0.18s ease;
+}
+
+/* 메뉴 버튼 클릭 시 열림 */
+.so-menu-popover.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* 하위 메뉴를 가진 항목 */
+.so-menu-item.has-submenu {
+  position: relative;
+}
+
+/* 왼쪽 서브메뉴 */
+.so-submenu {
+  display: block !important;
+
+  /* 기존 calc(100% + 8px) 때문에 틈이 생겼다면 이걸로 해결 */
+  right: calc(100% - 2px);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateX(8px) scale(0.98);
+  transform-origin: top right;
+
+  transition:
+      opacity 0.18s ease,
+      transform 0.18s ease,
+      visibility 0.18s ease;
+}
+
+/* 마우스를 올리면 서브메뉴 부드럽게 표시 */
+.so-menu-item.has-submenu:hover > .so-submenu,
+.so-menu-item.has-submenu:focus-within > .so-submenu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+}
+
+/* 혹시 아주 미세한 틈이 생겨도 hover가 끊기지 않게 투명 다리 만들기 */
+.so-menu-item.has-submenu::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: 12px;
+  height: 100%;
+  background: transparent;
+}
+
+/* 메뉴 항목 hover도 조금 부드럽게 */
+.so-menu-link {
+  transition:
+      background-color 0.16s ease,
+      color 0.16s ease,
+      transform 0.16s ease;
+}
+
+.so-menu-link:hover {
+  transform: translateX(-2px);
+}
+
+/* 서브메뉴 안에서는 너무 많이 움직이지 않게 */
+.so-submenu .so-menu-link:hover {
+  transform: translateX(-2px);
+}

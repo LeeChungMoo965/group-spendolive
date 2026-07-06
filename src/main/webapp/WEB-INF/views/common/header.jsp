@@ -5,9 +5,10 @@
     <c:set var="requestURI" value="${pageContext.request.requestURI}" />
 
     <link rel="stylesheet" href="${contextPath}/resources/css/bellIcon.css">
-    <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
+
 <c:choose>
     <c:when test="${memberInfo.role == 'ADMIN'}">
+    <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
 <header class="site-header">
         <div class="container header-inner">
             <a class="admin-brand" href="index.html" aria-label="SpendOlive Admin Home">
@@ -77,16 +78,117 @@
                     </button>
                     
                     <ul class="so-menu-popover" id="soMenuPopover">
-                        <li><a class="so-menu-link ${fn:contains(requestURI, '/notice') ? 'active' : ''}" href="${contextPath}/spendolive/notice/center.do"><strong>알림＆공지사항</strong></a></li>
-                        <li><a class="so-menu-link ${fn:contains(requestURI, '/expense') ? 'active' : ''}" href="${contextPath}/spendolive/expense/list.do"><strong>지출관리</strong></a></li>
-                        <li><a class="so-menu-link ${fn:contains(requestURI, '/calendar') ? 'active' : ''}" href="${contextPath}/spendolive/calendar.do"><strong>캘린더</strong></a></li>
-                        <li><a class="so-menu-link ${fn:contains(requestURI, '/ott') ? 'active' : ''}" href="${contextPath}/spendolive/ott.do"><strong>OTT관리</strong></a></li>
-                        <li><a class="so-menu-link ${fn:contains(requestURI, '/mypage') ? 'active' : ''}" href="${contextPath}/spendolive/mypage.do"><strong>마이페이지</strong></a></li>
-                        <li><a class="so-menu-link ${fn:contains(requestURI, '/faq') ? 'active' : ''}" href="${contextPath}/spendolive/faq/list.do"><strong>자주 묻는 질문</strong></a></li>
-<li><a class="so-menu-link ${fn:contains(requestURI, '/inquiry') ? 'active' : ''}" href="${contextPath}/spendolive/inquiry/list.do"><strong>내 문의하기</strong></a></li>
-                        <li><a class="so-menu-link" href="${contextPath}/member/openBankingAuth.do"><strong>🏦계좌 연동하기</strong></a></li>
-                        <li><a class="so-menu-link" href="${contextPath}/payment/paymenting.do"><strong>정산하기</strong></a></li>
-                        <li><a class="so-menu-link" onclick="requestBillingAuth()"><strong>카드 등록하기</strong></a></li>
+
+                        <!-- 알림 & 공지사항 -->
+                        <li class="so-menu-item">
+                            <a class="so-menu-link ${fn:contains(requestURI, '/notice') ? 'active' : ''}"
+                            href="${contextPath}/spendolive/notice/center.do">
+                                <strong>알림＆공지사항</strong>
+                            </a>
+                        </li>
+
+                        <!-- 지출관리 -->
+                        <li class="so-menu-item has-submenu">
+                            <a class="so-menu-link ${fn:contains(requestURI, '/expense') or fn:contains(requestURI, '/calendar') ? 'active' : ''}"
+                            href="${contextPath}/spendolive/expense/list.do">
+                                <strong>지출관리</strong>
+                                <span class="so-menu-arrow">◂</span>
+                            </a>
+
+                            <ul class="so-submenu">
+                                <li>
+                                    <a class="so-menu-link ${fn:contains(requestURI, '/calendar') ? 'active' : ''}"
+                                    href="${contextPath}/spendolive/calendar.do">
+                                        캘린더
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- OTT 관리 -->
+                        <li class="so-menu-item has-submenu">
+                            <a class="so-menu-link ${fn:contains(requestURI, '/ott') ? 'active' : ''}"
+                            href="${contextPath}/spendolive/ott.do">
+                                <strong>OTT관리</strong>
+                                <span class="so-menu-arrow">◂</span>
+                            </a>
+
+                            <ul class="so-submenu">
+                                <li>
+                                    <a class="so-menu-link"
+                                    href="${contextPath}/spendolive/ott/friends.do">
+                                        가족 공유방
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="so-menu-link"
+                                    href="${contextPath}/spendolive/ott/recruit.do">
+                                        외부 공유방
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="so-menu-link"
+                                    href="${contextPath}/payment/paymenting.do">
+                                        정산하기
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- 고객센터 -->
+                        <li class="so-menu-item has-submenu">
+                            <a class="so-menu-link ${fn:contains(requestURI, '/faq') or fn:contains(requestURI, '/inquiry') or fn:contains(requestURI, '/report') ? 'active' : ''}"
+                            href="${contextPath}/spendolive/faq/list.do">
+                                <strong>고객센터</strong>
+                                <span class="so-menu-arrow">◂</span>
+                            </a>
+
+                            <ul class="so-submenu">
+                                <li>
+                                    <a class="so-menu-link ${fn:contains(requestURI, '/inquiry') ? 'active' : ''}"
+                                    href="${contextPath}/spendolive/inquiry/list.do">
+                                        문의하기
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="so-menu-link ${fn:contains(requestURI, '/faq') ? 'active' : ''}"
+                                    href="${contextPath}/spendolive/faq/list.do">
+                                        자주 묻는 질문
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="so-menu-link ${fn:contains(requestURI, '/report') ? 'active' : ''}"
+                                    href="${contextPath}/spendolive/report/write.do">
+                                        신고하기
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- 마이페이지 -->
+                        <li class="so-menu-item has-submenu">
+                            <a class="so-menu-link ${fn:contains(requestURI, '/mypage') ? 'active' : ''}"
+                            href="${contextPath}/spendolive/mypage.do">
+                                <strong>마이페이지</strong>
+                                <span class="so-menu-arrow">◂</span>
+                            </a>
+
+                            <ul class="so-submenu">
+                                <li>
+                                    <a class="so-menu-link"
+                                    href="${contextPath}/member/openBankingAuth.do">
+                                        계좌 연동
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="so-menu-link"
+                                    href="javascript:void(0);"
+                                    onclick="requestBillingAuth()">
+                                        카드 등록
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
                 </strong>
@@ -112,7 +214,7 @@
             
             // 2. 메뉴창 바깥 아무 데나 누르면 닫히게 처리
             document.addEventListener('click', function(e) {
-                if (!popover.contains(e.target) && e.target !== btn) {
+                if (!popover.contains(e.target) && !btn.contains(e.target)) {
                     popover.classList.remove('is-open');
                 }
             }); 

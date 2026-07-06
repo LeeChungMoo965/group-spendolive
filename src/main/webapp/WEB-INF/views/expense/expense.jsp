@@ -141,14 +141,12 @@
                             <p class="card-desc">선택한 달의 지출만 표시됩니다.</p>
                         </div>
 
-                        <form action="${contextPath}/spendolive/expense/list.do" method="get">
-                            <select name="yearMonth" onchange="this.form.submit()">
-                                <c:forEach var="month" items="${monthList}">
-                                    <option value="${month}" ${month == selectedYearMonth ? 'selected' : ''}>
-                                        ${month.substring(0, 4)}년 ${month.substring(5, 7)}월
-                                    </option>
-                                </c:forEach>
-                            </select>
+                        <form action="${contextPath}/spendolive/expense/list.do" method="get" class="month-search-form">
+                            <input type="month"
+                                   name="yearMonth"
+                                   value="${selectedYearMonth}"
+                                   onchange="this.form.submit()"
+                                   class="month-picker-input">
                         </form>
                     </div>
 
