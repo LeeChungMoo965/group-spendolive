@@ -268,7 +268,6 @@ public class MemberControllerImpl implements MemberController{
                 if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
                 else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
                 else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
-
                 
             }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
             }
