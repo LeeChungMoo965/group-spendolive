@@ -56,7 +56,6 @@ public class MemberControllerImpl implements MemberController{
                 if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
                 else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
                 else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
-                else {mav.setViewName("redirect:/spendolive/notice.center.do");}
                 
         }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
               
@@ -72,7 +71,7 @@ public class MemberControllerImpl implements MemberController{
     }
     @Override
     @RequestMapping(value="/loginForm.do" , method = {RequestMethod.POST, RequestMethod.GET})
-    public ModelAndView loginForm(@RequestParam(required = false) String log, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public ModelAndView loginForm(@RequestParam(value = "log", required = false) String log, HttpServletRequest request, HttpServletResponse response) throws Exception {
         
         HttpSession session = request.getSession();
         session.setAttribute("log", log);
@@ -143,13 +142,6 @@ public class MemberControllerImpl implements MemberController{
         
         return mav;
     }
-    
-    @Override
-    public ResponseEntity overlapped(String id, HttpServletRequest request, HttpServletResponse response)
-            throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'overlapped'");
-    }
     @Override
     @ResponseBody
     @RequestMapping(value="/sendEmail", method = RequestMethod.POST)
@@ -192,7 +184,8 @@ public class MemberControllerImpl implements MemberController{
         @ResponseBody
         public String sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
             // 가상 시뮬레이터 가동해서 6자리 번호 획득
-            String verificationCode = memberService.sendSmsVerification(phone);
+            
+            String verificationCode = memberService.sendSmsVerification(phone.replace("-", ""));
             
             // 이메일 때처럼 서버 세션을 열어서 발급된 인증번호를 임시 저장
             HttpSession session = request.getSession();
@@ -238,8 +231,7 @@ public class MemberControllerImpl implements MemberController{
         public boolean checkPhone(@RequestParam("phone") String phone) throws Exception {
             return memberService.checkPhone(phone);
         }
-    // 카카오
-    // ... 기존 코드 (login, loginForm 등) ...
+
 
     // 카카오 로그인 콜백 (Redirect URI로 설정된 주소)
     @Override
@@ -276,7 +268,7 @@ public class MemberControllerImpl implements MemberController{
                 if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
                 else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
                 else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
-                else {mav.setViewName("redirect:/spendolive/notice.center.do");}
+
                 
             }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
             }

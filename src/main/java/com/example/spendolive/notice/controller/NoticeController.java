@@ -39,7 +39,6 @@ public class NoticeController {
         String id = (memberInfo != null) ? memberInfo.getId() : null;
         
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.setViewName("redirect:/member/loginForm.do?log=notice");
         mav.addObject("body_page", "/WEB-INF/views/notice/noticeCenter.jsp");
         mav.addObject("loginYn", memberInfo != null);
         mav.addObject("tab", tab);

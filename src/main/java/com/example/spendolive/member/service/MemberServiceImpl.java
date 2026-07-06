@@ -19,7 +19,8 @@
     import org.springframework.http.HttpStatus;
     import org.springframework.http.MediaType;
     import org.springframework.http.ResponseEntity;
-    import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
     import org.springframework.mail.javamail.MimeMessageHelper;
     import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,12 @@ import com.example.spendolive.payment.service.PaymentServiceImpl;
 import com.google.gson.JsonElement;
     import com.google.gson.JsonObject;
     import com.google.gson.JsonParser;
-    import jakarta.mail.internet.MimeMessage;
+import com.solapi.sdk.SolapiClient;
+import com.solapi.sdk.message.exception.SolapiMessageNotReceivedException;
+import com.solapi.sdk.message.model.Message;
+import com.solapi.sdk.message.service.DefaultMessageService;
+
+import jakarta.mail.internet.MimeMessage;
 import tools.jackson.databind.ObjectMapper;
     @Service
     public class MemberServiceImpl implements MemberService {
@@ -55,6 +61,10 @@ import tools.jackson.databind.ObjectMapper;
         private String openbankingredirectUri;
         @Value("${openbanking.client-secret}")
         private String openbankingclientSecret;  
+        @Value("${solapi.api-key}")
+        private String solapiapikey;
+        @Value("${solapi.secret-key}")
+        private String solapisecretkey;  
         @Override
         public MemberVO login(Map loginMap) throws Exception {
             
@@ -74,71 +84,56 @@ import tools.jackson.databind.ObjectMapper;
 
         @Override
         public String sendVerificationEmail(String toEmail) throws Exception {
-            String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
-            
-            String title = "[SpendOlive] 회원가입 이메일 인증번호입니다.";
-            String content = "<h3>안녕하세요. SpendOlive입니다.</h3>"
-                        + "<p>회원가입 화면에서 아래의 인증번호를 입력해 주세요.</p>"
-                        + "<h2 style='color: #4CAF50;'>" + verificationCode + "</h2>"
-                        + "<p>감사합니다.</p>";
-
-            // 포털 사이트의 기기 보안 차단을 원천 봉쇄하는 개발자 전용 발송 서버 세팅
-            org.springframework.mail.javamail.JavaMailSenderImpl customSender = new org.springframework.mail.javamail.JavaMailSenderImpl();
-            customSender.setHost("sandbox.smtp.mailtrap.io"); // ◀ 메일트랩 호스트
-            customSender.setPort(2525); // ◀ 보안 충돌 없는 포트
-            customSender.setUsername("e05077ac67ba67"); // ◀ 임시 공용 테스트 아이디
-            customSender.setPassword("a9a2d54c235102"); // ◀ 임시 공용 테스트 비밀번호
-
-            java.util.Properties props = customSender.getJavaMailProperties();
-    // ◀ [이 줄을 반드시 추가!] 윈도우 한글 이름으로 인한 501 에러를 원천 차단합니다.
-            props.put("mail.smtp.localhost", "127.0.0.1"); 
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true"); 
-            props.put("mail.smtp.starttls.required", "true");
-            props.put("mail.smtp.ssl.protocols", "TLSv1.2");
-
-            try {
-                MimeMessage message = customSender.createMimeMessage(); 
-                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-                helper.setFrom("admin@spendolive.com");
-                helper.setTo(toEmail);
-                helper.setSubject(title);
-                helper.setText(content, true);
-
-                // 실제 발송 전송 로직 작동
-                customSender.send(message); 
-                System.out.println("★ SMTP 이메일 발송 최종 성공! 인증번호: " + verificationCode);
-                
-                return verificationCode;
-                
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException("이메일 발송 중 오류가 발생했습니다.");
+            // 윈도우 한글 이름으로 인해 구글이 EOF 뱉는 현상을 방어하기 위해 로컬호스트 강제 지정
+            if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
+                java.util.Properties props = ((org.springframework.mail.javamail.JavaMailSenderImpl) mailSender).getJavaMailProperties();
+                props.put("mail.smtp.localhost", "127.0.0.1");
             }
+            String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("chung100302@gmail.com");
+            message.setTo(toEmail); // 받는 사람 이메일
+            message.setSubject("[SpendOlive] 회원가입 인증번호 안내"); // 이메일 제목
+            message.setText("안녕하세요. SpendOlive입니다.\n\n" +
+                "회원가입을 완료하기 위한 인증번호는 [ " + verificationCode + " ] 입니다.\n" +
+                "타인에게 노출되지 않도록 주의해 주세요."); // 이메일 본문
+            
+            try{
+                mailSender.send(message);
+                return verificationCode;
+            } catch (Exception e){
+                System.out.println("이메일 발송 에러: " + e.getMessage());
+            throw new RuntimeException("이메일 전송 중 에러 발생");
+            }
+      
         }
-    //추후에 시연 할 때 실계정 전환 후 시연 할 예정  ()
+
         @Override
         public String sendSmsVerification(String toNumber) throws Exception {
             // 1. 진짜 통신사 망을 탈 때와 똑같이 6자리 랜덤 인증번호 생성
             String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
 
-            // 2. 외부 쿨에스엠에스 서버를 거치지 않고, 성공 패킷을 백엔드가 직접 조립
+            DefaultMessageService messageService =  SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
+            // Message 패키지가 중복될 경우 com.solapi.sdk.message.model.Message로 치환하여 주세요
+            Message message = new Message();
+            message.setFrom("01024414631");
+            message.setTo(toNumber);
+            message.setText("★ 발송 메세지: [SpendOlive] 가입 인증번호는 [" + verificationCode + "] 입니다.");
+
             try {
-                System.out.println("=========================================");
-                System.out.println("★ [CoolSMS 가상 시뮬레이터 작동 중]");
-                System.out.println("★ 수신자 번호: " + toNumber);
-                System.out.println("★ 발송 메세지: [SpendOlive] 가입 인증번호는 [" + verificationCode + "] 입니다.");
-                System.out.println("★ 상태 코드: 200 (Success) - 가상 발송 완료");
-                System.out.println("=========================================");
-                
-                // 3. 화면(프론트엔드)과 세션 검증 로직으로 인증번호를 그대로 리턴
-                return verificationCode;
-                
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException("문자 가상 전송 중 오류 발생");
+            // send 메소드로 ArrayList<Message> 객체를 넣어도 동작합니다!
+            messageService.send(message);
+            return verificationCode;
+            } catch (SolapiMessageNotReceivedException exception) {
+            // 발송에 실패한 메시지 목록을 확인할 수 있습니다!
+            System.out.println(exception.getFailedMessageList());
+            System.out.println(exception.getMessage());
+            throw new RuntimeException("문자 전송 중 오류 발생");
+            } catch (Exception exception) { 
+            System.out.println(exception.getMessage());
+            throw new RuntimeException("문자 전송 중 오류 발생");
             }
+            
         }
         // 아이디 중복확인 메서드
         @Override

@@ -175,9 +175,9 @@ function sendSms() {
               type: 'POST',
               data: { phone: phone },
               success: function(response) {
-                  alert('인증번호가 가상 발송되었습니다. 서버 콘솔창을 확인하세요!');
+                  alert('인증번호가 발송되었습니다.');
                   $('#phoneAuthArea').show(); // 숨겨진 인증박스 오픈
-                  $('#phoneAuthResult').text('콘솔창에 찍힌 6자리 숫자를 입력하세요.').css('color', '#666');
+                  $('#phoneAuthResult').text('인증번호 6자리 숫자를 입력하세요.').css('color', '#666');
               },
               error: function() {
                   alert('문자 발송 요청 중 오류가 발생했습니다 핸드폰 번호를 확인해 주세요! ');
