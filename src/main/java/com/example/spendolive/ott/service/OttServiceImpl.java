@@ -135,7 +135,7 @@ public class OttServiceImpl implements OttService {
     public void createRecruitRoom(OttRoomDTO roomDTO, String loginId) {
         roomDTO.setRoomMode("RECRUIT");
         prepareRoomDefaultValues(roomDTO);
-        
+
             // 1. 모집방 생성
         Long roomId = ottRepository.insertRoom(roomDTO, loginId, "RECRUITING");
 
@@ -146,6 +146,23 @@ public class OttServiceImpl implements OttService {
     @Override
     public void applyRecruitRoom(Long roomId, String loginId) {
         ottRepository.applyRoom(roomId, loginId);
+    }
+
+    @Override
+    public Long findQuickJoinRecruitRoomId(Long ottServiceId, String loginId) {
+
+        // 1. OTT 선택값이 없으면 빠른 참가 불가
+        if (ottServiceId == null) {
+            return null;
+        }
+
+        // 2. 로그인 ID가 없으면 빠른 참가 불가
+        if (loginId == null || loginId.isBlank()) {
+            return null;
+        }
+
+        // 3. Repository에게 참가 가능한 가장 오래된 방 roomId를 찾아달라고 요청
+        return ottRepository.selectOldestAvailableRecruitRoomId(ottServiceId, loginId);
     }
 
     @Override
@@ -241,7 +258,14 @@ public class OttServiceImpl implements OttService {
         }
 
         roomDTO.setPlanName(serviceRule.getFixedPlanName());
-        roomDTO.setTotalPrice(serviceRule.getDefaultPrice());
         roomDTO.setMemberLimit(serviceRule.getMaxMemberLimit());
+
+        if ("FRIEND".equals(roomDTO.getRoomMode())) {
+            // 가족방: IP 추가요금 제외, 기본요금만 사용
+            roomDTO.setTotalPrice(serviceRule.getBasePrice());
+        } else {
+            // 외부인방: IP 추가요금 포함 금액 사용
+            roomDTO.setTotalPrice(serviceRule.getDefaultPrice());
+        }
     }
 }

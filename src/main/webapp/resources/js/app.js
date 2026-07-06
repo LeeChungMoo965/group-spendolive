@@ -272,6 +272,8 @@ function updateFixedPlanForm(form) {
   const select = form.querySelector('.ott-service-select');
   const option = select && select.selectedOptions ? select.selectedOptions[0] : null;
   const preview = form.querySelector('.ott-fixed-plan-preview');
+  const roomMode = form.dataset.roomMode || 'RECRUIT';
+  const isFriendRoom = roomMode === 'FRIEND';
 
   if (!option || !option.value) {
     form.querySelector('.ott-plan-input')?.setAttribute('value', '');
@@ -302,18 +304,25 @@ function updateFixedPlanForm(form) {
   if (totalInput) totalInput.value = totalPrice;
   if (memberInput) memberInput.value = memberLimit;
 
-  const extraText = extraFee > 0 && extraCount > 0
-    ? `추가 계정 ${extraCount}명 × ${formatWon(extraFee)} 포함`
-    : '추가 계정 비용 없음';
+  const displayTotalPrice = isFriendRoom ? basePrice : totalPrice;
+  const displayShareAmount = memberLimit > 0 ? Math.floor(displayTotalPrice / memberLimit) : 0;
+  const displayFeeAmount = Math.floor(displayShareAmount * 0.03);
+  const displayPersonAmount = displayShareAmount + displayFeeAmount;
+  
+  const extraText = isFriendRoom
+    ? '가족/지인 공유방은 추가 IP 비용을 제외합니다.'
+    : (extraFee > 0 && extraCount > 0
+        ? `추가 계정 ${extraCount}명 × ${formatWon(extraFee)} 포함`
+        : '추가 계정 비용 없음');
 
   if (preview) {
     preview.innerHTML = `
       <strong>${serviceName} · ${plan}</strong>
       <div class="ott-plan-preview-grid">
         <span><b>기본 구독료</b>${formatWon(basePrice)}</span>
-        <span><b>추가 비용</b>${extraText}</span>
-        <span><b>N분의 1 기준 금액</b>${formatWon(totalPrice)} / ${memberLimit}명</span>
-        <span><b>1인 결제금액</b>${formatWon(personAmount)} <small>분담금 ${formatWon(shareAmount)} + 수수료 ${formatWon(feeAmount)}(3%)</small></span>
+        <span><b>${isFriendRoom ? '공유 기준' : '추가 비용'}</b>${extraText}</span>
+        <span><b>N분의 1 기준 금액</b>${formatWon(displayTotalPrice)} / ${memberLimit}명</span>
+        <span><b>1인 결제금액</b>${formatWon(displayPersonAmount)} <small>분담금 ${formatWon(displayShareAmount)} + 수수료 ${formatWon(displayFeeAmount)}(3%)</small></span>
       </div>
     `;
   }

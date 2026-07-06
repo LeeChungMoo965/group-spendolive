@@ -166,6 +166,97 @@ public class OttRepositoryImpl implements OttRepository {
                 roomNameKeyword);
     }
 
+    // 빠른 참가에서 실제로 roomId를 찾는 SQL이다.
+    @Override
+    public Long selectOldestAvailableRecruitRoomId(Long ottServiceId, String loginId) {
+        /*
+        * 빠른 참가에서 실제로 roomId를 찾는 SQL이다.
+        *
+        * 일반 신청하기는 JSP에서 roomId가 바로 넘어오지만,
+        * 빠른 참가는 ottServiceId만 넘어오기 때문에
+        * 여기서 조건에 맞는 roomId를 직접 찾아야 한다.
+        */
+
+        // 1. 값이 없으면 조회할 수 없으므로 null 반환
+        if (ottServiceId == null || loginId == null || loginId.isBlank()) {
+            return null;
+        }
+
+        /*
+        * SQL 설명:
+        *
+        * FROM ott_room_tb r
+        * - 모집방 정보가 들어있는 테이블에서 찾는다.
+        *
+        * NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
+        * - 가족방이 아니라 외부인 모집방만 찾는다.
+        *
+        * r.ott_service_id = ?
+        * - 사용자가 선택한 OTT 종류와 같은 방만 찾는다.
+        *
+        * r.status IN ('RECRUITING', 'REPLACE_RECRUITING')
+        * - 현재 모집중인 방만 찾는다.
+        *
+        * r.host_login_id <> ?
+        * - 내가 만든 방에는 빠른 참가하지 못하게 한다.
+        *
+        * NOT EXISTS (...)
+        * - 내가 이미 ACTIVE 상태로 참여 중인 방은 제외한다.
+        *
+        * ACTIVE 인원 수 < r.member_limit
+        * - 아직 자리가 남아있는 방만 찾는다.
+        *
+        * ORDER BY r.created_at ASC, r.room_id ASC
+        * - 가장 오래된 방부터 채우기 위해 생성일 오래된 순으로 정렬한다.
+        * - 생성일이 같으면 room_id가 낮은 방을 먼저 선택한다.
+        *
+        * WHERE ROWNUM = 1
+        * - 조건에 맞는 방 중 가장 첫 번째 방 하나만 가져온다.
+        */
+        String sql = """
+                SELECT room_id
+                FROM (
+                    SELECT r.room_id
+                    FROM ott_room_tb r
+                    WHERE NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
+                    AND r.ott_service_id = ?
+                    AND r.status IN ('RECRUITING', 'REPLACE_RECRUITING')
+                    AND r.host_login_id <> ?
+                    AND NOT EXISTS (
+                            SELECT 1
+                            FROM ott_room_member_tb mine
+                            WHERE mine.room_id = r.room_id
+                            AND mine.member_login_id = ?
+                            AND mine.status = 'ACTIVE'
+                    )
+                    AND (
+                            SELECT COUNT(*)
+                            FROM ott_room_member_tb rm
+                            WHERE rm.room_id = r.room_id
+                            AND rm.status = 'ACTIVE'
+                    ) < r.member_limit
+                    ORDER BY r.created_at ASC, r.room_id ASC
+                )
+                WHERE ROWNUM = 1
+                """;
+
+        try {
+            /*
+            * 파라미터 순서:
+            * 1. ottServiceId → 선택한 OTT
+            * 2. loginId      → 내가 만든 방 제외
+            * 3. loginId      → 내가 이미 참여한 방 제외
+            */
+            return jdbcTemplate.queryForObject(sql, Long.class, ottServiceId, loginId, loginId);
+        } catch (EmptyResultDataAccessException e) {
+            /*
+            * 조건에 맞는 방이 하나도 없으면 queryForObject가 예외를 던진다.
+            * 이 경우 빠른 참가 실패로 보고 null을 반환한다.
+            */
+            return null;
+        }
+    }
+
     @Override
     public List<OttRoomDTO> selectFriendRooms(String loginId) {
         return selectMyRoomsByMode(loginId, "FRIEND");
