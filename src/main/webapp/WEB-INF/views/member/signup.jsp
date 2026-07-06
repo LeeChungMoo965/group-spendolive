@@ -127,7 +127,7 @@
                 </div>
                 <p id="phoneAuthResult" class="auth-result-text">휴대폰으로 발송된 인증번호를 입력해 주세요.</p>
             </div>
-            <input id="userId" type="hidden" name="id" value="${id}1">
+            <input id="userId" type="hidden" name="id" value="${id}">
             <input id="password" type="hidden" name="password" value="KAKAO">
             <input id="login_type" type="hidden" name="login_type" value="${login_type}">
             </c:when>

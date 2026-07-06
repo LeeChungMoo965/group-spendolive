@@ -5,6 +5,15 @@ let currentNoticeData = [];
 
 
 function setBoardTab(mode) {
+
+
+    if (mode === "alert" && !loginYn) {
+        alert("로그인이 필요한 기능 입니다 로그인을 해주세요 !");
+        location.href = "/member/loginForm.do?log=notice";
+        return;
+    }
+
+    
     const eyebrow = document.getElementById("listEyebrow");
     const title = document.getElementById("listTitle");
     const header = document.getElementById("writerTypeHeader");

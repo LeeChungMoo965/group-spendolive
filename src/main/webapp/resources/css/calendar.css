@@ -5,14 +5,13 @@
 /* FullCalendar 기본 이벤트 박스를 파란색 하나로 깔끔하게 정리
    (칩이랑 이중으로 안 겹치게, 배경/테두리는 여기서만 준다) */
    .fc .fc-daygrid-event-harness{
-    margin-bottom:2px;
+    background: transparent !important;
   }
   .fc .fc-daygrid-event,
   .fc .fc-h-event{
-    background:#d97757;
-    border:none;
-    border-radius:8px;
-    padding:0;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
   }
   .fc .fc-daygrid-event:hover,
   .fc .fc-h-event:hover{
@@ -51,7 +50,8 @@
   /* 모든 날짜 칸 높이를 고정 — 지출이 있든 없든 행 높이가 똑같이 유지됨
      (dayMaxEvents: 2 기준으로 날짜숫자 + 칩 2개 + 더보기링크가 다 들어갈 높이) */
   .fc .fc-daygrid-day-frame{
-    min-height:120px;
+    height:125px;
+    
   }
   
   .fc .fc-daygrid-more-link{
@@ -59,7 +59,7 @@
     margin-top:3px;
     padding:3px 8px;
     border-radius:8px;
-    background:var(--cream);
+    background:#ecf1b8;
     border:1px solid var(--line);
     color:var(--olive-dark);
     font-size:12px;
@@ -184,22 +184,83 @@
   gap:0px;
   margin-top:2px;
   padding:3px 6px;
-  font-size:11px;
+  font-size:1px;
   line-height:1.35;
   overflow:hidden;
-  background:#d97757;
+  background:#d97757; /* fallback */
   border-radius:8px;
   color:#fff;
 }
-.calendar-expense-chip:hover{
-  background:#d8643d;
+
+/* 분류별 색상 */
+.calendar-expense-chip.chip-type-fixed{
+  background:#7a7f36;   /* 고정 - 올리브 계열 */
 }
-.calendar-expense-chip .chip-amount{
+.calendar-expense-chip.chip-type-variable{
+  background:#d97757;   /* 변동 - 기존 코랄 그대로 */
+}
+.calendar-expense-chip.chip-type-ott{
+  background:#4a6fa5;   /* OTT - 파란 계열 */
+}
+
+.calendar-expense-chip.chip-type-fixed:hover{
+  background:#6c7217;
+  filter: brightness(0.93); /* 타입별로 각각 hover색 안 만들고 공통으로 살짝 어둡게 */
+}
+
+.calendar-expense-chip.chip-type-variable:hover{
+  background:#be5b3a;
+  filter: brightness(0.93); /* 타입별로 각각 hover색 안 만들고 공통으로 살짝 어둡게 */
+}
+
+.calendar-expense-chip.chip-type-ott:hover{
+  background:#2156a5;
+  filter: brightness(0.93); /* 타입별로 각각 hover색 안 만들고 공통으로 살짝 어둡게 */
+}
+
+
+/* 사이드패널 카드 기본 틀 */
+.side-event{
+  display:block;
+  padding:12px 14px;
+  margin-bottom:8px;
+  border-radius:12px;
+  background:#fff;
+  border:1px solid #e5e2d8;
+}
+.side-event:last-child{
+  margin-bottom:0;
+}
+.side-event strong{
+  display:block;
+  font-size:14px;
   font-weight:900;
-  font-size:13px;
-  color:#fff;
+  margin-bottom:4px;
+  color:#22261a;
 }
-.calendar-expense-chip .chip-category{
-  color:rgba(255,255,255,.85);
-  font-size:11px;
+.side-event span{
+  display:block;
+  font-size:13px;
+  color:#6c745f;
+}
+
+/* 분류별 연한 배경  */
+.side-event.type-fixed{
+  background: rgba(122, 127, 54, 0.18);
+  border-left: 3px solid #7a7f36;
+}
+.side-event.type-variable{
+  background: rgba(217, 119, 87, 0.18);
+  border-left: 3px solid #d97757;
+}
+.side-event.type-ott{
+  background: rgba(74, 111, 165, 0.18);
+  border-left: 3px solid #4a6fa5;
+}
+
+
+.side-column{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
 }
