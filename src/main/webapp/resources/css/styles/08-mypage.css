@@ -434,3 +434,32 @@ color: #9a5f13;
   width: 100%;
 }
 }
+
+/* =========================================================
+   마이페이지 상단 카드 버튼 하단 정렬
+========================================================= */
+
+/* 상단 4개 카드가 같은 높이를 유지하도록 설정 */
+.mypage-top-grid {
+  align-items: stretch;
+}
+
+/* 카드 내부를 세로 방향 flex 구조로 변경 */
+.mypage-top-grid > .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 카드 안의 마지막 버튼을 아래쪽으로 밀기 */
+.mypage-top-grid > .card > .btn {
+  margin-top: auto;
+}
+
+/* 계좌관리 카드처럼 조건문 안에서 버튼이 나와도 동일하게 적용 */
+.mypage-bank-card > .btn,
+.mypage-report-card > .btn,
+.mypage-profile-card > .btn,
+.mypage-stat-card > .btn {
+  margin-top: auto;
+}
