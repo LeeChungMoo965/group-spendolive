@@ -1,0 +1,284 @@
+/* =========================================================
+   99. UI Unified Overrides
+   ---------------------------------------------------------
+   목적
+   - 페이지마다 흩어진 버튼 / 카드 / 탭 / 폼 스타일을 한 번 더 통일한다.
+   - 기존 JSP 클래스명을 바꾸지 않고, 마지막에 덮어쓰는 방식이라 기능 코드 영향이 적다.
+   - 새 컴포넌트를 만들 때는 아래 공통 클래스를 우선 사용하면 된다.
+
+   권장 클래스
+   - 버튼: .btn .btn-primary .btn-light .btn-outline .btn-danger .btn-sm .btn-lg .btn-full
+   - 카드: .card .card-header .card-body .card-title .card-desc
+   - 폼: .form-control
+   - 탭: .tab-list .tab-button .tab-button.active
+   ========================================================= */
+
+/* ---------- Button System ---------- */
+.btn,
+.auth-btn,
+.settlement-send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 13px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.btn:hover,
+.auth-btn:hover,
+.settlement-send-btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary,
+.auth-btn-primary,
+.settlement-send-btn {
+  background: var(--olive);
+  color: #fff;
+  border-color: var(--olive);
+  box-shadow: 0 10px 20px rgba(122, 127, 54, .22);
+}
+
+.btn-primary:hover,
+.auth-btn-primary:hover,
+.settlement-send-btn:hover {
+  background: var(--olive-dark);
+  border-color: var(--olive-dark);
+}
+
+.btn-light,
+.auth-btn-light {
+  background: var(--olive-soft);
+  color: var(--olive-dark);
+  border-color: #cfdbad;
+}
+
+.btn-outline,
+.auth-btn-outline {
+  background: #fff;
+  color: var(--olive-dark);
+  border-color: #c8d4a5;
+}
+
+.btn-danger,
+.mypage-danger-btn {
+  background: #c44732;
+  color: #fff;
+  border-color: #c44732;
+}
+
+.btn-danger:hover,
+.mypage-danger-btn:hover {
+  background: #a93624;
+  border-color: #a93624;
+}
+
+.btn-danger-outline,
+.mypage-danger-outline {
+  background: #fff;
+  color: #b8422e;
+  border-color: rgba(193, 77, 57, .45);
+}
+
+.btn-sm,
+.btn-small {
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 11px;
+  font-size: 13px;
+}
+
+.btn-lg,
+.btn-large {
+  min-height: 50px;
+  padding: 14px 22px;
+  border-radius: 16px;
+  font-size: 15px;
+}
+
+.btn-full,
+.full,
+.btn.full {
+  width: 100%;
+}
+
+button:disabled,
+.btn:disabled,
+.auth-btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ---------- Form System ---------- */
+.form-control,
+input,
+select,
+textarea {
+  border-color: var(--line);
+  border-radius: 14px;
+  color: var(--text);
+}
+
+.form-control:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--olive);
+  box-shadow: 0 0 0 4px rgba(122, 127, 54, .13);
+}
+
+label {
+  color: #3f4c25;
+  font-weight: 900;
+}
+
+/* ---------- Card System ---------- */
+.card,
+.summary-card,
+.feature-card,
+.info-panel,
+.analytics-card,
+.detail-card,
+.profile-card,
+.table-card,
+.admin-card,
+.ott-choice-card,
+.ott-form-card,
+.ott-room-list-card,
+.recruit-board-card,
+.ott-tab-panel,
+.calendar {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card-title,
+.summary-card h3,
+.feature-card h3,
+.info-panel h3,
+.analytics-card h3,
+.detail-card h3 {
+  color: var(--text);
+  letter-spacing: -.03em;
+}
+
+.card-desc,
+.section-desc,
+.summary-card p,
+.feature-card p,
+.info-panel p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* ---------- Tab System ---------- */
+.tab-list,
+.ott-tabs,
+.ott-tab-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tab-button,
+.ott-tabs a,
+.ott-tab-menu a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #dbe7d4;
+  border-radius: 999px;
+  background: #fff;
+  color: #40523d;
+  font-size: 14px;
+  font-weight: 850;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(52, 74, 48, .05);
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+.tab-button:hover,
+.tab-button.active,
+.ott-tabs a:hover,
+.ott-tabs a.active,
+.ott-tab-menu a:hover,
+.ott-tab-menu a.active {
+  background: var(--olive);
+  border-color: var(--olive);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ---------- Badge / Chip System ---------- */
+.chip,
+em,
+.tag,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* ---------- Table System ---------- */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+td {
+  color: var(--text);
+}
+
+/* ---------- Layout Helpers ---------- */
+.hidden,
+.is-hidden {
+  display: none !important;
+}
+
+.text-muted {
+  color: var(--muted) !important;
+}
+
+.text-olive {
+  color: var(--olive-dark) !important;
+}
+
+@media (max-width: 700px) {
+  .btn,
+  .auth-btn,
+  .settlement-send-btn {
+    min-height: 44px;
+  }
+}
