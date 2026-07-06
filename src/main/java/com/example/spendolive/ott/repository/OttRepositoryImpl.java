@@ -541,7 +541,7 @@ public class OttRepositoryImpl implements OttRepository {
             JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
             LEFT JOIN settlement_payment_tb sp
                    ON st.settlement_id = sp.settlement_id
-                  AND sp.member_login_id = ?
+                  AND sp.id = ?
             WHERE (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
               AND (
                    r.host_login_id = ?
@@ -1071,7 +1071,7 @@ public class OttRepositoryImpl implements OttRepository {
                     INSERT INTO settlement_payment_tb (
                         payment_id,
                         settlement_id,
-                        member_login_id,
+                        id,
                         base_amount,
                         fee_rate,
                         fee_amount,
@@ -1362,7 +1362,7 @@ public class OttRepositoryImpl implements OttRepository {
                         FROM settlement_payment_tb sp
                         JOIN settlement_tb st ON sp.settlement_id = st.settlement_id
                         WHERE st.room_id = rm.room_id
-                        AND sp.member_login_id = rm.member_login_id
+                        AND sp.id = rm.member_login_id
                         AND sp.payment_status = 'EXPIRED'
                         AND st.payment_close_date < TRUNC(SYSDATE)
                 )

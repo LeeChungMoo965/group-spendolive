@@ -84,8 +84,10 @@ import tools.jackson.databind.ObjectMapper;
 
         @Override
         public String sendVerificationEmail(String toEmail) throws Exception {
+            String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
             // 윈도우 한글 이름으로 인해 구글이 EOF 뱉는 현상을 방어하기 위해 로컬호스트 강제 지정
-            /*if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
+            /*
+            if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
                 java.util.Properties props = ((org.springframework.mail.javamail.JavaMailSenderImpl) mailSender).getJavaMailProperties();
                 props.put("mail.smtp.localhost", "127.0.0.1");
             }
@@ -107,9 +109,8 @@ import tools.jackson.databind.ObjectMapper;
             }
             
       */
-      String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
-      System.out.println("인증번호 :" +verificationCode);
-      return verificationCode;
+            System.out.println("인증번호 :" +verificationCode);
+            return verificationCode;
         }
 
         @Override
