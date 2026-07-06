@@ -35,6 +35,7 @@ public class ExpenseController {
 
     @GetMapping("/list.do")
     public String expenseList(@RequestParam(value = "yearMonth", required = false) String yearMonth,
+                            @RequestParam(value = "date", required = false) String date,                        
                             Model model,
                             RedirectAttributes redirectAttributes,  
                             HttpSession session) {
@@ -46,31 +47,48 @@ public class ExpenseController {
         }
 
         if (yearMonth == null || yearMonth.isBlank()) {
-            yearMonth = YearMonth.now().toString();
-        }
+            yearMonth = (date != null && !date.isBlank())
+                ? date.substring(0, 7)
+                : YearMonth.now().toString();
+    }
+        
 
         YearMonth selectedMonth = YearMonth.parse(yearMonth);
-        List<ExpenseDTO> expenseList = expenseService.getExpenseList(memberId, yearMonth);
+    List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(memberId, yearMonth);
+
+    // date가 지정된 경우, 테이블에는 그 날짜 지출만 필터링
+    List<ExpenseDTO> tableExpenseList = monthExpenseList;
+        if (date != null && !date.isBlank()) {
+            tableExpenseList = monthExpenseList.stream()
+                    .filter(expense -> date.equals(formatDate(expense.getExpenseDate())))
+                    .toList();
+        }
 
         model.addAttribute("selectedYearMonth", yearMonth);
+        model.addAttribute("selectedDate", date); // JSP에서 "OO일만 보는 중" 안내용
         model.addAttribute("monthList", makeMonthList(yearMonth));
-        model.addAttribute("expenseList", expenseList);
+        model.addAttribute("expenseList", tableExpenseList);
         model.addAttribute("categoryList", expenseService.getCategoryList());
 
-        // 지출관리 상단 월별 요약 영역
-        model.addAttribute("expenseTypeSummary", makeExpenseTypeSummary(expenseList));
-
-        // 지출관리 하단 분석 영역
-        model.addAttribute("selectedMonthTotal", sumAmount(expenseList));
+        // 상단 요약/하단 분석은 달 전체 기준으로 유지 (monthExpenseList 사용)
+        model.addAttribute("expenseTypeSummary", makeExpenseTypeSummary(monthExpenseList));
+        model.addAttribute("selectedMonthTotal", sumAmount(monthExpenseList));
         model.addAttribute("monthChartList", makeMonthChartList(memberId, selectedMonth));
-        model.addAttribute("categorySummaryList", makeCategorySummaryList(expenseList));
-        model.addAttribute("rankingList", makeRankingList(expenseList));
+        model.addAttribute("categorySummaryList", makeCategorySummaryList(monthExpenseList));
+        model.addAttribute("rankingList", makeRankingList(monthExpenseList));
 
         model.addAttribute("body_page", "/WEB-INF/views/expense/expense.jsp");
         session.removeAttribute("log");
         return "common/layout";
     }
 
+    // 헬퍼 하나 추가
+    private String formatDate(java.util.Date date) {
+        if (date == null) return null;
+        return new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
+    }
+
+    
     @PostMapping("/add.do")
     public String addExpense(@ModelAttribute ExpenseDTO expenseDTO,
                              @RequestParam(value = "yearMonth", required = false) String yearMonth,

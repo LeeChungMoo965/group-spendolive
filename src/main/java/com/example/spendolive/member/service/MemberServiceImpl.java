@@ -107,8 +107,9 @@ import tools.jackson.databind.ObjectMapper;
                 System.out.println("이메일 발송 에러: " + e.getMessage());
             throw new RuntimeException("이메일 전송 중 에러 발생");
             }
-       */
-            System.out.println("인증번호:"+verificationCode);
+            
+      */
+            System.out.println("인증번호 :" +verificationCode);
             return verificationCode;
         }
 
@@ -116,8 +117,8 @@ import tools.jackson.databind.ObjectMapper;
         public String sendSmsVerification(String toNumber) throws Exception {
             // 1. 진짜 통신사 망을 탈 때와 똑같이 6자리 랜덤 인증번호 생성
             String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
-/*
-            DefaultMessageService messageService =  SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
+
+/*            DefaultMessageService messageService =  SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
             // Message 패키지가 중복될 경우 com.solapi.sdk.message.model.Message로 치환하여 주세요
             Message message = new Message();
             message.setFrom("01024414631");
@@ -136,8 +137,10 @@ import tools.jackson.databind.ObjectMapper;
             } catch (Exception exception) { 
             System.out.println(exception.getMessage());
             throw new RuntimeException("문자 전송 중 오류 발생");
-            } */
-            System.out.println("인증번호:"+verificationCode);
+            }
+
+             */
+            System.out.println("인증번호 :" +verificationCode);
             return verificationCode;
         }
         // 아이디 중복확인 메서드

@@ -148,6 +148,7 @@
                                    onchange="this.form.submit()"
                                    class="month-picker-input">
                         </form>
+>>>>>>> origin/develop
                     </div>
 
                     <div class="table-wrap">
