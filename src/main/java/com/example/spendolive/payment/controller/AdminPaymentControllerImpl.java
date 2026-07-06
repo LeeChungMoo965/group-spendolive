@@ -1,0 +1,50 @@
+package com.example.spendolive.payment.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.ott.domain.OttRoomDTO;
+import com.example.spendolive.payment.service.PaymentService;
+import com.example.spendolive.report.domain.ReportVO;
+import com.example.spendolive.report.service.ReportService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+@Controller("AdminPaymentController")
+@RequestMapping(value="/admin/settlement")
+public class AdminPaymentControllerImpl implements AdminPaymentController{
+    @Autowired
+    private PaymentService paymentService;
+    @Override
+    @GetMapping("/list.do")
+    public ModelAndView listUpSettlement(HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+        session = request.getSession();
+        
+        
+        try {
+            List<OttRoomDTO> settlementList = paymentService.selectTodaysettlement();
+            session.setAttribute("settlementList", settlementList);
+            return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
+            return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
+        }
+    }
+    private ModelAndView layout(String bodyPage) {
+        ModelAndView mav = new ModelAndView();
+        mav.setViewName("common/layout");
+        mav.addObject("body_page", bodyPage);
+        return mav;
+    }
+    
+}
