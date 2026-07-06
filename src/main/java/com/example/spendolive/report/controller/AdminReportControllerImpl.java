@@ -31,11 +31,11 @@ public class AdminReportControllerImpl implements AdminReportController{
         try {
             List<ReportVO> reportList = reportService.selectReport();
             session.setAttribute("reportList", reportList);
-            return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
+            return layout("/WEB-INF/views/admin/report/report.jsp");
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
-            return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
+            return layout("/WEB-INF/views/admin/index.jsp");
         }
     }
     @Override

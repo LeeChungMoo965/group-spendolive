@@ -1,8 +1,10 @@
 package com.example.spendolive.payment.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -27,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.repository.MemberRepository;
+import com.example.spendolive.ott.domain.OttRoomDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.repository.OttRepository;
 import com.example.spendolive.payment.domain.*;
@@ -416,5 +419,15 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
         throw new RuntimeException("토스 서브몰 등록 중 시스템 오류 발생");
     }
 }
+    @Override
+    public List<OttRoomDTO> selectTodaysettlement() throws Exception {
+        LocalDate today = LocalDate.now();
+        int day = today.getDayOfMonth();
+        day = 1;
+        LocalDate nextMonth = today.plusMonths(1);
+        int maxDayOfNextMonth = YearMonth.from(nextMonth).lengthOfMonth();
+        int actualPayDay = Math.min(day, maxDayOfNextMonth);
+        return paymentRepository.selectTodaysettlement(actualPayDay);
+       
+    }
 }
-

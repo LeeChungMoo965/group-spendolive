@@ -52,12 +52,16 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
+            
             try{String log = (String) session.getAttribute("log");
                 if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
                 else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
                 else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
                 
-        }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
+        }catch(Exception e){   
+            mav.setViewName("redirect:/spendolive/main.do");
+            if(memberVO.getRole().equals("ADMIN")){mav.setViewName("redirect:/spendolive/admin/main.do");}
+        }
               
         }
         //로그인 실피 시 로그인 화면 유지
