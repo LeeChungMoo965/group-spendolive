@@ -271,6 +271,7 @@ CREATE TABLE settlement_tb (
     closed_at          DATE,                          -- 정산 종료일
     status             VARCHAR2(30) DEFAULT 'READY' NOT NULL, -- 정산 상태
     created_at         DATE DEFAULT SYSDATE NOT NULL, -- 생성일
+    settlement_status  VARCHAR2(30) DEFAULT 'READY' , -- 방장 정산(송금) 후에 상태
 
     CONSTRAINT pk_settlement PRIMARY KEY (settlement_id),
     CONSTRAINT fk_settlement_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
@@ -278,14 +279,19 @@ CREATE TABLE settlement_tb (
     CONSTRAINT ck_settlement_month CHECK (REGEXP_LIKE(settlement_month, '^[0-9]{4}-[0-9]{2}$')),
     CONSTRAINT ck_settlement_status CHECK (
         status IN (
-            'READY',              -- 정산 생성 전/준비
-            'REQUESTED',          -- 방장이 정산 요청함
+            'READY',              -- 정산 생성 전/준비 필요 없
+            'REQUESTED',          -- 방장이 정산 요청함 필요 없
             'DONE',               -- 기존 호환용 완료
-            'PAYMENT_OPEN',       -- 결제 가능 기간
+            'PAYMENT_OPEN',       -- 결제 가능 기간 
             'REPLACE_RECRUITING', -- 미결제자 추방 후 대체 모집
             'CONFIRMED',          -- 정산 확정
             'CANCELLED',          -- 정산 취소
             'CLOSED'              -- 정산 종료
+        )),
+    CONSTRAINT ck_settlement-settlement_status CHECK (
+        settlement_status IN (
+            'READY',              -- 정산 안됨
+            'DONE',               -- 정산 완료
         )
     ),
     CONSTRAINT ck_settlement_total_price CHECK (total_price >= 0),
@@ -317,7 +323,15 @@ END;
 CREATE INDEX idx_settlement_room ON settlement_tb(room_id, settlement_month);
 CREATE INDEX idx_settlement_status_close ON settlement_tb(status, payment_close_date);
 CREATE INDEX idx_settlement_service ON settlement_tb(status, service_start_date, service_end_date);
-
+ALTER TABLE settlement_tb ADD (
+    settlement_status  VARCHAR2(30) DEFAULT 'READY' , -- 방장 정산(송금) 후에 상태
+    CONSTRAINT ck_settlement-settlement_status CHECK (
+        settlement_status IN (
+            'READY',              -- 정산 안됨
+            'DONE',               -- 정산 완료
+        )
+    )
+);
 /* =========================================================
    7. 팀원별 결제 요청/상태 테이블
    역할: 정산 요청을 받은 사용자별 결제 금액과 상태 저장

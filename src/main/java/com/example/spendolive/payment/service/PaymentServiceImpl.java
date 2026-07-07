@@ -291,7 +291,7 @@ public class PaymentServiceImpl implements PaymentService{
             escrowInfo.setStatus("HELD");
             
             PlatformRevenueVO revenueInfo = new PlatformRevenueVO();
-            revenueInfo.setBase_amount(base);
+            revenueInfo.setBase_amount(base * 4);
             revenueInfo.setCreated_at(approved_at);
             revenueInfo.setFee_amount(fee);
             revenueInfo.setFee_rate(3D);
@@ -335,6 +335,7 @@ public class PaymentServiceImpl implements PaymentService{
         return paymentRepository.settlementByroomId(roomId);
     }
     @Override
+    @Transactional
 public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
     
     // 🌟 1. 암호화가 전혀 필요 없는 구형 v1 정산 API 주소
@@ -420,6 +421,7 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
     }
 }
     @Override
+    @Transactional
     public List<OttRoomDTO> selectTodaysettlement() throws Exception {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfMonth();
@@ -427,7 +429,21 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
         LocalDate nextMonth = today.plusMonths(1);
         int maxDayOfNextMonth = YearMonth.from(nextMonth).lengthOfMonth();
         int actualPayDay = Math.min(day, maxDayOfNextMonth);
+        try{
         return paymentRepository.selectTodaysettlement(actualPayDay);
-       
+        }catch(Exception e){
+            return null;
+        }
     }
+    @Override
+    @Transactional
+    public void updateExcrow(int roomId) throws Exception {
+        try{
+        paymentRepository.updateEscrowStatus(roomId);
+        paymentRepository.updatSettlementStatus(roomId);
+        }catch(Exception e){
+            System.err.println("🚨 [시스템 에러]: " + e.getMessage());
+        }
+    }
+    
 }

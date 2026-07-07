@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.example.spendolive.report.domain.ReportVO;
+import com.example.spendolive.report.domain.WarningVO;
 
 @Repository
 public class ReportRepositoryImpl implements ReportRepository {
@@ -17,8 +18,11 @@ public class ReportRepositoryImpl implements ReportRepository {
     private final String insertReport = "INSERT INTO report_tb (room_id, reporter_id, reported_member_id, report_reason, report_status)"
                                         +" VALUES (?,?,?,?, 'WAIT') ";
     private final String selectReport = "SELECT REPORT_ID,REPORTER_ID,REPORTED_MEMBER_ID,ROOM_ID,REPORT_REASON,REPORT_STATUS,ADMIN_COMMENT,created_at,processed_at "
-                                        +"from report_tb ";                                    
-    private final String updateComment = "UPDATE report_tb SET admin_comment =? AND processed_at =SYSDATE WHERE report_id=? ";
+                                        +"from report_tb";                                    
+    private final String updateComment = "UPDATE report_tb SET admin_comment =? , processed_at =SYSDATE , report_status =? WHERE report_id=? ";
+    private final String insertWarning = "INSERT INTO warning_tb (member_id, report_id, warning_reason, status, CREATED_AT)"
+                                        +" VALUES (?,?,?,?,SYSDATE) ";
+    
     @Override
     public void insertReport(ReportVO reportInfo){
         jdbcTemplate.update(insertReport, reportInfo.getRoom_id(), reportInfo.getReporter_id() ,reportInfo.getReported_member_id(), reportInfo.getReport_reason());
@@ -46,9 +50,12 @@ public class ReportRepositoryImpl implements ReportRepository {
         }
     }
     @Override
-    public void updateComment(String comment, Long report_id){
-        jdbcTemplate.update(updateComment, comment, report_id);
+    public void updateComment(String comment, int report_id){
+        jdbcTemplate.update(updateComment, comment, "COMPLETE", report_id);
     }
-
+    @Override
+    public void insertWarning(WarningVO warning){
+        jdbcTemplate.update(insertWarning,warning.getMember_id(), warning.getReport_id(),warning.getWarning_reason(), warning.getStatus());
+    }
 
 }

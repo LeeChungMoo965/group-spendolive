@@ -30,23 +30,49 @@
                 <thead><tr><th>번호</th><th>신고자</th><th>신고대상</th><th>신고내용</th><th>신고 날짜</th><th>상태</th><th>처리</th></tr></thead><tbody>
                         <c:forEach var="report" items="${reportList}" varStatus="s">
                       
-    <tr><td>${s.count}</td><td>${report.reporter_id}</td><td>${report.reported_member_id}</td><td>${report.report_reason}</td><td>${report.created_at}</td><td><span class="badge yellow">${report.report_status}</span></td>
-    <td><button class="mini-btn">상세</button><button class="mini-btn warning">완료</button></td></tr>
+    <tr><td>${s.count}</td><td>${report.reporter_id}</td><td>${report.reported_member_id}</td><td><textarea style="margin-top: 12px;" class="form-textarea"  readonly>${report.report_reason}</textarea></td><td>${report.created_at}</td><td><span class="badge yellow">${report.report_status}</span></td>
+    <td><button type="button" class="mini-btn" onclick="comment('${report.report_id}', '${report.reported_member_id}','${s.count}','${report.report_reason}')">처리</button></td></tr>
+    
                         </c:forEach>
                         </tbody></table>
                 </c:otherwise>
         </c:choose>
-        </tbody></table></div></section>
-    <section class="panel"><div class="panel-title"><div class="section-kicker">Process Result</div>
-    <h2>신고 처리결과 작성</h2>
-    <form action="${contextPath}/admin/report/comment.do"  method="post">
-    </div><div class="form-grid" style="margin-top:18px"><div class="form-field"><label>처리 상태</label><select class="form-input">
-    <option>대기</option><option>완료</option><option>반려</option></select></div>
-    <div class="form-field"><label>패널티</label><select class="form-input"><option>없음</option><option>경고 1회</option></select></div>
-    <div class="form-field"><label>관리자</label><input class="form-input" value="admin"></div></div>
-    <textarea name="admin_comment" class="form-textarea" placeholder="처리 결과를 입력하세요.">신고 내용을 확인했고 대상 회원에게 경고 1회를 적용했습니다.</textarea><div class="toolbar" style="margin-top:16px"><span></span>
-    <button class="btn primary" type="submit" data-toast="신고 처리결과 저장 미리보기입니다.">처리결과 저장</button></div></section>
-    </form>
+        </div></section>
+        <form action="${contextPath}/admin/report/comment.do" method="post">
+ <section id="commentArea" class="panel" style="display:none; margin-top: 20px;">
+            
+                
+                <div class="panel-title">
+                    <div class="section-kicker">Process Result</div>
+                    <h2>신고 처리결과 작성</h2>
+                </div>
+                
+                <div class="form-grid" style="margin-top:18px">
+                    <div class="form-field">
+                     
+                        <label>처리 상태</label>
+                        <select class="form-input" name="result" id="reportResult">
+                            <option value="1">경고</option>
+                            <option value="2">퇴출</option>
+                            <option value="3">반려</option>
+                        </select>
+                    </div>
+           
+         
+                    <input type="hidden" name="reported_member_id" id="form_reported_member_id" value="">
+                    <input type="hidden" name="report_id" id="form_report_id" value="">
+                </div>
+                <label>코멘트</label>
+                <textarea name="admin_comment" class="form-textarea" placeholder="처리 결과를 입력하세요." style="margin-top: 12px;">신고 내용을 확인했고 대상 회원에게 경고 1회를 적용했습니다.</textarea>
+                
+                <div class="toolbar" style="margin-top:16px">
+                    <span></span>
+                    <button class="btn primary" type="submit">처리결과 저장</button>
+                </div>
+                
+             </section>
+                </form>
+    
     </main>
 
     <footer class="footer">
@@ -62,10 +88,14 @@
     </body>
     </html>
     <script>
+    
+    
         // 컨트롤러가 보낸 일회성 메시지(msg)가 있다면 alert을 띄운다
         var msg = "${msg}";
         if(msg && msg !== "") {
             alert(msg);
         }
     </script>
-    <script src="${contextPath}/resources/js/admin.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="${contextPath}/resources/js/admin.js"></script>

@@ -40,3 +40,16 @@
         });
     });
 })();
+function comment(reportId, reportedMemberId,count,reportReason) {
+
+    $('#form_report_id').val(reportId);
+    $('#form_reported_member_id').val(reportedMemberId);
+    $('#form_count').val(count);
+    $('#form_report_reason').val(reportReason);
+
+    $('#commentArea').show();
+ 
+    $('html, body').animate({
+        scrollTop: $("#commentArea").offset().top
+    }, 500);
+}

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -39,18 +40,19 @@ public class AdminReportControllerImpl implements AdminReportController{
         }
     }
     @Override
-    @GetMapping("/comment.do")
-    public ModelAndView listUpReport(@RequestParam String admin_comment,@RequestParam String report_id,  HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+    @PostMapping("/comment.do")
+    public String comment(@RequestParam String admin_comment,@RequestParam String reported_member_id,@RequestParam String report_id,@RequestParam String result,  HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
         session = request.getSession();
         
         
         try {
-            reportService.selectReport();
-            return layout("/WEB-INF/views/admin/report/report.jsp");
+            reportService.insertWarning(admin_comment, reported_member_id, report_id, result);
+            redirectAttributes.addFlashAttribute("msg", "처리에 성공 하였습니다. ");
+            return "redirect:/admin/settlement/list.do";
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
-            return layout("/WEB-INF/views/admin/report/report.jsp");
+            redirectAttributes.addFlashAttribute("msg", "처리에 실패 하였습니다. ");
+            return "redirect:/admin/settlement/list.do";
         }
     }
     private ModelAndView layout(String bodyPage) {
@@ -59,4 +61,5 @@ public class AdminReportControllerImpl implements AdminReportController{
         mav.addObject("body_page", bodyPage);
         return mav;
     }
+    
 }

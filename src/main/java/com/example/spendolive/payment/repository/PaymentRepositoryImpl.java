@@ -42,8 +42,10 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     +"TO_CHAR(CLOSE_REQUESTED_AT, 'YYYY-MM-DD') AS CLOSE_REQUESTED_AT, "
     +"TO_CHAR(CLOSED_AT, 'YYYY-MM-DD') AS CLOSED_AT, "
     +"TO_CHAR(CREATED_AT, 'YYYY-MM-DD') AS CREATED_AT "          
-    +"from ott_room_tb where BILLING_DAY =? AND status= 'ACTIVE'";       
-    
+    +"from ott_room_tb where BILLING_DAY =? AND status= 'ACTIVE'"
+    +" AND ROOM_ID IN (SELECT ROOM_ID FROM settlement_tb WHERE settlement_status = 'READY')";
+    private final String insertTodayexcrow = "UPDATE escrow_payout_tb set STATUS = 'RELEASED' ,PAYOUT_AT =sysdate where ROOM_ID =? ";
+    private final String updateTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? ";
     public PaymentRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -140,4 +142,12 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         return null; 
     }
 } 
+    @Override
+    public void updateEscrowStatus(int roomId) {
+        jdbcTemplate.update(insertTodayexcrow, roomId);
+    }
+    @Override
+    public void updatSettlementStatus(int roomId) {
+        jdbcTemplate.update(updateTodaysettlement, roomId);
+    }
 }
