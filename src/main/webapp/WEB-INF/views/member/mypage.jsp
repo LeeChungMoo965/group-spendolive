@@ -57,7 +57,7 @@
             <article class="card mypage-stat-card">
                 <p class="eyebrow">MONTHLY EXPENSE</p>
                 <h3>이번 달 지출 총액</h3>
-                <strong><fmt:formatNumber value="${thisMonthExpenseTotal}" pattern="#,#0" />원</strong>
+                <strong><fmt:formatNumber value="${thisMonthExpenseTotal}" pattern="#,##0" />원</strong>
                 <p class="mypage-muted">이번 달 등록된 지출 내역 합계입니다.</p>
                 <a href="${contextPath}/spendolive/expense/list.do" class="btn btn-primary full">지출관리로 이동</a>
             </article>

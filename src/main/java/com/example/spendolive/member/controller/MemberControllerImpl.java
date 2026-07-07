@@ -268,13 +268,14 @@ public class MemberControllerImpl implements MemberController{
                 session.setAttribute("memberInfo", memberVO);
                 session.setAttribute("isLogOn", true);
                 session.setAttribute("login_type", "KAKAO");
-                try{String log = (String) session.getAttribute("log");
-                if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
-                else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
-                else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
+                String log = (String) session.getAttribute("log");
 
-                
-            }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
+                //알림 페이지에서 로그인 후 다시 알림페이지로 돌아오도록 //
+                if ("mypage".equals(log)) { mav.setViewName("redirect:/spendolive/mypage.do"); }
+                else if ("expense".equals(log)) { mav.setViewName("redirect:/spendolive/expense.do"); }
+                else if ("ott".equals(log)) { mav.setViewName("redirect:/spendolive/ott.do"); }
+                else if ("notice".equals(log)) { mav.setViewName("redirect:/spendolive/notice/center.do?tab=alert"); }
+                else { mav.setViewName("redirect:/spendolive/main.do"); }
             }
 
             // 기존 회원이면 로그인 처리, 신규 회원이면 회원가입 페이지 이동 혹은 자동 가입 로직 추가 가능

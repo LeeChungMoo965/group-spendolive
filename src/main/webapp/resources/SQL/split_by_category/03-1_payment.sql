@@ -1,31 +1,59 @@
+/* =========================================================
+   SpendOlive 03-1_payment_fixed_no_card_fk.sql
+   ---------------------------------------------------------
+   실행 전 필수:
+   1) member_tb 존재
+   2) settlement_tb 존재
+      → settlement_tb는 03_ott_schema_fixed.sql 실행 시 생성됨
 
+   핵심 수정:
+   - 기존 오류 원인인 card_number / card_company FK 제거
+   - 현재 Java 코드가 쓰는 id, card_number, card_company, paymentKey, orderId 컬럼 유지
+   ========================================================= */
+
+SET DEFINE OFF;
 
 /* =========================================================
-   3. [다이어트 통합] 팀원별 입금 및 취소/환불 상태 테이블
+   0. 결제 관련 객체만 정리
+   이미 없으면 무시
+   ========================================================= */
+BEGIN
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE settlement_refund_tb CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE platform_revenue_tb CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE escrow_payout_tb CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE seller_account_tb CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE settlement_payment_tb CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+
+    BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE seq_settlement_refund'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE seq_escrow_payout'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE seq_settlement_payment'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;
+END;
+/
+
+/* =========================================================
+   1. 팀원별 결제 상태 테이블
    ========================================================= */
 CREATE TABLE settlement_payment_tb (
     payment_id      NUMBER NOT NULL,
     settlement_id   NUMBER NOT NULL,
-    id              VARCHAR2(20) NOT NULL,    -- 파티원 ID
-    base_amount     NUMBER NOT NULL,          -- 순수 분담금
-    fee_rate        NUMBER(5,2) DEFAULT 3 NOT NULL, -- 수수료율
-    fee_amount      NUMBER DEFAULT 0 NOT NULL,      -- 수수료 금액 (플랫폼 수익 테이블 대체)
-    total_amount    NUMBER NOT NULL,          -- 최종 결제 금액 (분담금 + 수수료)
+    id              VARCHAR2(20) NOT NULL,
+    base_amount     NUMBER NOT NULL,
+    fee_rate        NUMBER(5,2) DEFAULT 3 NOT NULL,
+    fee_amount      NUMBER DEFAULT 0 NOT NULL,
+    total_amount    NUMBER NOT NULL,
     payment_status  VARCHAR2(30) DEFAULT 'UNPAID' NOT NULL,
     card_number     VARCHAR2(50),
     card_company    VARCHAR2(20),
-    paid_at         DATE,                     -- 토스 카드 결제 완료 일시
-    confirmed_at    DATE,                     -- 정산 확정 일시
-    expired_at      DATE,                     -- 미결제 추방 일시
-    cancelled_at    DATE,                     -- 환불/취소 일시 (환불 테이블 대체)
-    paymentKey      VARCHAR2(100) , 
-    orderId         VARCHAR2(100) , 
-    memo            VARCHAR2(500),            -- 환불 사유 등 기록 
+    paid_at         DATE,
+    confirmed_at    DATE,
+    expired_at      DATE,
+    cancelled_at    DATE,
+    paymentKey      VARCHAR2(100),
+    orderId         VARCHAR2(100),
+    memo            VARCHAR2(500),
 
     CONSTRAINT pk_settlement_payment PRIMARY KEY (payment_id),
     CONSTRAINT fk_payment_settlement FOREIGN KEY (settlement_id) REFERENCES settlement_tb(settlement_id),
-    CONSTRAINT fk_payment_card_number FOREIGN KEY (card_number) REFERENCES member_card_tb(card_number),
-    CONSTRAINT fk_payment_card_company FOREIGN KEY (card_company) REFERENCES member_card_tb(card_company),
     CONSTRAINT fk_payment_member FOREIGN KEY (id) REFERENCES member_tb(id),
     CONSTRAINT uk_payment_member UNIQUE (settlement_id, id),
     CONSTRAINT ck_payment_base_amount CHECK (base_amount >= 0),
@@ -50,22 +78,64 @@ END;
 
 CREATE INDEX idx_payment_settlement ON settlement_payment_tb(settlement_id);
 CREATE INDEX idx_payment_member ON settlement_payment_tb(id, payment_status);
-
+CREATE INDEX idx_payment_status ON settlement_payment_tb(payment_status, paid_at);
 
 /* =========================================================
-   4. [다이어트 통합] 통합 정산 금고 테이블 (에스크로 + 방장지급)
+   2. 환불 기록 테이블
+   ========================================================= */
+CREATE TABLE settlement_refund_tb (
+    refund_id       NUMBER NOT NULL,
+    payment_id      NUMBER NOT NULL,
+    settlement_id   NUMBER NOT NULL,
+    room_id         NUMBER NOT NULL,
+    member_login_id VARCHAR2(20) NOT NULL,
+    refund_amount   NUMBER NOT NULL,
+    refund_reason   VARCHAR2(30) DEFAULT 'ROOM_CLOSE' NOT NULL,
+    refund_status   VARCHAR2(30) DEFAULT 'REQUESTED' NOT NULL,
+    requested_at    DATE DEFAULT SYSDATE NOT NULL,
+    completed_at    DATE,
+    memo            VARCHAR2(500),
+
+    CONSTRAINT pk_settlement_refund PRIMARY KEY (refund_id),
+    CONSTRAINT fk_refund_payment FOREIGN KEY (payment_id) REFERENCES settlement_payment_tb(payment_id),
+    CONSTRAINT fk_refund_settlement FOREIGN KEY (settlement_id) REFERENCES settlement_tb(settlement_id),
+    CONSTRAINT fk_refund_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
+    CONSTRAINT fk_refund_member FOREIGN KEY (member_login_id) REFERENCES member_tb(id),
+    CONSTRAINT uk_refund_payment UNIQUE (payment_id),
+    CONSTRAINT ck_refund_amount CHECK (refund_amount >= 0),
+    CONSTRAINT ck_refund_reason CHECK (refund_reason IN ('ROOM_CLOSE', 'PAYMENT_CANCEL', 'ADMIN_CANCEL', 'ETC')),
+    CONSTRAINT ck_refund_status CHECK (refund_status IN ('REQUESTED', 'COMPLETED', 'FAILED'))
+);
+
+CREATE SEQUENCE seq_settlement_refund START WITH 1 INCREMENT BY 1 NOCACHE;
+
+CREATE OR REPLACE TRIGGER trg_settlement_refund_bi
+BEFORE INSERT ON settlement_refund_tb
+FOR EACH ROW
+WHEN (NEW.refund_id IS NULL)
+BEGIN
+    SELECT seq_settlement_refund.NEXTVAL INTO :NEW.refund_id FROM dual;
+END;
+/
+
+CREATE INDEX idx_refund_payment ON settlement_refund_tb(payment_id);
+CREATE INDEX idx_refund_member_login ON settlement_refund_tb(member_login_id, refund_status);
+CREATE INDEX idx_refund_room ON settlement_refund_tb(room_id, refund_status);
+
+/* =========================================================
+   3. 통합 정산 금고 테이블
    ========================================================= */
 CREATE TABLE escrow_payout_tb (
     escrow_payout_id NUMBER NOT NULL,
     settlement_id    NUMBER NOT NULL,
     room_id          NUMBER NOT NULL,
-    payer_id         VARCHAR2(20) NOT NULL,   -- 돈 낸 파티원
-    host_id          VARCHAR2(20) NOT NULL,   -- 돈 받을 방장
-    amount           NUMBER NOT NULL,         -- 방장에게 갈 순수 정산금
-    status           VARCHAR2(30) DEFAULT 'HELD' NOT NULL, -- HELD(보관), RELEASED(방장지급완료), REFUNDED(파티원환불), CANCELLED(취소)
-    created_at       DATE DEFAULT SYSDATE NOT NULL,        -- 금고 입고 시점
-    payout_due_date  DATE,                    -- 방장 정산 예정일
-    payout_at        DATE,                    -- 방장 지급 완료 시점
+    payer_id         VARCHAR2(20) NOT NULL,
+    host_id          VARCHAR2(20) NOT NULL,
+    amount           NUMBER NOT NULL,
+    status           VARCHAR2(30) DEFAULT 'HELD' NOT NULL,
+    created_at       DATE DEFAULT SYSDATE NOT NULL,
+    payout_due_date  DATE,
+    payout_at        DATE,
 
     CONSTRAINT pk_escrow_payout PRIMARY KEY (escrow_payout_id),
     CONSTRAINT fk_ep_settlement FOREIGN KEY (settlement_id) REFERENCES settlement_tb(settlement_id),
@@ -90,23 +160,25 @@ END;
 CREATE INDEX idx_ep_settlement ON escrow_payout_tb(settlement_id);
 CREATE INDEX idx_ep_host_status ON escrow_payout_tb(host_id, status);
 
-
+/* =========================================================
+   4. 플랫폼 수익 테이블
+   ========================================================= */
 CREATE TABLE platform_revenue_tb (
-    revenue_id       NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 자동 증가 PK (시퀀스 대용)
-    settlement_id    NUMBER NOT NULL,                                  -- 월별 정산 고유 ID (FK)
-    room_id          NUMBER NOT NULL,                                  -- OTT 매칭방 고유 ID (FK)
-    payer_id         VARCHAR2(20) NOT NULL,                            -- 수수료를 지불한 회원 아이디 (FK)
-    base_amount      NUMBER NOT NULL,                                  -- 수수료 계산의 기준이 된 원금
-    fee_rate         NUMBER(5, 2) DEFAULT 3.00,                        -- 적용 수수료율 (ex: 3.00)
-    fee_amount       NUMBER NOT NULL,                                  -- 최종 수수료 수익 금액
-    status   VARCHAR2(20) DEFAULT 'EARNED',                            -- 상태 (EARNED, REFUNDED 등)
-    created_at       DATE DEFAULT SYSDATE,                             -- 발생 일시 (기본값 현재날짜)
+    revenue_id       NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    settlement_id    NUMBER NOT NULL,
+    room_id          NUMBER NOT NULL,
+    payer_id         VARCHAR2(20) NOT NULL,
+    base_amount      NUMBER NOT NULL,
+    fee_rate         NUMBER(5, 2) DEFAULT 3.00,
+    fee_amount       NUMBER NOT NULL,
+    status           VARCHAR2(20) DEFAULT 'EARNED',
+    created_at       DATE DEFAULT SYSDATE,
 
-    -- 외래키 제약조건 (실제 존재하는 상대 테이블명/컬럼명에 맞춰 필요시 주석 해제하여 사용)
     CONSTRAINT fk_revenue_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
-    CONSTRAINT fk_revenue_status CHECK (status IN ('EARNED', 'REFUNDED', 'CANCELLED')),
+    CONSTRAINT ck_revenue_status CHECK (status IN ('EARNED', 'REFUNDED', 'CANCELLED')),
     CONSTRAINT fk_revenue_payer FOREIGN KEY (payer_id) REFERENCES member_tb(id)
 );
+<<<<<<< HEAD
 CREATE TABLE SELLER_ACCOUNT_TB (
     SELLER_IDX          NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
     MEMBER_ID            VARCHAR2(20) NOT NULL,                           -- 회원 ID (MEMBER_TB 외래키)
@@ -119,3 +191,34 @@ CREATE TABLE SELLER_ACCOUNT_TB (
     CONSTRAINT FK_SELLER_MEMBER_ID FOREIGN KEY (MEMBER_ID) 
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
+=======
+
+/* =========================================================
+   5. 판매자 계좌 테이블
+   ========================================================= */
+CREATE TABLE seller_account_tb (
+    seller_idx       NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    member_id        VARCHAR2(20) NOT NULL,
+    bank_name        VARCHAR2(50) NOT NULL,
+    account_number   VARCHAR2(30) NOT NULL,
+    traceId          VARCHAR2(100) NOT NULL,
+    reg_date         DATE DEFAULT SYSDATE,
+
+    CONSTRAINT fk_seller_member_id FOREIGN KEY (member_id)
+    REFERENCES member_tb(id) ON DELETE CASCADE
+);
+
+/* =========================================================
+   6. 생성 확인
+   ========================================================= */
+SELECT table_name
+FROM user_tables
+WHERE table_name IN (
+    'SETTLEMENT_PAYMENT_TB',
+    'SETTLEMENT_REFUND_TB',
+    'ESCROW_PAYOUT_TB',
+    'PLATFORM_REVENUE_TB',
+    'SELLER_ACCOUNT_TB'
+)
+ORDER BY table_name;
+>>>>>>> develop

@@ -323,6 +323,7 @@ END;
 CREATE INDEX idx_settlement_room ON settlement_tb(room_id, settlement_month);
 CREATE INDEX idx_settlement_status_close ON settlement_tb(status, payment_close_date);
 CREATE INDEX idx_settlement_service ON settlement_tb(status, service_start_date, service_end_date);
+<<<<<<< HEAD
 ALTER TABLE settlement_tb ADD (
     settlement_status  VARCHAR2(30) DEFAULT 'READY' , -- 방장 정산(송금) 후에 상태
     CONSTRAINT ck_settlement-settlement_status CHECK (
@@ -431,6 +432,8 @@ CREATE INDEX idx_refund_payment ON settlement_refund_tb(payment_id);
 CREATE INDEX idx_refund_member_login ON settlement_refund_tb(member_login_id, refund_status);
 CREATE INDEX idx_refund_room ON settlement_refund_tb(room_id, refund_status);
 
+=======
+>>>>>>> develop
 
 
 /* =========================================================
