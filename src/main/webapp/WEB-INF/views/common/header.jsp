@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
 <header class="site-header">
         <div class="container header-inner">
-            <a class="admin-brand" href="index.html" aria-label="SpendOlive Admin Home">
+            <a class="admin-brand" href="${contextPath}/spendolive/admin/main.do" aria-label="SpendOlive Admin Home">
                 <div class="admin-logo">SO</div>
                 <div class="brand-title">
                     <strong>SpendOlive</strong>
@@ -22,15 +22,16 @@
                 <a href="index.html" data-nav="dashboard">대시보드</a>
                 <a href="member.html" data-nav="member">회원관리</a>
                 <a href="ott.html" data-nav="ott">OTT 관리</a>
-                <a href="party.html" data-nav="party">파티관리</a>
+                <a href="${contextPath}/admin/settlement/list.do" data-nav="party">정산관리</a>
                 <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>
-                <a href="inquiry.html" data-nav="inquiry">문의관리</a>
-                <a href="notice.html" data-nav="notice">공지사항 관리</a>
+                <a href="${contextPath}/spendolive/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
+                <a href="${contextPath}/spendolive/admin/notice/list.do" data-nav="notice">공지사항 관리</a>
+                <a href="${contextPath}/spendolive/admin/faq/list.do" data-nav="faq">FAQ 관리</a>
             </nav>
             <div class="admin-actions">
                 <span class="admin-pill">관리자 모드</span>
                 <strong><a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
-                        ${memberInfo.member_name}님
+                        ${memberInfo.member_name}님</strong>
             </div>
         </div>
     </header>
@@ -65,7 +66,7 @@
                         </c:when>
                     </c:choose>
                         <strong><a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
-                        ${memberInfo.member_name}님
+                        ${memberInfo.member_name}님</strong>
                     </c:when>
                     <c:otherwise>
                         <a class="btn btn-light" href="${contextPath}/member/loginForm.do">로그인</a>

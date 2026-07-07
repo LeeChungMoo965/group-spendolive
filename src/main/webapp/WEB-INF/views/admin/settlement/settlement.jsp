@@ -15,22 +15,22 @@
     <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>정산관리</h1>
     <p>금일 이용료 보관액 방장 정산</p></div></section>
     <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Settlement List</div>
-    <h2>금일 정산 리스트(총 ${reportList.size()}건)</h2></div>
+    <h2>금일 정산 리스트(총 ${settlementList.size()}건)</h2></div>
     <div class="filter-pills"><button class="active">전체</button><button>대기</button><button>처리중</button><button>완료</button></div>
     </div><div class="table-wrap">
       
     <c:choose>
-                <c:when test="${empty reportList}">
+                <c:when test="${empty settlementList}">
                 <div class="panel-title" style="padding: 20px; text-align: center;">
-                    <div class="section-kicker">신고 건이 없습니다</div>
+                    <div class="section-kicker">정산 건이 없습니다</div>
                 </div>
             </c:when>
                 <c:otherwise>
                 <table class="admin-table">
-                <thead><tr><th>번호</th><th>신고자</th><th>신고대상</th><th>신고내용</th><th>신고 날짜</th><th>상태</th><th>처리</th></tr></thead><tbody>
-                        <c:forEach var="report" items="${reportList}" varStatus="s">
+                <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead><tbody>
+                        <c:forEach var="room" items="${settlementList}" varStatus="s">
                       
-    <tr><td>${s.count}</td><td>${report.reporter_id}</td><td>${report.reported_member_id}</td><td>${report.report_reason}</td><td>${report.created_at}</td><td><span class="badge yellow">${report.report_status}</span></td>
+    <tr><td>${s.count}</td><td>${room.roomId}</td><td>${room.hostMemberId}</td><td>${room.totalPrice}</td><td>${room.billingDay}</td><td><span class="badge yellow">${room.status}</span></td>
     <td><button class="mini-btn">상세</button><button class="mini-btn warning">정산금 보내기</button></td></tr>
                         </c:forEach>
                         </tbody></table>
