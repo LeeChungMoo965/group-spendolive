@@ -66,14 +66,14 @@
     </div>
 
     <div class="side-column">
-        <aside class="card today-todo-card">
+        <aside class="card side-panel">
             <h3>오늘 할 일</h3>
             <div id="todayTodoList">
                 <!-- calendar.js의 renderTodayTodo()가 이 안에 오늘 지출 예정 건을 채워줌 -->
             </div>
         </aside>
 
-        <aside class="side-panel card">
+        <aside class="card side-panel">
             <h3>이번 달 주요 지출</h3>
             <div id="sideEventList">
                 <!-- calendar.js의 renderSidePanel()이 이 안에 지출 목록을 채워줌 -->
