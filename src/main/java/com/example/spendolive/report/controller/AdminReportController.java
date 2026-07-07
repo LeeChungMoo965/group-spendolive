@@ -10,5 +10,5 @@ import jakarta.servlet.http.HttpSession;
 
 public interface AdminReportController {
     public ModelAndView listUpReport(HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
-    public ModelAndView listUpReport(@RequestParam String admin_comment,@RequestParam String report_id,  HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
+    public String comment(@RequestParam String admin_comment,@RequestParam String reported_member_id,@RequestParam String report_id,@RequestParam String result,  HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
 }

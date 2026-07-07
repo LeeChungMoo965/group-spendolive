@@ -10,5 +10,5 @@ import jakarta.servlet.http.HttpSession;
 
 public interface AdminPaymentController {
     public ModelAndView listUpSettlement(HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
-    
+    public String pay(@RequestParam("roomId") String roomIdStr, HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
 }

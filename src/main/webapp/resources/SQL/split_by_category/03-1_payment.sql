@@ -178,6 +178,20 @@ CREATE TABLE platform_revenue_tb (
     CONSTRAINT ck_revenue_status CHECK (status IN ('EARNED', 'REFUNDED', 'CANCELLED')),
     CONSTRAINT fk_revenue_payer FOREIGN KEY (payer_id) REFERENCES member_tb(id)
 );
+<<<<<<< HEAD
+CREATE TABLE SELLER_ACCOUNT_TB (
+    SELLER_IDX          NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
+    MEMBER_ID            VARCHAR2(20) NOT NULL,                           -- 회원 ID (MEMBER_TB 외래키)
+    BANK_NAME            VARCHAR2(50) NOT NULL,                           -- 은행명 (ex: 신한은행, 국민은행)
+    ACCOUNT_NUMBER       VARCHAR2(30) NOT NULL,                           -- 마스킹된 계좌번호 (ex: 110-***-1234)
+    traceId              VARCHAR2(100) NOT NULL,
+    REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
+    
+    -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
+    CONSTRAINT FK_SELLER_MEMBER_ID FOREIGN KEY (MEMBER_ID) 
+    REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
+);
+=======
 
 /* =========================================================
    5. 판매자 계좌 테이블
@@ -207,3 +221,4 @@ WHERE table_name IN (
     'SELLER_ACCOUNT_TB'
 )
 ORDER BY table_name;
+>>>>>>> develop

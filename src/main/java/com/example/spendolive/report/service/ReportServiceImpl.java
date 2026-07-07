@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.report.domain.ReportVO;
+import com.example.spendolive.report.domain.WarningVO;
 import com.example.spendolive.report.repository.ReportRepository;
 import java.util.List;
 @Service
@@ -31,7 +32,29 @@ public class ReportServiceImpl implements ReportService{
     }
     @Override
     @Transactional
-    public void updateComment(String comment, Long report_id) throws Exception{
+    public void updateComment(String comment, int report_id) throws Exception{
         reportRepository.updateComment(comment, report_id);
+    }
+    @Override
+    @Transactional
+    public void insertWarning(String comment,String userId,String reportIdstr,String result) throws Exception{
+        int reportId = Integer.parseInt(reportIdstr);
+        if(result.equals("1")){
+            System.err.println("1");
+        WarningVO wVo = new WarningVO();
+        wVo.setMember_id(userId);
+        wVo.setWarning_reason(comment);
+        wVo.setStatus("Y");
+        wVo.setReport_id(reportId);
+        try{
+        reportRepository.insertWarning(wVo);
+        reportRepository.updateComment(comment, reportId);
+        }catch(Exception e){
+            System.err.println("🚨 [시스템 에러]: " + e.getMessage());
+        }
+        }else if(result.equals("2")){
+            //퇴출
+            System.err.println("2");
+        }
     }
 }

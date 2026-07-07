@@ -9,8 +9,7 @@ public class WarningVO {
     private String member_id;           // VARCHAR2(20)
     private int report_id;             // NUMBER -> Long (Null 허용)
     private String warning_reason;      // VARCHAR2(500)
-    private Integer warning_level;      // NUMBER -> Integer (CHECK 1, 2, 3)
     private Integer penalty_days;       // NUMBER -> Integer
-    private String permanent_yn;        // CHAR(1) DEFAULT 'N'
+    private String status;        // CHAR(1) DEFAULT 'N'
     private LocalDateTime created_at;   // DATE -> LocalDateTime
 }
