@@ -43,31 +43,21 @@ CREATE INDEX idx_report_reported ON report_tb(reported_member_id, report_status)
    22. [팀 원본 사용] 경고 테이블
    ========================================================= */
 CREATE TABLE warning_tb (
-    warning_id     NUMBER NOT NULL,
+    warning_id     NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     member_id      VARCHAR2(20) NOT NULL,
     report_id      NUMBER,
     warning_reason VARCHAR2(500) NOT NULL,
-    warning_level  NUMBER NOT NULL,
     penalty_days   NUMBER,
-    permanent_yn   CHAR(1) DEFAULT 'N' NOT NULL,
+    status         CHAR(1) DEFAULT 'N' NOT NULL,
     created_at     DATE DEFAULT SYSDATE NOT NULL,
 
-    CONSTRAINT pk_warning PRIMARY KEY (warning_id),
+   
     CONSTRAINT fk_warning_member FOREIGN KEY (member_id) REFERENCES member_tb(id),
     CONSTRAINT fk_warning_report FOREIGN KEY (report_id) REFERENCES report_tb(report_id),
     CONSTRAINT ck_warning_level CHECK (warning_level IN (1, 2, 3)),
-    CONSTRAINT ck_warning_permanent CHECK (permanent_yn IN ('Y', 'N'))
+    CONSTRAINT ck_warning_status CHECK (status IN ('Y', 'N'))
 );
 
-CREATE SEQUENCE seq_warning START WITH 1 INCREMENT BY 1 NOCACHE;
 
-CREATE OR REPLACE TRIGGER trg_warning_bi
-BEFORE INSERT ON warning_tb
-FOR EACH ROW
-WHEN (NEW.warning_id IS NULL)
-BEGIN
-    SELECT seq_warning.NEXTVAL INTO :NEW.warning_id FROM dual;
-END;
-/
 
 CREATE INDEX idx_warning_member ON warning_tb(member_id);
