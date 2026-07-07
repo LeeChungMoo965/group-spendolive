@@ -10,9 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.spendolive.inquiry.domain.InquiryVO;
 
-/*
- * 테이블 DDL: 07_inquiry.sql 참고 (inquiry_tb, inquiry_file_tb, 시퀀스, 샘플 데이터 포함)
- */
+
 @Repository
 public class InquiryRepository {
 
@@ -38,24 +36,44 @@ public class InquiryRepository {
         return inquiry;
     }
 
+
+
+
+     /** 관리자 화면용: mapRow + 작성자 닉네임(member_tb 조인 결과) 포함 */
+     private InquiryVO mapRowWithWriter(java.sql.ResultSet rs) throws java.sql.SQLException {
+        InquiryVO inquiry = mapRow(rs);
+        inquiry.setWriterNickname(rs.getString("writer_nickname"));
+        return inquiry;
+    }
+
     /* ─── 등록 ────────────────────────────────────────────── */
-    public void insertInquiry(InquiryVO inquiry) {
+    /**
+     * inquiry_tb에 INSERT하고, 생성된 inquiry_id를 반환한다.
+     * (첨부파일을 inquiry_file_tb에 연결하려면 이 inquiry_id가 필요하기 때문에
+     *  시퀀스 값을 먼저 뽑아서 INSERT문에 명시적으로 넣는 방식을 사용)
+     */
+    public int insertInquiry(InquiryVO inquiry) {
+        Long inquiryId = jdbcTemplate.queryForObject("SELECT inquiry_seq.NEXTVAL FROM dual", Long.class);
         String sql = """
             INSERT INTO inquiry_tb(inquiry_id, id, category, inquiry_type, title, content, status, reg_date)
-            VALUES(inquiry_seq.NEXTVAL, ?, ?, ?, ?, ?, 'WAIT', SYSDATE)
+            VALUES(?, ?, ?, ?, ?, ?, 'WAIT', SYSDATE)
         """;
         try {
             jdbcTemplate.update(sql,
-                    inquiry.getId(), inquiry.getCategory(), inquiry.getInquiryType(),
+                    inquiryId, inquiry.getId(), inquiry.getCategory(), inquiry.getInquiryType(),
                     inquiry.getTitle(), inquiry.getContent());
+            return inquiryId.intValue();
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.insertInquiry] DB 오류: " + e.getMessage());
             throw e;
         }
     }
 
-    /* ─── 내 문의 목록 (페이지네이션) ─────────────────────── */
-    public List<InquiryVO> findByMemberId(String id, int offset, int limit) {
+    /* ─── 내 문의 목록 (페이지네이션 + 상태 필터) ─────────── */
+    /**
+     * @param status null 또는 blank면 전체 조회, 아니면 해당 상태(WAIT/DONE/REVIEW)만 조회
+     */
+    public List<InquiryVO> findByMemberId(String id, String status, int offset, int limit) {
         if (id == null || id.isBlank()) return Collections.emptyList();
 
         String sql = """
@@ -64,10 +82,14 @@ public class InquiryRepository {
                    TO_CHAR(reply_date, 'YYYY.MM.DD') AS reply_date
             FROM inquiry_tb
             WHERE id = ?
+        """ + (status != null && !status.isBlank() ? " AND status = ? " : "") + """
             ORDER BY inquiry_id DESC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
         """;
         try {
+            if (status != null && !status.isBlank()) {
+                return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), id, status, offset, limit);
+            }
             return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), id, offset, limit);
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.findByMemberId] DB 오류: " + e.getMessage());
@@ -75,13 +97,16 @@ public class InquiryRepository {
         }
     }
 
-    /* ─── 내 문의 총 개수 ─────────────────────────────────── */
-    public int countByMemberId(String id) {
+    /* ─── 내 문의 총 개수 (상태 필터) ─────────────────────── */
+    public int countByMemberId(String id, String status) {
         if (id == null || id.isBlank()) return 0;
 
-        String sql = "SELECT COUNT(*) FROM inquiry_tb WHERE id = ?";
+        String sql = "SELECT COUNT(*) FROM inquiry_tb WHERE id = ?"
+                + (status != null && !status.isBlank() ? " AND status = ?" : "");
         try {
-            Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+            Integer count = (status != null && !status.isBlank())
+                    ? jdbcTemplate.queryForObject(sql, Integer.class, id, status)
+                    : jdbcTemplate.queryForObject(sql, Integer.class, id);
             return (count != null) ? count : 0;
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.countByMemberId] DB 오류: " + e.getMessage());
@@ -106,6 +131,58 @@ public class InquiryRepository {
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.findById] DB 오류: " + e.getMessage());
             return null;
+        }
+    }
+
+    /* ─── 관리자용: 전체 회원 문의 목록 (페이지네이션 + 상태 필터) ─── */
+    public List<InquiryVO> findAllForAdmin(String status, int offset, int limit) {
+        String sql = """
+            SELECT inquiry_id, id, category, inquiry_type, title, content, status, reply_content,
+                   TO_CHAR(reg_date, 'YYYY.MM.DD') AS reg_date,
+                   TO_CHAR(reply_date, 'YYYY.MM.DD') AS reply_date
+            FROM inquiry_tb
+        """ + (status != null && !status.isBlank() ? " WHERE status = ? " : "") + """
+            ORDER BY inquiry_id DESC
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        """;
+        try {
+            if (status != null && !status.isBlank()) {
+                return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), status, offset, limit);
+            }
+            return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), offset, limit);
+        } catch (DataAccessException e) {
+            System.err.println("[InquiryRepository.findAllForAdmin] DB 오류: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    /* ─── 관리자용: 전체 문의 개수 (상태 필터) ────────────────── */
+    public int countAllForAdmin(String status) {
+        String sql = "SELECT COUNT(*) FROM inquiry_tb"
+                + (status != null && !status.isBlank() ? " WHERE status = ?" : "");
+        try {
+            Integer count = (status != null && !status.isBlank())
+                    ? jdbcTemplate.queryForObject(sql, Integer.class, status)
+                    : jdbcTemplate.queryForObject(sql, Integer.class);
+            return (count != null) ? count : 0;
+        } catch (DataAccessException e) {
+            System.err.println("[InquiryRepository.countAllForAdmin] DB 오류: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    /* ─── 관리자용: 답변 등록/수정 (상태도 같이 변경) ─────────── */
+    public void replyToInquiry(int inquiryId, String replyContent, String status) {
+        String sql = """
+            UPDATE inquiry_tb
+            SET reply_content = ?, reply_date = SYSDATE, status = ?
+            WHERE inquiry_id = ?
+        """;
+        try {
+            jdbcTemplate.update(sql, replyContent, status, inquiryId);
+        } catch (DataAccessException e) {
+            System.err.println("[InquiryRepository.replyToInquiry] DB 오류: " + e.getMessage());
+            throw e;
         }
     }
 }
