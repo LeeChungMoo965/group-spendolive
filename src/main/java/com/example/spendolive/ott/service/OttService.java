@@ -70,6 +70,10 @@ public interface OttService {
 
     void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason);
 
+    String reserveRoomLeave(Long roomId, String loginId);
+
+    String cancelRoomLeave(Long roomId, String loginId);
+
     void processScheduledOttJobs();
 
     void sendChatMessage(Long roomId, String senderId, String messageContent);

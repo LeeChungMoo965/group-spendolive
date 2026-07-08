@@ -437,6 +437,62 @@ CREATE INDEX idx_refund_room ON settlement_refund_tb(room_id, refund_status);
 
 
 /* =========================================================
+   14. OTT 참여자 나가기 예약 컬럼 추가 패치
+   ---------------------------------------------------------
+   목적:
+   - 가족방/외부 모집방의 일반 참여자가 나가기 예약을 할 수 있도록
+     ott_room_member_tb에 예약 관련 컬럼을 추가한다.
+
+   실행 시점:
+   - 기존 DB에는 1회 실행
+   - 새 DB를 만들 때는 03_ott_schema.sql, 03-1_payment.sql 실행 후 실행
+   ========================================================= */
+
+SET DEFINE OFF;
+
+DECLARE
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_count
+    FROM user_tab_columns
+    WHERE table_name = 'OTT_ROOM_MEMBER_TB'
+      AND column_name = 'LEAVE_RESERVED_YN';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE '
+            ALTER TABLE ott_room_member_tb ADD (
+                leave_reserved_yn    CHAR(1) DEFAULT ''N'' NOT NULL,
+                leave_requested_at   DATE,
+                leave_scheduled_date DATE,
+                leave_cancelled_at   DATE,
+                leave_reason         VARCHAR2(500),
+                CONSTRAINT ck_room_member_leave_reserved CHECK (leave_reserved_yn IN (''Y'', ''N''))
+            )
+        ';
+    END IF;
+END;
+/
+
+UPDATE ott_room_member_tb
+SET leave_reserved_yn = 'N'
+WHERE leave_reserved_yn IS NULL;
+
+COMMIT;
+
+SELECT column_name, data_type, nullable
+FROM user_tab_columns
+WHERE table_name = 'OTT_ROOM_MEMBER_TB'
+  AND column_name IN (
+      'LEAVE_RESERVED_YN',
+      'LEAVE_REQUESTED_AT',
+      'LEAVE_SCHEDULED_DATE',
+      'LEAVE_CANCELLED_AT',
+      'LEAVE_REASON'
+  )
+ORDER BY column_id;
+
+/* =========================================================
    정산/결제 구현 기준 요약
    =========================================================
    1) 방장이 정산 요청

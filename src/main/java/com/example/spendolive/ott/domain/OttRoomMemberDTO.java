@@ -20,4 +20,9 @@ public class OttRoomMemberDTO {
     private Integer payAmount;
     private String joinedAt;
     private String status;
+    private String leaveReservedYn;
+    private String leaveRequestedAt;
+    private String leaveScheduledDate;
+    private String leaveCancelledAt;
+    private String leaveReason;
 }

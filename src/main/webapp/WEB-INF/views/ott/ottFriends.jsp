@@ -150,6 +150,26 @@
                                     <span class="status-pill ${room.status}">${room.status}</span>
                                     <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-outline btn-mini">대화방</a>
 
+                                    <c:if test="${room.hostMemberId ne loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
+                                        <c:choose>
+                                            <c:when test="${room.leaveReservedYn eq 'Y'}">
+                                                <small class="warn-text">나가기 예약됨 · ${room.leaveScheduledDate} 자동 퇴장</small>
+                                                <form action="${contextPath}/spendolive/ott/room/leave-cancel.do" method="post" class="compact-close-form">
+                                                    <input type="hidden" name="roomId" value="${room.roomId}">
+                                                    <input type="hidden" name="returnPage" value="friends">
+                                                    <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('나가기 예약을 취소할까요?');">예약 취소</button>
+                                                </form>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <form action="${contextPath}/spendolive/ott/room/leave-reserve.do" method="post" class="compact-close-form">
+                                                    <input type="hidden" name="roomId" value="${room.roomId}">
+                                                    <input type="hidden" name="returnPage" value="friends">
+                                                    <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('나가기 예약을 할까요? 다음 결제일 7일 전 자동으로 방에서 나가집니다.');">나가기 예약</button>
+                                                </form>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:if>
+
                                     <c:if test="${room.hostMemberId eq loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
                                         <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form compact-close-form">
                                             <input type="hidden" name="roomId" value="${room.roomId}">
@@ -239,7 +259,7 @@
                     <div class="settlement-sub-header">
                         <div>
                             <h3>정산 요청 보내기</h3>
-                            <p>정산월은 다음 이용분 기준입니다. 마감일은 결제일 5일 전으로 자동 계산됩니다.</p>
+                            <p>정산월은 다음 이용분 기준입니다. 마감일은 결제일 7일 전으로 자동 계산됩니다.</p>
                         </div>
                         <span>다음 이용분 선결제</span>
                     </div>
@@ -265,7 +285,7 @@
 
                                             <div class="settlement-auto-guide">
                                                 <b>자동 계산</b>
-                                                <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 5일 전</small>
+                                                <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 7일 전</small>
                                             </div>
 
                                             <button type="submit" class="btn btn-primary settlement-send-btn">정산 요청 보내기</button>
@@ -348,7 +368,21 @@
 </section>
 
 <script>
+    var msg = "${msg}";
+    if (msg && msg !== "") {
+        alert(msg);
+    }
+</script>
+
+<script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+<script>
 (function () {
+    var kakaoJavascriptKey = '${fn:escapeXml(kakaoJavascriptKey)}';
+
+    if (window.Kakao && kakaoJavascriptKey && !window.Kakao.isInitialized()) {
+        window.Kakao.init(kakaoJavascriptKey);
+    }
+
     function copyText(text) {
         if (navigator.clipboard && window.isSecureContext) {
             return navigator.clipboard.writeText(text);
@@ -364,6 +398,64 @@
         document.execCommand('copy');
         document.body.removeChild(temp);
         return Promise.resolve();
+    }
+
+    function buildSharePayload(roomName, inviteUrl) {
+        return {
+            objectType: 'feed',
+            content: {
+                title: roomName,
+                description: 'SpendOlive 가족방 초대 링크입니다. 링크를 열면 결제 화면으로 이동합니다.',
+                imageUrl: window.location.origin + '${contextPath}/resources/images/logo.png',
+                link: {
+                    mobileWebUrl: inviteUrl,
+                    webUrl: inviteUrl
+                }
+            },
+            buttons: [
+                {
+                    title: '결제하러 가기',
+                    link: {
+                        mobileWebUrl: inviteUrl,
+                        webUrl: inviteUrl
+                    }
+                }
+            ]
+        };
+    }
+
+    function shareKakao(roomName, inviteUrl) {
+        if (!kakaoJavascriptKey) {
+            return copyText(inviteUrl).then(function () {
+                alert('카카오 JavaScript 키가 아직 설정되지 않아 초대 URL을 대신 복사했습니다.');
+            });
+        }
+
+        if (!window.Kakao || !window.Kakao.isInitialized()) {
+            return copyText(inviteUrl).then(function () {
+                alert('카카오 SDK가 연결되지 않아 초대 URL을 대신 복사했습니다.');
+            });
+        }
+
+        try {
+            var payload = buildSharePayload(roomName, inviteUrl);
+
+            if (window.Kakao.Share && window.Kakao.Share.sendDefault) {
+                window.Kakao.Share.sendDefault(payload);
+                return Promise.resolve();
+            }
+
+            if (window.Kakao.Link && window.Kakao.Link.sendDefault) {
+                window.Kakao.Link.sendDefault(payload);
+                return Promise.resolve();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
+        return copyText(inviteUrl).then(function () {
+            alert('카카오톡 공유를 실행하지 못해 초대 URL을 대신 복사했습니다.');
+        });
     }
 
     document.querySelectorAll('.invite-share-box').forEach(function (box) {
@@ -394,34 +486,7 @@
 
         if (kakaoBtn && input) {
             kakaoBtn.addEventListener('click', function () {
-                if (window.Kakao && window.Kakao.Share) {
-                    window.Kakao.Share.sendDefault({
-                        objectType: 'feed',
-                        content: {
-                            title: roomName,
-                            description: 'SpendOlive 가족방 초대 링크입니다. 링크를 열면 결제 화면으로 이동합니다.',
-                            imageUrl: window.location.origin + '${contextPath}/resources/images/logo.png',
-                            link: {
-                                mobileWebUrl: input.value,
-                                webUrl: input.value
-                            }
-                        },
-                        buttons: [
-                            {
-                                title: '결제하러 가기',
-                                link: {
-                                    mobileWebUrl: input.value,
-                                    webUrl: input.value
-                                }
-                            }
-                        ]
-                    });
-                    return;
-                }
-
-                copyText(input.value).then(function () {
-                    alert('카카오 SDK가 아직 연결되지 않아 초대 URL을 대신 복사했습니다.');
-                });
+                shareKakao(roomName, input.value);
             });
         }
     });

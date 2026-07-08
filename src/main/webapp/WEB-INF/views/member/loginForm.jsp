@@ -101,7 +101,10 @@
                     로그인 상태 유지
                 </label>
                 <a href="#">
-                    아이디/비밀번호 찾기
+                    아이디 찾기
+                </a>
+                <a href="#">
+                    비밀번호 찾기
                 </a>
             </div>
             <button class="auth-btn auth-btn-primary" type="submit">

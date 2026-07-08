@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
+import com.example.spendolive.ott.service.OttService;
 import com.example.spendolive.payment.domain.SettlementPaymentVO;
 import com.example.spendolive.payment.service.PaymentService;
 
@@ -29,6 +30,9 @@ import jakarta.servlet.http.HttpSession;
 public class PaymentControllerImpl implements PaymentController{
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private OttService ottService;
     @Value("${toss.client-key}")
     private String clientKey;
 
@@ -148,6 +152,8 @@ public class PaymentControllerImpl implements PaymentController{
             // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
             paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);
 
+            ottService.completePaidRoomEntry((long) roomId, userId);
+            
             // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
             redirectAttributes.addFlashAttribute("msg", "자동결제가 완료 되었습니다 !");
             return "redirect:/spendolive/main.do";

@@ -33,6 +33,11 @@ public class OttRoomDTO {
     private Integer extraMemberFee;
     private Integer extraMemberCount;
     private String myApplicationStatus;
+    private String leaveReservedYn;
+    private String leaveRequestedAt;
+    private String leaveScheduledDate;
+    private String leaveCancelledAt;
+    private String leaveReason;
 
     // 화면에서만 사용하는 값
     private String roomMode;

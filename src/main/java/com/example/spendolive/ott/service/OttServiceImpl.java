@@ -190,6 +190,17 @@ public class OttServiceImpl implements OttService {
         ottRepository.requestRoomClose(roomId, hostId, closeNotice, closeReason);
     }
 
+
+    @Override
+    public String reserveRoomLeave(Long roomId, String loginId) {
+        return ottRepository.reserveRoomLeave(roomId, loginId);
+    }
+
+    @Override
+    public String cancelRoomLeave(Long roomId, String loginId) {
+        return ottRepository.cancelRoomLeave(roomId, loginId);
+    }
+
     @Override
     public void processScheduledOttJobs() {
         ottRepository.processScheduledOttJobs();
