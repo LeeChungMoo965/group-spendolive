@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.notice.domain.NoticeDTO;
 import com.example.spendolive.notice.service.NoticeService;
+
 
 @Controller
 @RequestMapping("/spendolive/notice")
@@ -29,12 +31,20 @@ public class NoticeController {
 
     /* ─── 공지 센터 메인 ──────────────────────────────────── */
     @GetMapping("/center.do")
-    public ModelAndView noticeCenter(
+
+    public Object noticeCenter(
             @RequestParam(value = "tab", required = false, defaultValue = "notice") String tab,
-            HttpSession session) {
+            HttpSession session, 
+            RedirectAttributes redirectAttributes) {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
      
+        // 알림 탭은 로그인 필요
+        if ("alert".equals(tab) && memberInfo == null) {
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
+            return "redirect:/member/loginForm.do?log=notice";
+        }
+
         
         String id = (memberInfo != null) ? memberInfo.getId() : null;
         

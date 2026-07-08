@@ -7,6 +7,7 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpSession;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +30,9 @@ import com.example.spendolive.ott.service.OttService;
 public class OttController {
 
     private final OttService ottService;
+
+    @Value("${kakao.javascript.key:}")
+    private String kakaoJavascriptKey;
 
     public OttController(OttService ottService) {
         this.ottService = ottService;
@@ -333,6 +337,48 @@ public class OttController {
     }
 
 
+    @PostMapping("/ott/room/leave-reserve.do")
+    public String reserveRoomLeave(@RequestParam("roomId") Long roomId,
+                                   @RequestParam(value = "returnPage", required = false, defaultValue = "recruit") String returnPage,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        String loginId = getLoginId(session);
+
+        if (loginId == null) {
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능입니다.");
+            return "redirect:/member/loginForm.do";
+        }
+
+        String msg = ottService.reserveRoomLeave(roomId, loginId);
+        redirectAttributes.addFlashAttribute("msg", msg);
+        return redirectAfterRoomAction(returnPage);
+    }
+
+    @PostMapping("/ott/room/leave-cancel.do")
+    public String cancelRoomLeave(@RequestParam("roomId") Long roomId,
+                                  @RequestParam(value = "returnPage", required = false, defaultValue = "recruit") String returnPage,
+                                  HttpSession session,
+                                  RedirectAttributes redirectAttributes) {
+        String loginId = getLoginId(session);
+
+        if (loginId == null) {
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능입니다.");
+            return "redirect:/member/loginForm.do";
+        }
+
+        String msg = ottService.cancelRoomLeave(roomId, loginId);
+        redirectAttributes.addFlashAttribute("msg", msg);
+        return redirectAfterRoomAction(returnPage);
+    }
+
+
+    private String redirectAfterRoomAction(String returnPage) {
+        if ("friends".equals(returnPage)) {
+            return "redirect:/spendolive/ott/friends.do";
+        }
+        return "redirect:/spendolive/ott/recruit.do?tab=manage";
+    }
+
     private String redirectToRoomPayment(Long roomId, String roomMode, String inviteCode) {
         String redirectUrl = "redirect:/payment/detail.do?roomId=" + roomId + "&roomMode=" + roomMode;
 
@@ -363,7 +409,8 @@ public class OttController {
         model.addAttribute("serviceList", ottService.getShareableServices());
         model.addAttribute("selectedSettlementMonth", nextMonth.toString());
         model.addAttribute("today", today.toString());
-        model.addAttribute("settlementGuide", "OTT별 최고 멤버십 기준 금액을 N분의 1로 나누고 서비스 수수료 3%를 더해 정산합니다. 결제 마감일은 이용 시작일 5일 전으로 자동 계산됩니다.");
+        model.addAttribute("kakaoJavascriptKey", kakaoJavascriptKey == null ? "" : kakaoJavascriptKey);
+        model.addAttribute("settlementGuide", "OTT별 최고 멤버십 기준 금액을 N분의 1로 나누고 서비스 수수료 3%를 더해 정산합니다. 결제 마감일은 이용 시작일 7일 전으로 자동 계산됩니다.");
     }
 
     private String getLoginId(HttpSession session) {

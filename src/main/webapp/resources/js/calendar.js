@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
       initialView: 'dayGridMonth',
       locale: 'ko',
       height: 'auto',
+      
       headerToolbar: false,
+      fixedWeekCount: 1,
       dayMaxEvents: 2, // 날짜 칸당 최대 2개까지만 표시, 넘으면 "+N개" 링크로 숨김 (칸 높이 고정)
       datesSet: function(info) {
         const year = info.view.currentStart.getFullYear();
@@ -22,14 +24,22 @@ document.addEventListener('DOMContentLoaded', function() {
         loadMonthlyExpenses(year, month);
       },
       dateClick: function(info) {
-        location.href = `${eContextPath}/expense.do?date=${info.dateStr}#expense-form`;
-      },
+
+        // 클릭한 지점이 날짜 숫자(예: "7일")가 아니면 그냥 무시
+        const isDayNumberClick = info.jsEvent.target.closest('.fc-daygrid-day-number');
+        if (!isDayNumberClick) {
+            return;
+        }
+        location.href = `${eContextPath}/expense.do?date=${info.dateStr}#expense-list`;
+        },
+      
       eventContent: function(arg) {
         const amount = arg.event.extendedProps.amount;
         const categoryName = arg.event.extendedProps.categoryName;
+        const expenseType = arg.event.extendedProps.expenseType; // FIXED / VARIABLE / OTT
 
         const wrapper = document.createElement('div');
-        wrapper.className = 'calendar-expense-chip';
+        wrapper.className = `calendar-expense-chip chip-type-${(expenseType || 'variable').toLowerCase()}`;
         wrapper.innerHTML = `
           <span class="chip-amount">${Number(amount).toLocaleString()}원</span>
           <span class="chip-category">${categoryName}</span>
@@ -129,9 +139,9 @@ function renderSidePanel() {
     } else {
         pageItems.forEach(exp => {
             const dateLabel = exp.expenseDate.slice(5).replace('-', '.'); // "2026-07-05" -> "07.05"
-
+            const typeClass = `type-${(exp.expenseType || 'variable').toLowerCase()}`;
             const item = document.createElement('div');
-            item.className = 'side-event';
+            item.className = `side-event ${typeClass}`;
             item.innerHTML = `
                 <strong>${dateLabel} ${exp.expenseTitle}</strong>
                 <span>${Number(exp.amount).toLocaleString()}원 · ${exp.categoryName}</span>

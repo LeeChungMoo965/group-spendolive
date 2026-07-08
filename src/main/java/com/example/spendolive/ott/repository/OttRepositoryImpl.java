@@ -309,11 +309,17 @@ public class OttRepositoryImpl implements OttRepository {
                        r.close_notice,
                        TO_CHAR(r.closed_at, 'YYYY-MM-DD') AS closed_at,
                        TO_CHAR(r.created_at, 'YYYY-MM-DD') AS created_at,
-                       NVL(COUNT(CASE WHEN rm_all.status = 'ACTIVE' THEN 1 END), 0) AS current_member_count
+                       NVL(COUNT(CASE WHEN rm_all.status = 'ACTIVE' THEN 1 END), 0) AS current_member_count,
+                       NVL(MAX(rm_mine.leave_reserved_yn), 'N') AS leave_reserved_yn,
+                       TO_CHAR(MAX(rm_mine.leave_requested_at), 'YYYY-MM-DD') AS leave_requested_at,
+                       TO_CHAR(MAX(rm_mine.leave_scheduled_date), 'YYYY-MM-DD') AS leave_scheduled_date,
+                       TO_CHAR(MAX(rm_mine.leave_cancelled_at), 'YYYY-MM-DD') AS leave_cancelled_at,
+                       MAX(rm_mine.leave_reason) AS leave_reason
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
                 LEFT JOIN member_tb m ON r.host_login_id = m.id
                 LEFT JOIN ott_room_member_tb rm_all ON r.room_id = rm_all.room_id
+                LEFT JOIN ott_room_member_tb rm_mine ON r.room_id = rm_mine.room_id AND rm_mine.member_login_id = ?
                 WHERE r.status <> 'CLOSED'
                   AND (? IS NULL OR NVL(r.room_mode, 'RECRUIT') = ?)
                   AND (
@@ -348,7 +354,7 @@ public class OttRepositoryImpl implements OttRepository {
                 ORDER BY r.room_id DESC
                 """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, false), roomMode, roomMode, loginId, loginId);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRoom(rs, false), loginId, roomMode, roomMode, loginId, loginId);
     }
 
     private List<OttRoomDTO> selectHostedRoomsByMode(String loginId, String roomMode) {
@@ -427,7 +433,12 @@ public class OttRepositoryImpl implements OttRepository {
                        TO_CHAR(r.closed_at, 'YYYY-MM-DD') AS closed_at,
                        TO_CHAR(r.created_at, 'YYYY-MM-DD') AS created_at,
                        NVL(COUNT(CASE WHEN rm_all.status = 'ACTIVE' THEN 1 END), 0) AS current_member_count,
-                       mine.status AS my_application_status
+                       mine.status AS my_application_status,
+                       NVL(mine.leave_reserved_yn, 'N') AS leave_reserved_yn,
+                       TO_CHAR(mine.leave_requested_at, 'YYYY-MM-DD') AS leave_requested_at,
+                       TO_CHAR(mine.leave_scheduled_date, 'YYYY-MM-DD') AS leave_scheduled_date,
+                       TO_CHAR(mine.leave_cancelled_at, 'YYYY-MM-DD') AS leave_cancelled_at,
+                       mine.leave_reason
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
                 JOIN ott_room_member_tb mine
@@ -459,7 +470,12 @@ public class OttRepositoryImpl implements OttRepository {
                          r.close_notice,
                          TO_CHAR(r.closed_at, 'YYYY-MM-DD'),
                          TO_CHAR(r.created_at, 'YYYY-MM-DD'),
-                         mine.status
+                         mine.status,
+                         NVL(mine.leave_reserved_yn, 'N'),
+                         TO_CHAR(mine.leave_requested_at, 'YYYY-MM-DD'),
+                         TO_CHAR(mine.leave_scheduled_date, 'YYYY-MM-DD'),
+                         TO_CHAR(mine.leave_cancelled_at, 'YYYY-MM-DD'),
+                         mine.leave_reason
                 ORDER BY r.room_id DESC
                 """;
 
@@ -486,7 +502,12 @@ public class OttRepositoryImpl implements OttRepository {
                        rm.fee_amount,
                        rm.pay_amount,
                        TO_CHAR(rm.joined_at, 'YYYY-MM-DD') AS joined_at,
-                       rm.status
+                       rm.status,
+                       NVL(rm.leave_reserved_yn, 'N') AS leave_reserved_yn,
+                       TO_CHAR(rm.leave_requested_at, 'YYYY-MM-DD') AS leave_requested_at,
+                       TO_CHAR(rm.leave_scheduled_date, 'YYYY-MM-DD') AS leave_scheduled_date,
+                       TO_CHAR(rm.leave_cancelled_at, 'YYYY-MM-DD') AS leave_cancelled_at,
+                       rm.leave_reason
                 FROM ott_room_member_tb rm
                 JOIN ott_room_tb r ON rm.room_id = r.room_id
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
@@ -942,7 +963,7 @@ public class OttRepositoryImpl implements OttRepository {
         LocalDate serviceStartDate = resolveBillingDate(targetMonth, room.getBillingDay());
         LocalDate serviceEndDate = serviceStartDate.plusMonths(1).minusDays(1);
         LocalDate paymentStartDate = LocalDate.now();
-        LocalDate paymentCloseDate = serviceStartDate.minusDays(5);
+        LocalDate paymentCloseDate = serviceStartDate.minusDays(7);
         LocalDate replaceStartDate = paymentCloseDate;
         LocalDate replaceEndDate = serviceStartDate.minusDays(1);
 
@@ -1009,7 +1030,7 @@ public class OttRepositoryImpl implements OttRepository {
         LocalDate serviceStartDate = resolveBillingDate(targetMonth, room.getBillingDay());
         LocalDate serviceEndDate = serviceStartDate.plusMonths(1).minusDays(1);
         LocalDate paymentStartDate = serviceStartDate.minusMonths(1);
-        LocalDate paymentCloseDate = serviceStartDate.minusDays(5);
+        LocalDate paymentCloseDate = serviceStartDate.minusDays(7);
         LocalDate replaceStartDate = paymentCloseDate;
         LocalDate replaceEndDate = serviceStartDate.minusDays(1);
 
@@ -1287,9 +1308,113 @@ public class OttRepositoryImpl implements OttRepository {
                 hostId);
     }
 
+
+    @Override
+    @Transactional
+    public String reserveRoomLeave(Long roomId, String loginId) {
+        if (roomId == null || loginId == null || loginId.isBlank()) {
+            return "나가기 예약을 처리할 수 없습니다.";
+        }
+
+        OttRoomDTO room = selectRoom(roomId);
+        if (room == null || "CLOSED".equals(room.getStatus()) || "CLOSE_REQUESTED".equals(room.getStatus())) {
+            return "이미 종료되었거나 종료 예정인 방입니다.";
+        }
+
+        if (loginId.equals(room.getHostMemberId())) {
+            return "파티장은 나가기 예약을 할 수 없습니다. 방 삭제 요청 기능을 사용해 주세요.";
+        }
+
+        if (!isActiveNormalMember(roomId, loginId)) {
+            return "현재 참여 중인 일반 참여자만 나가기 예약을 할 수 있습니다.";
+        }
+
+        if (hasReservedLeave(roomId, loginId)) {
+            return "이미 나가기 예약이 되어 있습니다.";
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate nextBillingDate = getNextBillingDate(today, room.getBillingDay());
+        LocalDate leaveScheduledDate = nextBillingDate.minusDays(7);
+
+        // 선택 A: 결제일 7일 전부터는 이번 회차 나가기 예약 불가
+        if (!today.isBefore(leaveScheduledDate)) {
+            return "이미 다음 결제 준비 기간이라 이번 회차 나가기 예약은 불가능합니다. 다음 결제일 이후 다시 예약할 수 있습니다.";
+        }
+
+        if (hasPaidUpcomingPayment(roomId, loginId, leaveScheduledDate)) {
+            return "이미 다음 이용분 결제가 완료되어 이번 회차 나가기 예약은 불가능합니다.";
+        }
+
+        String sql = """
+                UPDATE ott_room_member_tb
+                SET leave_reserved_yn = 'Y',
+                    leave_requested_at = SYSDATE,
+                    leave_scheduled_date = ?,
+                    leave_cancelled_at = NULL,
+                    leave_reason = '다음 결제일 전 나가기 예약'
+                WHERE room_id = ?
+                  AND member_login_id = ?
+                  AND member_role = 'MEMBER'
+                  AND status = 'ACTIVE'
+                """;
+        int updated = jdbcTemplate.update(sql, Date.valueOf(leaveScheduledDate), roomId, loginId);
+
+        if (updated == 0) {
+            return "나가기 예약을 처리하지 못했습니다.";
+        }
+
+        insertSystemChatMessage(roomId, loginId, loginId + "님이 " + leaveScheduledDate + " 나가기 예약을 했습니다.");
+        insertAlert(room.getHostMemberId(),
+                "OTT_LEAVE_RESERVED",
+                "OTT 참여자 나가기 예약",
+                loginId + "님이 " + room.getRoomName() + " 방에서 " + leaveScheduledDate + " 나가기 예약을 했습니다.",
+                "/spendolive/ott/chat/room.do?roomId=" + roomId);
+
+        return "나가기 예약이 완료되었습니다. " + leaveScheduledDate + "에 자동으로 방에서 나가집니다.";
+    }
+
+    @Override
+    @Transactional
+    public String cancelRoomLeave(Long roomId, String loginId) {
+        if (roomId == null || loginId == null || loginId.isBlank()) {
+            return "나가기 예약 취소를 처리할 수 없습니다.";
+        }
+
+        OttRoomDTO room = selectRoom(roomId);
+        if (room == null || "CLOSED".equals(room.getStatus())) {
+            return "이미 종료된 방입니다.";
+        }
+
+        if (loginId.equals(room.getHostMemberId())) {
+            return "파티장은 나가기 예약 취소 대상이 아닙니다.";
+        }
+
+        String sql = """
+                UPDATE ott_room_member_tb
+                SET leave_reserved_yn = 'N',
+                    leave_cancelled_at = SYSDATE,
+                    leave_reason = NVL(leave_reason, '') || ' / 예약 취소'
+                WHERE room_id = ?
+                  AND member_login_id = ?
+                  AND member_role = 'MEMBER'
+                  AND status = 'ACTIVE'
+                  AND leave_reserved_yn = 'Y'
+                """;
+        int updated = jdbcTemplate.update(sql, roomId, loginId);
+
+        if (updated == 0) {
+            return "취소할 나가기 예약이 없습니다.";
+        }
+
+        insertSystemChatMessage(roomId, loginId, loginId + "님이 나가기 예약을 취소했습니다.");
+        return "나가기 예약이 취소되었습니다.";
+    }
+
     @Override
     @Transactional
     public void processScheduledOttJobs() {
+        processLeaveReservations();
         expireOverduePayments();
         closeEffectiveRooms();
     }
@@ -1331,6 +1456,62 @@ public class OttRepositoryImpl implements OttRepository {
                 VALUES (src.room_id, src.member_login_id, SYSDATE)
                 """;
         jdbcTemplate.update(sql, roomId, loginId);
+    }
+
+
+    private void processLeaveReservations() {
+        String cancelUnpaidPaymentSql = """
+                UPDATE settlement_payment_tb sp
+                SET payment_status = 'CANCELLED',
+                    cancelled_at = SYSDATE,
+                    memo = NVL(sp.memo, '') || ' / 나가기 예약으로 다음 이용분 결제 제외'
+                WHERE sp.payment_status = 'UNPAID'
+                  AND EXISTS (
+                        SELECT 1
+                        FROM settlement_tb st
+                        JOIN ott_room_member_tb rm ON rm.room_id = st.room_id
+                        WHERE st.settlement_id = sp.settlement_id
+                          AND st.room_id = rm.room_id
+                          AND sp.id = rm.member_login_id
+                          AND rm.member_role = 'MEMBER'
+                          AND rm.status = 'ACTIVE'
+                          AND rm.leave_reserved_yn = 'Y'
+                          AND rm.leave_scheduled_date <= TRUNC(SYSDATE)
+                          AND st.service_start_date >= TRUNC(SYSDATE)
+                  )
+                """;
+        jdbcTemplate.update(cancelUnpaidPaymentSql);
+
+        String updateRecruitRoomSql = """
+                UPDATE ott_room_tb r
+                SET status = 'REPLACE_RECRUITING',
+                    updated_at = SYSDATE
+                WHERE NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
+                  AND r.status NOT IN ('CLOSED', 'CLOSE_REQUESTED')
+                  AND EXISTS (
+                        SELECT 1
+                        FROM ott_room_member_tb rm
+                        WHERE rm.room_id = r.room_id
+                          AND rm.member_role = 'MEMBER'
+                          AND rm.status = 'ACTIVE'
+                          AND rm.leave_reserved_yn = 'Y'
+                          AND rm.leave_scheduled_date <= TRUNC(SYSDATE)
+                  )
+                """;
+        jdbcTemplate.update(updateRecruitRoomSql);
+
+        String leaveMemberSql = """
+                UPDATE ott_room_member_tb rm
+                SET status = 'OUT',
+                    left_at = SYSDATE,
+                    leave_reserved_yn = 'N',
+                    leave_reason = NVL(rm.leave_reason, '') || ' / 예약일 자동 퇴장 완료'
+                WHERE rm.member_role = 'MEMBER'
+                  AND rm.status = 'ACTIVE'
+                  AND rm.leave_reserved_yn = 'Y'
+                  AND rm.leave_scheduled_date <= TRUNC(SYSDATE)
+                """;
+        jdbcTemplate.update(leaveMemberSql);
     }
 
     private void expireOverduePayments() {
@@ -1599,6 +1780,11 @@ public class OttRepositoryImpl implements OttRepository {
         if (hasMyStatus) {
             room.setMyApplicationStatus(rs.getString("my_application_status"));
         }
+        room.setLeaveReservedYn(getOptionalString(rs, "leave_reserved_yn"));
+        room.setLeaveRequestedAt(getOptionalString(rs, "leave_requested_at"));
+        room.setLeaveScheduledDate(getOptionalString(rs, "leave_scheduled_date"));
+        room.setLeaveCancelledAt(getOptionalString(rs, "leave_cancelled_at"));
+        room.setLeaveReason(getOptionalString(rs, "leave_reason"));
         return room;
     }
 
@@ -1618,6 +1804,11 @@ public class OttRepositoryImpl implements OttRepository {
         member.setPayAmount(rs.getInt("pay_amount"));
         member.setJoinedAt(rs.getString("joined_at"));
         member.setStatus(rs.getString("status"));
+        member.setLeaveReservedYn(getOptionalString(rs, "leave_reserved_yn"));
+        member.setLeaveRequestedAt(getOptionalString(rs, "leave_requested_at"));
+        member.setLeaveScheduledDate(getOptionalString(rs, "leave_scheduled_date"));
+        member.setLeaveCancelledAt(getOptionalString(rs, "leave_cancelled_at"));
+        member.setLeaveReason(getOptionalString(rs, "leave_reason"));
         return member;
     }
 
@@ -1722,7 +1913,12 @@ public class OttRepositoryImpl implements OttRepository {
                        rm.fee_amount,
                        rm.pay_amount,
                        TO_CHAR(rm.joined_at, 'YYYY-MM-DD') AS joined_at,
-                       rm.status
+                       rm.status,
+                       NVL(rm.leave_reserved_yn, 'N') AS leave_reserved_yn,
+                       TO_CHAR(rm.leave_requested_at, 'YYYY-MM-DD') AS leave_requested_at,
+                       TO_CHAR(rm.leave_scheduled_date, 'YYYY-MM-DD') AS leave_scheduled_date,
+                       TO_CHAR(rm.leave_cancelled_at, 'YYYY-MM-DD') AS leave_cancelled_at,
+                       rm.leave_reason
                 FROM ott_room_member_tb rm
                 JOIN ott_room_tb r ON rm.room_id = r.room_id
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
@@ -1899,6 +2095,58 @@ public class OttRepositoryImpl implements OttRepository {
             candidate = resolveBillingDate(month.plusMonths(1), billingDay);
         }
         return candidate;
+    }
+
+
+    private boolean isActiveNormalMember(Long roomId, String loginId) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM ott_room_member_tb
+                WHERE room_id = ?
+                  AND member_login_id = ?
+                  AND member_role = 'MEMBER'
+                  AND status = 'ACTIVE'
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, roomId, loginId);
+        return count != null && count > 0;
+    }
+
+    private boolean hasReservedLeave(Long roomId, String loginId) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM ott_room_member_tb
+                WHERE room_id = ?
+                  AND member_login_id = ?
+                  AND member_role = 'MEMBER'
+                  AND status = 'ACTIVE'
+                  AND leave_reserved_yn = 'Y'
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, roomId, loginId);
+        return count != null && count > 0;
+    }
+
+    private boolean hasPaidUpcomingPayment(Long roomId, String loginId, LocalDate leaveScheduledDate) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM settlement_payment_tb sp
+                JOIN settlement_tb st ON sp.settlement_id = st.settlement_id
+                WHERE st.room_id = ?
+                  AND sp.id = ?
+                  AND sp.payment_status IN ('PAID', 'CONFIRMED')
+                  AND st.service_start_date >= ?
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, roomId, loginId, Date.valueOf(leaveScheduledDate));
+        return count != null && count > 0;
+    }
+
+    private String getOptionalString(java.sql.ResultSet rs, String columnName) throws java.sql.SQLException {
+        java.sql.ResultSetMetaData metaData = rs.getMetaData();
+        for (int i = 1; i <= metaData.getColumnCount(); i++) {
+            if (columnName.equalsIgnoreCase(metaData.getColumnLabel(i))) {
+                return rs.getString(columnName);
+            }
+        }
+        return null;
     }
 
     private String makeInviteCode() {

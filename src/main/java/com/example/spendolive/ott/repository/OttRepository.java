@@ -69,6 +69,10 @@ public interface OttRepository {
 
     void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason);
 
+    String reserveRoomLeave(Long roomId, String loginId);
+
+    String cancelRoomLeave(Long roomId, String loginId);
+
     void processScheduledOttJobs();
 
     void insertChatMessage(Long roomId, String senderId, String messageContent);

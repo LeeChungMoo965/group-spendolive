@@ -205,8 +205,11 @@
                                                         <button type="submit" class="btn btn-primary full">신청하기</button>
                                                     </form>
                                                 </c:when>
+                                                <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
+                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary full">대화방 입장</a>
+                                                </c:when>
                                                 <c:otherwise>
-                                                    <button type="button" class="btn btn-outline full" disabled>모집 마감</button>
+                                                    <button type="button" class="btn btn-outline full" disabled>${room.myApplicationStatus}</button>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
@@ -279,6 +282,9 @@
                                                                 <div>
                                                                     <strong>${member.memberName}</strong>
                                                                     <p>아이디: ${member.memberId} · 참여일 ${member.joinedAt}</p>
+                                                                    <c:if test="${member.leaveReservedYn eq 'Y'}">
+                                                                        <p class="warn-text">나가기 예약됨 · ${member.leaveScheduledDate} 자동 퇴장 예정</p>
+                                                                    </c:if>
                                                                 </div>
                                                                 <div class="apply-price-box">
                                                                     <span>참여중</span>
@@ -323,6 +329,23 @@
                                                 </div>
                                                 <div class="family-room-actions">
                                                     <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary btn-mini">대화방</a>
+                                                    <c:choose>
+                                                        <c:when test="${room.leaveReservedYn eq 'Y'}">
+                                                            <small class="warn-text">나가기 예약됨 · ${room.leaveScheduledDate} 자동 퇴장</small>
+                                                            <form action="${contextPath}/spendolive/ott/room/leave-cancel.do" method="post" class="compact-close-form">
+                                                                <input type="hidden" name="roomId" value="${room.roomId}">
+                                                                <input type="hidden" name="returnPage" value="recruit">
+                                                                <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('나가기 예약을 취소할까요?');">예약 취소</button>
+                                                            </form>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <form action="${contextPath}/spendolive/ott/room/leave-reserve.do" method="post" class="compact-close-form">
+                                                                <input type="hidden" name="roomId" value="${room.roomId}">
+                                                                <input type="hidden" name="returnPage" value="recruit">
+                                                                <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('나가기 예약을 할까요? 다음 결제일 7일 전 자동으로 방에서 나가집니다.');">나가기 예약</button>
+                                                            </form>
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </div>
                                             </div>
                                         </c:forEach>
@@ -351,7 +374,7 @@
                                 <div class="settlement-sub-header">
                                     <div>
                                         <h3>정산 요청 보내기</h3>
-                                        <p>결제 가능 시작일은 전월 결제일, 마감일은 다음 결제일 5일 전으로 자동 계산됩니다.</p>
+                                        <p>결제 가능 시작일은 전월 결제일, 마감일은 다음 결제일 7일 전으로 자동 계산됩니다.</p>
                                     </div>
                                     <span>다음 이용분 선결제</span>
                                 </div>
@@ -377,7 +400,7 @@
 
                                                         <div class="settlement-auto-guide">
                                                             <b>자동 계산</b>
-                                                            <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 5일 전</small>
+                                                            <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 7일 전</small>
                                                         </div>
 
                                                         <button type="submit" class="btn btn-primary settlement-send-btn">정산 요청 보내기</button>
@@ -519,3 +542,10 @@
         </div>
     </div>
 </section>
+
+<script>
+    var msg = "${msg}";
+    if (msg && msg !== "") {
+        alert(msg);
+    }
+</script>

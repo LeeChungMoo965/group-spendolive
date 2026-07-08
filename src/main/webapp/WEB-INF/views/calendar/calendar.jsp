@@ -10,7 +10,7 @@
         <title>
         SpendOlive | 캘린더
     </title>
-    <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
+    <link rel="stylesheet" href="${contextPath}/resources/css/calendar.css">
     <script src="${contextPath}/resources/js/app.js"></script>
 <script src="${contextPath}/resources/js/calendar.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
@@ -57,26 +57,37 @@
                 </div>
                 <div class="calendar-page-layout">
 
-                    <div class="calendar">
-                        <div class="calendar-header">
-                        <span id="calendarTitle"></span>
-                        <button class="detail-link" id="detailBtn">자세히보기</button>
-                    </div>
-                        <div id="calendar"></div> 
-                    </div>
-                    <aside class="side-panel card">
-                        <h3>이번 달 주요 지출</h3>
-                        <div id="sideEventList">
-                            <!-- calendar.js의 renderSidePanel()이 이 안에 지출 목록을 채워줌 -->
-                        </div>
-                        <!-- 3개 넘으면 calendar.js가 이 아래에 1 2 3 숫자 페이지네이션 자동 생성 -->
+    <div class="calendar">
+        <div class="calendar-header">
+            <span id="calendarTitle"></span>
+            <button class="detail-link" id="detailBtn">자세히보기</button>
+        </div>
+        <div id="calendar"></div> 
+    </div>
 
-                        <button class="btn btn-outline full" onclick="location.href='${contextPath}/spendolive/expense.do'">
-                            지출관리에서 보기
-                        </button>
-                        
-                    </aside>
-                </div>
+    <div class="side-column">
+        <aside class="card today-todo-card">
+            <h3>오늘 할 일</h3>
+            <div id="todayTodoList">
+                <!-- calendar.js의 renderTodayTodo()가 이 안에 오늘 지출 예정 건을 채워줌 -->
+            </div>
+        </aside>
+
+        <aside class="side-panel card">
+            <h3>이번 달 주요 지출</h3>
+            <div id="sideEventList">
+                <!-- calendar.js의 renderSidePanel()이 이 안에 지출 목록을 채워줌 -->
+            </div>
+            <!-- 3개 넘으면 calendar.js가 이 아래에 1 2 3 숫자 페이지네이션 자동 생성 -->
+
+            <button class="btn btn-outline full" onclick="location.href='${contextPath}/spendolive/expense.do'">
+                지출관리에서 보기
+            </button>
+        </aside>
+    </div>
+
+</div>
+
             </div>
         </section>
     </main>

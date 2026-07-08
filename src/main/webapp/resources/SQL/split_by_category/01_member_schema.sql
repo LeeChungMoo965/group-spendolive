@@ -76,9 +76,10 @@ CREATE TABLE MEMBER_ACCOUNT_TB (
     CONSTRAINT FK_ACCOUNT_MEMBER_ID FOREIGN KEY (MEMBER_ID) 
     REFERENCES MEMBER_TB(MEMBER_ID) ON DELETE CASCADE
 );
+
 CREATE TABLE MEMBER_CARD_TB (
     CARD_IDX        NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
-    MEMBER_ID       VARCHAR2(50) NOT NULL,                           -- 회원 ID (FK)
+    ID              VARCHAR2(20) NOT NULL,                           -- 회원 ID (FK)
     BILLING_KEY     VARCHAR2(100) NOT NULL,                          -- 토스 빌링키 (가장 중요 💥)
     CARD_COMPANY    VARCHAR2(50),                                    -- 카드사 이름 (ex: 신한, 현대)
     CARD_NUMBER     VARCHAR2(20),                                    -- 마스킹된 카드번호 (ex: 433012******1234)
@@ -86,5 +87,10 @@ CREATE TABLE MEMBER_CARD_TB (
     
     -- 회원 테이블과의 연관 관계 설정 (회원 탈퇴 시 카드 정보도 삭제되게)
     CONSTRAINT FK_CARD_MEMBER_ID FOREIGN KEY (MEMBER_ID) 
-    REFERENCES MEMBER_TB(MEMBER_ID) ON DELETE CASCADE
+    REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
+);
+
+ALTER TABLE member_card_tb ADD (
+    status         VARCHAR2(20) DEFAULT 'NO' NOT NULL,
+    CONSTRAINT ck_member_card_status CHECK (status IN ('YES', 'NO'))
 );
