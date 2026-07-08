@@ -48,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     calendar.render()
+
+
+    loadTodayTodo();  
   
 
   function changeMonth(direction) {
@@ -181,5 +184,60 @@ function renderSidePanelPager(totalPages) {
             sidePanelPage = Number(btn.dataset.page);
             renderSidePanel();
         });
+    });
+}
+/* =========================================================
+   오늘 할 일 - "오늘 날짜에 잡혀있는 지출"만 따로 보여줌
+   (달력을 이전달/다음달로 넘겨도 이건 안 바뀜)
+   ========================================================= */
+
+   function loadTodayTodo() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const todayStr = `${year}-${String(month).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    fetch(`${eContextPath}/calendar/expenses.do?year=${year}&month=${month}`, {
+        credentials: 'same-origin'
+    })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('오늘 할 일을 불러오지 못했습니다.');
+            }
+            return res.json();
+        })
+        .then(data => {
+            const todayItems = data.filter(exp => exp.expenseDate === todayStr);
+            renderTodayTodo(todayItems);
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
+
+function renderTodayTodo(todayItems) {
+    const listEl = document.getElementById('todayTodoList');
+    if (!listEl) {
+        console.warn('todayTodoList 요소를 못 찾았어요 (calendar.jsp 확인 필요)');
+        return;
+    }
+
+    listEl.innerHTML = '';
+
+    if (todayItems.length === 0) {
+        listEl.innerHTML = '<p class="empty-text">오늘 예정된 지출이 없습니다.</p>';
+        return;
+    }
+
+    todayItems.forEach(exp => {
+        const typeClass = `type-${(exp.expenseType || 'variable').toLowerCase()}`;
+
+        const item = document.createElement('div');
+        item.className = `side-event ${typeClass}`;
+        item.innerHTML = `
+            <strong>${exp.expenseTitle}</strong>
+            <span>${Number(exp.amount).toLocaleString()}원 · ${exp.categoryName}</span>
+        `;
+        listEl.appendChild(item);
     });
 }

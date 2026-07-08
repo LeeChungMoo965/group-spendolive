@@ -1,5 +1,9 @@
 package com.example.spendolive.inquiry.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +20,16 @@ public class InquiryVO {
     private String regDate;
     private String replyContent;
     private String replyDate;
+
+
+    /** 관리자 화면용: 작성자 닉네임 (member_tb.nickname 조인 결과, inquiry_tb 자체 컬럼 아님).
+     *  카카오 등 소셜 로그인 회원은 id가 사람이 읽기 힘든 숫자라서 별도로 채워서 보여줌. */
+    private String writerNickname;
+
+
+    /** 이 문의에 달린 첨부파일 목록. inquiry_tb 자체 컬럼이 아니라
+     *  InquiryService에서 inquiry_file_tb를 별도 조회해서 채워 넣는다. */
+    private List<InquiryFileVO> files = new ArrayList<>();
 
     /** faq.css의 .badge.wait/.badge.done/.badge.review 클래스와 매칭되는 소문자 코드 */
     public String getStatusCode() {

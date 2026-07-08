@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -38,6 +39,21 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
             return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
+        }
+    }
+    @Override
+    @PostMapping("/pay.do")
+    public String pay(@RequestParam("roomId") String roomIdStr, HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+        session = request.getSession();
+        int roomId = Integer.parseInt(roomIdStr);
+        
+        try {
+            paymentService.updateExcrow(roomId);
+            redirectAttributes.addFlashAttribute("msg", "정산에 성공 하였습니다. ");
+            return "redirect:/admin/settlement/list.do";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("msg", "정산에 실패 하였습니다. ");
+            return "redirect:/admin/settlement/list.do";
         }
     }
     private ModelAndView layout(String bodyPage) {

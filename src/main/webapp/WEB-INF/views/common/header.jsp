@@ -24,13 +24,14 @@
                 <a href="ott.html" data-nav="ott">OTT 관리</a>
                 <a href="${contextPath}/admin/settlement/list.do" data-nav="party">정산관리</a>
                 <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>
-                <a href="inquiry.html" data-nav="inquiry">문의관리</a>
-                <a href="notice.html" data-nav="notice">공지사항 관리</a>
+                <a href="${contextPath}/spendolive/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
+                <a href="${contextPath}/spendolive/admin/notice/list.do" data-nav="notice">공지사항 관리</a>
+                <a href="${contextPath}/spendolive/admin/faq/list.do" data-nav="faq">FAQ 관리</a>
             </nav>
             <div class="admin-actions">
                 <span class="admin-pill">관리자 모드</span>
                 <strong><a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
-                        ${memberInfo.member_name}님
+                        ${memberInfo.member_name}님</strong>
             </div>
         </div>
     </header>
