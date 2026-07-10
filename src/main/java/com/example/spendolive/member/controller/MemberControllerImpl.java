@@ -52,16 +52,15 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
-            
             try{String log = (String) session.getAttribute("log");
                 if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
                 else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
                 else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
                 
-        }catch(Exception e){   
-            mav.setViewName("redirect:/spendolive/main.do");
-            if(memberVO.getRole().equals("ADMIN")){mav.setViewName("redirect:/spendolive/admin/main.do");}
-        }
+            }catch(Exception e){   
+                mav.setViewName("redirect:/spendolive/main.do");
+                if(memberVO.getRole().equals("ADMIN")){mav.setViewName("redirect:/spendolive/admin/main.do");}
+            }
               
         }
         //로그인 실피 시 로그인 화면 유지
@@ -268,14 +267,12 @@ public class MemberControllerImpl implements MemberController{
                 session.setAttribute("memberInfo", memberVO);
                 session.setAttribute("isLogOn", true);
                 session.setAttribute("login_type", "KAKAO");
-                String log = (String) session.getAttribute("log");
-
-                //알림 페이지에서 로그인 후 다시 알림페이지로 돌아오도록 //
-                if ("mypage".equals(log)) { mav.setViewName("redirect:/spendolive/mypage.do"); }
-                else if ("expense".equals(log)) { mav.setViewName("redirect:/spendolive/expense.do"); }
-                else if ("ott".equals(log)) { mav.setViewName("redirect:/spendolive/ott.do"); }
-                else if ("notice".equals(log)) { mav.setViewName("redirect:/spendolive/notice/center.do?tab=alert"); }
-                else { mav.setViewName("redirect:/spendolive/main.do"); }
+                try{String log = (String) session.getAttribute("log");
+                if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
+                else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
+                else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
+                
+            }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
             }
 
             // 기존 회원이면 로그인 처리, 신규 회원이면 회원가입 페이지 이동 혹은 자동 가입 로직 추가 가능
@@ -344,4 +341,269 @@ public class MemberControllerImpl implements MemberController{
     }
     return new ResponseEntity(message, responseHeaders, HttpStatus.OK);
 }
+
+    /* =========================================================
+       [추가 기능] 아이디 찾기 - 1단계: 휴대폰 인증번호 발송
+       ---------------------------------------------------------
+       화면 위치: loginForm.jsp > 아이디 찾기 폼 > "인증번호 받기" 버튼
+       호출 JS  : sendFindIdSms()
+       URL      : POST /member/findId/sendSms.do
+       역할     : 입력한 휴대폰 번호로 가입된 ACTIVE 회원이 있는지 확인한 뒤,
+                  인증번호를 발급하고 세션에 임시 저장한다.
+       세션 저장: findIdSmsCode = 인증번호, findIdPhone = 숫자만 남긴 휴대폰 번호
+       주의     : 현재 sendSmsVerification()은 실제 문자 발송 대신 콘솔 출력 방식일 수 있음.
+       ========================================================= */
+    @RequestMapping(value = "/findId/sendSms.do", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> sendFindIdSms(@RequestParam("phone") String phone,
+                                             HttpServletRequest request) {
+        Map<String, Object> result = new java.util.HashMap<>();
+        try {
+            String foundId = memberService.findIdByPhone(phone);
+            if (foundId == null || foundId.isBlank()) {
+                result.put("success", false);
+                result.put("message", "해당 휴대폰 번호로 가입된 계정이 없습니다.");
+                return result;
+            }
+
+            String normalizedPhone = normalizePhone(phone);
+            String verificationCode = memberService.sendSmsVerification(normalizedPhone);
+
+            HttpSession session = request.getSession();
+            session.setAttribute("findIdSmsCode", verificationCode);
+            session.setAttribute("findIdPhone", normalizedPhone);
+
+            result.put("success", true);
+            result.put("message", "인증번호를 발송했습니다. 콘솔에 출력된 인증번호를 입력해주세요.");
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "인증번호 발송 중 오류가 발생했습니다.");
+            return result;
+        }
+    }
+
+    /* =========================================================
+       [추가 기능] 아이디 찾기 - 2단계: 인증번호 확인 후 아이디 반환
+       ---------------------------------------------------------
+       화면 위치: loginForm.jsp > 아이디 찾기 폼 > "아이디 찾기" 버튼
+       호출 JS  : verifyFindIdSms()
+       URL      : POST /member/findId/verify.do
+       역할     : 사용자가 입력한 인증번호와 세션의 findIdSmsCode를 비교한다.
+                  인증 성공 시 휴대폰 번호로 member_tb.id를 조회해서 화면에 알려준다.
+       세션 정리: 성공 시 findIdSmsCode, findIdPhone 제거
+       ========================================================= */
+    @RequestMapping(value = "/findId/verify.do", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> verifyFindIdSms(@RequestParam("inputCode") String inputCode,
+                                               HttpServletRequest request) {
+        Map<String, Object> result = new java.util.HashMap<>();
+        try {
+            HttpSession session = request.getSession();
+            String originalCode = (String) session.getAttribute("findIdSmsCode");
+            String phone = (String) session.getAttribute("findIdPhone");
+
+            if (originalCode == null || phone == null || !originalCode.equals(inputCode)) {
+                result.put("success", false);
+                result.put("message", "인증번호가 일치하지 않습니다.");
+                return result;
+            }
+
+            String foundId = memberService.findIdByPhone(phone);
+            if (foundId == null || foundId.isBlank()) {
+                result.put("success", false);
+                result.put("message", "가입된 아이디를 찾을 수 없습니다.");
+                return result;
+            }
+
+            session.removeAttribute("findIdSmsCode");
+            session.removeAttribute("findIdPhone");
+
+            result.put("success", true);
+            result.put("id", foundId);
+            result.put("message", "가입된 아이디는 [ " + foundId + " ] 입니다.");
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "아이디 찾기 중 오류가 발생했습니다.");
+            return result;
+        }
+    }
+
+    /* =========================================================
+       [추가 기능] 비밀번호 찾기 - 1단계: 아이디/휴대폰 일치 확인 후 인증번호 발송
+       ---------------------------------------------------------
+       화면 위치: loginForm.jsp > 비밀번호 찾기 폼 > "인증번호 받기" 버튼
+       호출 JS  : sendFindPwSms()
+       URL      : POST /member/findPw/sendSms.do
+       역할     : 1) 아이디가 ACTIVE 회원인지 확인
+                  2) 아이디와 휴대폰 번호가 같은 회원 정보인지 확인
+                  3) 맞으면 인증번호를 발급하고 세션에 저장
+       세션 저장: findPwSmsCode, findPwId, findPwPhone
+       보안 이유: 아이디만 알면 비밀번호를 바꿀 수 없게 휴대폰 번호까지 검증한다.
+       ========================================================= */
+    @RequestMapping(value = "/findPw/sendSms.do", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> sendFindPwSms(@RequestParam("id") String id,
+                                             @RequestParam("phone") String phone,
+                                             HttpServletRequest request) {
+        Map<String, Object> result = new java.util.HashMap<>();
+        try {
+            if (id == null || id.isBlank()) {
+                result.put("success", false);
+                result.put("message", "아이디를 입력해주세요.");
+                return result;
+            }
+
+            if (!memberService.existsActiveId(id)) {
+                result.put("success", false);
+                result.put("message", "입력한 아이디가 존재하지 않습니다.");
+                return result;
+            }
+
+            if (!memberService.existsActiveMemberByIdAndPhone(id, phone)) {
+                result.put("success", false);
+                result.put("message", "아이디와 휴대폰 번호가 일치하지 않습니다.");
+                return result;
+            }
+
+            String normalizedPhone = normalizePhone(phone);
+            String verificationCode = memberService.sendSmsVerification(normalizedPhone);
+
+            HttpSession session = request.getSession();
+            session.setAttribute("findPwSmsCode", verificationCode);
+            session.setAttribute("findPwId", id);
+            session.setAttribute("findPwPhone", normalizedPhone);
+            session.removeAttribute("findPwVerifiedId");
+
+            result.put("success", true);
+            result.put("message", "인증번호를 발송했습니다. 콘솔에 출력된 인증번호를 입력해주세요.");
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "인증번호 발송 중 오류가 발생했습니다.");
+            return result;
+        }
+    }
+
+    /* =========================================================
+       [추가 기능] 비밀번호 찾기 - 2단계: 휴대폰 인증 완료 처리
+       ---------------------------------------------------------
+       화면 위치: loginForm.jsp > 비밀번호 찾기 폼 > "인증 확인" 버튼
+       호출 JS  : verifyFindPwSms()
+       URL      : POST /member/findPw/verify.do
+       역할     : 인증번호가 맞으면 findPwVerifiedId를 세션에 저장한다.
+                  이 값이 있어야 다음 단계인 비밀번호 변경이 가능하다.
+       세션 저장: findPwVerifiedId = 인증 완료된 회원 아이디
+       세션 정리: findPwSmsCode 제거
+       ========================================================= */
+    @RequestMapping(value = "/findPw/verify.do", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> verifyFindPwSms(@RequestParam("inputCode") String inputCode,
+                                               HttpServletRequest request) {
+        Map<String, Object> result = new java.util.HashMap<>();
+        try {
+            HttpSession session = request.getSession();
+            String originalCode = (String) session.getAttribute("findPwSmsCode");
+            String id = (String) session.getAttribute("findPwId");
+
+            if (originalCode == null || id == null || !originalCode.equals(inputCode)) {
+                result.put("success", false);
+                result.put("message", "인증번호가 일치하지 않습니다.");
+                return result;
+            }
+
+            session.setAttribute("findPwVerifiedId", id);
+            session.removeAttribute("findPwSmsCode");
+
+            result.put("success", true);
+            result.put("message", "휴대폰 인증이 완료되었습니다. 새 비밀번호를 입력해주세요.");
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "인증 확인 중 오류가 발생했습니다.");
+            return result;
+        }
+    }
+
+    /* =========================================================
+       [추가 기능] 비밀번호 찾기 - 3단계: 새 비밀번호 변경
+       ---------------------------------------------------------
+       화면 위치: loginForm.jsp > 비밀번호 찾기 폼 > 새 비밀번호 입력 영역
+       호출 JS  : resetPassword()
+       URL      : POST /member/findPw/reset.do
+       역할     : 휴대폰 인증이 완료된 회원(findPwVerifiedId)에 한해서
+                  새 비밀번호와 비밀번호 확인값을 비교한 뒤 DB 비밀번호를 변경한다.
+       세션 조건: findPwVerifiedId가 없으면 "휴대폰 인증 먼저" 메시지 반환
+       세션 정리: 성공 시 findPwVerifiedId, findPwId, findPwPhone 제거
+       ========================================================= */
+    @RequestMapping(value = "/findPw/reset.do", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> resetPassword(@RequestParam("newPassword") String newPassword,
+                                             @RequestParam("newPasswordConfirm") String newPasswordConfirm,
+                                             HttpServletRequest request) {
+        Map<String, Object> result = new java.util.HashMap<>();
+        try {
+            HttpSession session = request.getSession();
+            String verifiedId = (String) session.getAttribute("findPwVerifiedId");
+
+            if (verifiedId == null || verifiedId.isBlank()) {
+                result.put("success", false);
+                result.put("message", "휴대폰 인증을 먼저 완료해주세요.");
+                return result;
+            }
+
+            if (newPassword == null || newPassword.isBlank() || newPasswordConfirm == null || newPasswordConfirm.isBlank()) {
+                result.put("success", false);
+                result.put("message", "새 비밀번호와 비밀번호 확인을 모두 입력해주세요.");
+                return result;
+            }
+
+            if (!newPassword.equals(newPasswordConfirm)) {
+                result.put("success", false);
+                result.put("message", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+                return result;
+            }
+
+            if (newPassword.length() < 4) {
+                result.put("success", false);
+                result.put("message", "비밀번호는 최소 4자 이상 입력해주세요.");
+                return result;
+            }
+
+            memberService.updatePasswordById(verifiedId, newPassword);
+
+            session.removeAttribute("findPwVerifiedId");
+            session.removeAttribute("findPwId");
+            session.removeAttribute("findPwPhone");
+
+            result.put("success", true);
+            result.put("message", "비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.");
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "비밀번호 변경 중 오류가 발생했습니다.");
+            return result;
+        }
+    }
+
+    /* =========================================================
+       [추가 유틸] 휴대폰 번호 정규화
+       ---------------------------------------------------------
+       화면에서는 010-1234-5678 또는 01012345678 둘 다 입력될 수 있으므로
+       DB 조회 전 숫자만 남겨 같은 형식으로 비교한다.
+       예: 010-1234-5678 -> 01012345678
+       ========================================================= */
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return "";
+        }
+        return phone.replaceAll("[^0-9]", "");
+    }
+
 }

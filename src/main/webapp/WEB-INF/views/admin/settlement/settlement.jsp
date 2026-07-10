@@ -14,6 +14,7 @@
     
     <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>정산관리</h1>
     <p>금일 이용료 보관액 방장 정산</p></div></section>
+    <br>
     <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Settlement List</div>
     <h2>금일 정산 리스트(총 ${settlementList.size()}건)</h2></div>
     <div class="filter-pills"><button class="active">전체</button><button>대기</button><button>처리중</button><button>완료</button></div>
