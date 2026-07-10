@@ -960,4 +960,109 @@ textarea {
     background: var(--olive-700);
     color: #fff;
     box-shadow: none;
-} 
+}
+
+/* ============================================================
+   관리자 페이지 공통 레이아웃 보정
+   - 대시보드, 회원관리, OTT관리, 정산관리 등 관리자 페이지 전체 공통 적용
+   - 기존 .admin-main의 max-width 중앙 정렬 때문에 상단 hero가 좌우로 꽉 차지 않는 문제 수정
+   ============================================================ */
+
+html,
+body {
+    overflow-x: hidden;
+}
+
+/* 관리자 본문 전체 폭 사용 */
+.admin-main {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 0 80px !important;
+}
+
+/* 관리자 페이지 상단 소개 영역을 사용자 페이지처럼 좌우 전체로 확장 */
+.admin-main .hero {
+    width: 100vw !important;
+    max-width: none !important;
+    min-height: 360px;
+    margin: 0 0 0 calc(50% - 50vw) !important;
+    padding: 82px max(32px, calc((100vw - 1180px) / 2)) 96px !important;
+    border-radius: 0 !important;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+/* hero 안쪽 글자 영역은 너무 퍼지지 않게 제한 */
+.admin-main .hero > div {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.admin-main .hero h1 {
+    font-size: clamp(48px, 5vw, 76px);
+    line-height: 1.05;
+}
+
+.admin-main .hero p {
+    max-width: 760px;
+    font-size: 18px;
+    line-height: 1.8;
+}
+
+/* hero 아래 실제 관리 영역은 넓게 보이되 너무 퍼지지 않게 중앙 정렬 */
+.admin-main > .panel,
+.admin-main > .stat-grid,
+.admin-main > .content-grid,
+.admin-main > .admin-board-tabs {
+    width: min(1360px, calc(100% - 64px));
+    max-width: 1360px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box;
+}
+
+/* hero 바로 아래 첫 번째 영역은 살짝 위로 올려서 사용자 페이지처럼 자연스럽게 연결 */
+.admin-main > .panel:first-of-type,
+.admin-main > .stat-grid:first-of-type,
+.admin-main > .content-grid:first-of-type {
+    margin-top: -34px !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* 카드형 목록 공통 */
+.admin-main .card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+    .admin-main .card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .admin-main {
+        padding-bottom: 56px !important;
+    }
+
+    .admin-main .hero {
+        min-height: 300px;
+        padding: 56px 24px 72px !important;
+    }
+
+    .admin-main > .panel,
+    .admin-main > .stat-grid,
+    .admin-main > .content-grid,
+    .admin-main > .admin-board-tabs {
+        width: calc(100% - 32px);
+    }
+
+    .admin-main .card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+

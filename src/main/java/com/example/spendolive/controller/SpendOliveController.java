@@ -35,7 +35,7 @@ public class SpendOliveController {
 
     @RequestMapping(value = {"/admin/main.do"}, method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView adminmain(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        return layout("/WEB-INF/views/admin/index.jsp");
+        return layout("/WEB-INF/views/admin/main.jsp");
     }
 
     @RequestMapping(value = "/calendar.do", method = {RequestMethod.GET, RequestMethod.POST})

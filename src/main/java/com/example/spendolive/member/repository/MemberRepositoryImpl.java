@@ -243,4 +243,87 @@ public class MemberRepositoryImpl implements MemberRepository{
         }
     }
     
+
+    /* =========================================================
+       [추가 기능 구현] 아이디/비밀번호 찾기 Repository 구현부
+       ---------------------------------------------------------
+       이 아래 메서드들은 로그인 페이지의 아이디 찾기/비밀번호 찾기에서 새로 사용하는 SQL이다.
+       공통 기준:
+       - status = 'ACTIVE' 회원만 대상으로 한다.
+       - 휴대폰 번호는 하이픈을 제거한 숫자 문자열로 비교한다.
+       - 조회 결과가 없으면 예외를 화면까지 올리지 않고 null 또는 false로 반환한다.
+       ========================================================= */
+
+    @Override
+    public String findIdByPhone(String phone) throws DataAccessException {
+        // 화면에서 010-1234-5678 또는 01012345678 둘 다 입력할 수 있으므로 숫자만 남긴다.
+        String normalizedPhone = normalizePhone(phone);
+        // 아이디 찾기용 SQL: 휴대폰 번호가 일치하는 ACTIVE 회원의 id를 1건 조회한다.
+        String sql = """
+                SELECT id
+                FROM member_tb
+                WHERE REPLACE(phone, '-', '') = ?
+                  AND status = 'ACTIVE'
+                FETCH FIRST 1 ROWS ONLY
+                """;
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class, normalizedPhone);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean existsActiveId(String id) throws DataAccessException {
+        // 비밀번호 찾기용 SQL: 입력한 id가 ACTIVE 회원으로 존재하는지 확인한다.
+        String sql = """
+                SELECT COUNT(*)
+                FROM member_tb
+                WHERE id = ?
+                  AND status = 'ACTIVE'
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+        return count != null && count > 0;
+    }
+
+    @Override
+    public boolean existsActiveMemberByIdAndPhone(String id, String phone) throws DataAccessException {
+        // 비밀번호 찾기용 SQL: id와 휴대폰 번호가 같은 회원 정보인지 확인한다.
+        String normalizedPhone = normalizePhone(phone);
+        String sql = """
+                SELECT COUNT(*)
+                FROM member_tb
+                WHERE id = ?
+                  AND REPLACE(phone, '-', '') = ?
+                  AND status = 'ACTIVE'
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id, normalizedPhone);
+        return count != null && count > 0;
+    }
+
+    @Override
+    public void updatePasswordById(String id, String newPassword) throws DataAccessException {
+        // 비밀번호 재설정용 SQL: 인증 완료된 id의 password와 updated_at을 갱신한다.
+        String sql = """
+                UPDATE member_tb
+                SET password = ?,
+                    updated_at = SYSDATE
+                WHERE id = ?
+                  AND status = 'ACTIVE'
+                """;
+        jdbcTemplate.update(sql, newPassword, id);
+    }
+
+    /*
+     * [추가 유틸] 휴대폰 번호 정규화
+     * DB에는 하이픈이 있거나 없는 값이 섞일 수 있고,
+     * 화면에서도 두 형태 모두 입력될 수 있으므로 숫자만 남겨 비교한다.
+     */
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return "";
+        }
+        return phone.replaceAll("[^0-9]", "");
+    }
+
 }
