@@ -195,6 +195,7 @@ public class PaymentServiceImpl implements PaymentService{
                
                 
                 memberRepository.updateTossInfo(userId, card_num, card_company, billingKey);
+                memberRepository.updateMember_card_status(userId);
                 
             }
         } catch (Exception e) {
@@ -238,8 +239,9 @@ public class PaymentServiceImpl implements PaymentService{
     body.put("amount", amount);                // 결제 금액
     body.put("orderId", orderId);              // 주문 번호
     body.put("orderName", "spendOlive OTT 정산");          // 주문명 (ex: 정기 구독권)
-
-    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+    tools.jackson.databind.ObjectMapper jsonMapper = new tools.jackson.databind.ObjectMapper();
+    String jsonBody = jsonMapper.writeValueAsString(body);
+    HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
 
     try {
         System.out.println("💳 [자동결제 요청 시작] 유저: " + userId + " | 금액: " + amount + "원");
@@ -320,7 +322,7 @@ public class PaymentServiceImpl implements PaymentService{
     } catch (Exception e) {
         // 7. 🚨 타임아웃, 한도초과, 잔액부족, 카드정지 등 외부 에러 발생 시 잡아내기
         System.out.println("❌ [자동결제 승인 실패 에러 대피소] : " + e.getMessage());
-        
+        System.out.println(userId + amount + orderId); 
         // 형이 말했던 예외 처리 로직 작동 구역
         // 여기서는 우리 DB에 아무 작업도 안 가했기 때문에 데이터 정합성이 깨질 일이 없어 형! (안전)
         throw new RuntimeException("자동결제 시스템 오류로 승인이 실패했습니다: " + e.getMessage());
