@@ -326,7 +326,9 @@ public class MemberServiceImpl implements MemberService {
                 System.out.println("💰 실시간 계좌 잔액 확인 완료: " + balance + "원");
             }
             memberRepository.updateOpenBankingInfo(userId, accessToken, userSeqNo, fintechUseNum, bankCode, accountNum, balance, account_holder_name);
+            memberRepository.updateMember_account_status(userId);
             paymentService.registerSubMall(userId, bankCode,accountNum, account_holder_name,memberVO);//토스 지급대행을 보안키 지원 안해줘서 api요청은 pass 
+               
             }
             }
             // 6. DB에 저장 (내 서비스 기획에 맞게 마이바티스나 JPA로 쿼리 실행)

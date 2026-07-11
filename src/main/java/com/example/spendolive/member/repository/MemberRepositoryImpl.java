@@ -19,7 +19,7 @@ public class MemberRepositoryImpl implements MemberRepository{
 
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     
-    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num,account_num,bank_code, "
+    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
@@ -40,6 +40,8 @@ public class MemberRepositoryImpl implements MemberRepository{
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
     + "FROM member_tb WHERE id = ? AND STATUS ='ACTIVE'";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
+    private final String updatemember_account_Status = "update member_tb set  card_status='YSE' where id=? ";
+    private final String updatemember_card_Status = "update member_tb set account_status='YES' where id=? ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -115,11 +117,8 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setLast_login_at(rs.getString("last_login_at"));
         member.setVerify_type(rs.getString("verify_type"));
         member.setWarning_count(rs.getInt("warning_count"));
-        member.setOpen_bank_token(rs.getString("open_bank_token"));
-        member.setOpen_bank_user_seq_no(rs.getString("open_bank_user_seq_no"));
-        member.setFintech_use_num(rs.getString("fintech_use_num"));
-        member.setAccount_num(rs.getString("account_num"));
-        member.setBank_code(rs.getString("bank_code"));
+        member.setAccount_status(rs.getString("account_status"));
+        member.setCard_status(rs.getString("card_status"));
         return member;
         },id, password);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -221,9 +220,8 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setUpdate_at(rs.getString("updated_at"));
         member.setBlocked_until(rs.getString("blocked_until"));
         member.setLast_login_at(rs.getString("last_login_at"));
-        member.setOpen_bank_token(rs.getString("open_bank_token"));
-        member.setOpen_bank_user_seq_no(rs.getString("open_bank_user_seq_no"));
-        member.setFintech_use_num(rs.getString("fintech_use_num"));
+        member.setCard_status(rs.getString("account_status"));
+        member.setAccount_status(rs.getString("card_status"));
         return member;
     }
 
@@ -317,13 +315,21 @@ public class MemberRepositoryImpl implements MemberRepository{
     /*
      * [추가 유틸] 휴대폰 번호 정규화
      * DB에는 하이픈이 있거나 없는 값이 섞일 수 있고,
-     * 화면에서도 두 형태 모두 입력될 수 있으므로 숫자만 남겨 비교한다.
+     * 화면에서도 두 형태 모두 입력될 수 있으므로 숫자만 남겨 비교한다. 이거 왜 여기에다 추가하셨죠?
      */
     private String normalizePhone(String phone) {
         if (phone == null) {
             return "";
         }
         return phone.replaceAll("[^0-9]", "");
+    }
+    @Override
+    public void updateMember_account_status(String id){
+        jdbcTemplate.update(updatemember_account_Status,id);
+    }
+    @Override
+    public void updateMember_card_status(String id){
+        jdbcTemplate.update(updatemember_card_Status,id);
     }
 
 }

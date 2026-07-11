@@ -66,9 +66,9 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String open_bank_token = memberVO.getOpen_bank_token();
-        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
-        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
+        String account_status = memberVO.getAccount_status();
+
+        if (account_status  == null) {
 
             redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
             return "redirect:/spendolive/main.do";
@@ -110,9 +110,9 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String open_bank_token = memberVO.getOpen_bank_token();
-        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
-        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
+        String account_status = memberVO.getAccount_status();
+
+        if (account_status  == null) {
 
             redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
             return "redirect:/spendolive/main.do";
@@ -141,9 +141,9 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String open_bank_token = memberVO.getOpen_bank_token();
-        String open_bank_user_seq_no = memberVO.getOpen_bank_user_seq_no();
-        if (open_bank_token  == null && open_bank_user_seq_no  == null) {
+        String account_status = memberVO.getAccount_status();
+
+        if (account_status  == null) {
 
             redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
             return "redirect:/spendolive/main.do";
