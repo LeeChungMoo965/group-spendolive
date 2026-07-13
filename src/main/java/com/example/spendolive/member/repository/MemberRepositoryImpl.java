@@ -9,9 +9,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
-
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 @Repository
 public class MemberRepositoryImpl implements MemberRepository{
     @Autowired
@@ -19,9 +21,10 @@ public class MemberRepositoryImpl implements MemberRepository{
 
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     
-    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num,account_num,bank_code, "
+    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type,CARD_STATUS, ACCOUNT_STATUS, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+    + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
     + "FROM member_tb WHERE id = ? AND password = ? AND STATUS ='ACTIVE'";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
@@ -34,12 +37,20 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" values(?,?,?,?,?,?,?,?) ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
-    private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, "
+    private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, CARD_STATUS, ACCOUNT_STATUS, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+    + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
     + "FROM member_tb WHERE id = ? AND STATUS ='ACTIVE'";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
+    private final String updatemember_account_Status = "update member_tb set  card_status='YSE' where id=? ";
+    private final String updatemember_card_Status = "update member_tb set account_status='YES' where id=? ";
+    private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE "
+                                                +"from member_account_tb where id=? ";
+    private final String selectMemberCardById= "select BILLING_KEY,BILLING_KEY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,ID,STATUS "
+                                                +"from member_card_tb where id=? ";
+    private final String updateWarning="update member_tb set warning_count=? where id=? ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -115,11 +126,9 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setLast_login_at(rs.getString("last_login_at"));
         member.setVerify_type(rs.getString("verify_type"));
         member.setWarning_count(rs.getInt("warning_count"));
-        member.setOpen_bank_token(rs.getString("open_bank_token"));
-        member.setOpen_bank_user_seq_no(rs.getString("open_bank_user_seq_no"));
-        member.setFintech_use_num(rs.getString("fintech_use_num"));
-        member.setAccount_num(rs.getString("account_num"));
-        member.setBank_code(rs.getString("bank_code"));
+        member.setAccount_status(rs.getString("account_status"));
+        member.setCard_status(rs.getString("card_status"));
+        member.setWarninged_at(rs.getString("warninged_at"));
         return member;
         },id, password);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -221,9 +230,9 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setUpdate_at(rs.getString("updated_at"));
         member.setBlocked_until(rs.getString("blocked_until"));
         member.setLast_login_at(rs.getString("last_login_at"));
-        member.setOpen_bank_token(rs.getString("open_bank_token"));
-        member.setOpen_bank_user_seq_no(rs.getString("open_bank_user_seq_no"));
-        member.setFintech_use_num(rs.getString("fintech_use_num"));
+        member.setCard_status(rs.getString("account_status"));
+        member.setAccount_status(rs.getString("card_status"));
+        member.setWarninged_at(rs.getString("warninged_at"));
         return member;
     }
 
@@ -243,4 +252,140 @@ public class MemberRepositoryImpl implements MemberRepository{
         }
     }
     
+
+    /* =========================================================
+       [추가 기능 구현] 아이디/비밀번호 찾기 Repository 구현부
+       ---------------------------------------------------------
+       이 아래 메서드들은 로그인 페이지의 아이디 찾기/비밀번호 찾기에서 새로 사용하는 SQL이다.
+       공통 기준:
+       - status = 'ACTIVE' 회원만 대상으로 한다.
+       - 휴대폰 번호는 하이픈을 제거한 숫자 문자열로 비교한다.
+       - 조회 결과가 없으면 예외를 화면까지 올리지 않고 null 또는 false로 반환한다.
+       ========================================================= */
+
+    @Override
+    public String findIdByPhone(String phone) throws DataAccessException {
+        // 화면에서 010-1234-5678 또는 01012345678 둘 다 입력할 수 있으므로 숫자만 남긴다.
+        String normalizedPhone = normalizePhone(phone);
+        // 아이디 찾기용 SQL: 휴대폰 번호가 일치하는 ACTIVE 회원의 id를 1건 조회한다.
+        String sql = """
+                SELECT id
+                FROM member_tb
+                WHERE REPLACE(phone, '-', '') = ?
+                  AND status = 'ACTIVE'
+                FETCH FIRST 1 ROWS ONLY
+                """;
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class, normalizedPhone);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean existsActiveId(String id) throws DataAccessException {
+        // 비밀번호 찾기용 SQL: 입력한 id가 ACTIVE 회원으로 존재하는지 확인한다.
+        String sql = """
+                SELECT COUNT(*)
+                FROM member_tb
+                WHERE id = ?
+                  AND status = 'ACTIVE'
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+        return count != null && count > 0;
+    }
+
+    @Override
+    public boolean existsActiveMemberByIdAndPhone(String id, String phone) throws DataAccessException {
+        // 비밀번호 찾기용 SQL: id와 휴대폰 번호가 같은 회원 정보인지 확인한다.
+        String normalizedPhone = normalizePhone(phone);
+        String sql = """
+                SELECT COUNT(*)
+                FROM member_tb
+                WHERE id = ?
+                  AND REPLACE(phone, '-', '') = ?
+                  AND status = 'ACTIVE'
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id, normalizedPhone);
+        return count != null && count > 0;
+    }
+
+    @Override
+    public void updatePasswordById(String id, String newPassword) throws DataAccessException {
+        // 비밀번호 재설정용 SQL: 인증 완료된 id의 password와 updated_at을 갱신한다.
+        String sql = """
+                UPDATE member_tb
+                SET password = ?,
+                    updated_at = SYSDATE
+                WHERE id = ?
+                  AND status = 'ACTIVE'
+                """;
+        jdbcTemplate.update(sql, newPassword, id);
+    }
+
+    /*
+     * [추가 유틸] 휴대폰 번호 정규화
+     * DB에는 하이픈이 있거나 없는 값이 섞일 수 있고,
+     * 화면에서도 두 형태 모두 입력될 수 있으므로 숫자만 남겨 비교한다. 이거 왜 여기에다 추가하셨죠?
+     */
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return "";
+        }
+        return phone.replaceAll("[^0-9]", "");
+    }
+    @Override
+    public void updateMember_account_status(String id){
+        jdbcTemplate.update(updatemember_account_Status,id);
+    }
+    @Override
+    public void updateMember_card_status(String id){
+        jdbcTemplate.update(updatemember_card_Status,id);
+    }
+    @Override
+    public MemberCardVO selectCardById(String userId){
+        try {
+            return jdbcTemplate.queryForObject(selectMemberCardById, (rs, rowNum) -> {
+            MemberCardVO card = new MemberCardVO();
+            card.setCardCompany(rs.getString("card_campany"));
+            card.setBillingKey(rs.getString("billing_key"));
+            card.setCardIdx(rs.getInt("card_idx"));
+            card.setCardNumber(rs.getString("card_number"));
+            card.setId(rs.getString("id"));
+            card.setRegDate(rs.getObject("reg_date", LocalDateTime.class));
+            card.setStatus(rs.getString("status0"));
+            return card;
+            },userId);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
+    }
+    @Override
+    public MemberAccountVO selectAccountById(String userId){
+        try {
+            return jdbcTemplate.queryForObject(selectMemberAccountById, (rs, rowNum) -> {
+            MemberAccountVO account = new MemberAccountVO();
+            account.setAccountIdx(rs.getInt("account_idx"));
+            account.setAccountNumber(rs.getString("account_number"));
+            account.setAccount_holder_nam(rs.getString("account_holder_nam"));
+            account.setBalance(rs.getInt("balance"));
+            account.setOpenBankUserSeq(rs.getString("OPEN_BANK_USER_SEQ"));
+            account.setBankCode(rs.getString("BANK_CODE"));
+            account.setFintechUseNum(rs.getString("FINTECH_USE_NUM"));
+            account.setId(rs.getString("id"));
+            account.setOpenBankToken(rs.getString("OPEN_BANK_TOKEN"));
+            account.setRegDate(rs.getObject("reg_date", LocalDateTime.class));
+
+            return account;
+            },userId);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
+    }
+    @Override
+    public void updateWarning(String userId, int count){
+        jdbcTemplate.update(updateWarning, count+1, userId);
+    }
 }

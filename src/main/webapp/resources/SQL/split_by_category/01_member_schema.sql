@@ -46,13 +46,11 @@ CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
       - fintech_use_num       : 실제 계좌 출금/이체에 사용하는 핀테크 이용번호
    ========================================================= */
 ALTER TABLE member_tb ADD (
-    open_bank_user_seq_no VARCHAR2(50),
-    open_bank_token       VARCHAR2(500),
-    fintech_use_num VARCHAR2(24),
-    bank_code           VARCHAR2(3),    -- 은행 표준 코드 (ex: 088)
-    account_num         VARCHAR2(50)    -- 마스킹된 계좌번호
+    account_status  VARCHAR2(4),
+    card_status VARCHAR2(4),
 );
-
+alter table member_tb add(
+warninged_at date);
 CREATE OR REPLACE TRIGGER trg_member_bi
 BEFORE INSERT ON member_tb
 FOR EACH ROW

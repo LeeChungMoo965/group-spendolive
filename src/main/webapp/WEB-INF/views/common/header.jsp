@@ -21,7 +21,7 @@
             <nav class="admin-nav">
                 <a href="index.html" data-nav="dashboard">대시보드</a>
                 <a href="member.html" data-nav="member">회원관리</a>
-                <a href="ott.html" data-nav="ott">OTT 관리</a>
+                <a href="${contextPath}/admin/ott/list.do" data-nav="ott">OTT 관리</a>
                 <a href="${contextPath}/admin/settlement/list.do" data-nav="party">정산관리</a>
                 <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>
                 <a href="${contextPath}/spendolive/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
@@ -61,7 +61,7 @@
                     <c:when test="${isLogOn == true && not empty memberInfo}">
                     
                     <c:choose>
-                        <c:when test="${memberInfo.open_bank_token == null || memberInfo.open_bank_user_seq_no == null || memberInfo.fintech_use_num == null}">
+                        <c:when test="${memberInfo.account_status== null}">
                             <a class="btn btn-light" href="${contextPath}/member/openBankingAuth.do">🏦 안전한 오픈뱅킹 계좌 연동하기</a>
                         </c:when>
                     </c:choose>

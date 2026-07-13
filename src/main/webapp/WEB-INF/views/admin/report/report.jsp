@@ -8,15 +8,14 @@
 
     <body data-page="report">
     <div class="admin-shell">
-
-   
     <main class="admin-main">
     
     <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>신고관리</h1>
     <p>신고 리스트에서 신고 항목, 내용, 신고자와 대상자를 확인하고 처리결과 상태를 변경합니다.</p></div></section>
+    <br>
     <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Report List</div>
     <h2>신고 리스트(총 ${reportList.size()}건)</h2><p>신고 항목과 내용을 확인한 뒤 처리 상태를 바꿀 수 있습니다.</p></div>
-    <div class="filter-pills"><button class="active">전체</button><button>대기</button><button>처리중</button><button>완료</button></div>
+    <div class="filter-pills"><button onclick="location.href='${contextPath}/admin/report/list.do'">전체</button><button onclick="location.href='${contextPath}/admin/report/list.do?status=WAIT'">대기</button><button>처리중</button><button onclick="location.href='${contextPath}/admin/report/list.do?status=COMPLETE'">완료</button></div>
     </div><div class="table-wrap">
       
     <c:choose>
@@ -39,13 +38,13 @@
         </c:choose>
         </div></section>
         <form action="${contextPath}/admin/report/comment.do" method="post">
- <section id="commentArea" class="panel" style="display:none; margin-top: 20px;">
+ <section id="commentArea" class="panel" style="display:none; margin-top: 20px; width: 100%;">
             
                 
                 <div class="panel-title">
                     <div class="section-kicker">Process Result</div>
                     <h2>신고 처리결과 작성</h2>
-                </div>
+                </div><div class="table-wrap">
                 
                 <div class="form-grid" style="margin-top:18px">
                     <div class="form-field">
@@ -69,7 +68,7 @@
                     <span></span>
                     <button class="btn primary" type="submit">처리결과 저장</button>
                 </div>
-                
+                </div>
              </section>
                 </form>
     

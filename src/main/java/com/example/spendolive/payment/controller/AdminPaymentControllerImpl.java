@@ -27,12 +27,12 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
     private PaymentService paymentService;
     @Override
     @GetMapping("/list.do")
-    public ModelAndView listUpSettlement(HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+    public ModelAndView listUpSettlement(@RequestParam(value = "status", required = false) String status,HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
         session = request.getSession();
-        
+        if(status==null){status = "READY";}
         
         try {
-            List<OttRoomDTO> settlementList = paymentService.selectTodaysettlement();
+            List<OttRoomDTO> settlementList = paymentService.selectTodaysettlement(status);
             session.setAttribute("settlementList", settlementList);
             return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
 
@@ -48,8 +48,8 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         int roomId = Integer.parseInt(roomIdStr);
         
         try {
-            paymentService.updateExcrow(roomId);
-            redirectAttributes.addFlashAttribute("msg", "정산에 성공 하였습니다. ");
+            String msg = paymentService.updateExcrow(roomId);
+            redirectAttributes.addFlashAttribute("msg", msg);
             return "redirect:/admin/settlement/list.do";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "정산에 실패 하였습니다. ");

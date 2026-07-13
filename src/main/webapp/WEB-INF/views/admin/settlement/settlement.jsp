@@ -14,9 +14,10 @@
     
     <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>정산관리</h1>
     <p>금일 이용료 보관액 방장 정산</p></div></section>
+    <br>
     <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Settlement List</div>
     <h2>금일 정산 리스트(총 ${settlementList.size()}건)</h2></div>
-    <div class="filter-pills"><button class="active">전체</button><button>대기</button><button>처리중</button><button>완료</button></div>
+    <div class="filter-pills"><button onclick="location.href='${contextPath}/admin/settlement/list.do'">전체</button><button onclick="location.href='${contextPath}/admin/settlement/list.do?status=READY'" >대기</button><button>처리중</button><button onclick="location.href='${contextPath}/admin/settlement/list.do?status=DONE'">완료</button></div>
     </div><div class="table-wrap">
       
     <c:choose>
@@ -30,9 +31,19 @@
                 <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead><tbody>
                         <c:forEach var="room" items="${settlementList}" varStatus="s">
                       
-    <tr><td>${s.count}</td><td>${room.roomId}</td><td>${room.hostMemberId}</td><td>${room.totalPrice}</td><td>${room.billingDay}</td><td><span class="badge yellow">${room.status}</span></td>
-    <td><form action="${contextPath}/admin/settlement/pay.do" method="post"><input id="roomId" type="hidden" name="roomId" value="${room.roomId}">
-    <button class="mini-btn warning">정산금 보내기</button></form></td></tr>
+    <tr><td>${s.count}</td><td>${room.roomId}</td><td>${room.hostMemberId}</td><td>${room.totalPrice}</td><td>${room.billingDay}</td><td><span class="badge yellow">${room.settlement_status}</span></td>
+    <td>
+       
+    <c:choose>
+    <c:when test="${room.settlement_status == 'DONE'}">
+        <button class="mini-btn">정산 완료</button>
+    </c:when>
+     <c:otherwise>
+     <form action="${contextPath}/admin/settlement/pay.do" method="post"><input id="roomId" type="hidden" name="roomId" value="${room.roomId}">
+    <button class="mini-btn warning">정산금 보내기</button></form>
+      </c:otherwise>
+    </c:choose>
+    </td></tr>
                         </c:forEach>
                         </tbody></table>
                 </c:otherwise>

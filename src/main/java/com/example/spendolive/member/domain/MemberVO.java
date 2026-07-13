@@ -20,11 +20,9 @@ public class MemberVO {
 	private String blocked_until;
 	private String update_at;
 	private String last_login_at;
-	private String open_bank_user_seq_no;
-	private String open_bank_token;
-	private String fintech_use_num;
-	private String bank_code;
-	private String account_num;
+	private String card_status;
+	private String account_status;
+	private String warninged_at;
 	
 }
 

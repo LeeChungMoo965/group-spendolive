@@ -195,6 +195,7 @@ public class PaymentServiceImpl implements PaymentService{
                
                 
                 memberRepository.updateTossInfo(userId, card_num, card_company, billingKey);
+                memberRepository.updateMember_card_status(userId);
                 
             }
         } catch (Exception e) {
@@ -238,8 +239,9 @@ public class PaymentServiceImpl implements PaymentService{
     body.put("amount", amount);                // 결제 금액
     body.put("orderId", orderId);              // 주문 번호
     body.put("orderName", "spendOlive OTT 정산");          // 주문명 (ex: 정기 구독권)
-
-    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+    tools.jackson.databind.ObjectMapper jsonMapper = new tools.jackson.databind.ObjectMapper();
+    String jsonBody = jsonMapper.writeValueAsString(body);
+    HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
 
     try {
         System.out.println("💳 [자동결제 요청 시작] 유저: " + userId + " | 금액: " + amount + "원");
@@ -310,6 +312,22 @@ public class PaymentServiceImpl implements PaymentService{
                     paymentRepository.insertPlatfoem_Revenue(revenueInfo);
                 }catch(Exception e){
                     //취소 api 요청
+                    //헤더는 위에 것 그대로 사용 
+                    url = "https://api.tosspayments.com/v1/payments/tosspayments_paymentkey_"+ paymentKey + "/cancel ";
+                    Map<String, Object> bodys = new HashMap<>();
+                    bodys.put("cancelReason", "서버 오류로 인한 취소");                //취소 이유
+                    jsonBody = jsonMapper.writeValueAsString(bodys);
+                    entity = new HttpEntity<>(jsonBody, headers);
+                    try{
+                    if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                        mapper = new tools.jackson.databind.ObjectMapper();
+                        Map<String, Object> resBodys = mapper.readValue(response.getBody(), Map.class);
+                        String canceledAtStr = (String) resBodys.get("approvedAt");
+                    }
+                    }catch(Exception a){
+                        throw new RuntimeException("결제 취소 중 오류 발생 다시 시도 하겠습니다: " + status);
+
+                    }
                     throw new RuntimeException("결제 완료 후 데이터 저장 중 오류 발생   결제를 취소하겠습니다: " + status);
                 }
                 System.out.println("🎉 회원 [" + userId + "] DB 비즈니스 로직 반영 완료!");
@@ -320,7 +338,7 @@ public class PaymentServiceImpl implements PaymentService{
     } catch (Exception e) {
         // 7. 🚨 타임아웃, 한도초과, 잔액부족, 카드정지 등 외부 에러 발생 시 잡아내기
         System.out.println("❌ [자동결제 승인 실패 에러 대피소] : " + e.getMessage());
-        
+        System.out.println(userId + amount + orderId); 
         // 형이 말했던 예외 처리 로직 작동 구역
         // 여기서는 우리 DB에 아무 작업도 안 가했기 때문에 데이터 정합성이 깨질 일이 없어 형! (안전)
         throw new RuntimeException("자동결제 시스템 오류로 승인이 실패했습니다: " + e.getMessage());
@@ -422,7 +440,7 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
 }
     @Override
     @Transactional
-    public List<OttRoomDTO> selectTodaysettlement() throws Exception {
+    public List<OttRoomDTO> selectTodaysettlement(String status) throws Exception {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfMonth();
         day = 1;
@@ -430,20 +448,30 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
         int maxDayOfNextMonth = YearMonth.from(nextMonth).lengthOfMonth();
         int actualPayDay = Math.min(day, maxDayOfNextMonth);
         try{
-        return paymentRepository.selectTodaysettlement(actualPayDay);
+        return paymentRepository.selectTodaysettlement(actualPayDay,status);
         }catch(Exception e){
             return null;
         }
     }
     @Override
     @Transactional
-    public void updateExcrow(int roomId) throws Exception {
+    public String updateExcrow(int roomId) throws Exception {
         try{
-        paymentRepository.updateEscrowStatus(roomId);
-        paymentRepository.updatSettlementStatus(roomId);
+        //추후 사업자 등록 후 토스지급대행 , 금결원 출금이체 api 사용 메서드      
+        }catch(Exception e){
+
+            //api사용중 오류 시 바로 예외처리 db저장 x
+            
+            return "송금중 문제가 생겼습니다. ";
+            }
+        try{
+            paymentRepository.updateEscrowStatus(roomId);
+            paymentRepository.updatSettlementStatus(roomId);
         }catch(Exception e){
             System.err.println("🚨 [시스템 에러]: " + e.getMessage());
+            return "송금 완료 후 서버 쪽에서 오류 가 생겼습니다. 송금을 취소 하는 중이니 잠시만 기다려 주세요. ";
         }
+        return "송금을 정상적으로 완료 하였습니다.";
     }
     
 }

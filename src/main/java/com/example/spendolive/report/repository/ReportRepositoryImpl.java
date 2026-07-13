@@ -17,8 +17,11 @@ public class ReportRepositoryImpl implements ReportRepository {
 
     private final String insertReport = "INSERT INTO report_tb (room_id, reporter_id, reported_member_id, report_reason, report_status)"
                                         +" VALUES (?,?,?,?, 'WAIT') ";
+    private final String selectReportAll = "SELECT REPORT_ID,REPORTER_ID,REPORTED_MEMBER_ID,ROOM_ID,REPORT_REASON,REPORT_STATUS,ADMIN_COMMENT,created_at,processed_at "
+                                        +"from report_tb ";
     private final String selectReport = "SELECT REPORT_ID,REPORTER_ID,REPORTED_MEMBER_ID,ROOM_ID,REPORT_REASON,REPORT_STATUS,ADMIN_COMMENT,created_at,processed_at "
-                                        +"from report_tb";                                    
+                                        +"from report_tb where report_status=? ";
+                                                                         
     private final String updateComment = "UPDATE report_tb SET admin_comment =? , processed_at =SYSDATE , report_status =? WHERE report_id=? ";
     private final String insertWarning = "INSERT INTO warning_tb (member_id, report_id, warning_reason, status, CREATED_AT)"
                                         +" VALUES (?,?,?,?,SYSDATE) ";
@@ -28,7 +31,29 @@ public class ReportRepositoryImpl implements ReportRepository {
         jdbcTemplate.update(insertReport, reportInfo.getRoom_id(), reportInfo.getReporter_id() ,reportInfo.getReported_member_id(), reportInfo.getReport_reason());
     }
     @Override
-    public List<ReportVO> selectReport(){
+    public List<ReportVO> selectReportAll(){
+        try {
+            return jdbcTemplate.query(selectReportAll, (rs, rowNum) -> {
+            ReportVO report = new ReportVO();
+            report.setAdmin_comment(rs.getString("admin_comment"));
+            report.setCreated_at(rs.getObject("created_at", LocalDateTime.class));
+            report.setProcessed_at(rs.getObject("processed_at", LocalDateTime.class));
+            report.setReport_id(rs.getLong("Report_id"));
+            report.setReport_reason(rs.getString("report_reason"));
+            report.setReport_status(rs.getString("report_status"));
+            report.setReported_member_id(rs.getString("reported_member_id"));
+            report.setReporter_id(rs.getString("reporter_id"));
+            report.setRoom_id(rs.getInt("room_id"));
+
+            return report;
+            });
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
+    }
+    @Override
+    public List<ReportVO> selectReport(String status){
         try {
             return jdbcTemplate.query(selectReport, (rs, rowNum) -> {
             ReportVO report = new ReportVO();
@@ -43,7 +68,7 @@ public class ReportRepositoryImpl implements ReportRepository {
             report.setRoom_id(rs.getInt("room_id"));
 
             return report;
-            });
+            }, status);
         }catch (org.springframework.dao.EmptyResultDataAccessException e) {
             // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
             return null; 

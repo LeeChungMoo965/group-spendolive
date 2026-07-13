@@ -1,10 +1,9 @@
-    <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
-    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-    <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-    <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-    <c:set var="contextPath" value="${pageContext.request.contextPath}" />
-    <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
-
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<c:set var="contextPath" value="${pageContext.request.contextPath}" />
+<link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
 
 <main class="admin-main">
 
@@ -106,3 +105,12 @@
 <script src="js/admin.js"></script>
 
 </div>
+<script>
+    
+    
+        // 컨트롤러가 보낸 일회성 메시지(msg)가 있다면 alert을 띄운다
+        var msg = "${msg}";
+        if(msg && msg !== "") {
+            alert(msg);
+        }
+    </script>
