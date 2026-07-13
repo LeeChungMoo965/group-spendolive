@@ -1,6 +1,8 @@
 package com.example.spendolive.member.domain;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -18,5 +20,5 @@ public class MemberAccountVO {
     private int balance;           // balance (NUMBER)
     private String openBankToken;  // open_bank_token (VARCHAR2)
     private String openBankUserSeq;// open_bank_user_seq (VARCHAR2)
-    private Date regDate;          // reg_date (DATE)
+    private  LocalDateTime regDate;          // reg_date (DATE)
 }
