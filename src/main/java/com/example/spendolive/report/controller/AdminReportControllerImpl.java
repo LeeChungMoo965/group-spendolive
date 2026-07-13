@@ -31,7 +31,11 @@ public class AdminReportControllerImpl implements AdminReportController{
         
         try {
             List<ReportVO> reportList = reportService.selectReport();
+            List<ReportVO> reportListWait = reportService.selectReportWait();
+            List<ReportVO> reportListComplete = reportService.selectReportComplete();
             session.setAttribute("reportList", reportList);
+            session.setAttribute("reportListWait", reportListWait);
+            session.setAttribute("reportListComplete", reportListComplete);
             return layout("/WEB-INF/views/admin/report/report.jsp");
 
         } catch (Exception e) {

@@ -49,7 +49,8 @@ ALTER TABLE member_tb ADD (
     account_status  VARCHAR2(4),
     card_status VARCHAR2(4),
 );
-
+alter table member_tb add(
+warninged_at date);
 CREATE OR REPLACE TRIGGER trg_member_bi
 BEFORE INSERT ON member_tb
 FOR EACH ROW

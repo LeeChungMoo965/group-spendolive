@@ -15,5 +15,5 @@ public interface PaymentService {
     public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int roomId) throws Exception;
     public OttSettlementDTO selectMySettlements(int roomId)  throws Exception;
     public void registerSubMall(String userId, String bankCode, String accNum, String holderName,MemberVO memberVO) throws Exception;
-    public void updateExcrow(int roomId) throws Exception;
+    public String updateExcrow(int roomId) throws Exception;
 }
