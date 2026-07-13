@@ -21,9 +21,10 @@ public class MemberRepositoryImpl implements MemberRepository{
 
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     
-    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, "
+    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type,CARD_STATUS, ACCOUNT_STATUS, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+    + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
     + "FROM member_tb WHERE id = ? AND password = ? AND STATUS ='ACTIVE'";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
@@ -36,9 +37,10 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" values(?,?,?,?,?,?,?,?) ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
-    private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, "
+    private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, CARD_STATUS, ACCOUNT_STATUS, "
     + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
     + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+    + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
     + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
     + "FROM member_tb WHERE id = ? AND STATUS ='ACTIVE'";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
@@ -48,6 +50,7 @@ public class MemberRepositoryImpl implements MemberRepository{
                                                 +"from member_account_tb where id=? ";
     private final String selectMemberCardById= "select BILLING_KEY,BILLING_KEY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,ID,STATUS "
                                                 +"from member_card_tb where id=? ";
+    private final String updateWarning="update member_tb set warning_count=? where id=? ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -125,6 +128,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setWarning_count(rs.getInt("warning_count"));
         member.setAccount_status(rs.getString("account_status"));
         member.setCard_status(rs.getString("card_status"));
+        member.setWarninged_at(rs.getString("warninged_at"));
         return member;
         },id, password);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -228,6 +232,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setLast_login_at(rs.getString("last_login_at"));
         member.setCard_status(rs.getString("account_status"));
         member.setAccount_status(rs.getString("card_status"));
+        member.setWarninged_at(rs.getString("warninged_at"));
         return member;
     }
 
@@ -378,5 +383,9 @@ public class MemberRepositoryImpl implements MemberRepository{
             // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
             return null; 
         }
+    }
+    @Override
+    public void updateWarning(String userId, int count){
+        jdbcTemplate.update(updateWarning, count+1, userId);
     }
 }

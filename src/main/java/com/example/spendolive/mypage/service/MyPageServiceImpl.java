@@ -36,7 +36,7 @@ public class MyPageServiceImpl implements MyPageService {
         myPage.setMemberInfo(memberInfo);
         myPage.setProfileInitial(makeProfileInitial(memberInfo));
         myPage.setThisMonthExpenseTotal(memberInfo == null ? 0 : myPageRepository.selectThisMonthExpenseTotal(memberInfo.getMember_id()));
-        myPage.setAccountConnected(isAccountConnected(memberInfo));
+       // myPage.setAccountConnected(isAccountConnected(memberInfo));
         myPage.setWarningCount(Math.max(
                 memberInfo == null ? 0 : memberInfo.getWarning_count(),
                 myPageReportRepository.selectWarningCount(loginId)
@@ -63,7 +63,7 @@ public class MyPageServiceImpl implements MyPageService {
             throw new IllegalStateException("이미 탈퇴했거나 존재하지 않는 회원입니다.");
         }
     }
-
+/*
     private boolean isAccountConnected(MemberVO memberInfo) {
         return memberInfo != null
                 && memberInfo.getOpen_bank_token() != null
@@ -71,7 +71,7 @@ public class MyPageServiceImpl implements MyPageService {
                 && memberInfo.getOpen_bank_user_seq_no() != null
                 && !memberInfo.getOpen_bank_user_seq_no().isBlank();
     }
-
+ */
     private String makeProfileInitial(MemberVO memberInfo) {
         if (memberInfo == null) {
             return "회";

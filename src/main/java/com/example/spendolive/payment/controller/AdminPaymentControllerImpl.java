@@ -48,8 +48,8 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         int roomId = Integer.parseInt(roomIdStr);
         
         try {
-            paymentService.updateExcrow(roomId);
-            redirectAttributes.addFlashAttribute("msg", "정산에 성공 하였습니다. ");
+            String msg = paymentService.updateExcrow(roomId);
+            redirectAttributes.addFlashAttribute("msg", msg);
             return "redirect:/admin/settlement/list.do";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "정산에 실패 하였습니다. ");

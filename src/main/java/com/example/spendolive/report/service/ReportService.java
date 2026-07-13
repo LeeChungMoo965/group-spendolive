@@ -10,4 +10,6 @@ public interface ReportService {
     public List<ReportVO> selectReport()throws Exception;
     public void updateComment(String comment, int report_id) throws Exception;
     public void insertWarning(String comment,String userId,String reportIdstr,String result) throws Exception;
+    public List<ReportVO> selectReportComplete() throws Exception;
+    public List<ReportVO> selectReportWait() throws Exception;
 }

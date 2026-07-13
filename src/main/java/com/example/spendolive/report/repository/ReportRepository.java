@@ -10,4 +10,7 @@ public interface ReportRepository {
     public List<ReportVO> selectReport() throws Exception;
     public void updateComment(String comment, int report_id) throws Exception;
     public void insertWarning(WarningVO warning) throws Exception;
+    public List<ReportVO> selectReportComplete() throws Exception;
+    public List<ReportVO> selectReportWait() throws Exception;
+    
 }

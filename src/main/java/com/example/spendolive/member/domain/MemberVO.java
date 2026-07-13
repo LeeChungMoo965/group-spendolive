@@ -22,7 +22,7 @@ public class MemberVO {
 	private String last_login_at;
 	private String card_status;
 	private String account_status;
-	
+	private String warninged_at;
 	
 }
 
