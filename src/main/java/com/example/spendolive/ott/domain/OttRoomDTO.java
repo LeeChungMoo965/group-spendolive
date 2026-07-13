@@ -41,4 +41,6 @@ public class OttRoomDTO {
 
     // 화면에서만 사용하는 값
     private String roomMode;
+    private String settlement_status;
+    
 }

@@ -37,13 +37,15 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     +"st.settlement_id, st.room_id, st.total_price, r.member_limit, r.HOST_LOGIN_ID "
     +"from settlement_tb st "
     +"JOIN ott_room_tb r ON st.room_id = r.room_id where st.room_id =? ";
-    private final String selectTodatSettlement = "SELECT ROOM_ID,HOST_LOGIN_ID,OTT_SERVICE_ID,ROOM_NAME,PLAN_NAME,TOTAL_PRICE,BILLING_DAY,MEMBER_LIMIT,ROOM_MODE,STATUS,INVITE_CODE,CLOSE_REASON,CLOSE_NOTICE, "
-    +"TO_CHAR(CLOSE_EFFECTIVE_DATE, 'YYYY-MM-DD') AS CLOSE_EFFECTIVE_DATE, "
-    +"TO_CHAR(CLOSE_REQUESTED_AT, 'YYYY-MM-DD') AS CLOSE_REQUESTED_AT, "
-    +"TO_CHAR(CLOSED_AT, 'YYYY-MM-DD') AS CLOSED_AT, "
-    +"TO_CHAR(CREATED_AT, 'YYYY-MM-DD') AS CREATED_AT "          
-    +"from ott_room_tb where BILLING_DAY =? AND status= 'ACTIVE'"
-    +" AND ROOM_ID IN (SELECT ROOM_ID FROM settlement_tb WHERE settlement_status = 'READY')";
+    private final String selectTodatSettlement = "SELECT r.ROOM_ID, r.HOST_LOGIN_ID, r.OTT_SERVICE_ID, r.ROOM_NAME, r.PLAN_NAME, r.TOTAL_PRICE, "
+    + "r.BILLING_DAY, r.MEMBER_LIMIT, r.ROOM_MODE, r.STATUS, r.INVITE_CODE, r.CLOSE_REASON, r.CLOSE_NOTICE, "
+    + "TO_CHAR(r.CLOSE_EFFECTIVE_DATE, 'YYYY-MM-DD') AS CLOSE_EFFECTIVE_DATE, "
+    + "TO_CHAR(r.CLOSE_REQUESTED_AT, 'YYYY-MM-DD') AS CLOSE_REQUESTED_AT, "
+    + "TO_CHAR(r.CLOSED_AT, 'YYYY-MM-DD') AS CLOSED_AT, "
+    + "TO_CHAR(r.CREATED_AT, 'YYYY-MM-DD') AS CREATED_AT, "
+    + "s.SETTLEMENT_STATUS "         
+    + "from ott_room_tb r INNER JOIN settlement_tb s ON r.ROOM_ID = s.ROOM_ID where r.BILLING_DAY =? AND r.status= 'ACTIVE' "
+    + "AND s.settlement_status =? ";
     private final String insertTodayexcrow = "UPDATE escrow_payout_tb set STATUS = 'RELEASED' ,PAYOUT_AT =sysdate where ROOM_ID =? ";
     private final String updateTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? ";
     public PaymentRepositoryImpl(JdbcTemplate jdbcTemplate){
@@ -113,7 +115,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         jdbcTemplate.update(insertRevenue, revenueInfo.getSettlement_id(),revenueInfo.getRoom_id(), revenueInfo.getPayer_id() , revenueInfo.getBase_amount() ,revenueInfo.getFee_rate(), revenueInfo.getFee_amount(),revenueInfo.getStatus(),revenueInfo.getCreated_at());
     }
     @Override
-    public List<OttRoomDTO> selectTodaysettlement(int day) throws Exception {
+    public List<OttRoomDTO> selectTodaysettlement(int day, String status) throws Exception {
         try {
             return (List<OttRoomDTO>) jdbcTemplate.query(selectTodatSettlement, (rs, rowNum) -> {
             OttRoomDTO room = new OttRoomDTO();
@@ -134,8 +136,9 @@ public class PaymentRepositoryImpl implements PaymentRepository{
             room.setRoomMode(rs.getString("ROOM_MODE"));
             room.setStatus(rs.getString("STATUS"));
             room.setTotalPrice(rs.getInt("TOTAL_PRICE"));
+            room.setSettlement_status(rs.getString("settlement_status"));
             return room;
-        }, day);
+        }, day, status);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
         // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
         System.out.println("spl오류");

@@ -33,18 +33,13 @@ public class ReportServiceImpl implements ReportService{
     }
     @Override
     @Transactional
-    public List<ReportVO> selectReport() throws Exception{
-        return reportRepository.selectReport();
+    public List<ReportVO> selectReport(String status) throws Exception{
+        return reportRepository.selectReport(status);
     }
     @Override
     @Transactional
-    public List<ReportVO> selectReportWait() throws Exception{
-        return reportRepository.selectReportWait();
-    }
-    @Override
-    @Transactional
-    public List<ReportVO> selectReportComplete() throws Exception{
-        return reportRepository.selectReportComplete();
+    public List<ReportVO> selectReportAll() throws Exception{
+        return reportRepository.selectReportAll();
     }
     @Override
     @Transactional
