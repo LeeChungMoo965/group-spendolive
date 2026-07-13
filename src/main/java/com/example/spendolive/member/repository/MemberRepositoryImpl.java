@@ -27,6 +27,7 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "verify_type, account_status, card_status, "
   + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
   + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+  + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
   + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
   + "FROM member_tb "
   + "WHERE id = ? "
@@ -48,6 +49,7 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "verify_type, account_status, card_status, "
   + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
   + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+  + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
   + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
   + "FROM member_tb "
   + "WHERE id = ? "
@@ -59,6 +61,7 @@ public class MemberRepositoryImpl implements MemberRepository{
                                                 +"from member_account_tb where id=? ";
     private final String selectMemberCardById= "select BILLING_KEY,BILLING_KEY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,ID,STATUS "
                                                 +"from member_card_tb where id=? ";
+    private final String updateWarning="update member_tb set warning_count=? where id=? ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -136,6 +139,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setWarning_count(rs.getInt("warning_count"));
         member.setAccount_status(rs.getString("account_status"));
         member.setCard_status(rs.getString("card_status"));
+        member.setWarninged_at(rs.getString("warninged_at"));
         return member;
         },id, password);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -239,6 +243,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setLast_login_at(rs.getString("last_login_at"));
         member.setAccount_status(rs.getString("account_status"));
         member.setCard_status(rs.getString("card_status"));
+        member.setWarninged_at(rs.getString("warninged_at"));
         return member;
     }
 
@@ -389,5 +394,9 @@ public class MemberRepositoryImpl implements MemberRepository{
             // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
             return null; 
         }
+    }
+    @Override
+    public void updateWarning(String userId, int count){
+        jdbcTemplate.update(updateWarning, count+1, userId);
     }
 }

@@ -53,3 +53,8 @@ function comment(reportId, reportedMemberId,count,reportReason) {
         scrollTop: $("#commentArea").offset().top
     }, 500);
 }
+
+function selectList(listData) {
+    List = listData; 
+    render(); 
+}

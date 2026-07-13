@@ -41,7 +41,6 @@ public class MyPageServiceImpl implements MyPageService {
     
         myPage.setMemberInfo(memberInfo);
         myPage.setProfileInitial(makeProfileInitial(memberInfo));
-    
         myPage.setThisMonthExpenseTotal(
                 memberInfo == null
                         ? 0

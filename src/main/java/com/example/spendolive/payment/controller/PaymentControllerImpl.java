@@ -112,7 +112,7 @@ public class PaymentControllerImpl implements PaymentController{
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
-        PrintWriter out = response.getWriter();
+
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         
         String userId = memberVO.getId();
@@ -136,7 +136,7 @@ public class PaymentControllerImpl implements PaymentController{
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
-        PrintWriter out = response.getWriter();
+
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
         int base_amount = (int) session.getAttribute("total_amount");
@@ -149,12 +149,10 @@ public class PaymentControllerImpl implements PaymentController{
         int roomId = (int) settlementInfo.getRoomId().longValue();
 
         try {
-            // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
             paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);
 
             ottService.completePaidRoomEntry((long) roomId, userId);
             
-            // 성공하면 얼럿 띄우고 자연스럽게 원래 메인이나 마이페이지로 이동!
             redirectAttributes.addFlashAttribute("msg", "자동결제가 완료 되었습니다 !");
             return "redirect:/spendolive/main.do";
 

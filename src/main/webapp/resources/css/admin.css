@@ -523,7 +523,10 @@ textarea {
     color: #fff;
     background: var(--danger);
 }
-
+.mini-btn.success {
+    color: #fff;
+    background: var(--success);
+}
 .mini-btn.warning {
     color: #fff;
     background: var(--warning);
