@@ -1,0 +1,486 @@
+/* =========================================================
+   99. UI Unified Overrides
+   ---------------------------------------------------------
+   목적
+   - 페이지마다 흩어진 버튼 / 카드 / 탭 / 폼 스타일을 한 번 더 통일한다.
+   - 기존 JSP 클래스명을 바꾸지 않고, 마지막에 덮어쓰는 방식이라 기능 코드 영향이 적다.
+   - 새 컴포넌트를 만들 때는 아래 공통 클래스를 우선 사용하면 된다.
+
+   권장 클래스
+   - 버튼: .btn .btn-primary .btn-light .btn-outline .btn-danger .btn-sm .btn-lg .btn-full
+   - 카드: .card .card-header .card-body .card-title .card-desc
+   - 폼: .form-control
+   - 탭: .tab-list .tab-button .tab-button.active
+   ========================================================= */
+
+/* ---------- Button System ---------- */
+.btn,
+.auth-btn,
+.settlement-send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 13px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.btn:hover,
+.auth-btn:hover,
+.settlement-send-btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary,
+.auth-btn-primary,
+.settlement-send-btn {
+  background: var(--olive);
+  color: #fff;
+  border-color: var(--olive);
+  box-shadow: 0 10px 20px rgba(122, 127, 54, .22);
+}
+
+.btn-primary:hover,
+.auth-btn-primary:hover,
+.settlement-send-btn:hover {
+  background: var(--olive-dark);
+  border-color: var(--olive-dark);
+}
+
+.btn-light,
+.auth-btn-light {
+  background: var(--olive-soft);
+  color: var(--olive-dark);
+  border-color: #cfdbad;
+}
+
+.btn-outline,
+.auth-btn-outline {
+  background: #fff;
+  color: var(--olive-dark);
+  border-color: #c8d4a5;
+}
+
+.btn-danger,
+.mypage-danger-btn {
+  background: #c44732;
+  color: #fff;
+  border-color: #c44732;
+}
+
+.btn-danger:hover,
+.mypage-danger-btn:hover {
+  background: #a93624;
+  border-color: #a93624;
+}
+
+.btn-danger-outline,
+.mypage-danger-outline {
+  background: #fff;
+  color: #b8422e;
+  border-color: rgba(193, 77, 57, .45);
+}
+
+.btn-sm,
+.btn-small {
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 11px;
+  font-size: 13px;
+}
+
+.btn-lg,
+.btn-large {
+  min-height: 50px;
+  padding: 14px 22px;
+  border-radius: 16px;
+  font-size: 15px;
+}
+
+.btn-full,
+.full,
+.btn.full {
+  width: 100%;
+}
+
+button:disabled,
+.btn:disabled,
+.auth-btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ---------- Form System ---------- */
+.form-control,
+input,
+select,
+textarea {
+  border-color: var(--line);
+  border-radius: 14px;
+  color: var(--text);
+}
+
+.form-control:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--olive);
+  box-shadow: 0 0 0 4px rgba(122, 127, 54, .13);
+}
+
+label {
+  color: #3f4c25;
+  font-weight: 900;
+}
+
+/* ---------- Card System ---------- */
+.card,
+.summary-card,
+.feature-card,
+.info-panel,
+.analytics-card,
+.detail-card,
+.profile-card,
+.table-card,
+.admin-card,
+.ott-choice-card,
+.ott-form-card,
+.ott-room-list-card,
+.recruit-board-card,
+.ott-tab-panel,
+.calendar {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card-title,
+.summary-card h3,
+.feature-card h3,
+.info-panel h3,
+.analytics-card h3,
+.detail-card h3 {
+  color: var(--text);
+  letter-spacing: -.03em;
+}
+
+.card-desc,
+.section-desc,
+.summary-card p,
+.feature-card p,
+.info-panel p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* ---------- Tab System ---------- */
+.tab-list,
+.ott-tabs,
+.ott-tab-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tab-button,
+.ott-tabs a,
+.ott-tab-menu a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #dbe7d4;
+  border-radius: 999px;
+  background: #fff;
+  color: #40523d;
+  font-size: 14px;
+  font-weight: 850;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(52, 74, 48, .05);
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+.tab-button:hover,
+.tab-button.active,
+.ott-tabs a:hover,
+.ott-tabs a.active,
+.ott-tab-menu a:hover,
+.ott-tab-menu a.active {
+  background: var(--olive);
+  border-color: var(--olive);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ---------- Badge / Chip System ---------- */
+.chip,
+em,
+.tag,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* ---------- Table System ---------- */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+td {
+  color: var(--text);
+}
+
+/* ---------- Layout Helpers ---------- */
+.hidden,
+.is-hidden {
+  display: none !important;
+}
+
+.text-muted {
+  color: var(--muted) !important;
+}
+
+.text-olive {
+  color: var(--olive-dark) !important;
+}
+
+@media (max-width: 700px) {
+  .btn,
+  .auth-btn,
+  .settlement-send-btn {
+    min-height: 44px;
+  }
+}
+
+/* =========================================================
+   Header 메뉴 드롭다운 + 왼쪽 사이드 서브메뉴
+========================================================= */
+
+.so-menu-wrapper {
+  position: relative;
+}
+
+.so-menu-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 210px;
+  padding: 10px;
+  margin: 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid var(--line, #dce5c4);
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(40, 49, 28, 0.14);
+  z-index: 1000;
+  display: none;
+}
+
+.so-menu-popover.is-open {
+  display: block;
+}
+
+.so-menu-item {
+  position: relative;
+}
+
+.so-menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #26331f;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.so-menu-link:hover,
+.so-menu-link.active {
+  background: #eef5dc;
+  color: #7d842c;
+}
+
+.so-menu-arrow {
+  font-size: 13px;
+  color: #8a9140;
+}
+
+/* 왼쪽으로 나오는 하위 메뉴 */
+.so-submenu {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 8px);
+  min-width: 180px;
+  padding: 10px;
+  margin: 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid var(--line, #dce5c4);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(40, 49, 28, 0.14);
+  display: none;
+  z-index: 1001;
+}
+
+/* 마우스 올렸을 때 왼쪽 서브메뉴 표시 */
+.so-menu-item.has-submenu:hover > .so-submenu,
+.so-menu-item.has-submenu:focus-within > .so-submenu {
+  display: block;
+}
+
+/* 서브메뉴 안쪽 링크는 조금 가볍게 */
+.so-submenu .so-menu-link {
+  font-weight: 700;
+  padding: 11px 13px;
+}
+
+/* 모바일에서는 왼쪽으로 빼면 화면 밖으로 나갈 수 있으니 아래로 표시 */
+@media (max-width: 768px) {
+  .so-menu-popover {
+      right: 0;
+      min-width: 220px;
+  }
+
+  .so-submenu {
+      position: static;
+      display: none;
+      margin-top: 6px;
+      box-shadow: none;
+      border-radius: 12px;
+      background: #f8fbef;
+  }
+
+  .so-menu-item.has-submenu:hover > .so-submenu,
+  .so-menu-item.has-submenu:focus-within > .so-submenu {
+      display: block;
+  }
+
+  .so-menu-arrow {
+      transform: rotate(-90deg);
+  }
+}
+
+/* =========================================================
+   Header 메뉴 자연스러운 애니메이션 + 서브메뉴 끊김 방지
+========================================================= */
+
+/* 메인 메뉴 기본 상태 */
+.so-menu-popover {
+  display: block !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition:
+      opacity 0.18s ease,
+      transform 0.18s ease,
+      visibility 0.18s ease;
+}
+
+/* 메뉴 버튼 클릭 시 열림 */
+.so-menu-popover.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* 하위 메뉴를 가진 항목 */
+.so-menu-item.has-submenu {
+  position: relative;
+}
+
+/* 왼쪽 서브메뉴 */
+.so-submenu {
+  display: block !important;
+
+  /* 기존 calc(100% + 8px) 때문에 틈이 생겼다면 이걸로 해결 */
+  right: calc(100% - 2px);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateX(8px) scale(0.98);
+  transform-origin: top right;
+
+  transition:
+      opacity 0.18s ease,
+      transform 0.18s ease,
+      visibility 0.18s ease;
+}
+
+/* 마우스를 올리면 서브메뉴 부드럽게 표시 */
+.so-menu-item.has-submenu:hover > .so-submenu,
+.so-menu-item.has-submenu:focus-within > .so-submenu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+}
+
+/* 혹시 아주 미세한 틈이 생겨도 hover가 끊기지 않게 투명 다리 만들기 */
+.so-menu-item.has-submenu::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: 12px;
+  height: 100%;
+  background: transparent;
+}
+
+/* 메뉴 항목 hover도 조금 부드럽게 */
+.so-menu-link {
+  transition:
+      background-color 0.16s ease,
+      color 0.16s ease,
+      transform 0.16s ease;
+}
+
+.so-menu-link:hover {
+  transform: translateX(-2px);
+}
+
+/* 서브메뉴 안에서는 너무 많이 움직이지 않게 */
+.so-submenu .so-menu-link:hover {
+  transform: translateX(-2px);
+}

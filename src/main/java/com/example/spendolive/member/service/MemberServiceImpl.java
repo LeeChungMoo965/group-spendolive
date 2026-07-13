@@ -1,0 +1,404 @@
+package com.example.spendolive.member.service;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import com.example.spendolive.member.domain.MemberAccountVO;
+import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.repository.MemberRepository;
+import com.example.spendolive.payment.service.PaymentService;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.solapi.sdk.SolapiClient;
+import com.solapi.sdk.message.exception.SolapiMessageNotReceivedException;
+import com.solapi.sdk.message.model.Message;
+import com.solapi.sdk.message.service.DefaultMessageService;
+
+import tools.jackson.databind.ObjectMapper;
+
+@Service
+public class MemberServiceImpl implements MemberService {
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private PaymentService paymentService;
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Value("${kakao.client.id}")
+    private String restApiKey;
+
+    @Value("${kakao.redirect.uri}")
+    private String redirectUri;
+
+    @Value("${openbanking.client-id}")
+    private String openbankingclientId;
+
+    @Value("${openbanking.redirect-uri}")
+    private String openbankingredirectUri;
+
+    @Value("${openbanking.client-secret}")
+    private String openbankingclientSecret;
+
+    @Value("${solapi.api-key}")
+    private String solapiapikey;
+
+    @Value("${solapi.secret-key}")
+    private String solapisecretkey;
+
+    @Override
+    public MemberVO login(Map loginMap) throws Exception {
+        return memberRepository.login(loginMap);
+    }
+
+    @Override
+    public void addMember(MemberVO memberVO) throws Exception {
+        memberRepository.insertNewMember(memberVO);
+    }
+
+    @Override
+    public String overlapped(String id) throws Exception {
+        throw new UnsupportedOperationException("Unimplemented method 'overlapped'");
+    }
+
+    @Override
+    public String sendVerificationEmail(String toEmail) throws Exception {
+        // 윈도우 한글 이름으로 인해 구글이 EOF를 반환하는 현상 방지
+        if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
+            java.util.Properties props =
+                    ((org.springframework.mail.javamail.JavaMailSenderImpl) mailSender)
+                            .getJavaMailProperties();
+            props.put("mail.smtp.localhost", "127.0.0.1");
+        }
+
+        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("chung100302@gmail.com");
+        message.setTo(toEmail);
+        message.setSubject("[SpendOlive] 회원가입 인증번호 안내");
+        message.setText(
+                "안녕하세요. SpendOlive입니다.\n\n"
+                        + "회원가입을 완료하기 위한 인증번호는 [ "
+                        + verificationCode
+                        + " ] 입니다.\n"
+                        + "타인에게 노출되지 않도록 주의해 주세요."
+        );
+
+        try {
+            mailSender.send(message);
+            return verificationCode;
+        } catch (Exception e) {
+            System.out.println("이메일 발송 에러: " + e.getMessage());
+            throw new RuntimeException("이메일 전송 중 에러 발생", e);
+        }
+    }
+
+    @Override
+    public String sendSmsVerification(String toNumber) throws Exception {
+        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+
+        DefaultMessageService messageService =
+                SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
+
+        Message message = new Message();
+        message.setFrom("01024414631");
+        message.setTo(toNumber);
+        message.setText("★ 발송 메세지: [SpendOlive] 가입 인증번호는 [" + verificationCode + "] 입니다.");
+
+        try {
+            messageService.send(message);
+            return verificationCode;
+        } catch (SolapiMessageNotReceivedException exception) {
+            System.out.println(exception.getFailedMessageList());
+            System.out.println(exception.getMessage());
+            throw new RuntimeException("문자 전송 중 오류 발생", exception);
+        } catch (Exception exception) {
+            System.out.println(exception.getMessage());
+            throw new RuntimeException("문자 전송 중 오류 발생", exception);
+        }
+    }
+
+    @Override
+    public boolean checkId(String id) {
+        return memberRepository.checkId(id);
+    }
+
+    @Override
+    public boolean checkEmail(String email) {
+        return memberRepository.checkEmail(email);
+    }
+
+    @Override
+    public boolean checkPhone(String phone) {
+        return memberRepository.checkPhone(phone);
+    }
+
+    @Override
+    public Map<String, String> getKakaoUserInfo(String code) throws Exception {
+        String accessToken = getAccessToken(code);
+        return getUserInfo(accessToken);
+    }
+
+    private String getAccessToken(String code) throws Exception {
+        String accessToken = "";
+        URL url = new URL("https://kauth.kakao.com/oauth/token");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+        conn.setDoOutput(true);
+
+        try (BufferedWriter bw =
+                     new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"))) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("grant_type=authorization_code");
+            sb.append("&client_id=").append(restApiKey);
+            sb.append("&redirect_uri=").append(redirectUri);
+            sb.append("&code=").append(code);
+            bw.write(sb.toString());
+            bw.flush();
+        }
+
+        if (conn.getResponseCode() == HttpStatus.OK.value()) {
+            try (BufferedReader br =
+                         new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+                StringBuilder result = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    result.append(line);
+                }
+
+                JsonElement element = JsonParser.parseString(result.toString());
+                accessToken = element.getAsJsonObject().get("access_token").getAsString();
+            }
+        } else {
+            throw new Exception("카카오 토큰 발급 실패: 상태 코드 " + conn.getResponseCode());
+        }
+
+        return accessToken;
+    }
+
+    private Map<String, String> getUserInfo(String accessToken) throws Exception {
+        Map<String, String> userInfoMap = new HashMap<>();
+        URL url = new URL("https://kapi.kakao.com/v2/user/me");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        if (conn.getResponseCode() == HttpStatus.OK.value()) {
+            try (BufferedReader br =
+                         new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+                StringBuilder result = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    result.append(line);
+                }
+
+                JsonObject userInfo = JsonParser.parseString(result.toString()).getAsJsonObject();
+                String id = userInfo.get("id").getAsString();
+
+                JsonObject properties = userInfo.getAsJsonObject("properties");
+                String nickname =
+                        properties != null && properties.get("nickname") != null
+                                ? properties.get("nickname").getAsString()
+                                : "카카오회원";
+
+                userInfoMap.put("id", id);
+                userInfoMap.put("nickname", nickname);
+                userInfoMap.put("password", "KAKAO");
+            }
+        } else {
+            throw new Exception("카카오 유저 정보 요청 실패: 상태 코드 " + conn.getResponseCode());
+        }
+
+        return userInfoMap;
+    }
+
+    @Override
+    public MemberVO getMemberById(String id) throws Exception {
+        return memberRepository.selectMemberById(id);
+    }
+
+    @Override
+    public MemberAccountVO getAccountById(String id) throws Exception {
+        return memberRepository.selectAccountById(id);
+    }
+
+    @Override
+    public void updateMyInfo(MemberVO memberVO, String newPassword) throws Exception {
+        memberRepository.updateMyInfo(memberVO, newPassword);
+    }
+
+    @Override
+    @Transactional
+    @SuppressWarnings("unchecked")
+    public void registerOpenBankingToken(
+            String code,
+            String userId,
+            HttpHeaders headers,
+            ResponseEntity<Map> response,
+            MemberVO memberVO
+    ) throws Exception {
+
+        String tokenUrl = "https://testapi.openbanking.or.kr/oauth/2.0/token";
+        RestTemplate restTemplate = new RestTemplate();
+
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        params.add("client_id", openbankingclientId);
+        params.add("client_secret", openbankingclientSecret);
+        params.add("redirect_uri", openbankingredirectUri);
+        params.add("grant_type", "authorization_code");
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+        ResponseEntity<String> tokenResponse =
+                restTemplate.postForEntity(tokenUrl, request, String.class);
+
+        if (tokenResponse.getStatusCode() != HttpStatus.OK || tokenResponse.getBody() == null) {
+            throw new RuntimeException("금융결제원 토큰 발급 실패");
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> resultMap = objectMapper.readValue(tokenResponse.getBody(), Map.class);
+
+        String accessToken = (String) resultMap.get("access_token");
+        String userSeqNo = (String) resultMap.get("user_seq_no");
+
+        if (accessToken == null || userSeqNo == null) {
+            throw new RuntimeException("금융결제원 토큰 응답에 필수 정보가 없습니다.");
+        }
+
+        System.out.println("발급된 Access Token: " + accessToken);
+        System.out.println("발급된 사용자 일련번호(user_seq_no): " + userSeqNo);
+
+        String accountUrl =
+                "https://testapi.openbanking.or.kr/v2.0/account/list?user_seq_no="
+                        + userSeqNo
+                        + "&include_account_num=Y";
+
+        headers.set("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        response = restTemplate.exchange(accountUrl, HttpMethod.GET, entity, Map.class);
+
+        if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+            throw new RuntimeException("등록 계좌 조회에 실패했습니다.");
+        }
+
+        List<Map<String, Object>> resList =
+                (List<Map<String, Object>>) response.getBody().get("res_list");
+
+        if (resList == null || resList.isEmpty()) {
+            throw new RuntimeException("등록된 계좌 정보가 없습니다.");
+        }
+
+        Map<String, Object> firstAccount = resList.get(0);
+
+        String fintechUseNum = (String) firstAccount.get("fintech_use_num");
+        String accountNum = (String) firstAccount.get("account_num_masked");
+        String bankCode = (String) firstAccount.get("bank_code_std");
+        String accountHolderName = (String) firstAccount.get("account_holder_name");
+
+        System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
+        System.out.println("👉 은행 코드 획득: " + bankCode);
+        System.out.println("👉 계좌번호 획득: " + accountNum);
+
+        String tranDtime =
+                java.time.LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+        String balanceUrl =
+                "https://testapi.openbanking.or.kr/v2.0/account/balance/fintech_use_num"
+                        + "?fintech_use_num="
+                        + fintechUseNum
+                        + "&tran_dtime="
+                        + tranDtime;
+
+        HttpEntity<String> balanceEntity = new HttpEntity<>(headers);
+        ResponseEntity<Map> balanceResponse =
+                restTemplate.exchange(balanceUrl, HttpMethod.GET, balanceEntity, Map.class);
+
+        int balance = 0;
+
+        if (balanceResponse.getStatusCode() == HttpStatus.OK
+                && balanceResponse.getBody() != null) {
+            Object balanceAmt = balanceResponse.getBody().get("balance_amt");
+            if (balanceAmt != null) {
+                balance = Integer.parseInt(String.valueOf(balanceAmt));
+            }
+            System.out.println("💰 실시간 계좌 잔액 확인 완료: " + balance + "원");
+        }
+
+        memberRepository.updateOpenBankingInfo(
+                userId,
+                accessToken,
+                userSeqNo,
+                fintechUseNum,
+                bankCode,
+                accountNum,
+                balance,
+                accountHolderName
+        );
+        memberRepository.updateMember_account_status(userId);
+
+        // 토스 지급대행은 보안키 지원 문제로 현재 API 요청을 생략하는 구조
+        paymentService.registerSubMall(
+                userId,
+                bankCode,
+                accountNum,
+                accountHolderName,
+                memberVO
+        );
+    }
+
+    @Override
+    public String findIdByPhone(String phone) throws Exception {
+        return memberRepository.findIdByPhone(phone);
+    }
+
+    @Override
+    public boolean existsActiveId(String id) throws Exception {
+        return memberRepository.existsActiveId(id);
+    }
+
+    @Override
+    public boolean existsActiveMemberByIdAndPhone(String id, String phone) throws Exception {
+        return memberRepository.existsActiveMemberByIdAndPhone(id, phone);
+    }
+
+    @Override
+    public void updatePasswordById(String id, String newPassword) throws Exception {
+        memberRepository.updatePasswordById(id, newPassword);
+    }
+}

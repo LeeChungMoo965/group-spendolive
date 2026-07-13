@@ -1,0 +1,26 @@
+/* =========================================================
+   SpendOlive styles.css
+   ---------------------------------------------------------
+   이 파일은 CSS 목차 역할만 한다.
+   실제 스타일은 ./styles 폴더에 기능별로 분리했다.
+
+   수정 팁
+   - 공통 버튼/카드/탭/폼 수정: styles/99-ui-unified-overrides.css
+   - 메인 슬롯머신/그래프 수정: styles/10-main-slot-dashboard.css
+   - 지출관리 수정: styles/02-expense.css
+   - OTT 수정: styles/03~07번 파일
+   - 마이페이지 수정: styles/08~09번 파일
+   ========================================================= */
+
+@import url("./styles/01-foundation.css");
+@import url("./styles/02-expense.css");
+@import url("./styles/03-ott-base-chat.css");
+@import url("./styles/04-ott-wide-chat.css");
+@import url("./styles/05-ott-settlement-dropdown.css");
+@import url("./styles/06-ott-system-payment.css");
+@import url("./styles/07-ott-family-recruit.css");
+@import url("./styles/08-mypage.css");
+@import url("./styles/09-mypage-withdraw.css");
+@import url("./styles/10-main-slot-dashboard.css");
+@import url("./styles/11-quick-join.css");
+@import url("./styles/99-ui-unified-overrides.css");
