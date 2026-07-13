@@ -1,5 +1,6 @@
 package com.example.spendolive.report.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,22 +26,22 @@ public class AdminReportControllerImpl implements AdminReportController{
     private ReportService reportService;
     @Override
     @GetMapping("/list.do")
-    public ModelAndView listUpReport(HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+    public ModelAndView listUpReport(@RequestParam(value = "status", required = false) String status,HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
         session = request.getSession();
         
-        
         try {
-            List<ReportVO> reportList = reportService.selectReport();
-            List<ReportVO> reportListWait = reportService.selectReportWait();
-            List<ReportVO> reportListComplete = reportService.selectReportComplete();
+            List<ReportVO> reportList = new ArrayList<ReportVO>();
+            if(status == null){reportList = reportService.selectReportAll();}
+            else{reportList = reportService.selectReport(status);}
+            
+            
             session.setAttribute("reportList", reportList);
-            session.setAttribute("reportListWait", reportListWait);
-            session.setAttribute("reportListComplete", reportListComplete);
+  
             return layout("/WEB-INF/views/admin/report/report.jsp");
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
-            return layout("/WEB-INF/views/admin/index.jsp");
+            return layout("/WEB-INF/views/admin//main/main.jsp");
         }
     }
     @Override

@@ -9,7 +9,7 @@ import com.example.spendolive.payment.domain.*;
 
 public interface PaymentService {
   //  public boolean processWithdraw(SettlementPaymentVO paymentInfo,  MemberVO memberInfo) throws Exception;
-    public List<OttRoomDTO> selectTodaysettlement() throws  Exception;
+    public List<OttRoomDTO> selectTodaysettlement(String status) throws  Exception;
     public void issueAndSaveBillingKey(String customerKey, String authKey, String userId) throws Exception;
     public void executeAutomaticPayment(String userId, int total, int room_id, int fee, int base, int settlement_id, String host_id) throws Exception;
     public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int roomId) throws Exception;

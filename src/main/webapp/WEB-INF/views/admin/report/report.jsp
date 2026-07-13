@@ -15,7 +15,7 @@
     <br>
     <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Report List</div>
     <h2>신고 리스트(총 ${reportList.size()}건)</h2><p>신고 항목과 내용을 확인한 뒤 처리 상태를 바꿀 수 있습니다.</p></div>
-    <div class="filter-pills"><button class="active"  onclick=${List}>전체</button><button>대기</button><button>처리중</button><button>완료</button></div>
+    <div class="filter-pills"><button onclick="location.href='${contextPath}/admin/report/list.do'">전체</button><button onclick="location.href='${contextPath}/admin/report/list.do?status=WAIT'">대기</button><button>처리중</button><button onclick="location.href='${contextPath}/admin/report/list.do?status=COMPLETE'">완료</button></div>
     </div><div class="table-wrap">
       
     <c:choose>

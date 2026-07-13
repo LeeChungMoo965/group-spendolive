@@ -440,7 +440,7 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
 }
     @Override
     @Transactional
-    public List<OttRoomDTO> selectTodaysettlement() throws Exception {
+    public List<OttRoomDTO> selectTodaysettlement(String status) throws Exception {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfMonth();
         day = 1;
@@ -448,7 +448,7 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
         int maxDayOfNextMonth = YearMonth.from(nextMonth).lengthOfMonth();
         int actualPayDay = Math.min(day, maxDayOfNextMonth);
         try{
-        return paymentRepository.selectTodaysettlement(actualPayDay);
+        return paymentRepository.selectTodaysettlement(actualPayDay,status);
         }catch(Exception e){
             return null;
         }
