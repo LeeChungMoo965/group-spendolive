@@ -21,12 +21,18 @@ public class MemberRepositoryImpl implements MemberRepository{
 
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     
-    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type,CARD_STATUS, ACCOUNT_STATUS, "
-    + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
-    + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
-    + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
-    + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
-    + "FROM member_tb WHERE id = ? AND password = ? AND STATUS ='ACTIVE'";
+    private final String login =
+    "SELECT member_id, id, email, password, member_name, nickname, "
+  + "phone, login_type, blocked_until, warning_count, role, status, "
+  + "verify_type, account_status, card_status, "
+  + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
+  + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+  + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
+  + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
+  + "FROM member_tb "
+  + "WHERE id = ? "
+  + "AND password = ? "
+  + "AND status = 'ACTIVE'";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
     +" from member_tb where id =? AND STATUS ='ACTIVE'";
     private final String checkEmail = "select decode(count(*),1, 'false', 0, 'true') as email"
@@ -37,15 +43,20 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" values(?,?,?,?,?,?,?,?) ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
-    private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, CARD_STATUS, ACCOUNT_STATUS, "
-    + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
-    + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
-    + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
-    + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
-    + "FROM member_tb WHERE id = ? AND STATUS ='ACTIVE'";
+    private final String selectMemberByIdSql =
+    "SELECT member_id, id, email, password, member_name, nickname, "
+  + "phone, login_type, blocked_until, warning_count, role, status, "
+  + "verify_type, account_status, card_status, "
+  + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
+  + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+  + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
+  + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
+  + "FROM member_tb "
+  + "WHERE id = ? "
+  + "AND status = 'ACTIVE'";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
-    private final String updatemember_account_Status = "update member_tb set  card_status='YSE' where id=? ";
-    private final String updatemember_card_Status = "update member_tb set account_status='YES' where id=? ";
+    private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
+    private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
     private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE "
                                                 +"from member_account_tb where id=? ";
     private final String selectMemberCardById= "select BILLING_KEY,BILLING_KEY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,ID,STATUS "
@@ -230,8 +241,8 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setUpdate_at(rs.getString("updated_at"));
         member.setBlocked_until(rs.getString("blocked_until"));
         member.setLast_login_at(rs.getString("last_login_at"));
-        member.setCard_status(rs.getString("account_status"));
-        member.setAccount_status(rs.getString("card_status"));
+        member.setAccount_status(rs.getString("account_status"));
+        member.setCard_status(rs.getString("card_status"));
         member.setWarninged_at(rs.getString("warninged_at"));
         return member;
     }

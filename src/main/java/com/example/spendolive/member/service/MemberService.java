@@ -6,9 +6,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.domain.MemberAccountVO;
 
 public interface MemberService {
     public MemberVO login(Map loginMap) throws Exception;
+    public MemberAccountVO getAccountById(String id) throws Exception;
     public void addMember(MemberVO memberVO) throws Exception;
     public String overlapped(String id) throws Exception;
     public String sendVerificationEmail(String toEmail) throws Exception;
