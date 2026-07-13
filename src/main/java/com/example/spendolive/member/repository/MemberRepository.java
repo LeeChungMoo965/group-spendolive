@@ -19,6 +19,8 @@ public interface MemberRepository {
     public MemberVO selectMemberById(String id) throws DataAccessException;
     public void updateMyInfo(MemberVO memberVO, String newPassword) throws DataAccessException;
 	public MemberCardVO getCardInfoByUserId(String userId) throws DataAccessException;
+	public void updateMember_account_status(String id)throws DataAccessException;
+	public void updateMember_card_status(String id)throws DataAccessException;
 
 	/* =========================================================
 	   [추가 기능] 아이디/비밀번호 찾기용 Repository 메서드
