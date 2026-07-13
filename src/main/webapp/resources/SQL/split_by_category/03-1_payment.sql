@@ -209,4 +209,3 @@ WHERE table_name IN (
     'SELLER_ACCOUNT_TB'
 )
 ORDER BY table_name;
->>>>>>> develop
