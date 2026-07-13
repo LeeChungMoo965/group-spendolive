@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.dao.DataAccessException;
 
+import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
 
@@ -21,6 +22,8 @@ public interface MemberRepository {
 	public MemberCardVO getCardInfoByUserId(String userId) throws DataAccessException;
 	public void updateMember_account_status(String id)throws DataAccessException;
 	public void updateMember_card_status(String id)throws DataAccessException;
+	public MemberCardVO selectCardById(String userId)throws DataAccessException;
+    public MemberAccountVO selectAccountById(String userId)throws DataAccessException;
 
 	/* =========================================================
 	   [추가 기능] 아이디/비밀번호 찾기용 Repository 메서드

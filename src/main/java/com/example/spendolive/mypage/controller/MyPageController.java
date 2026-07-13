@@ -52,6 +52,7 @@ public class MyPageController {
         mav.addObject("profileInitial", myPage.getProfileInitial());
         mav.addObject("thisMonthExpenseTotal", myPage.getThisMonthExpenseTotal());
         mav.addObject("accountConnected", myPage.isAccountConnected());
+        mav.addObject("openBankUserSeq", myPage.getOpenBankUserSeq());
         mav.addObject("warningCount", myPage.getWarningCount());
         mav.addObject("myReportCount", myPage.getMyReportCount());
         mav.addObject("myReportList", myPage.getMyReportList());

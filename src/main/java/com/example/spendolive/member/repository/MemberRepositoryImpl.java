@@ -9,9 +9,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
-
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 @Repository
 public class MemberRepositoryImpl implements MemberRepository{
     @Autowired
@@ -19,11 +21,17 @@ public class MemberRepositoryImpl implements MemberRepository{
 
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     
-    private final String login = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, "
-    + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
-    + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
-    + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
-    + "FROM member_tb WHERE id = ? AND password = ? AND STATUS ='ACTIVE'";
+    private final String login =
+    "SELECT member_id, id, email, password, member_name, nickname, "
+  + "phone, login_type, blocked_until, warning_count, role, status, "
+  + "verify_type, account_status, card_status, "
+  + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
+  + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+  + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
+  + "FROM member_tb "
+  + "WHERE id = ? "
+  + "AND password = ? "
+  + "AND status = 'ACTIVE'";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
     +" from member_tb where id =? AND STATUS ='ACTIVE'";
     private final String checkEmail = "select decode(count(*),1, 'false', 0, 'true') as email"
@@ -34,14 +42,23 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" values(?,?,?,?,?,?,?,?) ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
-    private final String selectMemberByIdSql = "SELECT member_id, id, email, password, member_name, nickname, phone, login_type, blocked_until, warning_count, role, status, verify_type, open_bank_user_seq_no, open_bank_token, fintech_use_num, "
-    + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
-    + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
-    + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
-    + "FROM member_tb WHERE id = ? AND STATUS ='ACTIVE'";
+    private final String selectMemberByIdSql =
+    "SELECT member_id, id, email, password, member_name, nickname, "
+  + "phone, login_type, blocked_until, warning_count, role, status, "
+  + "verify_type, account_status, card_status, "
+  + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
+  + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+  + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
+  + "FROM member_tb "
+  + "WHERE id = ? "
+  + "AND status = 'ACTIVE'";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
-    private final String updatemember_account_Status = "update member_tb set  card_status='YSE' where id=? ";
-    private final String updatemember_card_Status = "update member_tb set account_status='YES' where id=? ";
+    private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
+    private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
+    private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE "
+                                                +"from member_account_tb where id=? ";
+    private final String selectMemberCardById= "select BILLING_KEY,BILLING_KEY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,ID,STATUS "
+                                                +"from member_card_tb where id=? ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -220,8 +237,8 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setUpdate_at(rs.getString("updated_at"));
         member.setBlocked_until(rs.getString("blocked_until"));
         member.setLast_login_at(rs.getString("last_login_at"));
-        member.setCard_status(rs.getString("account_status"));
-        member.setAccount_status(rs.getString("card_status"));
+        member.setAccount_status(rs.getString("account_status"));
+        member.setCard_status(rs.getString("card_status"));
         return member;
     }
 
@@ -331,5 +348,46 @@ public class MemberRepositoryImpl implements MemberRepository{
     public void updateMember_card_status(String id){
         jdbcTemplate.update(updatemember_card_Status,id);
     }
+    @Override
+    public MemberCardVO selectCardById(String userId){
+        try {
+            return jdbcTemplate.queryForObject(selectMemberCardById, (rs, rowNum) -> {
+            MemberCardVO card = new MemberCardVO();
+            card.setCardCompany(rs.getString("card_campany"));
+            card.setBillingKey(rs.getString("billing_key"));
+            card.setCardIdx(rs.getInt("card_idx"));
+            card.setCardNumber(rs.getString("card_number"));
+            card.setId(rs.getString("id"));
+            card.setRegDate(rs.getObject("reg_date", LocalDateTime.class));
+            card.setStatus(rs.getString("status0"));
+            return card;
+            },userId);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
+    }
+    @Override
+    public MemberAccountVO selectAccountById(String userId){
+        try {
+            return jdbcTemplate.queryForObject(selectMemberAccountById, (rs, rowNum) -> {
+            MemberAccountVO account = new MemberAccountVO();
+            account.setAccountIdx(rs.getInt("account_idx"));
+            account.setAccountNumber(rs.getString("account_number"));
+            account.setAccount_holder_nam(rs.getString("account_holder_nam"));
+            account.setBalance(rs.getInt("balance"));
+            account.setOpenBankUserSeq(rs.getString("OPEN_BANK_USER_SEQ"));
+            account.setBankCode(rs.getString("BANK_CODE"));
+            account.setFintechUseNum(rs.getString("FINTECH_USE_NUM"));
+            account.setId(rs.getString("id"));
+            account.setOpenBankToken(rs.getString("OPEN_BANK_TOKEN"));
+            account.setRegDate(rs.getObject("reg_date", LocalDateTime.class));
 
+            return account;
+            },userId);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
+    }
 }

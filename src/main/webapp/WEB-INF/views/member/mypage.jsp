@@ -70,7 +70,7 @@
                         <p class="mypage-muted">연결된 오픈뱅킹 계정</p>
                         <div class="mypage-account-box">
                             <span>사용자번호</span>
-                            <strong>${memberInfo.open_bank_user_seq_no}</strong>
+                            <strong>${openBankUserSeq}</strong>
                         </div>
                         <a href="${contextPath}/member/openBankingAuth.do" class="btn btn-outline full">계좌 다시 연동하기</a>
                     </c:when>

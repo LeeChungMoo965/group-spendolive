@@ -29,7 +29,6 @@
                 <a href="${contextPath}/spendolive/admin/faq/list.do" data-nav="faq">FAQ 관리</a>
             </nav>
             <div class="admin-actions">
-                <span class="admin-pill">관리자 모드</span>
                 <strong><a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
                         ${memberInfo.member_name}님</strong>
             </div>
@@ -61,7 +60,7 @@
                     <c:when test="${isLogOn == true && not empty memberInfo}">
                     
                     <c:choose>
-                        <c:when test="${memberInfo.open_bank_token == null || memberInfo.open_bank_user_seq_no == null || memberInfo.fintech_use_num == null}">
+                        <c:when test="${empty memberInfo.account_status || memberInfo.account_status ne 'YES'}">
                             <a class="btn btn-light" href="${contextPath}/member/openBankingAuth.do">🏦 안전한 오픈뱅킹 계좌 연동하기</a>
                         </c:when>
                     </c:choose>

@@ -1,6 +1,8 @@
 package com.example.spendolive.member.domain;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -14,6 +16,6 @@ public class MemberCardVO {
     private String billingKey;    // billing_key (VARCHAR2)
     private String cardCompany;   // card_company (VARCHAR2)
     private String cardNumber;    // card_number (VARCHAR2)
-    private Date regDate;         // reg_date (DATE)
+    private LocalDateTime regDate;         // reg_date (DATE)
     private String status;   
 }

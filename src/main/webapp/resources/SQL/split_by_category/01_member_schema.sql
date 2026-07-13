@@ -47,7 +47,7 @@ CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
    ========================================================= */
 ALTER TABLE member_tb ADD (
     account_status  VARCHAR2(4),
-    card_status VARCHAR2(4),
+    card_status VARCHAR2(4)
 );
 
 CREATE OR REPLACE TRIGGER trg_member_bi

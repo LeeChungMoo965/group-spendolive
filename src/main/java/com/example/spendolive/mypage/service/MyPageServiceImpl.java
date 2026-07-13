@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.service.MemberService;
 import com.example.spendolive.mypage.domain.MyPageDTO;
 import com.example.spendolive.mypage.repository.MyPageReportRepository;
@@ -30,23 +31,58 @@ public class MyPageServiceImpl implements MyPageService {
 
     @Override
     public MyPageDTO getMyPage(String loginId) throws Exception {
+    
         MemberVO memberInfo = memberService.getMemberById(loginId);
+    
+        // 마이페이지 요청이 들어왔을 때만 계좌 테이블을 별도로 조회
+        MemberAccountVO accountInfo = memberService.getAccountById(loginId);
+    
         MyPageDTO myPage = new MyPageDTO();
-
+    
         myPage.setMemberInfo(memberInfo);
         myPage.setProfileInitial(makeProfileInitial(memberInfo));
-        myPage.setThisMonthExpenseTotal(memberInfo == null ? 0 : myPageRepository.selectThisMonthExpenseTotal(memberInfo.getMember_id()));
-        myPage.setAccountConnected(isAccountConnected(memberInfo));
+    
+        myPage.setThisMonthExpenseTotal(
+                memberInfo == null
+                        ? 0
+                        : myPageRepository.selectThisMonthExpenseTotal(
+                                memberInfo.getMember_id()
+                        )
+        );
+    
+        myPage.setAccountConnected(isAccountConnected(accountInfo));
+    
+        myPage.setOpenBankUserSeq(
+                accountInfo == null
+                        ? null
+                        : accountInfo.getOpenBankUserSeq()
+        );
+    
         myPage.setWarningCount(Math.max(
                 memberInfo == null ? 0 : memberInfo.getWarning_count(),
                 myPageReportRepository.selectWarningCount(loginId)
         ));
-        myPage.setMyReportCount(myPageReportRepository.selectMyReportCount(loginId));
-        myPage.setMyReportList(myPageReportRepository.selectMyReportList(loginId));
-        myPage.setFriendRoomList(ottService.getFriendRooms(loginId));
-        myPage.setHostedRecruitRoomList(ottService.getHostedRecruitRooms(loginId));
-        myPage.setJoinedRecruitRoomList(ottService.getJoinedRecruitRooms(loginId));
-
+    
+        myPage.setMyReportCount(
+                myPageReportRepository.selectMyReportCount(loginId)
+        );
+    
+        myPage.setMyReportList(
+                myPageReportRepository.selectMyReportList(loginId)
+        );
+    
+        myPage.setFriendRoomList(
+                ottService.getFriendRooms(loginId)
+        );
+    
+        myPage.setHostedRecruitRoomList(
+                ottService.getHostedRecruitRooms(loginId)
+        );
+    
+        myPage.setJoinedRecruitRoomList(
+                ottService.getJoinedRecruitRooms(loginId)
+        );
+    
         return myPage;
     }
 
@@ -64,12 +100,12 @@ public class MyPageServiceImpl implements MyPageService {
         }
     }
 
-    private boolean isAccountConnected(MemberVO memberInfo) {
-        return memberInfo != null
-                && memberInfo.getOpen_bank_token() != null
-                && !memberInfo.getOpen_bank_token().isBlank()
-                && memberInfo.getOpen_bank_user_seq_no() != null
-                && !memberInfo.getOpen_bank_user_seq_no().isBlank();
+    private boolean isAccountConnected(MemberAccountVO accountInfo) {
+        return accountInfo != null
+                && accountInfo.getOpenBankToken() != null
+                && !accountInfo.getOpenBankToken().isBlank()
+                && accountInfo.getOpenBankUserSeq() != null
+                && !accountInfo.getOpenBankUserSeq().isBlank();
     }
 
     private String makeProfileInitial(MemberVO memberInfo) {

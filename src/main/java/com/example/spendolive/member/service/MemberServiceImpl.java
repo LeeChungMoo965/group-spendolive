@@ -29,6 +29,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.repository.MemberRepository;
 import com.example.spendolive.payment.service.PaymentService;
 import com.example.spendolive.payment.service.PaymentServiceImpl;
@@ -231,6 +232,10 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberVO getMemberById(String id) throws Exception {
         return memberRepository.selectMemberById(id);
+    }
+    @Override
+    public MemberAccountVO getAccountById(String id) throws Exception {
+        return memberRepository.selectAccountById(id);
     }
 
     @Override
