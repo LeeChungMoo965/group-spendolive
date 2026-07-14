@@ -1,5 +1,6 @@
 package com.example.spendolive.member.repository;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.dao.DataAccessException;
@@ -25,6 +26,7 @@ public interface MemberRepository {
 	public MemberCardVO selectCardById(String userId)throws DataAccessException;
     public MemberAccountVO selectAccountById(String userId)throws DataAccessException;
 	public void updateWarning(String userId, int count)throws DataAccessException;
+	public List<MemberVO> selectMemberAll() throws DataAccessException;
 
 	/* =========================================================
 	   [추가 기능] 아이디/비밀번호 찾기용 Repository 메서드

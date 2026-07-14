@@ -1219,10 +1219,13 @@ public class OttRepositoryImpl implements OttRepository {
                         fee_rate,
                         fee_amount,
                         pay_amount,
-                        status
-                    ) VALUES (?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE')
+                        status,
+                        pay_day
+                    ) VALUES (?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE', ?)
                     """;
-            jdbcTemplate.update(insertSql, roomMemberId, roomId, loginId, shareAmount, feeRate, feeAmount, payAmount);
+            LocalDate today = LocalDate.now();
+            int day = today.getDayOfMonth();
+            jdbcTemplate.update(insertSql, roomMemberId, roomId, loginId, shareAmount, feeRate, feeAmount, payAmount,day);
         } else {
             String updateSql = """
                     UPDATE ott_room_member_tb

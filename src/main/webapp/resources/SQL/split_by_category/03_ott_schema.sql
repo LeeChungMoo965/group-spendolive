@@ -200,7 +200,17 @@ BEGIN
     SELECT seq_ott_room_member.NEXTVAL INTO :NEW.room_member_id FROM dual;
 END;
 /
-
+ALTER TABLE ott_room_member_tb ADD (
+    pay_day         NUMBER ,
+    pay_late_day    NUMBER DEFAULT 0
+    settlement_status  VARCHAR2(30) DEFAULT 'READY' , -- 방장 정산(송금) 후에 상태
+    CONSTRAINT ck_ott_member_settlement_status CHECK (
+        settlement_status IN (
+            'READY',              -- 정산 안됨
+            'DONE'               -- 정산 완료
+        )
+    )
+);
 CREATE INDEX idx_room_member_room ON ott_room_member_tb(room_id, status);
 CREATE INDEX idx_room_member_login ON ott_room_member_tb(member_login_id, status);
 
@@ -324,15 +334,15 @@ CREATE INDEX idx_settlement_room ON settlement_tb(room_id, settlement_month);
 CREATE INDEX idx_settlement_status_close ON settlement_tb(status, payment_close_date);
 CREATE INDEX idx_settlement_service ON settlement_tb(status, service_start_date, service_end_date);
 
-ALTER TABLE settlement_tb ADD (
-    settlement_status  VARCHAR2(30) DEFAULT 'READY' , -- 방장 정산(송금) 후에 상태
-    CONSTRAINT ck_settlement-settlement_status CHECK (
-        settlement_status IN (
-            'READY',              -- 정산 안됨
-            'DONE',               -- 정산 완료
+    ALTER TABLE settlement_tb ADD (
+        settlement_status  VARCHAR2(30) DEFAULT 'READY' , -- 방장 정산(송금) 후에 상태
+        CONSTRAINT ck_settlement-settlement_status CHECK (
+            settlement_status IN (
+                'READY',              -- 정산 안됨
+                'DONE',               -- 정산 완료
+            )
         )
-    )
-);
+    );
 /* =========================================================
    7. 팀원별 결제 요청/상태 테이블
    역할: 정산 요청을 받은 사용자별 결제 금액과 상태 저장

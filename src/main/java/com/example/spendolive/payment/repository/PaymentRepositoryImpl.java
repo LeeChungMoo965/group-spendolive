@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.example.spendolive.ott.domain.OttRoomDTO;
+import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.payment.domain.*;
 
@@ -48,6 +49,14 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + "AND s.settlement_status =? ";
     private final String insertTodayexcrow = "UPDATE escrow_payout_tb set STATUS = 'RELEASED' ,PAYOUT_AT =sysdate where ROOM_ID =? ";
     private final String updateTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? ";
+    private final String selectRoomMember = "select decode(count(*),1, 'true', 0, 'false') as id "
+    +"from ott_room_member_tb "         
+    + "where room_id =? and member_login_id=? and status ='ACTIVE' ";
+    private final String selectTodaySettlementmember = "SELECT FEE_AMOUNT,FEE_RATE,MEMBER_LOGIN_ID,PAY_AMOUNT,PAY_DAY,PAY_LATE_DAY,ROOM_ID, settlement_status, "
+    + "TO_CHAR(JOINED_AT , 'YYYY-MM-DD') AS JOINED_AT "     
+    + "from ott_room_member_tb where pay_day + pay_late_day =? AND status= 'ACTIVE' "
+    + "AND settlement_status =? ";
+
     public PaymentRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -55,7 +64,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     public void updatePaymentStatus(SettlementPaymentVO paymentInfo) {
         jdbcTemplate.update(successpayment, paymentInfo.getSettlement_id(), paymentInfo.getId() ,paymentInfo.getBase_amount(), paymentInfo.getFee_rate(),paymentInfo.getFee_amount(),paymentInfo.getTotal_amount(), paymentInfo.getPayment_status(), paymentInfo.getCard_number(), paymentInfo.getCard_company(), paymentInfo.getPaid_at(), paymentInfo.getPaymentKey(), paymentInfo.getOrderId(),paymentInfo.getMemo());
     }
-    
+    @Override
     public SettlementPaymentVO settlement_paymentByroomId(String userId, int roomId) throws DataAccessException{
         try {
             return (SettlementPaymentVO) jdbcTemplate.queryForObject(settlement_paymentByroomId, (rs, rowNum) -> {
@@ -77,6 +86,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
             settlementPaymentVO.setPayment_status(rs.getString("payment_status"));
             settlementPaymentVO.setSettlement_id(rs.getInt("settlement_id"));
             settlementPaymentVO.setTotal_amount(rs.getInt("total_amount"));
+         
             return settlementPaymentVO;
             }, roomId,userId);
         }catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -146,11 +156,47 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     }
 } 
     @Override
+    public List<OttRoomMemberDTO> selectTodaysettlementMember(int day, String status) throws Exception {
+        try {
+            return (List<OttRoomMemberDTO>) jdbcTemplate.query(selectTodaySettlementmember, (rs, rowNum) -> {
+                OttRoomMemberDTO mem = new OttRoomMemberDTO();
+                mem.setFeeAmount(rs.getInt("fee_amount"));
+                mem.setRoomId(rs.getLong("room_id"));
+                mem.setJoinedAt(rs.getString("joined_at"));
+                mem.setSettlement_status(rs.getString("settlement_status"));
+                mem.setMemberId(rs.getString("member_login_id"));
+                mem.setPayAmount(rs.getInt("pay_amount"));
+                mem.setFeeRate(rs.getDouble("fee_rate"));
+                mem.setPay_late_day(rs.getInt("pay_late_day"));
+                mem.setPay_day(rs.getInt("pay_day"));
+            return mem;
+        }, day, status);
+    }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+        // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+        System.out.println("spl오류");
+        return null; 
+    }
+    } 
+    @Override
     public void updateEscrowStatus(int roomId) {
         jdbcTemplate.update(insertTodayexcrow, roomId);
     }
     @Override
     public void updatSettlementStatus(int roomId) {
         jdbcTemplate.update(updateTodaysettlement, roomId);
+    }
+    @Override
+    public String roomMemberByroomIdCount (int roomId, String userId) throws DataAccessException{
+        
+        try {
+            return jdbcTemplate.queryForObject(selectRoomMember, (rs, rowNum) -> {
+                String count = rs.getString("id");
+                return count;
+                
+        }, roomId, userId);
+    }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
     }
 }
