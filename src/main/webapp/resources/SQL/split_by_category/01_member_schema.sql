@@ -47,10 +47,12 @@ CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
    ========================================================= */
 ALTER TABLE member_tb ADD (
     account_status  VARCHAR2(4),
-    card_status VARCHAR2(4),
+    card_status VARCHAR2(4)
 );
+
 alter table member_tb add(
 warninged_at date);
+
 CREATE OR REPLACE TRIGGER trg_member_bi
 BEFORE INSERT ON member_tb
 FOR EACH ROW
@@ -59,19 +61,23 @@ BEGIN
     SELECT seq_member.NEXTVAL INTO :NEW.member_id FROM dual;
 END;
 /
+
 CREATE TABLE MEMBER_ACCOUNT_TB (
     ACCOUNT_IDX          NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
-    MEMBER_ID            VARCHAR2(20) NOT NULL,                           -- 회원 ID (MEMBER_TB 외래키)
-    BANK_NAME            VARCHAR2(50) NOT NULL,                           -- 은행명 (ex: 신한은행, 국민은행)
+    ID            VARCHAR2(20) NOT NULL,                           -- 회원 ID (MEMBER_TB 외래키)
+    BANK_CODE            VARCHAR2(50) NOT NULL,                           -- 은행명 (ex: 신한은행, 국민은행)
     ACCOUNT_NUMBER       VARCHAR2(30) NOT NULL,                           -- 마스킹된 계좌번호 (ex: 110-***-1234)
     FINTECH_USE_NUM      VARCHAR2(50) NOT NULL,                           -- 금결원 핵심 키 (핀테크이용번호 💥)
     BALANCE              NUMBER DEFAULT 0,                                -- 계좌 잔액 (실시간 동기화용 💰)
     OPEN_BANK_TOKEN      VARCHAR2(255) NOT NULL,                          -- 금결원 사용자 토큰
     OPEN_BANK_USER_SEQ   VARCHAR2(50) NOT NULL,                           -- 금결원 사용자 일련번호
+    ACCOUNT_HOLDER_NAM   VARCHAR2(50),
     REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
     
     -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
-    CONSTRAINT FK_ACCOUNT_MEMBER_ID FOREIGN KEY (MEMBER_ID) 
+
+    CONSTRAINT FK_ACCOUNT_MEMBER_ID FOREIGN KEY (ID) 
+
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
 

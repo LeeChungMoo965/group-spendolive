@@ -11,10 +11,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MyPageDTO {
+
     private MemberVO memberInfo;
     private String profileInitial;
     private int thisMonthExpenseTotal;
+
     private boolean accountConnected;
+    private String openBankUserSeq;
+    
     private int warningCount;
     private int myReportCount;
     private List<MyPageReportDTO> myReportList;

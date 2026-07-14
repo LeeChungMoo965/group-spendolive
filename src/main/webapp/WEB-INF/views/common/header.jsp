@@ -60,7 +60,7 @@
                     <c:when test="${isLogOn == true && not empty memberInfo}">
                     
                     <c:choose>
-                        <c:when test="${memberInfo.account_status== null}">
+                        <c:when test="${empty memberInfo.account_status || memberInfo.account_status ne 'YES'}">
                             <a class="btn btn-light" href="${contextPath}/member/openBankingAuth.do">🏦 안전한 오픈뱅킹 계좌 연동하기</a>
                         </c:when>
                     </c:choose>
