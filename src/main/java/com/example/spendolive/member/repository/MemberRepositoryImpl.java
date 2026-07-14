@@ -2,6 +2,7 @@ package com.example.spendolive.member.repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,16 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "WHERE id = ? "
   + "AND password = ? "
   + "AND status = 'ACTIVE'";
+  private final String selectMemberAll =
+    "SELECT member_id, id, email, password, member_name, nickname, "
+  + "phone, login_type, blocked_until, warning_count, role, status, "
+  + "verify_type, account_status, card_status, "
+  + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
+  + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
+  + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
+  + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
+  + "FROM member_tb "
+  + "WHERE status = 'ACTIVE'";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
     +" from member_tb where id =? AND STATUS ='ACTIVE'";
     private final String checkEmail = "select decode(count(*),1, 'false', 0, 'true') as email"
@@ -398,5 +409,13 @@ public class MemberRepositoryImpl implements MemberRepository{
     @Override
     public void updateWarning(String userId, int count){
         jdbcTemplate.update(updateWarning, count+1, userId);
+    }
+    @Override
+    public List<MemberVO> selectMemberAll() throws DataAccessException {
+        try {
+            return (List<MemberVO>) jdbcTemplate.query(selectMemberAll, (rs, rowNum) -> mapMember(rs));
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 }

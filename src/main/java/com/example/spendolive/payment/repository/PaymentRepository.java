@@ -6,6 +6,7 @@ import org.springframework.dao.DataAccessException;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.domain.OttRoomDTO;
+import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.payment.domain.*;
 public interface PaymentRepository {
@@ -18,5 +19,6 @@ public interface PaymentRepository {
     public void insertPlatfoem_Revenue(PlatformRevenueVO revenueInfo);
     public void insertSeller(SellerAccountVO sellerInfo);
     public void updatSettlementStatus(int roomId);
-
+    public String roomMemberByroomIdCount (int roomId, String userId) throws DataAccessException;
+    public List<OttRoomMemberDTO> selectTodaysettlementMember(int day, String status) throws Exception;
 }

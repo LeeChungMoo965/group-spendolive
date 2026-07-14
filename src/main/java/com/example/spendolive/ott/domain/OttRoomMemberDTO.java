@@ -25,4 +25,7 @@ public class OttRoomMemberDTO {
     private String leaveScheduledDate;
     private String leaveCancelledAt;
     private String leaveReason;
+    private String settlement_status;
+    private int pay_day;            //자동 결제일
+    private int pay_late_day;       //자동 결제일 연체 일 수
 }

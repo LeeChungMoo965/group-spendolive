@@ -18,10 +18,11 @@ public class SettlementPaymentVO {
     private String orderId;
     private String card_company;   // card_company (VARCHAR2)
     private String card_number;    // card_number (VARCHAR2)
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime paid_at;       // 토스 카드 결제 완료 시점 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    private LocalDateTime confirmed_at;  // 정산 확정 시점 (방장에게 돈 가도 된다고 확정) 필요없음
+    private LocalDateTime confirmed_at;  // 정산 확정 시점 (방장에게 돈 가도 된다고 확정) 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime expired_at;    // 안 내고 버티다 추방된 시점 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")

@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
+import java.text.DecimalFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -30,6 +30,7 @@ import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.repository.MemberRepository;
 import com.example.spendolive.ott.domain.OttRoomDTO;
+import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.repository.OttRepository;
 import com.example.spendolive.payment.domain.*;
@@ -277,7 +278,6 @@ public class PaymentServiceImpl implements PaymentService{
             paymentInfo.setFee_rate(3D);
             paymentInfo.setMemo("OTT 사용료");   
             paymentInfo.setSettlement_id(settlement_id);
-
             EscrowPayoutVO escrowInfo = new EscrowPayoutVO();
 
             escrowInfo.setAmount(base);
@@ -303,6 +303,7 @@ public class PaymentServiceImpl implements PaymentService{
 
             if ("DONE".equals(status)) {
                 try{
+                    
                     paymentRepository.updatePaymentStatus(paymentInfo);
                     paymentRepository.insertEscrow(escrowInfo);
                     paymentRepository.insertPlatfoem_Revenue(revenueInfo);
@@ -326,6 +327,7 @@ public class PaymentServiceImpl implements PaymentService{
                         throw new RuntimeException("결제 취소 중 오류 발생 다시 시도 하겠습니다: " + status);
 
                     }
+                    e.printStackTrace();
                     throw new RuntimeException("결제 완료 후 데이터 저장 중 오류 발생   결제를 취소하겠습니다: " + status);
                 }
 
@@ -439,12 +441,27 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
     public List<OttRoomDTO> selectTodaysettlement(String status) throws Exception {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfMonth();
-        day = 1;
         LocalDate nextMonth = today.plusMonths(1);
         int maxDayOfNextMonth = YearMonth.from(nextMonth).lengthOfMonth();
         int actualPayDay = Math.min(day, maxDayOfNextMonth);
+       
         try{
         return paymentRepository.selectTodaysettlement(actualPayDay,status);
+        }catch(Exception e){
+            return null;
+        }
+    }
+    @Override
+    @Transactional
+    public List<OttRoomMemberDTO> selectTodaysettlementmember(String status) throws Exception {
+        LocalDate today = LocalDate.now();
+        int day = today.getDayOfMonth();
+        LocalDate nextMonth = today.plusMonths(1);
+        int maxDayOfNextMonth = YearMonth.from(nextMonth).lengthOfMonth();
+        int actualPayDay = Math.min(day, maxDayOfNextMonth);
+       
+        try{
+        return paymentRepository.selectTodaysettlementMember(actualPayDay,status);
         }catch(Exception e){
             return null;
         }
@@ -468,6 +485,10 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
             return "송금 완료 후 서버 쪽에서 오류 가 생겼습니다. 송금을 취소 하는 중이니 잠시만 기다려 주세요. ";
         }
         return "송금을 정상적으로 완료 하였습니다.";
+    }
+    @Override
+    public String roomMemberByroomIdCount(int roomId, String userId) throws Exception {
+        return paymentRepository.roomMemberByroomIdCount(roomId, userId);
     }
     
 }
