@@ -112,7 +112,7 @@ public class OttController {
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         String account_status = memberVO.getAccount_status();
 
-        if (account_status  == null) {
+        if (account_status.equals("NO")) {
 
             redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
             return "redirect:/spendolive/main.do";

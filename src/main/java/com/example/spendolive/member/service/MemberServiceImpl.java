@@ -91,7 +91,10 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public String sendVerificationEmail(String toEmail) throws Exception {
-        // 윈도우 한글 이름으로 인해 구글이 EOF를 반환하는 현상 방지
+
+        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+        // 윈도우 한글 이름으로 인해 구글이 EOF 뱉는 현상을 방어하기 위해 로컬호스트 강제 지정
+
         if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
             java.util.Properties props =
                     ((org.springframework.mail.javamail.JavaMailSenderImpl) mailSender)
@@ -99,7 +102,6 @@ public class MemberServiceImpl implements MemberService {
             props.put("mail.smtp.localhost", "127.0.0.1");
         }
 
-        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("chung100302@gmail.com");
@@ -120,15 +122,14 @@ public class MemberServiceImpl implements MemberService {
             System.out.println("이메일 발송 에러: " + e.getMessage());
             throw new RuntimeException("이메일 전송 중 에러 발생", e);
         }
+
     }
 
     @Override
     public String sendSmsVerification(String toNumber) throws Exception {
         String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
 
-        DefaultMessageService messageService =
-                SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
-
+        DefaultMessageService messageService =  SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
         Message message = new Message();
         message.setFrom("01024414631");
         message.setTo(toNumber);
@@ -138,15 +139,16 @@ public class MemberServiceImpl implements MemberService {
             messageService.send(message);
             return verificationCode;
         } catch (SolapiMessageNotReceivedException exception) {
-            System.out.println(exception.getFailedMessageList());
-            System.out.println(exception.getMessage());
-            throw new RuntimeException("문자 전송 중 오류 발생", exception);
-        } catch (Exception exception) {
-            System.out.println(exception.getMessage());
-            throw new RuntimeException("문자 전송 중 오류 발생", exception);
-        }
-    }
+        // 발송에 실패한 메시지 목록을 확인할 수 있습니다!
+        System.out.println(exception.getFailedMessageList());
+        System.out.println(exception.getMessage());
+        throw new RuntimeException("문자 전송 중 오류 발생");
+        } catch (Exception exception) { 
+        System.out.println(exception.getMessage());
+        throw new RuntimeException("문자 전송 중 오류 발생");
+        } 
 
+    }
     @Override
     public boolean checkId(String id) {
         return memberRepository.checkId(id);

@@ -327,3 +327,14 @@
     color: #fff;
     border-color: var(--olive);
 }
+.form-textarea {
+    border: 1px solid #dfe4cb;
+    background: #fffdf6;
+    border-radius: 14px;
+    min-height: 44px;
+    padding: 0 14px;
+    color: var(--text);
+    font-weight: 700;
+    outline: none;
+    width: 80%;
+}
