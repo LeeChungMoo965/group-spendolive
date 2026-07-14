@@ -86,12 +86,12 @@ public class MemberServiceImpl implements MemberService {
     public String sendVerificationEmail(String toEmail) throws Exception {
         String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
         // 윈도우 한글 이름으로 인해 구글이 EOF 뱉는 현상을 방어하기 위해 로컬호스트 강제 지정
-        /*
+        
         if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
             java.util.Properties props = ((org.springframework.mail.javamail.JavaMailSenderImpl) mailSender).getJavaMailProperties();
             props.put("mail.smtp.localhost", "127.0.0.1");
         }
-        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("chung100302@gmail.com");
         message.setTo(toEmail); // 받는 사람 이메일
@@ -107,16 +107,14 @@ public class MemberServiceImpl implements MemberService {
             System.out.println("이메일 발송 에러: " + e.getMessage());
         throw new RuntimeException("이메일 전송 중 에러 발생");
         }
-   */
-        System.out.println("인증번호:"+verificationCode);
-        return verificationCode;
+
     }
 
     @Override
     public String sendSmsVerification(String toNumber) throws Exception {
         // 1. 진짜 통신사 망을 탈 때와 똑같이 6자리 랜덤 인증번호 생성
         String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
-/*
+
         DefaultMessageService messageService =  SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
         // Message 패키지가 중복될 경우 com.solapi.sdk.message.model.Message로 치환하여 주세요
         Message message = new Message();
@@ -136,9 +134,8 @@ public class MemberServiceImpl implements MemberService {
         } catch (Exception exception) { 
         System.out.println(exception.getMessage());
         throw new RuntimeException("문자 전송 중 오류 발생");
-        } */
-        System.out.println("인증번호:"+verificationCode);
-        return verificationCode;
+        } 
+
     }
     // 아이디 중복확인 메서드
     @Override

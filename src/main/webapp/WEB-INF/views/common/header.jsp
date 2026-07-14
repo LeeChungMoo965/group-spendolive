@@ -29,7 +29,6 @@
                 <a href="${contextPath}/spendolive/admin/faq/list.do" data-nav="faq">FAQ 관리</a>
             </nav>
             <div class="admin-actions">
-                <span class="admin-pill">관리자 모드</span>
                 <strong><a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
                         ${memberInfo.member_name}님</strong>
             </div>
