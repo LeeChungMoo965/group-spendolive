@@ -43,7 +43,7 @@
 
                 <div class="notice-detail-info">
                     <span>작성자 ${not empty notice.adminId ? notice.adminId : '관리자'}</span>
-                    <span>등록일 ${notice.createdAt}</span>
+                    <span>등록일 ${notice.created_at}</span>
                 </div>
 
                 <div class="notice-detail-content">

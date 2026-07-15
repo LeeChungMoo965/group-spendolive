@@ -80,4 +80,6 @@ public interface OttRepository {
     void markChatRoomAsRead(Long roomId, String loginId);
 
     void createReadySettlement(Long roomId, String hostId);
+
+    OttRoomDTO selectRoom(Long roomId); 
 }

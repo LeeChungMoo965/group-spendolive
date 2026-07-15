@@ -161,14 +161,14 @@
                             <c:when test="${not empty recruitRoomList}">
                                 <div class="recruit-card-grid">
                                     <c:forEach var="room" items="${recruitRoomList}">
-                                        <div class="recruit-card ${room.hostMemberId eq loginId ? 'my-recruit-card' : ''}">
+                                        <div class="recruit-card ${room.hostmember_id eq loginId ? 'my-recruit-card' : ''}">
                                             <div class="recruit-card-head">
                                                 <div>
                                                     <h3>${room.roomName}</h3>
                                                     <p>${room.serviceName} · ${room.planName}</p>
                                                 </div>
                                                 <div class="recruit-card-badges">
-                                                    <c:if test="${room.hostMemberId eq loginId}">
+                                                    <c:if test="${room.hostmember_id eq loginId}">
                                                         <span class="owner-badge">내가 만든 방</span>
                                                     </c:if>
                                                     <span class="status-pill ${room.status}">${room.status}</span>
@@ -196,7 +196,7 @@
                                             </div>
 
                                             <c:choose>
-                                                <c:when test="${room.hostMemberId eq loginId}">
+                                                <c:when test="${room.hostmember_id eq loginId}">
                                                     <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-outline full">내 모집글 대화방</a>
                                                 </c:when>
                                                 <c:when test="${(room.status eq 'RECRUITING' or room.status eq 'REPLACE_RECRUITING') and room.myApplicationStatus eq 'NONE'}">
@@ -280,8 +280,8 @@
                                                             <c:set var="hasParticipant" value="true" />
                                                             <div class="apply-manage-row application-row ACTIVE">
                                                                 <div>
-                                                                    <strong>${member.memberName}</strong>
-                                                                    <p>아이디: ${member.memberId} · 참여일 ${member.joinedAt}</p>
+                                                                    <strong>${member.member_name}</strong>
+                                                                    <p>아이디: ${member.member_id} · 참여일 ${member.joinedAt}</p>
                                                                     <c:if test="${member.leaveReservedYn eq 'Y'}">
                                                                         <p class="warn-text">나가기 예약됨 · ${member.leaveScheduledDate} 자동 퇴장 예정</p>
                                                                     </c:if>
@@ -468,7 +468,7 @@
                                                 <div class="team-payment-row">
                                                     <span>
                                                         <strong>${payment.roomName}</strong>
-                                                        <small>${payment.settlementMonth} 이용분 · ${payment.memberName}(${payment.memberId})</small>
+                                                        <small>${payment.settlementMonth} 이용분 · ${payment.member_name}(${payment.member_id})</small>
                                                     </span>
                                                     <b><fmt:formatNumber value="${payment.totalAmount}" pattern="#,##0" />원</b>
                                                     <em class="${payment.paymentStatus eq 'PAID' or payment.paymentStatus eq 'CONFIRMED' ? 'done' : 'wait'}">${payment.paymentStatus}</em>

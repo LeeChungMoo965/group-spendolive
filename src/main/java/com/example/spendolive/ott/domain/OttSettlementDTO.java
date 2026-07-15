@@ -22,7 +22,7 @@ public class OttSettlementDTO {
     private String replaceStartDate;
     private String replaceEndDate;
     private String status;
-    private String createdAt;
+    private String created_at;
     private String myRole;
     private int member_limit;
     private Long paymentId;
@@ -31,8 +31,8 @@ public class OttSettlementDTO {
     private String settlement_status;
 
     // 방장이 보는 팀원별 정산 상태 표시용
-    private String memberId;
-    private String memberName;
+    private String member_id;
+    private String member_name;
     private String memberNickname;
     private Integer baseAmount;
     private Integer feeAmount;

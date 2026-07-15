@@ -79,7 +79,7 @@
                                         <div class="chat-system-bubble">
                                             <strong>${message.senderId}</strong>
                                             <p>${message.messageContent}</p>
-                                            <small>${message.createdAt}</small>
+                                            <small>${message.created_at}</small>
                                         </div>
                                     </div>
                                 </c:when>
@@ -88,7 +88,7 @@
                                         <div class="chat-message-bubble">
                                             <strong>${message.senderName}</strong>
                                             <p>${message.messageContent}</p>
-                                            <small>${message.createdAt}</small>
+                                            <small>${message.created_at}</small>
                                             
                                         </div>
                                     </div>
@@ -136,7 +136,7 @@
         content.textContent = message.messageContent || '';
 
         const time = document.createElement('small');
-        time.textContent = message.createdAt || '';
+        time.textContent = message.created_at || '';
         if (!isSystem && message.mineYn !== 'Y') {
                 const reportLink = document.createElement('a');
                 reportLink.href = '/report/report.do?reported_member_id='+message.senderId+'?room_id='+roomId+'?chat_text='+message.messageContent;

@@ -6,13 +6,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OttRoomMemberDTO {
-    private Long roomMemberId;
+    private Long roommember_id;
     private Long roomId;
     private String roomName;
     private String serviceName;
-    private String memberId;
+    private String member_id;
     private String memberNickname;
-    private String memberName;
+    private String member_name;
     private String memberRole;
     private Integer shareAmount;
     private Double feeRate;

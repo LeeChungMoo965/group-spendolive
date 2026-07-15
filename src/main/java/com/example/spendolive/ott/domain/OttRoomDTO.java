@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class OttRoomDTO {
     private Long roomId;
-    private String hostMemberId;
+    private String hostmember_id;
     private String hostNickname;
     private Long ottServiceId;
     private String serviceName;
@@ -24,7 +24,7 @@ public class OttRoomDTO {
     private String closeReason;
     private String closeNotice;
     private String closedAt;
-    private String createdAt;
+    private String created_at;
     private Integer shareAmount;
     private Integer feeAmount;
     private Integer perPersonAmount;

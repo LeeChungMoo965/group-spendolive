@@ -300,8 +300,9 @@ CREATE TABLE settlement_tb (
         )),
     CONSTRAINT ck_settlement-settlement_status CHECK (
         settlement_status IN (
+            'YET',
             'READY',              -- 정산 안됨
-            'DONE',               -- 정산 완료
+            'DONE'               -- 정산 완료
         )
     ),
     CONSTRAINT ck_settlement_total_price CHECK (total_price >= 0),

@@ -19,7 +19,7 @@ public class MyPageDTO {
     private boolean accountConnected;
     private String openBankUserSeq;
     
-    private int warningCount;
+    private int warning_count;
     private int myReportCount;
     private List<MyPageReportDTO> myReportList;
     private List<OttRoomDTO> friendRoomList;

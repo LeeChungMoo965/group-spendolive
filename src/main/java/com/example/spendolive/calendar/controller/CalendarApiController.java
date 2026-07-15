@@ -59,7 +59,7 @@ public class CalendarApiController {
         if (memberInfo == null) {
             throw new IllegalStateException("로그인이 필요합니다.");
         }
-        int memberId = memberInfo.getMember_id();
+        int member_id = memberInfo.getMember_id();
 
         LocalDate start = LocalDate.of(year, month, 1);
         LocalDate end = start.plusMonths(1).minusDays(1);
@@ -75,7 +75,7 @@ public class CalendarApiController {
 
         return jdbcTemplate.query(
             sql,
-            new Object[]{ memberId, Date.valueOf(start), Date.valueOf(end) },
+            new Object[]{ member_id, Date.valueOf(start), Date.valueOf(end) },
             (rs, rowNum) -> {
                 Map<String, Object> row = new HashMap<>();
                 row.put("expenseId", rs.getLong("expense_id"));

@@ -40,10 +40,10 @@
         });
     });
 })();
-function comment(reportId, reportedMemberId,count,reportReason) {
+function comment(reportId, reportedmember_id,count,reportReason) {
 
     $('#form_report_id').val(reportId);
-    $('#form_reported_member_id').val(reportedMemberId);
+    $('#form_reported_member_id').val(reportedmember_id);
     $('#form_count').val(count);
     $('#form_report_reason').val(reportReason);
 

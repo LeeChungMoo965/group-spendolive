@@ -330,7 +330,7 @@ public class MemberServiceImpl implements MemberService {
         String fintechUseNum = (String) firstAccount.get("fintech_use_num");
         String accountNum = (String) firstAccount.get("account_num_masked");
         String bankCode = (String) firstAccount.get("bank_code_std");
-        String accountHolderName = (String) firstAccount.get("account_holder_name");
+        String accountHolderName = (String) firstAccount.get("accountHolderName");
 
         System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
         System.out.println("👉 은행 코드 획득: " + bankCode);
