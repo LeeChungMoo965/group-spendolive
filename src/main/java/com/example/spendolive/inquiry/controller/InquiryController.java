@@ -103,7 +103,7 @@ public class InquiryController {
     @PostMapping("/write.do")
     public ModelAndView inquiryWrite(
             @RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "inquiryType", required = false) String inquiryType,
+            @RequestParam(value = "inquiry_type", required = false) String inquiry_type,
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "content", required = false) String content,
             @RequestParam(value = "attachments", required = false) MultipartFile[] attachments,
@@ -115,7 +115,7 @@ public class InquiryController {
         }
 
         if (category == null || category.isBlank()
-                || inquiryType == null || inquiryType.isBlank()
+                || inquiry_type == null || inquiry_type.isBlank()
                 || title == null || title.isBlank()
                 || content == null || content.isBlank()) {
             ra.addFlashAttribute("errorMsg", "카테고리, 유형, 제목, 내용을 모두 입력해 주세요.");
@@ -125,7 +125,7 @@ public class InquiryController {
         InquiryVO inquiry = new InquiryVO();
         inquiry.setId(memberInfo.getId());
         inquiry.setCategory(category);
-        inquiry.setInquiryType(inquiryType);
+        inquiry.setInquiry_type(inquiry_type);
         inquiry.setTitle(title.strip());
         inquiry.setContent(content.strip());
 
@@ -183,9 +183,9 @@ public class InquiryController {
     }
 
     /* ─── 첨부파일 미리보기/다운로드 ──────────────────────── */
-    @GetMapping("/file/{fileId}")
+    @GetMapping("/file/{file_id}")
     public ResponseEntity<Resource> viewInquiryFile(
-            @PathVariable("fileId") int fileId, HttpSession session) {
+            @PathVariable("file_id") int file_id, HttpSession session) {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
@@ -194,13 +194,13 @@ public class InquiryController {
 
         // 본인 문의에 달린 첨부파일이 맞는지 확인 (관리자는 전체 열람 가능)
         boolean isAdmin = "ADMIN".equals(memberInfo.getRole());
-        InquiryFileVO file = inquiryService.getInquiryFile(fileId, memberInfo.getId(), isAdmin);
+        InquiryFileVO file = inquiryService.getInquiryFile(file_id, memberInfo.getId(), isAdmin);
         if (file == null) {
             return ResponseEntity.notFound().build();
         }
 
         try {
-            Path path = Path.of(file.getFilePath());
+            Path path = Path.of(file.getFile_path());
             Resource resource = new UrlResource(path.toUri());
             if (!resource.exists() || !resource.isReadable()) {
                 return ResponseEntity.notFound().build();
@@ -213,7 +213,7 @@ public class InquiryController {
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getOriginName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getOrigin_name() + "\"")
                     .body(resource);
         } catch (IOException e) {
             System.err.println("[InquiryController.viewInquiryFile] 파일 읽기 실패: " + e.getMessage());

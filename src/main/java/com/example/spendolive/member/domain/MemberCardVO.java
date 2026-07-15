@@ -11,11 +11,11 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberCardVO {
-    private int cardIdx;          // card_idx (NUMBER -> int)
+    private int card_idx;          // card_idx (NUMBER -> int)
     private String id;            // id (VARCHAR2)
-    private String billingKey;    // billing_key (VARCHAR2)
-    private String cardCompany;   // card_company (VARCHAR2)
-    private String cardNumber;    // card_number (VARCHAR2)
-    private LocalDateTime regDate;         // reg_date (DATE)
+    private String billing_key;    // billing_key (VARCHAR2)
+    private String card_company;   // card_company (VARCHAR2)
+    private String card_number;    // card_number (VARCHAR2)
+    private LocalDateTime reg_date;         // reg_date (DATE)
     private String status;   
 }

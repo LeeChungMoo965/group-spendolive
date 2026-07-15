@@ -35,14 +35,14 @@ document.addEventListener('DOMContentLoaded', function() {
       
       eventContent: function(arg) {
         const amount = arg.event.extendedProps.amount;
-        const categoryName = arg.event.extendedProps.categoryName;
-        const expenseType = arg.event.extendedProps.expenseType; // FIXED / VARIABLE / OTT
+        const category_name = arg.event.extendedProps.category_name;
+        const expense_type = arg.event.extendedProps.expense_type; // FIXED / VARIABLE / OTT
 
         const wrapper = document.createElement('div');
-        wrapper.className = `calendar-expense-chip chip-type-${(expenseType || 'variable').toLowerCase()}`;
+        wrapper.className = `calendar-expense-chip chip-type-${(expense_type || 'variable').toLowerCase()}`;
         wrapper.innerHTML = `
           <span class="chip-amount">${Number(amount).toLocaleString()}원</span>
-          <span class="chip-category">${categoryName}</span>
+          <span class="chip-category">${category_name}</span>
         `;
         return { domNodes: [wrapper] };
       }
@@ -101,13 +101,13 @@ function loadMonthlyExpenses(year, month) {
 
 function renderCalendarEvents() {
     const events = monthlyExpenses.map(exp => ({
-        id: String(exp.expenseId),
-        title: exp.expenseTitle,
-        date: exp.expenseDate,
+        id: String(exp.expense_id),
+        title: exp.expense_title,
+        date: exp.expense_date,
         extendedProps: {
             amount: exp.amount,
-            categoryName: exp.categoryName,
-            expenseType: exp.expenseType
+            category_name: exp.category_name,
+            expense_type: exp.expense_type
         }
     }));
 
@@ -118,7 +118,7 @@ function renderCalendarEvents() {
 function renderSidePanel() {
     // 날짜 최신순 정렬
     const sorted = [...monthlyExpenses].sort((a, b) =>
-        a.expenseDate < b.expenseDate ? 1 : -1
+        a.expense_date < b.expense_date ? 1 : -1
     );
 
     const totalPages = Math.max(1, Math.ceil(sorted.length / SIDE_PAGE_SIZE));
@@ -141,13 +141,13 @@ function renderSidePanel() {
         listEl.innerHTML = '<p class="empty-text">이번 달 지출 내역이 없습니다.</p>';
     } else {
         pageItems.forEach(exp => {
-            const dateLabel = exp.expenseDate.slice(5).replace('-', '.'); // "2026-07-05" -> "07.05"
-            const typeClass = `type-${(exp.expenseType || 'variable').toLowerCase()}`;
+            const dateLabel = exp.expense_date.slice(5).replace('-', '.'); // "2026-07-05" -> "07.05"
+            const typeClass = `type-${(exp.expense_type || 'variable').toLowerCase()}`;
             const item = document.createElement('div');
             item.className = `side-event ${typeClass}`;
             item.innerHTML = `
-                <strong>${dateLabel} ${exp.expenseTitle}</strong>
-                <span>${Number(exp.amount).toLocaleString()}원 · ${exp.categoryName}</span>
+                <strong>${dateLabel} ${exp.expense_title}</strong>
+                <span>${Number(exp.amount).toLocaleString()}원 · ${exp.category_name}</span>
             `;
             listEl.appendChild(item);
         });
@@ -207,7 +207,7 @@ function renderSidePanelPager(totalPages) {
             return res.json();
         })
         .then(data => {
-            const todayItems = data.filter(exp => exp.expenseDate === todayStr);
+            const todayItems = data.filter(exp => exp.expense_date === todayStr);
             renderTodayTodo(todayItems);
         })
         .catch(err => {
@@ -230,13 +230,13 @@ function renderTodayTodo(todayItems) {
     }
 
     todayItems.forEach(exp => {
-        const typeClass = `type-${(exp.expenseType || 'variable').toLowerCase()}`;
+        const typeClass = `type-${(exp.expense_type || 'variable').toLowerCase()}`;
 
         const item = document.createElement('div');
         item.className = `side-event ${typeClass}`;
         item.innerHTML = `
-            <strong>${exp.expenseTitle}</strong>
-            <span>${Number(exp.amount).toLocaleString()}원 · ${exp.categoryName}</span>
+            <strong>${exp.expense_title}</strong>
+            <span>${Number(exp.amount).toLocaleString()}원 · ${exp.category_name}</span>
         `;
         listEl.appendChild(item);
     });

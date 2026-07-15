@@ -18,7 +18,7 @@ public class MemberVO {
 	private String status;
 	private String created_at;
 	private String blocked_until;
-	private String update_at;
+	private String updated_at;
 	private String last_login_at;
 	private String card_status;
 	private String account_status;

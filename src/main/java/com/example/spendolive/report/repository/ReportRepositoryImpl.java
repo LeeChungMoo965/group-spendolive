@@ -38,7 +38,7 @@ public class ReportRepositoryImpl implements ReportRepository {
             report.setAdmin_comment(rs.getString("admin_comment"));
             report.setCreated_at(rs.getObject("created_at", LocalDateTime.class));
             report.setProcessed_at(rs.getObject("processed_at", LocalDateTime.class));
-            report.setReport_id(rs.getLong("Report_id"));
+            report.setReport_id(rs.getLong("report_id"));
             report.setReport_reason(rs.getString("report_reason"));
             report.setReport_status(rs.getString("report_status"));
             report.setReported_member_id(rs.getString("reported_member_id"));
@@ -60,7 +60,7 @@ public class ReportRepositoryImpl implements ReportRepository {
             report.setAdmin_comment(rs.getString("admin_comment"));
             report.setCreated_at(rs.getObject("created_at", LocalDateTime.class));
             report.setProcessed_at(rs.getObject("processed_at", LocalDateTime.class));
-            report.setReport_id(rs.getLong("Report_id"));
+            report.setReport_id(rs.getLong("report_id"));
             report.setReport_reason(rs.getString("report_reason"));
             report.setReport_status(rs.getString("report_status"));
             report.setReported_member_id(rs.getString("reported_member_id"));

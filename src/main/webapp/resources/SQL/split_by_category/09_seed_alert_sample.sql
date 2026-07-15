@@ -13,8 +13,8 @@ SET DEFINE OFF;
    - 팀 원본의 INSERT 오류 수정 사항을 유지함.
    ========================================================= */
 
-/* 테스트 알림 */
-INSERT INTO alert_tb(id, alert_type, title, content, target_url)
-VALUES ('user', 'SETTLEMENT', '넷플릭스 정산 요청', '이번 달 넷플릭스 정산금 입금이 필요합니다.', '/settlement/1');
+/* 테스트 OTT 알림 */
+INSERT INTO notification_tb(id, notification_type, title, message, link_url)
+VALUES ('user', 'OTT', '넷플릭스 정산 요청', '이번 달 넷플릭스 정산금 입금이 필요합니다.', '/spendolive/ott/recruit.do?tab=settlement');
 
 COMMIT;

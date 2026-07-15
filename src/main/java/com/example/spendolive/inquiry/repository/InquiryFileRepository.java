@@ -23,13 +23,13 @@ public class InquiryFileRepository {
 
     private InquiryFileVO mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         InquiryFileVO file = new InquiryFileVO();
-        file.setFileId(rs.getInt("file_id"));
-        file.setInquiryId(rs.getInt("inquiry_id"));
-        file.setOriginName(rs.getString("origin_name"));
-        file.setSavedName(rs.getString("saved_name"));
-        file.setFilePath(rs.getString("file_path"));
-        file.setFileSize(rs.getLong("file_size"));
-        file.setRegDate(rs.getString("reg_date"));
+        file.setFile_id(rs.getInt("file_id"));
+        file.setInquiry_id(rs.getInt("inquiry_id"));
+        file.setOrigin_name(rs.getString("origin_name"));
+        file.setSaved_name(rs.getString("saved_name"));
+        file.setFile_path(rs.getString("file_path"));
+        file.setFile_size(rs.getLong("file_size"));
+        file.setReg_date(rs.getString("reg_date"));
         return file;
     }
 
@@ -41,8 +41,8 @@ public class InquiryFileRepository {
         """;
         try {
             jdbcTemplate.update(sql,
-                    file.getInquiryId(), file.getOriginName(), file.getSavedName(),
-                    file.getFilePath(), file.getFileSize());
+                    file.getInquiry_id(), file.getOrigin_name(), file.getSaved_name(),
+                    file.getFile_path(), file.getFile_size());
         } catch (DataAccessException e) {
             System.err.println("[InquiryFileRepository.insertFile] DB 오류: " + e.getMessage());
             throw e;
@@ -50,7 +50,7 @@ public class InquiryFileRepository {
     }
 
     /* ─── 특정 문의의 첨부파일 목록 ───────────────────────── */
-    public List<InquiryFileVO> findByInquiryId(int inquiryId) {
+    public List<InquiryFileVO> findByInquiryId(int inquiry_id) {
         String sql = """
             SELECT file_id, inquiry_id, origin_name, saved_name, file_path, file_size,
                    TO_CHAR(reg_date, 'YYYY.MM.DD') AS reg_date
@@ -59,14 +59,14 @@ public class InquiryFileRepository {
             ORDER BY file_id
         """;
         try {
-            return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), inquiryId);
+            return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), inquiry_id);
         } catch (DataAccessException e) {
             System.err.println("[InquiryFileRepository.findByInquiryId] DB 오류: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 /* ─── 첨부파일 단건 조회 (다운로드/미리보기용) ────────── */
-public InquiryFileVO findById(int fileId) {
+public InquiryFileVO findById(int file_id) {
     String sql = """
         SELECT file_id, inquiry_id, origin_name, saved_name, file_path, file_size,
                TO_CHAR(reg_date, 'YYYY.MM.DD') AS reg_date
@@ -74,7 +74,7 @@ public InquiryFileVO findById(int fileId) {
         WHERE file_id = ?
     """;
     try {
-        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), fileId);
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), file_id);
     } catch (org.springframework.dao.EmptyResultDataAccessException e) {
         return null;
     } catch (DataAccessException e) {

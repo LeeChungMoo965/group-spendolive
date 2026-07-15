@@ -17,7 +17,7 @@ public class SettlementRefundVO {
     private int payment_id;             // 원본 입금 내역 고유 ID (FK)
     private int settlement_id;          // 월별 정산 고유 ID (FK)
     private int room_id;                // OTT 매칭방 고유 ID (FK)
-    private String id;                  // 환불받을 회원 아이디 (FK, member_tb)
+    private String member_login_id;                  // 환불받을 회원 아이디 (FK, member_tb)
     private int refund_amount;          // 최종 환불 예정 금액
     
     // 사유값: ROOM_CLOSE(방 삭제), PAYMENT_CANCEL(결제 취소), ADMIN_CANCEL(관리자 취소), ETC(기타)

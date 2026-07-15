@@ -45,7 +45,7 @@
                 </div>
                 <div class="field">
                     <label>문의 유형 <span>필수</span></label>
-                    <select name="inquiryType" required>
+                    <select name="inquiry_type" required>
                         <option value="" disabled selected>유형 선택</option>
                         <option value="BUG">오류/버그 신고</option>
                         <option value="SUGGEST">기능 개선 제안</option>

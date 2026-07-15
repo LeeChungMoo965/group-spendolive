@@ -25,6 +25,7 @@ import com.example.spendolive.ott.domain.OttRoomDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.service.OttService;
 
+// 사용자 OTT 요청 처리 - 화면 요청을 Service로 전달
 @Controller
 @RequestMapping("/spendolive")
 public class OttController {
@@ -38,6 +39,7 @@ public class OttController {
         this.ottService = ottService;
     }
 
+    // OTT 메인 화면 - 공유 가능한 OTT 목록, 전체 모집방 수, 참여방 수 조회
     @GetMapping("/ott.do")
     public String ottMain(Model model, HttpSession session) {
         ottService.processScheduledOttJobs();
@@ -56,6 +58,7 @@ public class OttController {
         }
     }
 
+    // 가족·지인 공유방 화면 - 참여방, 방장 방, 정산 내역 조회
     @GetMapping("/ott/friends.do")
     public String friends(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         ottService.processScheduledOttJobs();
@@ -81,6 +84,7 @@ public class OttController {
         return "common/layout";
     }
 
+    // 가족·지인 공유방 생성 - 생성자를 방장 멤버로 등록
     @PostMapping("/ott/friends/create.do")
     public String createFriendRoom(@ModelAttribute OttRoomDTO roomDTO, HttpSession session) {
         String loginId = getLoginId(session);
@@ -95,9 +99,10 @@ public class OttController {
         return "redirect:/spendolive/ott/friends.do?result=created";
     }
 
+    // 외부 모집방 화면 - 검색, 참여방, 정산 데이터 조회
     @GetMapping("/ott/recruit.do")
     public String recruit(@RequestParam(value = "tab", required = false, defaultValue = "all") String tab,
-                          @RequestParam(value = "ottServiceId", required = false) String ottServiceId,
+                          @RequestParam(value = "ott_service_id", required = false) String ott_service_id,
                           @RequestParam(value = "roomNameKeyword", required = false) String roomNameKeyword,
                           Model model,
                           RedirectAttributes redirectAttributes,
@@ -112,12 +117,12 @@ public class OttController {
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         String account_status = memberVO.getAccount_status();
 
-        if (account_status  == null) {
+        if (account_status.equals("NO")) {
 
             redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
             return "redirect:/spendolive/main.do";
         }
-        Long selectedOttServiceId = parseOttServiceId(ottServiceId);
+        Long selectedOttServiceId = parseOttServiceId(ott_service_id);
 
         addCommonOttModel(model, loginId);
         model.addAttribute("tab", tab);
@@ -132,6 +137,7 @@ public class OttController {
         return "common/layout";
     }
 
+    // 외부 모집방 생성 - 방 정보와 READY 정산 데이터 생성
     @PostMapping("/ott/recruit/create.do")
     public String createRecruitRoom(@ModelAttribute OttRoomDTO roomDTO, HttpSession session, RedirectAttributes redirectAttributes) {
         String loginId = getLoginId(session);
@@ -152,29 +158,27 @@ public class OttController {
         return "redirect:/spendolive/ott/recruit.do?tab=all&result=created";
     }
 
+    // 결제 완료 입장 처리 - 사용자를 ACTIVE 멤버로 등록 후 채팅방 이동
     // 신청하기 로직
     @GetMapping("/ott/recruit/apply.do")
     public String applyRecruitRoom( HttpSession session) {
         String loginId = getLoginId(session);
         OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
-        Long roomId = settlementInfo.getRoomId().longValue();
+        Long room_id = settlementInfo.getRoom_id().longValue();
         if (loginId == null) {
             return "redirect:/member/loginForm.do";
         }
 
         // 신청하기 누르면 바로 방 구성원으로 등록
-        ottService.completePaidRoomEntry(roomId, loginId);
+        ottService.completePaidRoomEntry(room_id, loginId);
 
         // 바로 채팅방 입장
-        return "redirect:/spendolive/ott/chat/room.do?roomId=" + roomId;
+        return "redirect:/spendolive/ott/chat/room.do?room_id=" + room_id;
     }
 
-        /**
-     * 빠른 참가 처리
-     * 빠른 참가도 최종적으로는 기존 신청하기와 똑같이 roomId를 결제 화면에 넘긴다.
-     */
+    // 빠른 참가 처리 - 참가 가능한 가장 오래된 모집방 조회
     @PostMapping("/ott/recruit/quick-join.do")
-    public String quickJoinRecruitRoom(@RequestParam(value = "ottServiceId", required = false) String ottServiceId,
+    public String quickJoinRecruitRoom(@RequestParam(value = "ott_service_id", required = false) String ott_service_id,
                                     HttpSession session,
                                     RedirectAttributes redirectAttributes) {
         String loginId = getLoginId(session);
@@ -185,7 +189,7 @@ public class OttController {
         }
 
         //    parseOttServiceId()는 OttController 안에 이미 있는 변환용 메서드
-        Long selectedOttServiceId = parseOttServiceId(ottServiceId);
+        Long selectedOttServiceId = parseOttServiceId(ott_service_id);
 
         if (selectedOttServiceId == null) {
             redirectAttributes.addFlashAttribute("msg", "빠른 참가를 하려면 OTT 종류를 먼저 선택해 주세요.");
@@ -195,34 +199,36 @@ public class OttController {
         // 선택한 OTT 기준으로 참가 가능한 가장 오래된 빈 방의 roomId를 찾는다.
         // 여기서는 아직 DB에 참여자로 저장하지 않는다.
         // 결제 흐름을 거쳐야 하므로 "방 찾기"만 한다.
-        Long roomId = ottService.findQuickJoinRecruitRoomId(selectedOttServiceId, loginId);
+        Long room_id = ottService.findQuickJoinRecruitRoomId(selectedOttServiceId, loginId);
 
         // 참가 가능한 방이 없는 경우
-        if (roomId == null) {
+        if (room_id == null) {
             redirectAttributes.addFlashAttribute("msg", "참가 가능한 모집방이 없습니다.");
-            return "redirect:/spendolive/ott/recruit.do?tab=all&ottServiceId=" + selectedOttServiceId;
+            return "redirect:/spendolive/ott/recruit.do?tab=all&ott_service_id=" + selectedOttServiceId;
         }
 
         // 기존 신청하기와 동일한 결제 흐름으로 이동
         // 일반 신청하기도 최종적으로 roomId를 결제쪽으로 넘긴다.
         // 빠른 참가는 서버에서 자동으로 찾은 roomId를 넘긴다는 점만 다르다.
-        // 결제쪽은 기존 roomId 기반 결제 로직을 그대로 사용하면 된다.
-        return redirectToRoomPayment(roomId, "RECRUIT", null);
+        // 결제쪽은 기존 room_id 기반 결제 로직을 그대로 사용하면 된다.
+        return redirectToRoomPayment(room_id, "RECRUIT", null);
     }
 
+    // 가족방 초대 입장 - 초대 코드 확인 후 결제 화면 이동
     @GetMapping("/ott/friends/invite.do")
-    public String enterFriendRoomByInvite(@RequestParam("code") String inviteCode) {
-        OttRoomDTO room = ottService.getRoomByInviteCode(inviteCode);
+    public String enterFriendRoomByInvite(@RequestParam("code") String invite_code) {
+        OttRoomDTO room = ottService.getRoomByInviteCode(invite_code);
 
-        if (room == null || !"FRIEND".equals(room.getRoomMode()) || "CLOSED".equals(room.getStatus())) {
+        if (room == null || !"FRIEND".equals(room.getRoom_mode()) || "CLOSED".equals(room.getStatus())) {
             return "redirect:/spendolive/ott.do?error=invalidInvite";
         }
 
-        return redirectToRoomPayment(room.getRoomId(), "FRIEND", room.getInviteCode());
+        return redirectToRoomPayment(room.getRoom_id(), "FRIEND", room.getInvite_code());
     }
 
+    // 채팅방 화면 - 참여 권한 확인 후 메시지 조회
     @GetMapping("/ott/chat/room.do")
-    public String chatRoom(@RequestParam("roomId") Long roomId, Model model, HttpSession session) {
+    public String chatRoom(@RequestParam("room_id") Long room_id, Model model, HttpSession session) {
         ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
 
@@ -230,36 +236,38 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        OttRoomDTO chatRoom = ottService.getChatRoom(roomId, loginId);
+        OttRoomDTO chatRoom = ottService.getChatRoom(room_id, loginId);
         if (chatRoom == null) {
             return "redirect:/spendolive/ott.do?error=noChatAccess";
         }
 
         model.addAttribute("loginId", loginId);
         model.addAttribute("chatRoom", chatRoom);
-        model.addAttribute("chatMessageList", ottService.getChatMessages(roomId, loginId));
-        ottService.markChatRoomAsRead(roomId, loginId);
+        model.addAttribute("chatMessageList", ottService.getChatMessages(room_id, loginId));
+        ottService.markChatRoomAsRead(room_id, loginId);
         model.addAttribute("body_page", "/WEB-INF/views/ott/ottChatRoom.jsp");
         return "common/layout";
     }
 
+    // 채팅 메시지 조회 - AJAX 요청에 메시지 목록 반환
     @GetMapping("/ott/chat/messages.do")
     @ResponseBody
-    public List<OttChatMessageDTO> chatMessages(@RequestParam("roomId") Long roomId, HttpSession session) {
+    public List<OttChatMessageDTO> chatMessages(@RequestParam("room_id") Long room_id, HttpSession session) {
         String loginId = getLoginId(session);
 
         if (loginId == null) {
             return Collections.emptyList();
         }
 
-        List<OttChatMessageDTO> messages = ottService.getChatMessages(roomId, loginId);
-        ottService.markChatRoomAsRead(roomId, loginId);
+        List<OttChatMessageDTO> messages = ottService.getChatMessages(room_id, loginId);
+        ottService.markChatRoomAsRead(room_id, loginId);
         return messages;
     }
 
+    // 채팅 메시지 전송 - 참여 권한 확인 후 메시지 저장
     @PostMapping("/ott/chat/send.do")
-    public String sendChatMessage(@RequestParam("roomId") Long roomId,
-                                  @RequestParam("messageContent") String messageContent,
+    public String sendChatMessage(@RequestParam("room_id") Long room_id,
+                                  @RequestParam("message_content") String message_content,
                                   HttpSession session) {
         String loginId = getLoginId(session);
 
@@ -267,14 +275,15 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        ottService.sendChatMessage(roomId, loginId, messageContent);
-        return "redirect:/spendolive/ott/chat/room.do?roomId=" + roomId;
+        ottService.sendChatMessage(room_id, loginId, message_content);
+        return "redirect:/spendolive/ott/chat/room.do?room_id=" + room_id;
     }
 
+    // 정산 요청 처리 - 방장의 다음 회차 정산 생성
     @PostMapping("/ott/settlement/request.do")
-    public String requestSettlement(@RequestParam("roomId") Long roomId,
-                                    @RequestParam(value = "settlementMonth", required = false) String settlementMonth,
-                                    @RequestParam(value = "dueDate", required = false) String dueDate,
+    public String requestSettlement(@RequestParam("room_id") Long room_id,
+                                    @RequestParam(value = "settlement_month", required = false) String settlement_month,
+                                    @RequestParam(value = "due_date", required = false) String due_date,
                                     @RequestParam(value = "returnPage", required = false, defaultValue = "recruit") String returnPage,
                                     HttpSession session) {
         String loginId = getLoginId(session);
@@ -283,11 +292,11 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        if (settlementMonth == null || settlementMonth.isBlank()) {
-            settlementMonth = YearMonth.now().plusMonths(1).toString();
+        if (settlement_month == null || settlement_month.isBlank()) {
+            settlement_month = YearMonth.now().plusMonths(1).toString();
         }
 
-        ottService.requestSettlement(roomId, loginId, settlementMonth, dueDate);
+        ottService.requestSettlement(room_id, loginId, settlement_month, due_date);
 
         if ("friends".equals(returnPage)) {
             return "redirect:/spendolive/ott/friends.do?result=settlementRequested";
@@ -296,8 +305,9 @@ public class OttController {
         return "redirect:/spendolive/ott/recruit.do?tab=settlement&result=settlementRequested";
     }
 
+    // 정산 결제 처리 - 로그인 사용자의 결제 상태를 PAID로 변경
     @PostMapping("/ott/settlement/pay.do")
-    public String paySettlement(@RequestParam("paymentId") Long paymentId,
+    public String paySettlement(@RequestParam("payment_id") Long payment_id,
                                 @RequestParam(value = "returnPage", required = false, defaultValue = "recruit") String returnPage,
                                 HttpSession session) {
         String loginId = getLoginId(session);
@@ -306,7 +316,7 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        ottService.markPaymentPaid(paymentId, loginId);
+        ottService.markPaymentPaid(payment_id, loginId);
 
         if ("friends".equals(returnPage)) {
             return "redirect:/spendolive/ott/friends.do?result=paid";
@@ -315,10 +325,11 @@ public class OttController {
         return "redirect:/spendolive/ott/recruit.do?tab=settlement&result=paid";
     }
 
+    // 방 종료 예약 - 현재 이용 기간 종료일 기준으로 예약
     @PostMapping("/ott/room/close-request.do")
-    public String closeRoom(@RequestParam("roomId") Long roomId,
-                            @RequestParam(value = "closeNotice", required = false) String closeNotice,
-                            @RequestParam(value = "closeReason", required = false) String closeReason,
+    public String closeRoom(@RequestParam("room_id") Long room_id,
+                            @RequestParam(value = "close_notice", required = false) String close_notice,
+                            @RequestParam(value = "close_reason", required = false) String close_reason,
                             @RequestParam(value = "returnPage", required = false, defaultValue = "friends") String returnPage,
                             HttpSession session) {
         String loginId = getLoginId(session);
@@ -327,7 +338,7 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        ottService.requestRoomClose(roomId, loginId, closeNotice, closeReason);
+        ottService.requestRoomClose(room_id, loginId, close_notice, close_reason);
 
         if ("recruit".equals(returnPage)) {
             return "redirect:/spendolive/ott/recruit.do?tab=apply&result=closeRequested";
@@ -337,8 +348,9 @@ public class OttController {
     }
 
 
+    // 탈퇴 예약 - 참여자의 다음 이용 회차 탈퇴 예약
     @PostMapping("/ott/room/leave-reserve.do")
-    public String reserveRoomLeave(@RequestParam("roomId") Long roomId,
+    public String reserveRoomLeave(@RequestParam("room_id") Long room_id,
                                    @RequestParam(value = "returnPage", required = false, defaultValue = "recruit") String returnPage,
                                    HttpSession session,
                                    RedirectAttributes redirectAttributes) {
@@ -349,13 +361,14 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        String msg = ottService.reserveRoomLeave(roomId, loginId);
+        String msg = ottService.reserveRoomLeave(room_id, loginId);
         redirectAttributes.addFlashAttribute("msg", msg);
         return redirectAfterRoomAction(returnPage);
     }
 
+    // 탈퇴 예약 취소
     @PostMapping("/ott/room/leave-cancel.do")
-    public String cancelRoomLeave(@RequestParam("roomId") Long roomId,
+    public String cancelRoomLeave(@RequestParam("room_id") Long room_id,
                                   @RequestParam(value = "returnPage", required = false, defaultValue = "recruit") String returnPage,
                                   HttpSession session,
                                   RedirectAttributes redirectAttributes) {
@@ -366,12 +379,13 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        String msg = ottService.cancelRoomLeave(roomId, loginId);
+        String msg = ottService.cancelRoomLeave(room_id, loginId);
         redirectAttributes.addFlashAttribute("msg", msg);
         return redirectAfterRoomAction(returnPage);
     }
 
 
+    // 방 관리 화면 이동 경로 처리
     private String redirectAfterRoomAction(String returnPage) {
         if ("friends".equals(returnPage)) {
             return "redirect:/spendolive/ott/friends.do";
@@ -379,28 +393,31 @@ public class OttController {
         return "redirect:/spendolive/ott/recruit.do?tab=manage";
     }
 
-    private String redirectToRoomPayment(Long roomId, String roomMode, String inviteCode) {
-        String redirectUrl = "redirect:/payment/detail.do?roomId=" + roomId + "&roomMode=" + roomMode;
+    // 결제 화면 이동 URL 생성
+    private String redirectToRoomPayment(Long room_id, String room_mode, String invite_code) {
+        String redirectUrl = "redirect:/payment/detail.do?room_id=" + room_id + "&room_mode=" + room_mode;
 
-        if (inviteCode != null && !inviteCode.isBlank()) {
-            redirectUrl += "&inviteCode=" + inviteCode;
+        if (invite_code != null && !invite_code.isBlank()) {
+            redirectUrl += "&invite_code=" + invite_code;
         }
 
         return redirectUrl;
     }
 
-    private Long parseOttServiceId(String ottServiceId) {
-        if (ottServiceId == null || ottServiceId.isBlank()) {
+    // OTT 서비스 ID 변환 - 빈 값이나 잘못된 값은 null 처리
+    private Long parseOttServiceId(String ott_service_id) {
+        if (ott_service_id == null || ott_service_id.isBlank()) {
             return null;
         }
 
         try {
-            return Long.parseLong(ottServiceId);
+            return Long.parseLong(ott_service_id);
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
+    // OTT 공통 화면 데이터 설정
     private void addCommonOttModel(Model model, String loginId) {
         YearMonth nextMonth = YearMonth.now().plusMonths(1);
         LocalDate today = LocalDate.now();
@@ -413,6 +430,7 @@ public class OttController {
         model.addAttribute("settlementGuide", "OTT별 최고 멤버십 기준 금액을 N분의 1로 나누고 서비스 수수료 3%를 더해 정산합니다. 결제 마감일은 이용 시작일 7일 전으로 자동 계산됩니다.");
     }
 
+    // 로그인 사용자 ID 조회 - 세션의 회원 정보에서 ID 추출
     private String getLoginId(HttpSession session) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
 

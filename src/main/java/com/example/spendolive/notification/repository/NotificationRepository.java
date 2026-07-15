@@ -36,15 +36,15 @@ public class NotificationRepository {
         try {
             return jdbcTemplate.query(sql, (rs, rowNum) -> {
                 NotificationDTO dto = new NotificationDTO();
-                dto.setNotificationId(rs.getInt("notification_id"));
+                dto.setNotification_id(rs.getInt("notification_id"));
                 dto.setId(rs.getString("id"));
-                dto.setNotificationType(rs.getString("notification_type"));
+                dto.setNotification_type(rs.getString("notification_type"));
                 dto.setTitle(rs.getString("title"));
                 dto.setMessage(rs.getString("message"));
-                dto.setLinkUrl(rs.getString("link_url"));
-                dto.setReadYn(rs.getString("read_yn"));
-                dto.setStarYn(rs.getString("star_yn"));
-                dto.setCreatedAt(rs.getString("created_at"));
+                dto.setLink_url(rs.getString("link_url"));
+                dto.setRead_yn(rs.getString("read_yn"));
+                dto.setStar_yn(rs.getString("star_yn"));
+                dto.setCreated_at(rs.getString("created_at"));
                 return dto;
             }, id);
         } catch (DataAccessException e) {
@@ -73,8 +73,8 @@ public class NotificationRepository {
     }
 
     /* ─── 읽음 처리 ───────────────────────────────────────── */
-    public void updateReadYn(int notificationId, String id) {
-        if (notificationId <= 0 || id == null || id.isBlank()) return;
+    public void updateReadYn(int notification_id, String id) {
+        if (notification_id <= 0 || id == null || id.isBlank()) return;
 
         String sql = """
             UPDATE notification_tb
@@ -83,9 +83,9 @@ public class NotificationRepository {
         """;
 
         try {
-            int rows = jdbcTemplate.update(sql, notificationId, id);
+            int rows = jdbcTemplate.update(sql, notification_id, id);
             if (rows == 0) {
-                System.err.println("[NotificationRepository.updateReadYn] 대상 없음: notificationId=" + notificationId);
+                System.err.println("[NotificationRepository.updateReadYn] 대상 없음: notification_id=" + notification_id);
             }
         } catch (DataAccessException e) {
             System.err.println("[NotificationRepository.updateReadYn] DB 오류: " + e.getMessage());
@@ -94,8 +94,8 @@ public class NotificationRepository {
 
     /* ─── 찜 토글 ─────────────────────────────────────────── */
     /* ─── 단건 조회 ──────────────────────────────────────── */
-    public NotificationDTO findByNotificationId(int notificationId, String id) {
-        if (notificationId <= 0 || id == null || id.isBlank()) return null;
+    public NotificationDTO findByNotificationId(int notification_id, String id) {
+        if (notification_id <= 0 || id == null || id.isBlank()) return null;
 
         String sql = """
             SELECT notification_id, id, notification_type,
@@ -107,17 +107,17 @@ public class NotificationRepository {
         try {
             return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
                 NotificationDTO dto = new NotificationDTO();
-                dto.setNotificationId(rs.getInt("notification_id"));
+                dto.setNotification_id(rs.getInt("notification_id"));
                 dto.setId(rs.getString("id"));
-                dto.setNotificationType(rs.getString("notification_type"));
+                dto.setNotification_type(rs.getString("notification_type"));
                 dto.setTitle(rs.getString("title"));
                 dto.setMessage(rs.getString("message"));
-                dto.setLinkUrl(rs.getString("link_url"));
-                dto.setReadYn(rs.getString("read_yn"));
-                dto.setStarYn(rs.getString("star_yn"));
-                dto.setCreatedAt(rs.getString("created_at"));
+                dto.setLink_url(rs.getString("link_url"));
+                dto.setRead_yn(rs.getString("read_yn"));
+                dto.setStar_yn(rs.getString("star_yn"));
+                dto.setCreated_at(rs.getString("created_at"));
                 return dto;
-            }, notificationId, id);
+            }, notification_id, id);
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
             return null;
         } catch (DataAccessException e) {
@@ -126,8 +126,8 @@ public class NotificationRepository {
         }
     }
 
-        public void toggleStar(int notificationId, String id) {
-        if (notificationId <= 0 || id == null || id.isBlank()) return;
+        public void toggleStar(int notification_id, String id) {
+        if (notification_id <= 0 || id == null || id.isBlank()) return;
 
         String sql = """
             UPDATE notification_tb
@@ -136,9 +136,9 @@ public class NotificationRepository {
         """;
 
         try {
-            int rows = jdbcTemplate.update(sql, notificationId, id);
+            int rows = jdbcTemplate.update(sql, notification_id, id);
             if (rows == 0) {
-                System.err.println("[NotificationRepository.toggleStar] 대상 없음: notificationId=" + notificationId);
+                System.err.println("[NotificationRepository.toggleStar] 대상 없음: notification_id=" + notification_id);
             }
         } catch (DataAccessException e) {
             System.err.println("[NotificationRepository.toggleStar] DB 오류: " + e.getMessage());

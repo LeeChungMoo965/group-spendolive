@@ -12,16 +12,16 @@
    
     <main class="admin-main">
     
-    <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>정산관리</h1><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do'">전체</button>
+    <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>정산관리</h1>
     <p>금일 이용료 보관액 방장 정산</p></div></section>
     <br>
-    <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Settlement List</div>
-    <h2>금일 정산 리스트(총 ${settlementList.size()}건)</h2></div>
-    <div class="filter-pills"><button onclick="location.href='${contextPath}/admin/settlement/list.do'">전체</button><button onclick="location.href='${contextPath}/admin/settlement/list.do?status=READY'" >대기</button><button onclick="location.href='${contextPath}/admin/settlement/list.do?status=DONE'">완료</button></div>
+    <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">payment List</div>
+    <h2>금일 정산 리스트(총 ${paymentList.size()}건)</h2></div>
+    <div class="filter-pills"><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do'">전체</button><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do?status=READY'" >대기</button><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do?status=DONE'">완료</button></div>
     </div><div class="table-wrap">
       
     <c:choose>
-                <c:when test="${empty settlementList}">
+                <c:when test="${empty paymentList}">
                 <div class="panel-title" style="padding: 20px; text-align: center;">
                     <div class="section-kicker">정산 건이 없습니다</div>
                 </div>
@@ -29,18 +29,18 @@
                 <c:otherwise>
                 <table class="admin-table">
                 <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead><tbody>
-                        <c:forEach var="room" items="${settlementList}" varStatus="s">
+                        <c:forEach var="member" items="${paymentList}" varStatus="s">
                       
-    <tr><td>${s.count}</td><td>${room.room_id}</td><td>${room.host_login_id}</td><td><fmt:formatNumber value="${room.total_price}" type="number" />원</td><td>${room.billing_day}</td><td><span class="badge yellow">${room.settlement_status}</span></td>
+    <tr><td>${s.count}</td><td>${member.room_id}</td><td>${member.member_login_id}</td><td><fmt:formatNumber value="${member.pay_amount}" type="number" />원</td><td>${member.pay_day} + 연체일 ${member.pay_late_day} </td><td><span class="badge yellow">${member.settlement_status}</span></td>
     <td>
        
     <c:choose>
-    <c:when test="${room.settlement_status == 'DONE'}">
+    <c:when test="${member.settlement_status == 'DONE'}">
         <button class="mini-btn">정산 완료</button>
     </c:when>
      <c:otherwise>
-     <form action="${contextPath}/admin/settlement/pay.do" method="post"><input id="room_id" type="hidden" name="room_id" value="${room.room_id}">
-    <button class="mini-btn warning">정산금 보내기</button></form>
+     <form action="${contextPath}/payment/paymenting.do" method="post"><input id="room_id" type="hidden" name="room_id" value="${room.room_id}">
+    <button class="mini-btn warning">정산금 받기</button></form>
       </c:otherwise>
     </c:choose>
     </td></tr>

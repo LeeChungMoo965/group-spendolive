@@ -34,13 +34,13 @@ public class FaqRepository {
 
     private FaqVO mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         FaqVO faq = new FaqVO();
-        faq.setFaqId(rs.getInt("faq_id"));
+        faq.setFaq_id(rs.getInt("faq_id"));
         faq.setCategory(rs.getString("category"));
         faq.setQuestion(rs.getString("question"));
         faq.setAnswer(rs.getString("answer"));
-        faq.setSortOrder(rs.getInt("sort_order"));
-        faq.setUseYn(rs.getString("use_yn"));
-        faq.setCreatedAt(rs.getString("created_at"));
+        faq.setSort_order(rs.getInt("sort_order"));
+        faq.setUse_yn(rs.getString("use_yn"));
+        faq.setCreated_at(rs.getString("created_at"));
         return faq;
     }
 
@@ -80,7 +80,7 @@ public class FaqRepository {
     }
 
     /* ─── 단건 조회 (관리자 수정 폼) ──────────────────────────── */
-    public FaqVO findById(int faqId) {
+    public FaqVO findById(int faq_id) {
         String sql = """
             SELECT faq_id, category, question, answer, sort_order, use_yn,
                    TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
@@ -88,7 +88,7 @@ public class FaqRepository {
             WHERE faq_id = ?
         """;
         try {
-            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), faqId);
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), faq_id);
         } catch (EmptyResultDataAccessException e) {
             return null;
         } catch (DataAccessException e) {
@@ -99,16 +99,16 @@ public class FaqRepository {
 
     /* ─── 등록 ────────────────────────────────────────────────── */
     public int insertFaq(FaqVO faq) {
-        Long faqId = jdbcTemplate.queryForObject("SELECT seq_faq.NEXTVAL FROM dual", Long.class);
+        Long faq_id = jdbcTemplate.queryForObject("SELECT seq_faq.NEXTVAL FROM dual", Long.class);
         String sql = """
             INSERT INTO faq_tb(faq_id, category, question, answer, sort_order, use_yn, created_at)
             VALUES(?, ?, ?, ?, ?, ?, SYSDATE)
         """;
         try {
             jdbcTemplate.update(sql,
-                    faqId, faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
-                    faq.getSortOrder(), faq.getUseYn());
-            return faqId.intValue();
+                    faq_id, faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
+                    faq.getSort_order(), faq.getUse_yn());
+            return faq_id.intValue();
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.insertFaq] DB 오류: " + e.getMessage());
             throw e;
@@ -125,7 +125,7 @@ public class FaqRepository {
         try {
             jdbcTemplate.update(sql,
                     faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
-                    faq.getSortOrder(), faq.getUseYn(), faq.getFaqId());
+                    faq.getSort_order(), faq.getUse_yn(), faq.getFaq_id());
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.updateFaq] DB 오류: " + e.getMessage());
             throw e;
@@ -133,10 +133,10 @@ public class FaqRepository {
     }
 
     /* ─── 삭제 ────────────────────────────────────────────────── */
-    public void deleteFaq(int faqId) {
+    public void deleteFaq(int faq_id) {
         String sql = "DELETE FROM faq_tb WHERE faq_id = ?";
         try {
-            jdbcTemplate.update(sql, faqId);
+            jdbcTemplate.update(sql, faq_id);
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.deleteFaq] DB 오류: " + e.getMessage());
             throw e;

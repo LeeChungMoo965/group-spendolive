@@ -21,19 +21,19 @@ public class NotificationService {
         return notificationRepository.findById(id);
     }
 
-    public int getUnreadCount(String id) {
+    public int getUnread_count(String id) {
         return notificationRepository.countUnread(id);
     }
 
-    public void readNotification(int notificationId, String id) {
-        notificationRepository.updateReadYn(notificationId, id);
+    public void readNotification(int notification_id, String id) {
+        notificationRepository.updateReadYn(notification_id, id);
     }
 
-    public void toggleStar(int notificationId, String id) {
-        notificationRepository.toggleStar(notificationId, id);
+    public void toggleStar(int notification_id, String id) {
+        notificationRepository.toggleStar(notification_id, id);
     }
 
-    public NotificationDTO getNotificationDetail(int notificationId, String id) {
-        return notificationRepository.findByNotificationId(notificationId, id);
+    public NotificationDTO getNotificationDetail(int notification_id, String id) {
+        return notificationRepository.findByNotificationId(notification_id, id);
     }
 }

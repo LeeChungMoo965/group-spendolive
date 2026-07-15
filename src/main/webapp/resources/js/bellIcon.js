@@ -2,13 +2,13 @@ function loadNotificationBadge() {
     const badge = document.getElementById("notificationBadge");
     if (!badge) return;
 
-    fetch("/spendolive/notification/ajax/unreadCount.do")
+    fetch("/spendolive/notification/ajax/unread_count.do")
         .then(response => {
             if (!response.ok) throw new Error("HTTP " + response.status);
             return response.json();
         })
         .then(data => {
-            const count = (data && data.unreadCount) ? data.unreadCount : 0;
+            const count = (data && data.unread_count) ? data.unread_count : 0;
             if (count <= 0) {
                 badge.style.display = "none";
                 badge.textContent   = "";

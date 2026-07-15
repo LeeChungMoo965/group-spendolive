@@ -40,14 +40,15 @@ CREATE TABLE member_tb (
 CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
 
 /* =========================================================
-   2. [develop + 마이페이지/OTT 반영] 오픈뱅킹 계좌 연동 컬럼
-      - open_bank_user_seq_no : 금융결제원 사용자 일련번호
-      - open_bank_token       : 오픈뱅킹 Access Token
-      - fintech_use_num       : 실제 계좌 출금/이체에 사용하는 핀테크 이용번호
+   2. 마이페이지/OTT 연동 상태 컬럼
+      - 실제 오픈뱅킹 값은 member_account_tb에 저장
+      - 실제 카드 빌링키는 member_card_tb에 저장
    ========================================================= */
 ALTER TABLE member_tb ADD (
-    account_status  VARCHAR2(4),
-    card_status VARCHAR2(4)
+    account_status  VARCHAR2(4) DEFAULT 'NO' NOT NULL,
+    card_status     VARCHAR2(4) DEFAULT 'NO' NOT NULL,
+    CONSTRAINT ck_member_account_status CHECK (account_status IN ('YES', 'NO')),
+    CONSTRAINT ck_member_card_link_status CHECK (card_status IN ('YES', 'NO'))
 );
 
 alter table member_tb add(
@@ -75,20 +76,22 @@ CREATE TABLE MEMBER_ACCOUNT_TB (
     REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
     
     -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
+
     CONSTRAINT FK_ACCOUNT_MEMBER_ID FOREIGN KEY (ID) 
+
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE MEMBER_CARD_TB (
     CARD_IDX        NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
     ID              VARCHAR2(20) NOT NULL,                           -- 회원 ID (FK)
-    BILLING_KEY     VARCHAR2(100) NOT NULL,                          -- 토스 빌링키 (가장 중요 💥)
+    BILLING_KEY     VARCHAR2(100) NOT NULL,                          -- 토스 빌링키 
     CARD_COMPANY    VARCHAR2(50),                                    -- 카드사 이름 (ex: 신한, 현대)
     CARD_NUMBER     VARCHAR2(20),                                    -- 마스킹된 카드번호 (ex: 433012******1234)
     REG_DATE        DATE DEFAULT SYSDATE,                            -- 등록일
     
     -- 회원 테이블과의 연관 관계 설정 (회원 탈퇴 시 카드 정보도 삭제되게)
-    CONSTRAINT FK_CARD_MEMBER_ID FOREIGN KEY (MEMBER_ID) 
+    CONSTRAINT FK_CARD_MEMBER_ID FOREIGN KEY (ID) 
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
 

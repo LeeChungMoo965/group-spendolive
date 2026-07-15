@@ -40,12 +40,12 @@
         <c:if test="${not empty inquiryList}">
             <div class="inq-list" id="inqList">
                 <c:forEach var="inq" items="${inquiryList}">
-                    <div class="inq-card" onclick="goInquiryDetail('${contextPath}','${inq.inquiryId}')">
+                    <div class="inq-card" onclick="goInquiryDetail('${contextPath}','${inq.inquiry_id}')">
                         <div class="inq-top">
                             <span class="inq-category">${inq.category}</span>
                             <div class="inq-meta">
                                 <span class="badge ${inq.statusCode}">${inq.statusLabel}</span>
-                                <span class="inq-date">${inq.regDate}</span>
+                                <span class="inq-date">${inq.reg_date}</span>
                             </div>
                         </div>
                         <div class="inq-title">${inq.title}</div>
@@ -55,13 +55,13 @@
                                 <c:forEach var="file" items="${inq.files}">
                                     <c:choose>
                                         <c:when test="${file.image}">
-                                            <img src="${contextPath}/spendolive/inquiry/file/${file.fileId}"
-                                                 alt="${file.originName}" class="inq-thumb"
-                                                 onclick="event.stopPropagation(); openInqLightbox(this.src, '${file.originName}')">
+                                            <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                                 alt="${file.origin_name}" class="inq-thumb"
+                                                 onclick="event.stopPropagation(); openInqLightbox(this.src, '${file.origin_name}')">
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="${contextPath}/spendolive/inquiry/file/${file.fileId}"
-                                               target="_blank" class="inq-file-link">📎 ${file.originName}</a>
+                                            <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                               target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
@@ -76,7 +76,7 @@
                                     <div class="inq-reply"><span class="reply-dot none"></span> 아직 답변이 없습니다</div>
                                 </c:otherwise>
                             </c:choose>
-                            <span class="inq-no">문의 #${inq.inquiryId}</span>
+                            <span class="inq-no">문의 #${inq.inquiry_id}</span>
                         </div>
                     </div>
                 </c:forEach>

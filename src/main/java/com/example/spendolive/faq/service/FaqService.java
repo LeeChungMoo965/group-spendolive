@@ -12,8 +12,8 @@ public interface FaqService {
 
     // 관리자 화면
     List<FaqVO> getAllFaqList();
-    FaqVO getFaqDetail(int faqId);
+    FaqVO getFaqDetail(int faq_id);
     int insertFaq(FaqVO faq);
     void updateFaq(FaqVO faq);
-    void deleteFaq(int faqId);
+    void deleteFaq(int faq_id);
 }

@@ -91,7 +91,10 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public String sendVerificationEmail(String toEmail) throws Exception {
-        // 윈도우 한글 이름으로 인해 구글이 EOF를 반환하는 현상 방지
+
+        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+        // 윈도우 한글 이름으로 인해 구글이 EOF 뱉는 현상을 방어하기 위해 로컬호스트 강제 지정
+
         if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
             java.util.Properties props =
                     ((org.springframework.mail.javamail.JavaMailSenderImpl) mailSender)
@@ -99,7 +102,6 @@ public class MemberServiceImpl implements MemberService {
             props.put("mail.smtp.localhost", "127.0.0.1");
         }
 
-        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("chung100302@gmail.com");
@@ -120,15 +122,14 @@ public class MemberServiceImpl implements MemberService {
             System.out.println("이메일 발송 에러: " + e.getMessage());
             throw new RuntimeException("이메일 전송 중 에러 발생", e);
         }
+
     }
 
     @Override
     public String sendSmsVerification(String toNumber) throws Exception {
         String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
 
-        DefaultMessageService messageService =
-                SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
-
+        DefaultMessageService messageService =  SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
         Message message = new Message();
         message.setFrom("01024414631");
         message.setTo(toNumber);
@@ -138,15 +139,16 @@ public class MemberServiceImpl implements MemberService {
             messageService.send(message);
             return verificationCode;
         } catch (SolapiMessageNotReceivedException exception) {
-            System.out.println(exception.getFailedMessageList());
-            System.out.println(exception.getMessage());
-            throw new RuntimeException("문자 전송 중 오류 발생", exception);
-        } catch (Exception exception) {
-            System.out.println(exception.getMessage());
-            throw new RuntimeException("문자 전송 중 오류 발생", exception);
-        }
-    }
+        // 발송에 실패한 메시지 목록을 확인할 수 있습니다!
+        System.out.println(exception.getFailedMessageList());
+        System.out.println(exception.getMessage());
+        throw new RuntimeException("문자 전송 중 오류 발생");
+        } catch (Exception exception) { 
+        System.out.println(exception.getMessage());
+        throw new RuntimeException("문자 전송 중 오류 발생");
+        } 
 
+    }
     @Override
     public boolean checkId(String id) {
         return memberRepository.checkId(id);
@@ -325,12 +327,12 @@ public class MemberServiceImpl implements MemberService {
 
         Map<String, Object> firstAccount = resList.get(0);
 
-        String fintechUseNum = (String) firstAccount.get("fintech_use_num");
+        String fintech_use_num = (String) firstAccount.get("fintech_use_num");
         String accountNum = (String) firstAccount.get("account_num_masked");
         String bankCode = (String) firstAccount.get("bank_code_std");
         String accountHolderName = (String) firstAccount.get("account_holder_name");
 
-        System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
+        System.out.println("👉 진짜 24자리 번호 획득: " + fintech_use_num);
         System.out.println("👉 은행 코드 획득: " + bankCode);
         System.out.println("👉 계좌번호 획득: " + accountNum);
 
@@ -341,7 +343,7 @@ public class MemberServiceImpl implements MemberService {
         String balanceUrl =
                 "https://testapi.openbanking.or.kr/v2.0/account/balance/fintech_use_num"
                         + "?fintech_use_num="
-                        + fintechUseNum
+                        + fintech_use_num
                         + "&tran_dtime="
                         + tranDtime;
 
@@ -364,7 +366,7 @@ public class MemberServiceImpl implements MemberService {
                 userId,
                 accessToken,
                 userSeqNo,
-                fintechUseNum,
+                fintech_use_num,
                 bankCode,
                 accountNum,
                 balance,

@@ -23,16 +23,16 @@ public class InquiryRepository {
     /* ─── 공통 RowMapper ──────────────────────────────────── */
     private InquiryVO mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         InquiryVO inquiry = new InquiryVO();
-        inquiry.setInquiryId(rs.getInt("inquiry_id"));
+        inquiry.setInquiry_id(rs.getInt("inquiry_id"));
         inquiry.setId(rs.getString("id"));
         inquiry.setCategory(rs.getString("category"));
-        inquiry.setInquiryType(rs.getString("inquiry_type"));
+        inquiry.setInquiry_type(rs.getString("inquiry_type"));
         inquiry.setTitle(rs.getString("title"));
         inquiry.setContent(rs.getString("content"));
         inquiry.setStatus(rs.getString("status"));
-        inquiry.setRegDate(rs.getString("reg_date"));
-        inquiry.setReplyContent(rs.getString("reply_content"));
-        inquiry.setReplyDate(rs.getString("reply_date"));
+        inquiry.setReg_date(rs.getString("reg_date"));
+        inquiry.setReply_content(rs.getString("reply_content"));
+        inquiry.setReply_date(rs.getString("reply_date"));
         return inquiry;
     }
 
@@ -42,7 +42,7 @@ public class InquiryRepository {
      /** 관리자 화면용: mapRow + 작성자 닉네임(member_tb 조인 결과) 포함 */
      private InquiryVO mapRowWithWriter(java.sql.ResultSet rs) throws java.sql.SQLException {
         InquiryVO inquiry = mapRow(rs);
-        inquiry.setWriterNickname(rs.getString("writer_nickname"));
+        inquiry.setWriter_nickname(rs.getString("writer_nickname"));
         return inquiry;
     }
 
@@ -53,16 +53,16 @@ public class InquiryRepository {
      *  시퀀스 값을 먼저 뽑아서 INSERT문에 명시적으로 넣는 방식을 사용)
      */
     public int insertInquiry(InquiryVO inquiry) {
-        Long inquiryId = jdbcTemplate.queryForObject("SELECT inquiry_seq.NEXTVAL FROM dual", Long.class);
+        Long inquiry_id = jdbcTemplate.queryForObject("SELECT inquiry_seq.NEXTVAL FROM dual", Long.class);
         String sql = """
             INSERT INTO inquiry_tb(inquiry_id, id, category, inquiry_type, title, content, status, reg_date)
             VALUES(?, ?, ?, ?, ?, ?, 'WAIT', SYSDATE)
         """;
         try {
             jdbcTemplate.update(sql,
-                    inquiryId, inquiry.getId(), inquiry.getCategory(), inquiry.getInquiryType(),
+                    inquiry_id, inquiry.getId(), inquiry.getCategory(), inquiry.getInquiry_type(),
                     inquiry.getTitle(), inquiry.getContent());
-            return inquiryId.intValue();
+            return inquiry_id.intValue();
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.insertInquiry] DB 오류: " + e.getMessage());
             throw e;
@@ -115,7 +115,7 @@ public class InquiryRepository {
     }
 
     /* ─── 단건 조회 ───────────────────────────────────────── */
-    public InquiryVO findById(int inquiryId) {
+    public InquiryVO findById(int inquiry_id) {
         String sql = """
             SELECT inquiry_id, id, category, inquiry_type, title, content, status, reply_content,
                    TO_CHAR(reg_date, 'YYYY.MM.DD') AS reg_date,
@@ -124,9 +124,9 @@ public class InquiryRepository {
             WHERE inquiry_id = ?
         """;
         try {
-            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), inquiryId);
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), inquiry_id);
         } catch (EmptyResultDataAccessException e) {
-            System.err.println("[InquiryRepository.findById] inquiryId=" + inquiryId + " 존재하지 않음");
+            System.err.println("[InquiryRepository.findById] inquiry_id=" + inquiry_id + " 존재하지 않음");
             return null;
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.findById] DB 오류: " + e.getMessage());
@@ -172,14 +172,14 @@ public class InquiryRepository {
     }
 
     /* ─── 관리자용: 답변 등록/수정 (상태도 같이 변경) ─────────── */
-    public void replyToInquiry(int inquiryId, String replyContent, String status) {
+    public void replyToInquiry(int inquiry_id, String reply_content, String status) {
         String sql = """
             UPDATE inquiry_tb
             SET reply_content = ?, reply_date = SYSDATE, status = ?
             WHERE inquiry_id = ?
         """;
         try {
-            jdbcTemplate.update(sql, replyContent, status, inquiryId);
+            jdbcTemplate.update(sql, reply_content, status, inquiry_id);
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.replyToInquiry] DB 오류: " + e.getMessage());
             throw e;

@@ -62,12 +62,12 @@
 
                     <form action="${contextPath}/spendolive/expense/add.do" method="post" class="form-grid">
                         <input type="hidden" name="yearMonth" value="${selectedYearMonth}">
-                        <input type="hidden" id="repeatYn" name="repeatYn" value="N">
-                        <input type="hidden" id="fixedYn" name="fixedYn" value="N">
+                        <input type="hidden" id="repeat_yn" name="repeat_yn" value="N">
+                        <input type="hidden" id="fixed_yn" name="fixed_yn" value="N">
 
                         <label>
                             분류
-                            <select id="expenseType" name="expenseType" required>
+                            <select id="expense_type" name="expense_type" required>
                                 <option value="">분류 선택</option>
                                 <option value="FIXED">고정</option>
                                 <option value="VARIABLE">변동</option>
@@ -77,11 +77,11 @@
 
                         <label>
                             카테고리
-                            <select id="categoryId" name="categoryId" required>
+                            <select id="category_id" name="category_id" required>
                                 <option value="">먼저 분류를 선택하세요</option>
                                 <c:forEach var="category" items="${categoryList}">
-                                    <option value="${category.categoryId}" data-type="${category.expenseType}">
-                                        ${category.categoryName}
+                                    <option value="${category.category_id}" data-type="${category.expense_type}">
+                                        ${category.category_name}
                                     </option>
                                 </c:forEach>
                             </select>
@@ -89,7 +89,7 @@
 
                         <label>
                             지출 제목
-                            <input type="text" name="expenseTitle" placeholder="예: 월세, 점심 식사" required>
+                            <input type="text" name="expense_title" placeholder="예: 월세, 점심 식사" required>
                         </label>
 
                         <label>
@@ -99,12 +99,12 @@
 
                         <label>
                             지출 날짜
-                            <input type="date" name="expenseDate" required>
+                            <input type="date" name="expense_date" required>
                         </label>
 
                         <label>
                             결제 수단
-                            <select name="paymentMethod">
+                            <select name="payment_method">
                                 <option value="">선택 안함</option>
                                 <option value="CARD">카드</option>
                                 <option value="CASH">현금</option>
@@ -116,7 +116,7 @@
 
                         <label id="repeatCycleArea" style="display:none;">
                             반복 주기
-                            <select id="repeatCycle" name="repeatCycle">
+                            <select id="repeat_cycle" name="repeat_cycle">
                                 <option value="">반복 없음</option>
                                 <option value="MONTHLY">매월</option>
                                 <option value="WEEKLY">매주</option>
@@ -168,48 +168,48 @@
 
                             <tbody id="expenseRows">
                                 <c:forEach var="expense" items="${expenseList}">
-                                    <fmt:formatDate var="expenseDateValue" value="${expense.expenseDate}" pattern="yyyy-MM-dd" />
+                                    <fmt:formatDate var="expenseDateValue" value="${expense.expense_date}" pattern="yyyy-MM-dd" />
 
-                                    <tr class="expense-row" data-expense-id="${expense.expenseId}">
+                                    <tr class="expense-row" data-expense-id="${expense.expense_id}">
                                         <td>
                                             <span class="view-mode">
-                                                <fmt:formatDate value="${expense.expenseDate}" pattern="yyyy.MM.dd" />
+                                                <fmt:formatDate value="${expense.expense_date}" pattern="yyyy.MM.dd" />
                                             </span>
-                                            <input class="edit-mode" form="editForm${expense.expenseId}" type="date" name="expenseDate" value="${expenseDateValue}" required style="display:none;">
+                                            <input class="edit-mode" form="editForm${expense.expense_id}" type="date" name="expense_date" value="${expenseDateValue}" required style="display:none;">
                                         </td>
 
                                         <td>
                                             <span class="view-mode">
-                                                ${expense.expenseTitle}
-                                                <c:if test="${expense.autoGeneratedYn == 'Y'}">
+                                                ${expense.expense_title}
+                                                <c:if test="${expense.auto_generated_yn == 'Y'}">
                                                     <span class="tag">자동</span>
                                                 </c:if>
                                             </span>
-                                            <input class="edit-mode" form="editForm${expense.expenseId}" type="text" name="expenseTitle" value="${expense.expenseTitle}" required style="display:none;">
+                                            <input class="edit-mode" form="editForm${expense.expense_id}" type="text" name="expense_title" value="${expense.expense_title}" required style="display:none;">
                                         </td>
 
                                         <td>
                                             <span class="view-mode">
                                                 <c:choose>
-                                                    <c:when test="${expense.expenseType == 'FIXED'}">고정</c:when>
-                                                    <c:when test="${expense.expenseType == 'VARIABLE'}">변동</c:when>
-                                                    <c:when test="${expense.expenseType == 'OTT'}">OTT</c:when>
-                                                    <c:otherwise>${expense.expenseType}</c:otherwise>
+                                                    <c:when test="${expense.expense_type == 'FIXED'}">고정</c:when>
+                                                    <c:when test="${expense.expense_type == 'VARIABLE'}">변동</c:when>
+                                                    <c:when test="${expense.expense_type == 'OTT'}">OTT</c:when>
+                                                    <c:otherwise>${expense.expense_type}</c:otherwise>
                                                 </c:choose>
                                             </span>
-                                            <select class="edit-mode edit-expense-type" form="editForm${expense.expenseId}" name="expenseType" data-row-id="${expense.expenseId}" onchange="filterEditCategoriesFromSelect(this)" required style="display:none;">
-                                                <option value="FIXED" ${expense.expenseType == 'FIXED' ? 'selected' : ''}>고정</option>
-                                                <option value="VARIABLE" ${expense.expenseType == 'VARIABLE' ? 'selected' : ''}>변동</option>
-                                                <option value="OTT" ${expense.expenseType == 'OTT' ? 'selected' : ''}>OTT</option>
+                                            <select class="edit-mode edit-expense-type" form="editForm${expense.expense_id}" name="expense_type" data-row-id="${expense.expense_id}" onchange="filterEditCategoriesFromSelect(this)" required style="display:none;">
+                                                <option value="FIXED" ${expense.expense_type == 'FIXED' ? 'selected' : ''}>고정</option>
+                                                <option value="VARIABLE" ${expense.expense_type == 'VARIABLE' ? 'selected' : ''}>변동</option>
+                                                <option value="OTT" ${expense.expense_type == 'OTT' ? 'selected' : ''}>OTT</option>
                                             </select>
                                         </td>
 
                                         <td>
-                                            <span class="view-mode">${expense.categoryName}</span>
-                                            <select class="edit-mode edit-category" form="editForm${expense.expenseId}" name="categoryId" data-row-id="${expense.expenseId}" required style="display:none;">
+                                            <span class="view-mode">${expense.category_name}</span>
+                                            <select class="edit-mode edit-category" form="editForm${expense.expense_id}" name="category_id" data-row-id="${expense.expense_id}" required style="display:none;">
                                                 <c:forEach var="category" items="${categoryList}">
-                                                    <option value="${category.categoryId}" data-type="${category.expenseType}" ${category.categoryId == expense.categoryId ? 'selected' : ''}>
-                                                        ${category.categoryName}
+                                                    <option value="${category.category_id}" data-type="${category.expense_type}" ${category.category_id == expense.category_id ? 'selected' : ''}>
+                                                        ${category.category_name}
                                                     </option>
                                                 </c:forEach>
                                             </select>
@@ -219,68 +219,68 @@
                                             <span class="view-mode">
                                                 <fmt:formatNumber value="${expense.amount}" pattern="#,###" />원
                                             </span>
-                                            <input class="edit-mode" form="editForm${expense.expenseId}" type="number" name="amount" value="${expense.amount}" min="0" required style="display:none;">
+                                            <input class="edit-mode" form="editForm${expense.expense_id}" type="number" name="amount" value="${expense.amount}" min="0" required style="display:none;">
                                         </td>
 
                                         <td>
                                             <span class="view-mode">
                                                 <c:choose>
-                                                    <c:when test="${expense.paymentMethod == 'CARD'}">카드</c:when>
-                                                    <c:when test="${expense.paymentMethod == 'CASH'}">현금</c:when>
-                                                    <c:when test="${expense.paymentMethod == 'TRANSFER'}">계좌이체</c:when>
-                                                    <c:when test="${expense.paymentMethod == 'KAKAO_PAY'}">카카오페이</c:when>
-                                                    <c:when test="${expense.paymentMethod == 'NAVER_PAY'}">네이버페이</c:when>
+                                                    <c:when test="${expense.payment_method == 'CARD'}">카드</c:when>
+                                                    <c:when test="${expense.payment_method == 'CASH'}">현금</c:when>
+                                                    <c:when test="${expense.payment_method == 'TRANSFER'}">계좌이체</c:when>
+                                                    <c:when test="${expense.payment_method == 'KAKAO_PAY'}">카카오페이</c:when>
+                                                    <c:when test="${expense.payment_method == 'NAVER_PAY'}">네이버페이</c:when>
                                                     <c:otherwise>-</c:otherwise>
                                                 </c:choose>
                                             </span>
-                                            <select class="edit-mode" form="editForm${expense.expenseId}" name="paymentMethod" style="display:none;">
-                                                <option value="" ${empty expense.paymentMethod ? 'selected' : ''}>선택 안함</option>
-                                                <option value="CARD" ${expense.paymentMethod == 'CARD' ? 'selected' : ''}>카드</option>
-                                                <option value="CASH" ${expense.paymentMethod == 'CASH' ? 'selected' : ''}>현금</option>
-                                                <option value="TRANSFER" ${expense.paymentMethod == 'TRANSFER' ? 'selected' : ''}>계좌이체</option>
-                                                <option value="KAKAO_PAY" ${expense.paymentMethod == 'KAKAO_PAY' ? 'selected' : ''}>카카오페이</option>
-                                                <option value="NAVER_PAY" ${expense.paymentMethod == 'NAVER_PAY' ? 'selected' : ''}>네이버페이</option>
+                                            <select class="edit-mode" form="editForm${expense.expense_id}" name="payment_method" style="display:none;">
+                                                <option value="" ${empty expense.payment_method ? 'selected' : ''}>선택 안함</option>
+                                                <option value="CARD" ${expense.payment_method == 'CARD' ? 'selected' : ''}>카드</option>
+                                                <option value="CASH" ${expense.payment_method == 'CASH' ? 'selected' : ''}>현금</option>
+                                                <option value="TRANSFER" ${expense.payment_method == 'TRANSFER' ? 'selected' : ''}>계좌이체</option>
+                                                <option value="KAKAO_PAY" ${expense.payment_method == 'KAKAO_PAY' ? 'selected' : ''}>카카오페이</option>
+                                                <option value="NAVER_PAY" ${expense.payment_method == 'NAVER_PAY' ? 'selected' : ''}>네이버페이</option>
                                             </select>
                                         </td>
 
                                         <td>
                                             <span class="view-mode">
                                                 <c:choose>
-                                                    <c:when test="${expense.repeatCycle == 'MONTHLY'}">매월</c:when>
-                                                    <c:when test="${expense.repeatCycle == 'WEEKLY'}">매주</c:when>
-                                                    <c:when test="${expense.repeatCycle == 'YEARLY'}">매년</c:when>
+                                                    <c:when test="${expense.repeat_cycle == 'MONTHLY'}">매월</c:when>
+                                                    <c:when test="${expense.repeat_cycle == 'WEEKLY'}">매주</c:when>
+                                                    <c:when test="${expense.repeat_cycle == 'YEARLY'}">매년</c:when>
                                                     <c:otherwise>-</c:otherwise>
                                                 </c:choose>
                                             </span>
-                                            <select class="edit-mode edit-repeat-cycle" form="editForm${expense.expenseId}" name="repeatCycle" data-row-id="${expense.expenseId}" onchange="changeEditRepeatYnFromSelect(this)" style="display:none;">
-                                                <option value="" ${empty expense.repeatCycle ? 'selected' : ''}>반복 없음</option>
-                                                <option value="MONTHLY" ${expense.repeatCycle == 'MONTHLY' ? 'selected' : ''}>매월</option>
-                                                <option value="WEEKLY" ${expense.repeatCycle == 'WEEKLY' ? 'selected' : ''}>매주</option>
-                                                <option value="YEARLY" ${expense.repeatCycle == 'YEARLY' ? 'selected' : ''}>매년</option>
+                                            <select class="edit-mode edit-repeat-cycle" form="editForm${expense.expense_id}" name="repeat_cycle" data-row-id="${expense.expense_id}" onchange="changeEditRepeatYnFromSelect(this)" style="display:none;">
+                                                <option value="" ${empty expense.repeat_cycle ? 'selected' : ''}>반복 없음</option>
+                                                <option value="MONTHLY" ${expense.repeat_cycle == 'MONTHLY' ? 'selected' : ''}>매월</option>
+                                                <option value="WEEKLY" ${expense.repeat_cycle == 'WEEKLY' ? 'selected' : ''}>매주</option>
+                                                <option value="YEARLY" ${expense.repeat_cycle == 'YEARLY' ? 'selected' : ''}>매년</option>
                                             </select>
                                         </td>
 
                                         <td>
                                             <c:choose>
-                                                <c:when test="${expense.autoGeneratedYn == 'Y'}">
+                                                <c:when test="${expense.auto_generated_yn == 'Y'}">
                                                     <span class="tag">원본달에서 삭제</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <form id="editForm${expense.expenseId}" action="${contextPath}/spendolive/expense/modify.do" method="post">
-                                                        <input type="hidden" name="expenseId" value="${expense.expenseId}">
+                                                    <form id="editForm${expense.expense_id}" action="${contextPath}/spendolive/expense/modify.do" method="post">
+                                                        <input type="hidden" name="expense_id" value="${expense.expense_id}">
                                                         <input type="hidden" name="yearMonth" value="${selectedYearMonth}">
-                                                        <input type="hidden" id="editRepeatYn${expense.expenseId}" name="repeatYn" value="${expense.repeatYn}">
-                                                        <input type="hidden" id="editFixedYn${expense.expenseId}" name="fixedYn" value="${expense.fixedYn}">
-                                                        <input type="hidden" form="editForm${expense.expenseId}" name="memo" value="${expense.memo}">
+                                                        <input type="hidden" id="editRepeatYn${expense.expense_id}" name="repeat_yn" value="${expense.repeat_yn}">
+                                                        <input type="hidden" id="editFixedYn${expense.expense_id}" name="fixed_yn" value="${expense.fixed_yn}">
+                                                        <input type="hidden" form="editForm${expense.expense_id}" name="memo" value="${expense.memo}">
                                                     </form>
 
                                                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
                                                         <button type="button" class="btn btn-primary edit-btn" onclick="changeEditMode(this)">수정</button>
-                                                        <button type="submit" form="editForm${expense.expenseId}" class="btn btn-primary save-btn" style="display:none;">완료</button>
+                                                        <button type="submit" form="editForm${expense.expense_id}" class="btn btn-primary save-btn" style="display:none;">완료</button>
                                                         <button type="button" class="btn btn-outline cancel-btn" onclick="cancelEditMode(this)" style="display:none;">취소</button>
 
                                                         <form action="${contextPath}/spendolive/expense/delete.do" method="post" onsubmit="return confirm('이 지출 내역을 삭제하시겠습니까?');">
-                                                            <input type="hidden" name="expenseId" value="${expense.expenseId}">
+                                                            <input type="hidden" name="expense_id" value="${expense.expense_id}">
                                                             <input type="hidden" name="yearMonth" value="${selectedYearMonth}">
                                                             <button type="submit" class="btn btn-outline delete-btn">삭제</button>
                                                         </form>
@@ -357,7 +357,7 @@
                                 <c:forEach var="categoryData" items="${categorySummaryList}">
                                     <li>
                                         <div class="category-analysis-head">
-                                            <strong>${categoryData.categoryName}</strong>
+                                            <strong>${categoryData.category_name}</strong>
                                             <span>${categoryData.percent}%</span>
                                         </div>
                                         <div class="category-progress">
@@ -388,8 +388,8 @@
                                 <c:forEach var="ranking" items="${rankingList}">
                                     <li>
                                         <div>
-                                            <strong>${ranking.expenseTitle}</strong>
-                                            <span>${ranking.categoryName}</span>
+                                            <strong>${ranking.expense_title}</strong>
+                                            <span>${ranking.category_name}</span>
                                         </div>
                                         <em>
                                             <fmt:formatNumber value="${ranking.amount}" pattern="#,###" />원
@@ -408,12 +408,12 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const expenseTypeSelect = document.getElementById('expenseType');
-        const categorySelect = document.getElementById('categoryId');
+        const expenseTypeSelect = document.getElementById('expense_type');
+        const categorySelect = document.getElementById('category_id');
         const repeatCycleArea = document.getElementById('repeatCycleArea');
-        const repeatCycleSelect = document.getElementById('repeatCycle');
-        const repeatYnInput = document.getElementById('repeatYn');
-        const fixedYnInput = document.getElementById('fixedYn');
+        const repeatCycleSelect = document.getElementById('repeat_cycle');
+        const repeatYnInput = document.getElementById('repeat_yn');
+        const fixedYnInput = document.getElementById('fixed_yn');
 
         const categoryMasterList = categorySelect
             ? Array.from(categorySelect.querySelectorAll('option[data-type]')).map(option => ({
@@ -663,11 +663,11 @@
         }
 
         function changeEditRepeatYnByRow(row) {
-            const expenseId = row.dataset.expenseId;
+            const expense_id = row.dataset.expense_id;
             const typeSelect = row.querySelector('.edit-expense-type');
             const editRepeatCycleSelect = row.querySelector('.edit-repeat-cycle');
-            const editRepeatYnInput = document.getElementById(`editRepeatYn${expenseId}`);
-            const editFixedYnInput = document.getElementById(`editFixedYn${expenseId}`);
+            const editRepeatYnInput = document.getElementById(`editRepeatYn${expense_id}`);
+            const editFixedYnInput = document.getElementById(`editFixedYn${expense_id}`);
 
             if (!typeSelect || !editRepeatCycleSelect || !editRepeatYnInput || !editFixedYnInput) {
                 return;

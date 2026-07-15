@@ -10,21 +10,21 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InquiryVO {
-    private int inquiryId;
+    private int inquiry_id;
     private String id;            // member_tb.id (작성자)
     private String category;      // 계정·로그인 / 지출관리 / OTT관리 / 캘린더 / 공지·알림 / 결제·정산 / 기타
-    private String inquiryType;   // 오류/버그 신고 / 기능 개선 제안 / 사용 방법 문의 / 기타 문의
+    private String inquiry_type;   // 오류/버그 신고 / 기능 개선 제안 / 사용 방법 문의 / 기타 문의
     private String title;
     private String content;
     private String status;        // WAIT | DONE | REVIEW (DB 저장값, 대문자)
-    private String regDate;
-    private String replyContent;
-    private String replyDate;
+    private String reg_date;
+    private String reply_content;
+    private String reply_date;
 
 
     /** 관리자 화면용: 작성자 닉네임 (member_tb.nickname 조인 결과, inquiry_tb 자체 컬럼 아님).
      *  카카오 등 소셜 로그인 회원은 id가 사람이 읽기 힘든 숫자라서 별도로 채워서 보여줌. */
-    private String writerNickname;
+    private String writer_nickname;
 
 
     /** 이 문의에 달린 첨부파일 목록. inquiry_tb 자체 컬럼이 아니라
@@ -48,7 +48,7 @@ public class InquiryVO {
 
     /** inquiryList.jsp의 c:if hasReply 분기용 */
     public boolean isHasReply() {
-        return replyContent != null && !replyContent.isBlank();
+        return reply_content != null && !reply_content.isBlank();
     }
 
     /** inquiryList.jsp 카드 미리보기 (100자 제한) */

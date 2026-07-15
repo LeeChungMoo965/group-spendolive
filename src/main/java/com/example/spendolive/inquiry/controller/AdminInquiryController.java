@@ -108,19 +108,19 @@ public class AdminInquiryController {
     /* ─── 답변 등록/수정 ─────────────────────────────────── */
     @PostMapping("/reply.do")
     public ModelAndView reply(
-            @RequestParam(value = "inquiryId", defaultValue = "0") int inquiryId,
-            @RequestParam(value = "replyContent", required = false) String replyContent,
+            @RequestParam(value = "inquiry_id", defaultValue = "0") int inquiry_id,
+            @RequestParam(value = "reply_content", required = false) String reply_content,
             @RequestParam(value = "status", defaultValue = "DONE") String status,
             HttpSession session, RedirectAttributes ra) {
 
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
-        if (inquiryId <= 0) {
+        if (inquiry_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 문의 번호입니다.");
             return new ModelAndView("redirect:/spendolive/admin/inquiry/list.do");
         }
-        if (replyContent == null || replyContent.isBlank()) {
+        if (reply_content == null || reply_content.isBlank()) {
             ra.addFlashAttribute("errorMsg", "답변 내용을 입력해 주세요.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/detail.do?inquiryNo=" + inquiryId);
+            return new ModelAndView("redirect:/spendolive/admin/inquiry/detail.do?inquiryNo=" + inquiry_id);
         }
         // 관리자가 고를 수 있는 상태는 DONE(답변완료) / REVIEW(검토중) 둘 중 하나로 제한
         if (!"DONE".equals(status) && !"REVIEW".equals(status)) {
@@ -128,12 +128,12 @@ public class AdminInquiryController {
         }
 
         try {
-            inquiryService.replyToInquiry(inquiryId, replyContent.strip(), status);
+            inquiryService.replyToInquiry(inquiry_id, reply_content.strip(), status);
             ra.addFlashAttribute("msg", "답변이 등록되었습니다.");
         } catch (DataAccessException e) {
             System.err.println("[AdminInquiryController.reply] 답변 등록 실패: " + e.getMessage());
             ra.addFlashAttribute("errorMsg", "답변 등록 중 오류가 발생했습니다.");
         }
-        return new ModelAndView("redirect:/spendolive/admin/inquiry/detail.do?inquiryNo=" + inquiryId);
+        return new ModelAndView("redirect:/spendolive/admin/inquiry/detail.do?inquiryNo=" + inquiry_id);
     }
 }

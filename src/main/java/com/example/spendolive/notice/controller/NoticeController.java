@@ -71,10 +71,10 @@ public class NoticeController {
     /* ─── 공지 상세 ───────────────────────────────────────── */
     @GetMapping("/detail.do")
     public ModelAndView noticeDetail(
-            @RequestParam(value = "noticeId", required = false, defaultValue = "0") int noticeId,
+            @RequestParam(value = "notice_id", required = false, defaultValue = "0") int notice_id,
             HttpSession session) {
 
-        if (noticeId <= 0) {
+        if (notice_id <= 0) {
             ModelAndView mav = new ModelAndView("common/layout");
             mav.addObject("body_page", "/WEB-INF/views/notice/noticeCenter.jsp");
             mav.addObject("errorMsg", "잘못된 공지 번호입니다.");
@@ -84,7 +84,7 @@ public class NoticeController {
 
         NoticeDTO notice = null;
         try {
-            notice = noticeService.getNoticeDetail(noticeId);
+            notice = noticeService.getNoticeDetail(notice_id);
         } catch (Exception e) {
             System.err.println("[NoticeController.noticeDetail] 조회 실패: " + e.getMessage());
         }
@@ -101,7 +101,7 @@ public class NoticeController {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo != null && memberInfo.getId() != null) {
             try {
-                noticeService.readNotice(noticeId, memberInfo.getId());
+                noticeService.readNotice(notice_id, memberInfo.getId());
             } catch (Exception e) {
                 System.err.println("[NoticeController.noticeDetail] 읽음 처리 실패: " + e.getMessage());
             }
@@ -166,7 +166,7 @@ public class NoticeController {
     @PostMapping("/ajax/star.do")
     @ResponseBody
     public Map<String, String> toggleNoticeStar(
-            @RequestParam(value = "noticeId", required = false, defaultValue = "0") int noticeId,
+            @RequestParam(value = "notice_id", required = false, defaultValue = "0") int notice_id,
             HttpSession session) {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
@@ -174,12 +174,12 @@ public class NoticeController {
         if (memberInfo == null || memberInfo.getId() == null) {
             return Map.of("result", "LOGIN_REQUIRED");
         }
-        if (noticeId <= 0) {
+        if (notice_id <= 0) {
             return Map.of("result", "INVALID_PARAM");
         }
 
         try {
-            noticeService.toggleNoticeStar(noticeId, memberInfo.getId());
+            noticeService.toggleNoticeStar(notice_id, memberInfo.getId());
             return Map.of("result", "OK");
         } catch (Exception e) {
             System.err.println("[NoticeController.toggleNoticeStar] 오류: " + e.getMessage());

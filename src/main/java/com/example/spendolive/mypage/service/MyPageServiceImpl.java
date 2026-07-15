@@ -54,7 +54,7 @@ public class MyPageServiceImpl implements MyPageService {
         myPage.setOpenBankUserSeq(
                 accountInfo == null
                         ? null
-                        : accountInfo.getOpenBankUserSeq()
+                        : accountInfo.getOpen_bank_user_seq()
         );
     
         myPage.setWarningCount(Math.max(
@@ -101,10 +101,10 @@ public class MyPageServiceImpl implements MyPageService {
 
     private boolean isAccountConnected(MemberAccountVO accountInfo) {
         return accountInfo != null
-                && accountInfo.getOpenBankToken() != null
-                && !accountInfo.getOpenBankToken().isBlank()
-                && accountInfo.getOpenBankUserSeq() != null
-                && !accountInfo.getOpenBankUserSeq().isBlank();
+                && accountInfo.getOpen_bank_token() != null
+                && !accountInfo.getOpen_bank_token().isBlank()
+                && accountInfo.getOpen_bank_user_seq() != null
+                && !accountInfo.getOpen_bank_user_seq().isBlank();
     }
 
     private String makeProfileInitial(MemberVO memberInfo) {
