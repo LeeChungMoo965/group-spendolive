@@ -82,14 +82,14 @@ public class SpendOliveController {
             return;
         }
 
-        long memberId = memberInfo.getMember_id();
+        long member_id = memberInfo.getMember_id();
         String currentYearMonth = YearMonth.now().toString();
 
         int fixedTotal = 0;
         int variableTotal = 0;
         int ottTotal = 0;
 
-        List<ExpenseDTO> expenseList = expenseService.getExpenseList(memberId, currentYearMonth);
+        List<ExpenseDTO> expenseList = expenseService.getExpenseList(member_id, currentYearMonth);
 
         for (ExpenseDTO expense : expenseList) {
             int amount = expense.getAmount() == null ? 0 : expense.getAmount();

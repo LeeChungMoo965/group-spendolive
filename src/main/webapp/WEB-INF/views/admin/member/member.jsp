@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
 
 
-    <body data-page="report">
+    <body data-page="member">
     <div class="admin-shell">
     <main class="admin-main">
     

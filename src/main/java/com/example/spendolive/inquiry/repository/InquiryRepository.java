@@ -73,7 +73,7 @@ public class InquiryRepository {
     /**
      * @param status null 또는 blank면 전체 조회, 아니면 해당 상태(WAIT/DONE/REVIEW)만 조회
      */
-    public List<InquiryVO> findByMemberId(String id, String status, int offset, int limit) {
+    public List<InquiryVO> findBymember_id(String id, String status, int offset, int limit) {
         if (id == null || id.isBlank()) return Collections.emptyList();
 
         String sql = """
@@ -92,13 +92,13 @@ public class InquiryRepository {
             }
             return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), id, offset, limit);
         } catch (DataAccessException e) {
-            System.err.println("[InquiryRepository.findByMemberId] DB 오류: " + e.getMessage());
+            System.err.println("[InquiryRepository.findBymember_id] DB 오류: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /* ─── 내 문의 총 개수 (상태 필터) ─────────────────────── */
-    public int countByMemberId(String id, String status) {
+    public int countBymember_id(String id, String status) {
         if (id == null || id.isBlank()) return 0;
 
         String sql = "SELECT COUNT(*) FROM inquiry_tb WHERE id = ?"
@@ -109,7 +109,7 @@ public class InquiryRepository {
                     : jdbcTemplate.queryForObject(sql, Integer.class, id);
             return (count != null) ? count : 0;
         } catch (DataAccessException e) {
-            System.err.println("[InquiryRepository.countByMemberId] DB 오류: " + e.getMessage());
+            System.err.println("[InquiryRepository.countBymember_id] DB 오류: " + e.getMessage());
             return 0;
         }
     }

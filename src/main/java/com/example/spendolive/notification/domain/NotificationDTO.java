@@ -14,5 +14,5 @@ public class NotificationDTO {
     private String linkUrl;
     private String readYn;
     private String starYn;
-    private String createdAt;
+    private String created_at;
 }

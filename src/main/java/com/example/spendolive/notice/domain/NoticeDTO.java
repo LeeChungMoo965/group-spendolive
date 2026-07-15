@@ -15,7 +15,7 @@ public class NoticeDTO {
 
     private String pinnedYn;
 
-    private String createdAt;
+    private String created_at;
     private String updatedAt;
     private String readYn;
     private String starYn;

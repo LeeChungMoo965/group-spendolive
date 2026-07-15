@@ -39,9 +39,9 @@ public class ExpenseController {
                             Model model,
                             RedirectAttributes redirectAttributes,  
                             HttpSession session) {
-        Long memberId = getLoginMemberId(session);
+        Long member_id = getLoginmember_id(session);
 
-        if (memberId == null) {
+        if (member_id == null) {
             redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
             return "redirect:/member/loginForm.do?log=expense";
         }
@@ -54,7 +54,7 @@ public class ExpenseController {
         
 
         YearMonth selectedMonth = YearMonth.parse(yearMonth);
-    List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(memberId, yearMonth);
+    List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(member_id, yearMonth);
 
     // date가 지정된 경우, 테이블에는 그 날짜 지출만 필터링
     List<ExpenseDTO> tableExpenseList = monthExpenseList;
@@ -73,7 +73,7 @@ public class ExpenseController {
         // 상단 요약/하단 분석은 달 전체 기준으로 유지 (monthExpenseList 사용)
         model.addAttribute("expenseTypeSummary", makeExpenseTypeSummary(monthExpenseList));
         model.addAttribute("selectedMonthTotal", sumAmount(monthExpenseList));
-        model.addAttribute("monthChartList", makeMonthChartList(memberId, selectedMonth));
+        model.addAttribute("monthChartList", makeMonthChartList(member_id, selectedMonth));
         model.addAttribute("categorySummaryList", makeCategorySummaryList(monthExpenseList));
         model.addAttribute("rankingList", makeRankingList(monthExpenseList));
 
@@ -94,13 +94,13 @@ public class ExpenseController {
                              @RequestParam(value = "yearMonth", required = false) String yearMonth,
                              HttpSession session) {
 
-        Long memberId = getLoginMemberId(session);
+        Long member_id = getLoginmember_id(session);
 
-        if (memberId == null) {
+        if (member_id == null) {
             return "redirect:/member/loginForm.do";
         }
 
-        expenseDTO.setMemberId(memberId);
+        expenseDTO.setMember_id(member_id);
         applyRepeatSettings(expenseDTO);
 
         expenseService.addExpense(expenseDTO);
@@ -117,13 +117,13 @@ public class ExpenseController {
                                 @RequestParam(value = "yearMonth", required = false) String yearMonth,
                                 HttpSession session) {
 
-        Long memberId = getLoginMemberId(session);
+        Long member_id = getLoginmember_id(session);
 
-        if (memberId == null) {
+        if (member_id == null) {
             return "redirect:/member/loginForm.do";
         }
 
-        expenseDTO.setMemberId(memberId);
+        expenseDTO.setMember_id(member_id);
         applyRepeatSettings(expenseDTO);
 
         expenseService.modifyExpense(expenseDTO);
@@ -140,13 +140,13 @@ public class ExpenseController {
                                 @RequestParam(value = "yearMonth", required = false) String yearMonth,
                                 HttpSession session) {
 
-        Long memberId = getLoginMemberId(session);
+        Long member_id = getLoginmember_id(session);
 
-        if (memberId == null) {
+        if (member_id == null) {
             return "redirect:/member/loginForm.do";
         }
 
-        expenseService.removeExpense(expenseId, memberId);
+        expenseService.removeExpense(expenseId, member_id);
 
         if (yearMonth == null || yearMonth.isBlank()) {
             yearMonth = YearMonth.now().toString();
@@ -155,7 +155,7 @@ public class ExpenseController {
         return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
     }
 
-    private Long getLoginMemberId(HttpSession session) {
+    private Long getLoginmember_id(HttpSession session) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
 
         if (memberInfo == null) {
@@ -217,13 +217,13 @@ public class ExpenseController {
         return typeSummary;
     }
 
-    private List<Map<String, Object>> makeMonthChartList(Long memberId, YearMonth selectedMonth) {
+    private List<Map<String, Object>> makeMonthChartList(Long member_id, YearMonth selectedMonth) {
         List<Map<String, Object>> monthChartList = new ArrayList<>();
         List<Integer> totalList = new ArrayList<>();
 
         for (int i = -2; i <= 0; i++) {
             YearMonth month = selectedMonth.plusMonths(i);
-            int total = sumAmount(expenseService.getExpenseList(memberId, month.toString()));
+            int total = sumAmount(expenseService.getExpenseList(member_id, month.toString()));
             totalList.add(total);
         }
 

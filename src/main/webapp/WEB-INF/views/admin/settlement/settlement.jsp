@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
 
 
-    <body data-page="report">
+    <body data-page="settlement">
     <div class="admin-shell">
 
    
@@ -31,12 +31,13 @@
                 <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead><tbody>
                         <c:forEach var="room" items="${settlementList}" varStatus="s">
                       
-    <tr><td>${s.count}</td><td>${room.roomId}</td><td>${room.hostMemberId}</td><td><fmt:formatNumber value="${room.totalPrice}" type="number" />원</td><td>${room.billingDay}</td><td><span class="badge yellow">${room.settlement_status}</span></td>
+    <tr><td>${s.count}</td><td>${room.roomId}</td><td>${room.hostmember_id}</td><td><fmt:formatNumber value="${room.totalPrice}" type="number" />원</td><td>${room.billingDay}</td><td><span class="badge yellow">${room.settlement_status}</span></td>
     <td>
        
     <c:choose>
     <c:when test="${room.settlement_status == 'DONE'}">
-        <button class="mini-btn">정산 완료</button>
+    
+    <button class="mini-btn">정산 완료 확인</button>
     </c:when>
      <c:otherwise>
      <form action="${contextPath}/admin/settlement/pay.do" method="post"><input id="roomId" type="hidden" name="roomId" value="${room.roomId}">

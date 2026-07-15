@@ -79,7 +79,7 @@
                                    style="color:#111;text-decoration:none;">${notice.title}</a>
                             </td>
                             <td>${notice.adminId}</td>
-                            <td>${notice.createdAt}</td>
+                            <td>${notice.created_at}</td>
                             <td class="col-act">
                                 <a href="${contextPath}/spendolive/admin/notice/edit.do?noticeId=${notice.noticeId}" class="btn-edit">수정</a>
                                 <form action="${contextPath}/spendolive/admin/notice/delete.do" method="post" style="display:inline;"

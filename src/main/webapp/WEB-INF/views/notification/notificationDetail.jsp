@@ -41,7 +41,7 @@
                 <h1 class="notif-detail-title">${notification.title}</h1>
 
                 <div class="notif-detail-meta">
-                    <span>수신일 ${notification.createdAt}</span>
+                    <span>수신일 ${notification.created_at}</span>
                     <span>${notification.readYn == 'Y' ? '읽음' : '안 읽음'}</span>
                 </div>
 

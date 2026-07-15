@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class SellerAccountVO {
 
     private Long sellerIdx;         // SELLER_IDX (NUMBER -> 자바에서는 Long이 정석!)
-    private String memberId;        // MEMBER_ID (VARCHAR2)
+    private String member_id;        // member_id (VARCHAR2)
     private String bankName;        // BANK_NAME (VARCHAR2)
     private String accountNumber;   // ACCOUNT_NUMBER (VARCHAR2)
     private String traceId;         // traceId (VARCHAR2) - 금결원 거래고유번호나 토스 서브몰 ID 킵하는 용도

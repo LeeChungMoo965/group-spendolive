@@ -49,7 +49,7 @@ public class InquiryService {
      * @param status null이면 전체, 아니면 WAIT/DONE/REVIEW 중 하나 (DB 저장값, 대문자)로 필터링
      */
     public List<InquiryVO> getMyInquiryList(String id, int page, String status) {
-        int totalCount = inquiryRepository.countByMemberId(id, status);
+        int totalCount = inquiryRepository.countBymember_id(id, status);
         if (totalCount == 0) {
             return Collections.emptyList();
         }
@@ -57,11 +57,11 @@ public class InquiryService {
         List<InquiryVO> list;
         if (totalCount <= PAGINATION_THRESHOLD) {
             // 10개 이하면 페이지 나누지 않고 전부 반환
-            list = inquiryRepository.findByMemberId(id, status, 0, totalCount);
+            list = inquiryRepository.findBymember_id(id, status, 0, totalCount);
         } else {
             int safePage = Math.max(page, 1);
             int offset = (safePage - 1) * PAGE_SIZE;
-            list = inquiryRepository.findByMemberId(id, status, offset, PAGE_SIZE);
+            list = inquiryRepository.findBymember_id(id, status, offset, PAGE_SIZE);
         }
 
         // 각 문의에 첨부파일 목록을 채워 넣는다 (목록 카드에서 썸네일 표시용)
@@ -72,7 +72,7 @@ public class InquiryService {
     }
 
     public int getMyInquiryTotalPages(String id, String status) {
-        int totalCount = inquiryRepository.countByMemberId(id, status);
+        int totalCount = inquiryRepository.countBymember_id(id, status);
         if (totalCount <= PAGINATION_THRESHOLD) {
             return 1; // 10개 이하면 페이지네이션 UI 자체를 숨김 (inquiryList.jsp의 totalPages > 1 조건)
         }
@@ -91,7 +91,7 @@ public class InquiryService {
      * 첨부파일 미리보기/다운로드 요청 시 접근 권한을 확인한다.
      * 관리자는 전체 열람 가능, 일반 회원은 본인 문의의 첨부파일만 열람 가능
      */
-    public InquiryFileVO getInquiryFile(int fileId, String memberId, boolean isAdmin) {
+    public InquiryFileVO getInquiryFile(int fileId, String member_id, boolean isAdmin) {
         InquiryFileVO file = inquiryFileRepository.findById(fileId);
         if (file == null) {
             return null;
@@ -100,7 +100,7 @@ public class InquiryService {
             return file;
         }
         InquiryVO inquiry = inquiryRepository.findById(file.getInquiryId());
-        if (inquiry == null || !inquiry.getId().equals(memberId)) {
+        if (inquiry == null || !inquiry.getId().equals(member_id)) {
             return null;
         }
         return file;

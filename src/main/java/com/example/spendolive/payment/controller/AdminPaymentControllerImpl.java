@@ -13,8 +13,10 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.service.MemberService;
 import com.example.spendolive.ott.domain.OttRoomDTO;
 import com.example.spendolive.ott.domain.OttRoomMemberDTO;
+import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.payment.service.PaymentService;
 import com.example.spendolive.report.domain.ReportVO;
 import com.example.spendolive.report.service.ReportService;
@@ -27,6 +29,8 @@ import jakarta.servlet.http.HttpSession;
 public class AdminPaymentControllerImpl implements AdminPaymentController{
     @Autowired
     private PaymentService paymentService;
+    @Autowired
+    private MemberService memberService;
     @Override
     @GetMapping("/list.do")
     public ModelAndView listUpSettlement(@RequestParam(value = "status", required = false) String status,HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
@@ -82,5 +86,55 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         mav.addObject("body_page", bodyPage);
         return mav;
     }
-    
+    @Override
+    @PostMapping("/paymenting.do")
+    public String payment(
+        @RequestParam("userId") String userId,@RequestParam("roomId") String roomIdStr,
+            HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+
+        response.setContentType("text/html; charset=UTF-8");
+        int roomId = Integer.parseInt(roomIdStr);
+        OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(roomId);
+        int total_amount =  settlementInfo.getTotalPrice();
+        int member_limit = settlementInfo.getMember_limit();
+        int base_amount = total_amount / member_limit;
+        int fee_amount = (base_amount / 100) * member_limit;
+        int total_price = base_amount + fee_amount; 
+        String host_id = settlementInfo.getHost_id();
+        int settlement_id = (int) settlementInfo.getSettlementId().longValue();
+
+        try {
+            paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);
+            redirectAttributes.addFlashAttribute("msg", "결제가 완료 되었습니다 !");
+            return "redirect:/admin/settlement/paymentlist.do";
+      
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("msg", "결제가 실패 되었습니다 다시 시도 해주세요");
+            return "redirect:/admin/settlement/paymentlist.do";
+        }
+    }
+    @Override
+    @PostMapping("/paymentlate.do")
+    public String paymentlate(
+        @RequestParam("userId") String userId,@RequestParam("roomId") String roomIdStr,@RequestParam("late_day") String late_dayStr,
+            HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+
+        response.setContentType("text/html; charset=UTF-8");
+        int roomId = Integer.parseInt(roomIdStr);
+        int late_day = Integer.parseInt(late_dayStr);
+
+        try {
+            paymentService.updateTodaysettlementroommemberlate(roomId,userId,late_day);
+            redirectAttributes.addFlashAttribute("msg", "정산이 하루 연기 되었습니다 !");
+            return "redirect:/admin/settlement/paymentlist.do";
+      
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("msg", "정산 연기 실패 되었습니다 다시 시도 해주세요");
+            return "redirect:/admin/settlement/paymentlist.do";
+        }
+    }
 }

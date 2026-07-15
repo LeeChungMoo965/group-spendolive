@@ -40,7 +40,7 @@ public class FaqRepository {
         faq.setAnswer(rs.getString("answer"));
         faq.setSortOrder(rs.getInt("sort_order"));
         faq.setUseYn(rs.getString("use_yn"));
-        faq.setCreatedAt(rs.getString("created_at"));
+        faq.setCreated_at(rs.getString("created_at"));
         return faq;
     }
 

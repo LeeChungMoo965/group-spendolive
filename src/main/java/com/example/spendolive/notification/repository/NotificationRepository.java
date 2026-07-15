@@ -44,7 +44,7 @@ public class NotificationRepository {
                 dto.setLinkUrl(rs.getString("link_url"));
                 dto.setReadYn(rs.getString("read_yn"));
                 dto.setStarYn(rs.getString("star_yn"));
-                dto.setCreatedAt(rs.getString("created_at"));
+                dto.setCreated_at(rs.getString("created_at"));
                 return dto;
             }, id);
         } catch (DataAccessException e) {
@@ -115,7 +115,7 @@ public class NotificationRepository {
                 dto.setLinkUrl(rs.getString("link_url"));
                 dto.setReadYn(rs.getString("read_yn"));
                 dto.setStarYn(rs.getString("star_yn"));
-                dto.setCreatedAt(rs.getString("created_at"));
+                dto.setCreated_at(rs.getString("created_at"));
                 return dto;
             }, notificationId, id);
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {

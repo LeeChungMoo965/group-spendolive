@@ -160,7 +160,7 @@ function drawNoticePage() {
                         </a>
                     </td>
                     <td>${notice.adminId}</td>
-                    <td>${notice.createdAt}</td>
+                    <td>${notice.created_at}</td>
                 </tr>
             `;
         });
@@ -259,7 +259,7 @@ function drawNotifPage() {
                         </a>
                     </td>
                     <td>${notification.notificationType}</td>
-                    <td>${notification.createdAt}</td>
+                    <td>${notification.created_at}</td>
                 </tr>`;
         });
     }
@@ -346,7 +346,7 @@ function moveNotifPage(page) {
                                 </td>
                     
                                 <td>${notice.adminId}</td>
-                                <td>${notice.createdAt}</td>
+                                <td>${notice.created_at}</td>
                             </tr>
                         `;
                     });

@@ -628,8 +628,8 @@ public class OttRepositoryImpl implements OttRepository {
             settlement.setServiceStartDate(rs.getString("service_start_date"));
             settlement.setServiceEndDate(rs.getString("service_end_date"));
             settlement.setPaymentId(getNullableLong(rs, "payment_id"));
-            settlement.setMemberId(rs.getString("member_id"));
-            settlement.setMemberName(rs.getString("member_name"));
+            settlement.setMember_id(rs.getString("member_id"));
+            settlement.setMember_name(rs.getString("member_name"));
             settlement.setMemberNickname(rs.getString("member_nickname"));
             settlement.setBaseAmount(rs.getInt("base_amount"));
             settlement.setFeeAmount(rs.getInt("fee_amount"));
@@ -658,7 +658,7 @@ public class OttRepositoryImpl implements OttRepository {
         settlement.setReplaceStartDate(rs.getString("replace_start_date"));
         settlement.setReplaceEndDate(rs.getString("replace_end_date"));
         settlement.setStatus(rs.getString("status"));
-        settlement.setCreatedAt(rs.getString("created_at"));
+        settlement.setCreated_at(rs.getString("created_at"));
         settlement.setMyRole(rs.getString("my_role"));
         settlement.setPaymentId(getNullableLong(rs, "my_payment_id"));
         settlement.setMyPaymentStatus(rs.getString("my_payment_status"));
@@ -776,7 +776,7 @@ public class OttRepositoryImpl implements OttRepository {
             message.setSenderId(rs.getString("sender_id"));
             message.setSenderName(rs.getString("sender_name"));
             message.setMessageContent(rs.getString("message_content"));
-            message.setCreatedAt(rs.getString("created_at"));
+            message.setCreated_at(rs.getString("created_at"));
             message.setMineYn(rs.getString("mine_yn"));
             message.setSystemYn(rs.getString("system_yn"));
             return message;
@@ -897,7 +897,7 @@ public class OttRepositoryImpl implements OttRepository {
 
     @Override
     public void insertHostMember(Long roomId, String loginId) {
-        Long roomMemberId = jdbcTemplate.queryForObject("SELECT seq_ott_room_member.NEXTVAL FROM dual", Long.class);
+        Long roommember_id = jdbcTemplate.queryForObject("SELECT seq_ott_room_member.NEXTVAL FROM dual", Long.class);
         String sql = """
                 INSERT INTO ott_room_member_tb (
                     room_member_id,
@@ -911,7 +911,7 @@ public class OttRepositoryImpl implements OttRepository {
                     status
                 ) VALUES (?, ?, ?, 'HOST', 0, 0, 0, 0, 'ACTIVE')
                 """;
-        jdbcTemplate.update(sql, roomMemberId, roomId, loginId);
+        jdbcTemplate.update(sql, roommember_id, roomId, loginId);
     }
 
     @Override
@@ -919,7 +919,7 @@ public class OttRepositoryImpl implements OttRepository {
     public void applyRoom(Long roomId, String loginId) {
         OttRoomDTO room = selectRoom(roomId);
 
-        if (room == null || loginId == null || loginId.equals(room.getHostMemberId())) {
+        if (room == null || loginId == null || loginId.equals(room.getHostmember_id())) {
             return;
         }
 
@@ -949,7 +949,7 @@ public class OttRepositoryImpl implements OttRepository {
     public void createReadySettlement(Long roomId, String hostId) {
         OttRoomDTO room = selectRoom(roomId);
 
-        if (room == null || !hostId.equals(room.getHostMemberId())) {
+        if (room == null || !hostId.equals(room.getHostmember_id())) {
             return;
         }
 
@@ -1012,7 +1012,7 @@ public class OttRepositoryImpl implements OttRepository {
     public void createSettlement(Long roomId, String hostId, String settlementMonth, String dueDate) {
         OttRoomDTO room = selectRoom(roomId);
 
-        if (room == null || !hostId.equals(room.getHostMemberId())) {
+        if (room == null || !hostId.equals(room.getHostmember_id())) {
             return;
         }
 
@@ -1105,13 +1105,13 @@ public class OttRepositoryImpl implements OttRepository {
             jdbcTemplate.update(paymentSql,
                     paymentId,
                     settlementId,
-                    member.getMemberId(),
+                    member.getMember_id(),
                     nullToZero(member.getShareAmount()),
                     nullToZero(member.getFeeAmount()),
                     nullToZero(member.getPayAmount()),
                     room.getRoomName() + " " + targetMonthText + " 이용분 정산");
 
-            insertAlert(member.getMemberId(),
+            insertAlert(member.getMember_id(),
                     "SETTLEMENT",
                     "OTT 다음 달 이용분 결제 요청",
                     room.getRoomName() + " " + targetMonthText + " 이용분 " + nullToZero(member.getPayAmount())
@@ -1143,7 +1143,7 @@ public class OttRepositoryImpl implements OttRepository {
         }
 
         Long roomId = numberToLong(data.get("ROOM_ID"));
-        String hostId = (String) data.get("HOST_MEMBER_ID");
+        String hostId = (String) data.get("HOST_member_id");
         String roomName = (String) data.get("ROOM_NAME");
         String settlementMonth = (String) data.get("SETTLEMENT_MONTH");
         Integer totalAmount = numberToInt(data.get("TOTAL_AMOUNT"));
@@ -1182,7 +1182,7 @@ public class OttRepositoryImpl implements OttRepository {
     public void completePaidRoomEntry(Long roomId, String loginId) {
         OttRoomDTO room = selectRoom(roomId);
 
-        if (room == null || loginId == null || loginId.equals(room.getHostMemberId())) {
+        if (room == null || loginId == null || loginId.equals(room.getHostmember_id())) {
             return;
         }
 
@@ -1208,7 +1208,7 @@ public class OttRepositoryImpl implements OttRepository {
         int payAmount = shareAmount + feeAmount;
 
         if (currentStatus == null) {
-            Long roomMemberId = jdbcTemplate.queryForObject("SELECT seq_ott_room_member.NEXTVAL FROM dual", Long.class);
+            Long roommember_id = jdbcTemplate.queryForObject("SELECT seq_ott_room_member.NEXTVAL FROM dual", Long.class);
             String insertSql = """
                     INSERT INTO ott_room_member_tb (
                         room_member_id,
@@ -1225,7 +1225,7 @@ public class OttRepositoryImpl implements OttRepository {
                     """;
             LocalDate today = LocalDate.now();
             int day = today.getDayOfMonth();
-            jdbcTemplate.update(insertSql, roomMemberId, roomId, loginId, shareAmount, feeRate, feeAmount, payAmount,day);
+            jdbcTemplate.update(insertSql, roommember_id, roomId, loginId, shareAmount, feeRate, feeAmount, payAmount,day);
         } else {
             String updateSql = """
                     UPDATE ott_room_member_tb
@@ -1251,12 +1251,12 @@ public class OttRepositoryImpl implements OttRepository {
                     roomId);
         }
 
-        String memberName = selectMemberDisplayName(loginId);
-        insertSystemChatMessage(roomId, loginId, memberName + "님이 결제를 완료하고 공유방에 입장했습니다.");
+        String member_name = selectMemberDisplayName(loginId);
+        insertSystemChatMessage(roomId, loginId, member_name + "님이 결제를 완료하고 공유방에 입장했습니다.");
         alertActiveMembers(roomId,
                 "ROOM_MEMBER_JOINED",
                 "OTT 공유방 입장 알림",
-                memberName + "님이 " + room.getRoomName() + " 공유방에 입장했습니다.",
+                member_name + "님이 " + room.getRoomName() + " 공유방에 입장했습니다.",
                 "/spendolive/ott/chat/room.do?roomId=" + roomId,
                 loginId);
     }
@@ -1270,7 +1270,7 @@ public class OttRepositoryImpl implements OttRepository {
     public void requestRoomClose(Long roomId, String hostId, String closeNotice, String closeReason) {
         OttRoomDTO room = selectRoom(roomId);
 
-        if (room == null || !hostId.equals(room.getHostMemberId())) {
+        if (room == null || !hostId.equals(room.getHostmember_id())) {
             return;
         }
 
@@ -1324,7 +1324,7 @@ public class OttRepositoryImpl implements OttRepository {
             return "이미 종료되었거나 종료 예정인 방입니다.";
         }
 
-        if (loginId.equals(room.getHostMemberId())) {
+        if (loginId.equals(room.getHostmember_id())) {
             return "파티장은 나가기 예약을 할 수 없습니다. 방 삭제 요청 기능을 사용해 주세요.";
         }
 
@@ -1368,7 +1368,7 @@ public class OttRepositoryImpl implements OttRepository {
         }
 
         insertSystemChatMessage(roomId, loginId, loginId + "님이 " + leaveScheduledDate + " 나가기 예약을 했습니다.");
-        insertAlert(room.getHostMemberId(),
+        insertAlert(room.getHostmember_id(),
                 "OTT_LEAVE_RESERVED",
                 "OTT 참여자 나가기 예약",
                 loginId + "님이 " + room.getRoomName() + " 방에서 " + leaveScheduledDate + " 나가기 예약을 했습니다.",
@@ -1389,7 +1389,7 @@ public class OttRepositoryImpl implements OttRepository {
             return "이미 종료된 방입니다.";
         }
 
-        if (loginId.equals(room.getHostMemberId())) {
+        if (loginId.equals(room.getHostmember_id())) {
             return "파티장은 나가기 예약 취소 대상이 아닙니다.";
         }
 
@@ -1709,7 +1709,7 @@ public class OttRepositoryImpl implements OttRepository {
         jdbcTemplate.update(sql, roomId, Date.valueOf(closeEffectiveDate), targetMonth);
     }
 
-    private void alertActiveMembers(Long roomId, String alertType, String title, String content, String targetUrl, String exceptMemberId) {
+    private void alertActiveMembers(Long roomId, String alertType, String title, String content, String targetUrl, String exceptmember_id) {
         String sql = """
                 SELECT member_login_id
                 FROM ott_room_member_tb
@@ -1717,11 +1717,11 @@ public class OttRepositoryImpl implements OttRepository {
                   AND status = 'ACTIVE'
                 """;
         List<String> members = jdbcTemplate.queryForList(sql, String.class, roomId);
-        for (String memberId : members) {
-            if (exceptMemberId != null && exceptMemberId.equals(memberId)) {
+        for (String member_id : members) {
+            if (exceptmember_id != null && exceptmember_id.equals(member_id)) {
                 continue;
             }
-            insertAlert(memberId, alertType, title, content, targetUrl);
+            insertAlert(member_id, alertType, title, content, targetUrl);
         }
     }
 
@@ -1755,7 +1755,7 @@ public class OttRepositoryImpl implements OttRepository {
     private OttRoomDTO mapRoom(java.sql.ResultSet rs, boolean hasMyStatus) throws java.sql.SQLException {
         OttRoomDTO room = new OttRoomDTO();
         room.setRoomId(rs.getLong("room_id"));
-        room.setHostMemberId(rs.getString("host_login_id"));
+        room.setHostmember_id(rs.getString("host_login_id"));
         room.setHostNickname(rs.getString("host_nickname"));
         room.setOttServiceId(rs.getLong("ott_service_id"));
         room.setServiceName(rs.getString("service_name"));
@@ -1773,7 +1773,7 @@ public class OttRepositoryImpl implements OttRepository {
         room.setCloseReason(rs.getString("close_reason"));
         room.setCloseNotice(rs.getString("close_notice"));
         room.setClosedAt(rs.getString("closed_at"));
-        room.setCreatedAt(rs.getString("created_at"));
+        room.setCreated_at(rs.getString("created_at"));
         int shareAmount = safeDivide(room.getTotalPrice(), room.getMemberLimit());
         int feeAmount = calculateFeeAmount(shareAmount, 3.0);
         room.setShareAmount(shareAmount);
@@ -1793,13 +1793,13 @@ public class OttRepositoryImpl implements OttRepository {
 
     private OttRoomMemberDTO mapRoomMember(java.sql.ResultSet rs) throws java.sql.SQLException {
         OttRoomMemberDTO member = new OttRoomMemberDTO();
-        member.setRoomMemberId(rs.getLong("room_member_id"));
+        member.setRoommember_id(rs.getLong("room_member_id"));
         member.setRoomId(rs.getLong("room_id"));
         member.setRoomName(rs.getString("room_name"));
         member.setServiceName(rs.getString("service_name"));
-        member.setMemberId(rs.getString("member_id"));
+        member.setMember_id(rs.getString("member_id"));
         member.setMemberNickname(rs.getString("member_nickname"));
-        member.setMemberName(rs.getString("member_name"));
+        member.setMember_name(rs.getString("member_name"));
         member.setMemberRole(rs.getString("member_role"));
         member.setShareAmount(rs.getInt("share_amount"));
         member.setFeeRate(rs.getDouble("fee_rate"));
@@ -1860,8 +1860,8 @@ public class OttRepositoryImpl implements OttRepository {
             return null;
         }
     }
-
-    private OttRoomDTO selectRoom(Long roomId) {
+    @Override
+    public OttRoomDTO selectRoom(Long roomId) {
         String sql = """
                 SELECT r.room_id,
                        r.host_login_id,

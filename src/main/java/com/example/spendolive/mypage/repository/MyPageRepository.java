@@ -20,7 +20,7 @@ public class MyPageRepository {
      * 마이페이지 지출 요약 전용 조회.
      * 회원/신고/OTT 조회는 각각 MemberRepository, MyPageReportRepository, OttRepository 쪽에서 처리한다.
      */
-    public int selectThisMonthExpenseTotal(int memberId) {
+    public int selectThisMonthExpenseTotal(int member_id) {
         YearMonth currentMonth = YearMonth.now();
         LocalDate startDate = currentMonth.atDay(1);
         LocalDate endDate = currentMonth.plusMonths(1).atDay(1);
@@ -37,7 +37,7 @@ public class MyPageRepository {
             Integer total = jdbcTemplate.queryForObject(
                     sql,
                     Integer.class,
-                    memberId,
+                    member_id,
                     java.sql.Date.valueOf(startDate),
                     java.sql.Date.valueOf(endDate)
             );

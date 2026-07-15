@@ -19,4 +19,8 @@ public interface PaymentService {
     public String updateExcrow(int roomId) throws Exception;
     public String roomMemberByroomIdCount(int roomId, String userId) throws Exception;
     public List<OttRoomMemberDTO> selectTodaysettlementmember(String status) throws Exception;
-}
+    public boolean processWithdraw(SettlementPaymentVO paymentInfo, MemberVO memberInfo) throws Exception;// 금결원 출금이체 프로세스 (테스트 권환 문제로 보류)
+    public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) throws Exception;
+    public OttRoomDTO selectRoomByRoomId(int roomId) throws Exception;
+    
+  }
