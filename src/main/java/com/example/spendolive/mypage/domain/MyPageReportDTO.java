@@ -6,14 +6,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MyPageReportDTO {
-    private Long reportId;
-    private String reportedmember_id;
-    private String reportedmember_name;
-    private String reportedMemberNickname;
-    private String reportReason;
-    private String reportStatus;
-    private String adminComment;
+    private Long report_id;
+    private String reported_member_id;
+    private String reported_member_name;
+    private String reported_member_nickname;
+    private String report_reason;
+    private String report_status;
+    private String admin_comment;
     private String created_at;
-    private String processedAt;
-    private String blockedYn;
+    private String processed_at;
+    private String blocked_yn;
+
 }

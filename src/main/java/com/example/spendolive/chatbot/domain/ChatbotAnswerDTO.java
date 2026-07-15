@@ -12,6 +12,6 @@ import lombok.Getter;
 public class ChatbotAnswerDTO {
     private boolean matched;     // FAQ 매칭에 성공했는지 여부 (true/false)
     private String answer;       // 실제로 보여줄 답변 텍스트 (매칭 실패 시엔 안내 문구)
-    private Integer faqId;       // 매칭된 FAQ의 번호 (매칭 실패 시 null)
+    private Integer faq_id;       // 매칭된 FAQ의 번호 (매칭 실패 시 null)
     private String category;     // 매칭된 FAQ의 카테고리 (매칭 실패 시 null)
 }

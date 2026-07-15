@@ -24,7 +24,7 @@
 
                 <div class="notice-detail-top">
                     <c:choose>
-                        <c:when test="${notice.pinnedYn == 'Y'}">
+                        <c:when test="${notice.pinned_yn == 'Y'}">
                             <span class="chip notice-important">중요 공지</span>
                         </c:when>
                         <c:otherwise>
@@ -33,7 +33,7 @@
                     </c:choose>
 
                     <button type="button" class="notice-star-btn" id="detailStarBtn"
-                            data-notice-id="${notice.noticeId}"
+                            data-notice-id="${notice.notice_id}"
                             data-login="${not empty loginYn ? loginYn : false}">
                         ☆
                     </button>
@@ -42,7 +42,8 @@
                 <h1 class="notice-detail-title">${notice.title}</h1>
 
                 <div class="notice-detail-info">
-                    <span>작성자 ${not empty notice.adminId ? notice.adminId : '관리자'}</span>
+                    <span>작성자 ${not empty notice.admin_id ? notice.admin_id : '관리자'}</span>
+
                     <span>등록일 ${notice.created_at}</span>
                 </div>
 
@@ -64,9 +65,9 @@
     var btn = document.getElementById("detailStarBtn");
     if (!btn) return;
 
-    var noticeId = btn.dataset.noticeId;
+    var notice_id = btn.dataset.notice_id;
     var isLogin  = btn.dataset.login === "true";
-    var lsKey    = "notice_star_" + noticeId;
+    var lsKey    = "notice_star_" + notice_id;
 
     function setStar(active) {
         btn.textContent = active ? "★" : "☆";
@@ -80,7 +81,7 @@
             fetch("/spendolive/notice/ajax/star.do", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "noticeId=" + noticeId
+                body: "notice_id=" + notice_id
             })
             .then(function(r){ return r.json(); })
             .then(function(data) {

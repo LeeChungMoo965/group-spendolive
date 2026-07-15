@@ -19,17 +19,17 @@
        - /resources/js/admin.js
     3. 하드코딩된 OTT 카드 목록을 serviceList 기반 c:forEach로 변경
     4. 현재 프로젝트의 ott_service_tb / OttServiceDTO 필드명에 맞춤
-       - serviceName
-       - fixedPlanName
-       - basePrice
-       - defaultPrice
-       - maxMemberLimit
-       - extraMemberFee
-       - extraMemberCount
-       - platformFeeRate
-       - shareYn
-       - riskLevel
-       - blockReason
+       - service_name
+       - fixed_plan_name
+       - base_price
+       - default_price
+       - max_member_limit
+       - extra_member_fee
+       - extra_member_count
+       - platform_fee_rate
+       - share_yn
+       - risk_level
+       - block_reason
     5. 추가/수정/삭제 form action은 관리자 OTT Controller를 만들 때 사용할 수 있도록 경로만 잡아둠
 
     Controller에서 넘기면 좋은 model 이름:
@@ -99,22 +99,22 @@
                         <%-- 서비스명에 따라 로고 색상 클래스 지정 --%>
                         <c:set var="logoClass" value="" />
                         <c:choose>
-                            <c:when test="${fn:contains(fn:toLowerCase(service.serviceName), 'netflix')}">
+                            <c:when test="${fn:contains(fn:toLowerCase(service.service_name), 'netflix')}">
                                 <c:set var="logoClass" value="netflix" />
                             </c:when>
-                            <c:when test="${fn:contains(fn:toLowerCase(service.serviceName), 'disney')}">
+                            <c:when test="${fn:contains(fn:toLowerCase(service.service_name), 'disney')}">
                                 <c:set var="logoClass" value="disney" />
                             </c:when>
-                            <c:when test="${fn:contains(fn:toLowerCase(service.serviceName), 'tving')}">
+                            <c:when test="${fn:contains(fn:toLowerCase(service.service_name), 'tving')}">
                                 <c:set var="logoClass" value="tving" />
                             </c:when>
-                            <c:when test="${fn:contains(fn:toLowerCase(service.serviceName), 'wavve')}">
+                            <c:when test="${fn:contains(fn:toLowerCase(service.service_name), 'wavve')}">
                                 <c:set var="logoClass" value="wavve" />
                             </c:when>
-                            <c:when test="${fn:contains(fn:toLowerCase(service.serviceName), 'watcha')}">
+                            <c:when test="${fn:contains(fn:toLowerCase(service.service_name), 'watcha')}">
                                 <c:set var="logoClass" value="watcha" />
                             </c:when>
-                            <c:when test="${fn:contains(fn:toLowerCase(service.serviceName), 'laftel')}">
+                            <c:when test="${fn:contains(fn:toLowerCase(service.service_name), 'laftel')}">
                                 <c:set var="logoClass" value="laftel" />
                             </c:when>
                         </c:choose>
@@ -123,16 +123,16 @@
                             <div class="manage-card-head">
                                 <div class="ott-cell">
                                     <div class="ott-logo ${logoClass}">
-                                        ${fn:substring(service.serviceName, 0, 1)}
+                                        ${fn:substring(service.service_name, 0, 1)}
                                     </div>
                                     <div>
-                                        <h3>${service.serviceName}</h3>
-                                        <p>${empty service.fixedPlanName ? '프리미엄' : service.fixedPlanName}</p>
+                                        <h3>${service.service_name}</h3>
+                                        <p>${empty service.fixed_plan_name ? '프리미엄' : service.fixed_plan_name}</p>
                                     </div>
                                 </div>
 
                                 <c:choose>
-                                    <c:when test="${service.shareYn eq 'N'}">
+                                    <c:when test="${service.share_yn eq 'N'}">
                                         <span class="badge gray">숨김</span>
                                     </c:when>
                                     <c:otherwise>
@@ -145,28 +145,28 @@
                                 <div class="meta-box">
                                     <small>최고 멤버십</small>
                                     <strong>
-                                        <fmt:formatNumber value="${service.basePrice}" type="number" />원
+                                        <fmt:formatNumber value="${service.base_price}" type="number" />원
                                     </strong>
                                 </div>
 
                                 <div class="meta-box">
                                     <small>최종 기준금액</small>
                                     <strong>
-                                        <fmt:formatNumber value="${service.defaultPrice}" type="number" />원
+                                        <fmt:formatNumber value="${service.default_price}" type="number" />원
                                     </strong>
                                 </div>
 
                                 <div class="meta-box">
                                     <small>최대 인원</small>
-                                    <strong>${service.maxMemberLimit}명</strong>
+                                    <strong>${service.max_member_limit}명</strong>
                                 </div>
 
                                 <div class="meta-box">
                                     <small>추가 멤버 비용</small>
                                     <strong>
-                                        <fmt:formatNumber value="${service.extraMemberFee}" type="number" />원
-                                        <c:if test="${not empty service.extraMemberCount}">
-                                            × ${service.extraMemberCount}명
+                                        <fmt:formatNumber value="${service.extra_member_fee}" type="number" />원
+                                        <c:if test="${not empty service.extra_member_count}">
+                                            × ${service.extra_member_count}명
                                         </c:if>
                                     </strong>
                                 </div>
@@ -174,7 +174,7 @@
                                 <div class="meta-box">
                                     <small>수수료</small>
                                     <strong>
-                                        <fmt:formatNumber value="${service.platformFeeRate}" pattern="0.##" />%
+                                        <fmt:formatNumber value="${service.platform_fee_rate}" pattern="0.##" />%
                                     </strong>
                                 </div>
 
@@ -182,16 +182,16 @@
                                     <small>공유 위험도</small>
                                     <strong>
                                         <c:choose>
-                                            <c:when test="${empty service.riskLevel}">-</c:when>
-                                            <c:otherwise>${service.riskLevel}</c:otherwise>
+                                            <c:when test="${empty service.risk_level}">-</c:when>
+                                            <c:otherwise>${service.risk_level}</c:otherwise>
                                         </c:choose>
                                     </strong>
                                 </div>
                             </div>
 
-                            <c:if test="${not empty service.blockReason}">
+                            <c:if test="${not empty service.block_reason}">
                                 <p style="font-size:13px;">
-                                    차단/주의 사유: ${service.blockReason}
+                                    차단/주의 사유: ${service.block_reason}
                                 </p>
                             </c:if>
 
@@ -202,7 +202,7 @@
                                     editService를 model에 담아 adminOtt.jsp로 다시 보내면 아래 폼에 값이 채워집니다.
                                 --%>
                                 <a class="btn"
-                                   href="${contextPath}/admin/ott/edit.do?ottServiceId=${service.ottServiceId}#adminOttForm">
+                                   href="${contextPath}/admin/ott/edit.do?ott_service_id=${service.ott_service_id}#adminOttForm">
                                     수정
                                 </a>
 
@@ -214,7 +214,7 @@
                                       method="post"
                                       style="display:inline;"
                                       onsubmit="return confirm('해당 OTT 항목을 삭제 또는 숨김 처리하시겠습니까?');">
-                                    <input type="hidden" name="ottServiceId" value="${service.ottServiceId}">
+                                    <input type="hidden" name="ott_service_id" value="${service.ott_service_id}">
                                     <button type="submit" class="btn danger">
                                         삭제
                                     </button>
@@ -249,7 +249,7 @@
               style="margin-top:18px;">
 
             <c:if test="${isEdit}">
-                <input type="hidden" name="ottServiceId" value="${editService.ottServiceId}">
+                <input type="hidden" name="ott_service_id" value="${editService.ott_service_id}">
             </c:if>
 
             <div class="form-grid">
@@ -257,8 +257,8 @@
                     <label>OTT 이름</label>
                     <input class="form-input"
                            type="text"
-                           name="serviceName"
-                           value="${isEdit ? editService.serviceName : ''}"
+                           name="service_name"
+                           value="${isEdit ? editService.service_name : ''}"
                            placeholder="예: Netflix"
                            required>
                 </div>
@@ -267,8 +267,8 @@
                     <label>고정 멤버십명</label>
                     <input class="form-input"
                            type="text"
-                           name="fixedPlanName"
-                           value="${isEdit ? editService.fixedPlanName : '프리미엄'}"
+                           name="fixed_plan_name"
+                           value="${isEdit ? editService.fixed_plan_name : '프리미엄'}"
                            placeholder="예: 프리미엄">
                 </div>
 
@@ -276,8 +276,8 @@
                     <label>최고 멤버십 가격</label>
                     <input class="form-input"
                            type="number"
-                           name="basePrice"
-                           value="${isEdit ? editService.basePrice : ''}"
+                           name="base_price"
+                           value="${isEdit ? editService.base_price : ''}"
                            placeholder="예: 17000"
                            min="0"
                            required>
@@ -287,8 +287,8 @@
                     <label>최종 기준금액</label>
                     <input class="form-input"
                            type="number"
-                           name="defaultPrice"
-                           value="${isEdit ? editService.defaultPrice : ''}"
+                           name="default_price"
+                           value="${isEdit ? editService.default_price : ''}"
                            placeholder="예: 27000"
                            min="0">
                 </div>
@@ -297,8 +297,8 @@
                     <label>최대 인원</label>
                     <input class="form-input"
                            type="number"
-                           name="maxMemberLimit"
-                           value="${isEdit ? editService.maxMemberLimit : 4}"
+                           name="max_member_limit"
+                           value="${isEdit ? editService.max_member_limit : 4}"
                            placeholder="예: 4"
                            min="1"
                            max="6"
@@ -309,8 +309,8 @@
                     <label>추가 멤버 비용</label>
                     <input class="form-input"
                            type="number"
-                           name="extraMemberFee"
-                           value="${isEdit ? editService.extraMemberFee : 0}"
+                           name="extra_member_fee"
+                           value="${isEdit ? editService.extra_member_fee : 0}"
                            placeholder="예: 4000"
                            min="0">
                 </div>
@@ -319,8 +319,8 @@
                     <label>추가 멤버 수</label>
                     <input class="form-input"
                            type="number"
-                           name="extraMemberCount"
-                           value="${isEdit ? editService.extraMemberCount : 0}"
+                           name="extra_member_count"
+                           value="${isEdit ? editService.extra_member_count : 0}"
                            placeholder="예: 2"
                            min="0">
                 </div>
@@ -330,27 +330,27 @@
                     <input class="form-input"
                            type="number"
                            step="0.01"
-                           name="platformFeeRate"
-                           value="${isEdit ? editService.platformFeeRate : 3}"
+                           name="platform_fee_rate"
+                           value="${isEdit ? editService.platform_fee_rate : 3}"
                            placeholder="예: 3"
                            min="0">
                 </div>
 
                 <div class="form-field">
                     <label>공유 가능 여부</label>
-                    <select class="form-input" name="shareYn">
-                        <option value="Y" ${isEdit and editService.shareYn eq 'Y' ? 'selected' : ''}>사용중</option>
-                        <option value="N" ${isEdit and editService.shareYn eq 'N' ? 'selected' : ''}>숨김</option>
+                    <select class="form-input" name="share_yn">
+                        <option value="Y" ${isEdit and editService.share_yn eq 'Y' ? 'selected' : ''}>사용중</option>
+                        <option value="N" ${isEdit and editService.share_yn eq 'N' ? 'selected' : ''}>숨김</option>
                     </select>
                 </div>
 
                 <div class="form-field">
                     <label>위험도</label>
-                    <select class="form-input" name="riskLevel">
-                        <option value="" ${empty editService.riskLevel ? 'selected' : ''}>선택 안 함</option>
-                        <option value="LOW" ${isEdit and editService.riskLevel eq 'LOW' ? 'selected' : ''}>LOW</option>
-                        <option value="MEDIUM" ${isEdit and editService.riskLevel eq 'MEDIUM' ? 'selected' : ''}>MEDIUM</option>
-                        <option value="HIGH" ${isEdit and editService.riskLevel eq 'HIGH' ? 'selected' : ''}>HIGH</option>
+                    <select class="form-input" name="risk_level">
+                        <option value="" ${empty editService.risk_level ? 'selected' : ''}>선택 안 함</option>
+                        <option value="LOW" ${isEdit and editService.risk_level eq 'LOW' ? 'selected' : ''}>LOW</option>
+                        <option value="MEDIUM" ${isEdit and editService.risk_level eq 'MEDIUM' ? 'selected' : ''}>MEDIUM</option>
+                        <option value="HIGH" ${isEdit and editService.risk_level eq 'HIGH' ? 'selected' : ''}>HIGH</option>
                     </select>
                 </div>
             </div>
@@ -358,15 +358,15 @@
             <div class="form-field" style="margin-top:16px;">
                 <label>차단/주의 사유</label>
                 <textarea class="form-textarea"
-                          name="blockReason"
-                          placeholder="공유 불가 또는 주의 사유가 있다면 입력하세요.">${isEdit ? editService.blockReason : ''}</textarea>
+                          name="block_reason"
+                          placeholder="공유 불가 또는 주의 사유가 있다면 입력하세요.">${isEdit ? editService.block_reason : ''}</textarea>
             </div>
 
             <div class="toolbar" style="margin-top:16px;">
                 <span>
                     <c:choose>
                         <c:when test="${isEdit}">
-                            수정 중인 항목 ID: ${editService.ottServiceId}
+                            수정 중인 항목 ID: ${editService.ott_service_id}
                         </c:when>
                     </c:choose>
                 </span>

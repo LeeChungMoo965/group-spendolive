@@ -22,7 +22,7 @@
     <form action="${contextPath}/spendolive/admin/faq/${empty faq ? 'insert' : 'update'}.do" method="post" id="faqForm">
 
         <c:if test="${not empty faq}">
-            <input type="hidden" name="faqId" value="${faq.faqId}">
+            <input type="hidden" name="faq_id" value="${faq.faq_id}">
         </c:if>
 
         <div class="form-row">
@@ -38,8 +38,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="sortOrder">노출 순서</label>
-                <input type="number" id="sortOrder" name="sortOrder" value="${empty faq ? 0 : faq.sortOrder}" min="0">
+                <label for="sort_order">노출 순서</label>
+                <input type="number" id="sort_order" name="sort_order" value="${empty faq ? 0 : faq.sort_order}" min="0">
             </div>
         </div>
 
@@ -55,8 +55,8 @@
 
         <div class="form-group">
             <div class="use-group">
-                <input type="checkbox" id="useYn" value="Y" ${empty faq || faq.useYn == 'Y' ? 'checked' : ''}>
-                <label for="useYn">사용자 화면에 노출</label>
+                <input type="checkbox" id="use_yn" value="Y" ${empty faq || faq.use_yn == 'Y' ? 'checked' : ''}>
+                <label for="use_yn">사용자 화면에 노출</label>
             </div>
         </div>
 
@@ -69,11 +69,11 @@
 
 <script>
 document.getElementById("faqForm").addEventListener("submit", function () {
-    var cb = document.getElementById("useYn");
+    var cb = document.getElementById("use_yn");
     cb.name = "";
     var h = document.createElement("input");
     h.type = "hidden";
-    h.name = "useYn";
+    h.name = "use_yn";
     h.value = cb.checked ? "Y" : "N";
     this.appendChild(h);
 });

@@ -31,7 +31,8 @@
                 <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead><tbody>
                         <c:forEach var="room" items="${settlementList}" varStatus="s">
                       
-    <tr><td>${s.count}</td><td>${room.roomId}</td><td>${room.hostmember_id}</td><td><fmt:formatNumber value="${room.totalPrice}" type="number" />원</td><td>${room.billingDay}</td><td><span class="badge yellow">${room.settlement_status}</span></td>
+
+    <tr><td>${s.count}</td><td>${room.room_id}</td><td>${room.host_login_id}</td><td><fmt:formatNumber value="${room.total_price}" type="number" />원</td><td>${room.billing_day}</td><td><span class="badge yellow">${room.settlement_status}</span></td>
     <td>
        
     <c:choose>
@@ -40,7 +41,7 @@
     <button class="mini-btn">정산 완료 확인</button>
     </c:when>
      <c:otherwise>
-     <form action="${contextPath}/admin/settlement/pay.do" method="post"><input id="roomId" type="hidden" name="roomId" value="${room.roomId}">
+     <form action="${contextPath}/admin/settlement/pay.do" method="post"><input id="room_id" type="hidden" name="room_id" value="${room.room_id}">
     <button class="mini-btn warning">정산금 보내기</button></form>
       </c:otherwise>
     </c:choose>

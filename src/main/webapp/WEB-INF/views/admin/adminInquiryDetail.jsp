@@ -20,15 +20,15 @@
     <div class="panel">
         <div class="panel-header">
             <div class="panel-title">
-                <p class="section-kicker">문의 #${inquiry.inquiryId}</p>
+                <p class="section-kicker">문의 #${inquiry.inquiry_id}</p>
                 <h2>${inquiry.title}</h2>
                 <p>
-                    ${inquiry.category} · ${inquiry.inquiryType} · 작성자
+                    ${inquiry.category} · ${inquiry.inquiry_type} · 작성자
                     <c:choose>
-                        <c:when test="${not empty inquiry.writerNickname}">${inquiry.writerNickname} (${inquiry.id})</c:when>
+                        <c:when test="${not empty inquiry.writer_nickname}">${inquiry.writer_nickname} (${inquiry.id})</c:when>
                         <c:otherwise>${inquiry.id}</c:otherwise>
                     </c:choose>
-                    · ${inquiry.regDate}
+                    · ${inquiry.reg_date}
                     &nbsp;
                     <c:choose>
                         <c:when test="${inquiry.statusCode == 'done'}"><span class="badge green">답변완료</span></c:when>
@@ -52,13 +52,13 @@
                     <c:forEach var="file" items="${inquiry.files}">
                         <c:choose>
                             <c:when test="${file.image}">
-                                <a href="${contextPath}/spendolive/inquiry/file/${file.fileId}" target="_blank">
-                                    <img src="${contextPath}/spendolive/inquiry/file/${file.fileId}" alt="${file.originName}"
+                                <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}" target="_blank">
+                                    <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}" alt="${file.origin_name}"
                                          style="width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid #eef0e1;">
                                 </a>
                             </c:when>
                             <c:otherwise>
-                                <a href="${contextPath}/spendolive/inquiry/file/${file.fileId}" target="_blank" class="mini-btn">📎 ${file.originName}</a>
+                                <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}" target="_blank" class="mini-btn">📎 ${file.origin_name}</a>
                             </c:otherwise>
                         </c:choose>
                     </c:forEach>
@@ -67,13 +67,13 @@
         </c:if>
 
         <form action="${contextPath}/spendolive/admin/inquiry/reply.do" method="post">
-            <input type="hidden" name="inquiryId" value="${inquiry.inquiryId}">
+            <input type="hidden" name="inquiry_id" value="${inquiry.inquiry_id}">
 
             <div class="form-row" style="display:grid;grid-template-columns:1fr 160px;gap:14px;">
                 <div class="form-group">
-                    <label for="replyContent">답변 내용</label>
-                    <textarea id="replyContent" name="replyContent" class="form-textarea"
-                              placeholder="답변 내용을 입력하세요" required>${inquiry.replyContent}</textarea>
+                    <label for="reply_content">답변 내용</label>
+                    <textarea id="reply_content" name="reply_content" class="form-textarea"
+                              placeholder="답변 내용을 입력하세요" required>${inquiry.reply_content}</textarea>
                 </div>
                 <div class="form-group">
                     <label for="status">처리 상태</label>
@@ -85,7 +85,7 @@
             </div>
 
             <div class="toolbar" style="justify-content:flex-end;margin-top:20px;">
-                <button type="submit" class="btn primary">${empty inquiry.replyContent ? '답변 등록' : '답변 수정'}</button>
+                <button type="submit" class="btn primary">${empty inquiry.reply_content ? '답변 등록' : '답변 수정'}</button>
             </div>
         </form>
     </div>

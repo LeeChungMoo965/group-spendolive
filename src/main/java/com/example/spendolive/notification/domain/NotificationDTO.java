@@ -6,13 +6,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class NotificationDTO {
-    private int notificationId;
+    private int notification_id;
     private String id;
-    private String notificationType;
+    private String notification_type;
     private String title;
     private String message;
-    private String linkUrl;
-    private String readYn;
-    private String starYn;
+
+    private String link_url;
+    private String read_yn;
+    private String star_yn;
+
     private String created_at;
 }

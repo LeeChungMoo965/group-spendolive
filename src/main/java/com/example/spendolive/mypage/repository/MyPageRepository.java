@@ -54,13 +54,16 @@ public class MyPageRepository {
      * 오픈뱅킹 토큰/핀테크 이용번호는 개인정보 보호 차원에서 제거한다.
      */
     public int withdrawMember(String loginId) {
+        // 오픈뱅킹/카드 정보는 member_tb 컬럼이 아니라 각각의 연동 테이블에 저장된다.
+        jdbcTemplate.update("DELETE FROM member_account_tb WHERE id = ?", loginId);
+        jdbcTemplate.update("DELETE FROM member_card_tb WHERE id = ?", loginId);
+
         String sql = """
                 UPDATE member_tb
                 SET status = 'LEAVE',
                     password = 'LEAVE_' || RAWTOHEX(SYS_GUID()),
-                    open_bank_user_seq_no = NULL,
-                    open_bank_token = NULL,
-                    fintech_use_num = NULL,
+                    account_status = 'NO',
+                    card_status = 'NO',
                     updated_at = SYSDATE
                 WHERE id = ?
                   AND status <> 'LEAVE'

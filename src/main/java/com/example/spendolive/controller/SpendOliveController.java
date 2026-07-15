@@ -93,13 +93,13 @@ public class SpendOliveController {
 
         for (ExpenseDTO expense : expenseList) {
             int amount = expense.getAmount() == null ? 0 : expense.getAmount();
-            String expenseType = expense.getExpenseType();
+            String expense_type = expense.getExpense_type();
 
-            if ("FIXED".equals(expenseType)) {
+            if ("FIXED".equals(expense_type)) {
                 fixedTotal += amount;
-            } else if ("VARIABLE".equals(expenseType)) {
+            } else if ("VARIABLE".equals(expense_type)) {
                 variableTotal += amount;
-            } else if ("OTT".equals(expenseType)) {
+            } else if ("OTT".equals(expense_type)) {
                 ottTotal += amount;
             }
         }

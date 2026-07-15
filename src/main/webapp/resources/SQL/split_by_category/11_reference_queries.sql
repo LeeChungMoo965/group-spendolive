@@ -12,8 +12,9 @@ SET DEFINE OFF;
    아래 SQL은 참고용입니다.
    전체 스키마 실행 시 바인드 변수(:member_id 등) 때문에 멈출 수 있으므로 주석 처리했습니다.
 
--- 알림 이모지 빨간 점 표시용: 안 읽은 알림 개수
+-- 알림 아이콘 빨간 점 표시용: 안 읽은 알림 개수
 SELECT COUNT(*) AS unread_count
+<<<<<<< HEAD
 FROM alert_tb
 WHERE id = :member_id
   AND read_yn = 'N';
@@ -22,17 +23,33 @@ WHERE id = :member_id
 SELECT alert_id, title, content, target_url, created_at
 FROM alert_tb
 WHERE id = :member_id
+=======
+FROM notification_tb
+WHERE id = :member_login_id
+  AND read_yn = 'N';
+
+-- 안 읽은 알림 목록
+SELECT notification_id, notification_type, title, message, link_url, created_at
+FROM notification_tb
+WHERE id = :member_login_id
+>>>>>>> aitest
   AND read_yn = 'N'
-  AND banner_yn = 'Y'
 ORDER BY created_at DESC;
 
 -- 알림 클릭 시 읽음 처리
+<<<<<<< HEAD
 UPDATE alert_tb
 SET read_yn = 'Y',
     read_at = SYSDATE,
     banner_yn = 'N'
 WHERE alert_id = :alertId
   AND id = :member_id;
+=======
+UPDATE notification_tb
+SET read_yn = 'Y'
+WHERE notification_id = :notification_id
+  AND id = :member_login_id;
+>>>>>>> aitest
 
 -- 3% 수수료 계산 예시
 SELECT

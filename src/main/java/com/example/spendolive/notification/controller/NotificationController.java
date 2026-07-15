@@ -41,25 +41,25 @@ public class NotificationController {
         return notificationService.getNotificationList(memberInfo.getId());
     }
 
-    @GetMapping("/ajax/unreadCount.do")
-    public Map<String, Integer> unreadCount(HttpSession session) {
+    @GetMapping("/ajax/unread_count.do")
+    public Map<String, Integer> unread_count(HttpSession session) {
 
         MemberVO memberInfo =
                 (MemberVO) session.getAttribute("memberInfo");
 
         if (memberInfo == null || memberInfo.getId() == null) {
-            return Map.of("unreadCount", 0);
+            return Map.of("unread_count", 0);
         }
 
-        int unreadCount =
-                notificationService.getUnreadCount(memberInfo.getId());
+        int unread_count =
+                notificationService.getUnread_count(memberInfo.getId());
 
-        return Map.of("unreadCount", unreadCount);
+        return Map.of("unread_count", unread_count);
     }
 
     @PostMapping("/ajax/read.do")
     public Map<String, String> readNotification(
-            @RequestParam("notificationId") int notificationId,
+            @RequestParam("notification_id") int notification_id,
             HttpSession session) {
 
         MemberVO memberInfo =
@@ -70,7 +70,7 @@ public class NotificationController {
         }
 
         notificationService.readNotification(
-                notificationId,
+                notification_id,
                 memberInfo.getId());
 
         return Map.of("result", "OK");
@@ -78,7 +78,7 @@ public class NotificationController {
 
     @PostMapping("/ajax/star.do")
     public Map<String, String> toggleStar(
-            @RequestParam("notificationId") int notificationId,
+            @RequestParam("notification_id") int notification_id,
             HttpSession session) {
 
         MemberVO memberInfo =
@@ -89,7 +89,7 @@ public class NotificationController {
         }
 
         notificationService.toggleStar(
-                notificationId,
+                notification_id,
                 memberInfo.getId());
 
         return Map.of("result", "OK");

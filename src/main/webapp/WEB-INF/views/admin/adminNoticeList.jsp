@@ -70,21 +70,23 @@
                             <td class="col-num">${s.count}</td>
                             <td class="col-pin">
                                 <c:choose>
-                                    <c:when test="${notice.pinnedYn == 'Y'}"><span class="chip chip-important">중요</span></c:when>
+                                    <c:when test="${notice.pinned_yn == 'Y'}"><span class="chip chip-important">중요</span></c:when>
                                     <c:otherwise><span class="chip chip-normal">일반</span></c:otherwise>
                                 </c:choose>
                             </td>
                             <td>
-                                <a href="${contextPath}/spendolive/notice/detail.do?noticeId=${notice.noticeId}"
+                                <a href="${contextPath}/spendolive/notice/detail.do?notice_id=${notice.notice_id}"
                                    style="color:#111;text-decoration:none;">${notice.title}</a>
                             </td>
-                            <td>${notice.adminId}</td>
+
+                            <td>${notice.admin_id}</td>
+
                             <td>${notice.created_at}</td>
                             <td class="col-act">
-                                <a href="${contextPath}/spendolive/admin/notice/edit.do?noticeId=${notice.noticeId}" class="btn-edit">수정</a>
+                                <a href="${contextPath}/spendolive/admin/notice/edit.do?notice_id=${notice.notice_id}" class="btn-edit">수정</a>
                                 <form action="${contextPath}/spendolive/admin/notice/delete.do" method="post" style="display:inline;"
                                       onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                                    <input type="hidden" name="noticeId" value="${notice.noticeId}">
+                                    <input type="hidden" name="notice_id" value="${notice.notice_id}">
                                     <button type="submit" class="btn-del">삭제</button>
                                 </form>
                             </td>

@@ -72,7 +72,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         jdbcTemplate.update(successpayment, paymentInfo.getSettlement_id(), paymentInfo.getId() ,paymentInfo.getBase_amount(), paymentInfo.getFee_rate(),paymentInfo.getFee_amount(),paymentInfo.getTotal_amount(), paymentInfo.getPayment_status(), paymentInfo.getCard_number(), paymentInfo.getCard_company(), paymentInfo.getPaid_at(), paymentInfo.getPaymentKey(), paymentInfo.getOrderId(),paymentInfo.getMemo());
     }
     @Override
-    public SettlementPaymentVO settlement_paymentByroomId(String userId, int roomId) throws DataAccessException{
+    public SettlementPaymentVO settlement_paymentByroomId(String userId, int room_id) throws DataAccessException {
         try {
             return (SettlementPaymentVO) jdbcTemplate.queryForObject(settlement_paymentByroomId, (rs, rowNum) -> {
             SettlementPaymentVO settlementPaymentVO = new SettlementPaymentVO();
@@ -95,24 +95,24 @@ public class PaymentRepositoryImpl implements PaymentRepository{
             settlementPaymentVO.setTotal_amount(rs.getInt("total_amount"));
          
             return settlementPaymentVO;
-            }, roomId,userId);
+            }, room_id,userId);
         }catch (org.springframework.dao.EmptyResultDataAccessException e) {
             // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
             return null; 
         }
     }
     @Override
-    public OttSettlementDTO settlementByroomId (int roomId) throws DataAccessException{
+    public OttSettlementDTO settlementByroomId (int room_id) throws DataAccessException{
         try {
             return (OttSettlementDTO) jdbcTemplate.queryForObject(settlementByroomId, (rs, rowNum) -> {
             OttSettlementDTO set = new OttSettlementDTO();
-            set.setSettlementId(rs.getLong("settlement_id"));
-            set.setRoomId(rs.getLong("room_id"));
-            set.setTotalPrice(rs.getInt("total_price"));
+            set.setSettlement_id(rs.getLong("settlement_id"));
+            set.setRoom_id(rs.getLong("room_id"));
+            set.setTotal_price(rs.getInt("total_price"));
             set.setMember_limit(rs.getInt("member_limit"));
-            set.setHost_id(rs.getString("host_login_id"));
+            set.setHost_login_id(rs.getString("host_login_id"));
             return set;
-        }, roomId);
+        }, room_id);
     
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
             // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
@@ -125,7 +125,8 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     }
     @Override
     public void insertSeller(SellerAccountVO sellerInfo) {
-        jdbcTemplate.update(insertSeller, sellerInfo.getMember_id(), sellerInfo.getBankName(), sellerInfo.getAccountNumber(),sellerInfo.getTraceId());
+
+        jdbcTemplate.update(insertSeller, sellerInfo.getMember_id(), sellerInfo.getBank_name(), sellerInfo.getAccount_number(),sellerInfo.getTraceId());
     }
     @Override
     public void insertPlatfoem_Revenue(PlatformRevenueVO revenueInfo) {
@@ -136,23 +137,23 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         try {
             return (List<OttRoomDTO>) jdbcTemplate.query(selectTodatSettlement, (rs, rowNum) -> {
             OttRoomDTO room = new OttRoomDTO();
-            room.setBillingDay(rs.getInt("BILLING_DAY"));
-            room.setCloseEffectiveDate(rs.getString("CLOSE_EFFECTIVE_DATE"));
-            room.setCloseNotice(rs.getString("CLOSE_NOTICE"));
-            room.setCloseReason(rs.getString("CLOSE_REASON"));
-            room.setCloseRequestedAt(rs.getString("CLOSE_REQUESTED_AT"));
-            room.setClosedAt(rs.getString("CLOSED_AT"));
-            room.setCreated_at(rs.getString("created_at"));
-            room.setHostmember_id(rs.getString("HOST_LOGIN_ID"));
-            room.setInviteCode(rs.getString("INVITE_CODE"));
-            room.setMemberLimit(rs.getInt("member_limit"));
-            room.setOttServiceId(rs.getLong("OTT_SERVICE_ID"));
-            room.setRoomName(rs.getString("ROOM_NAME"));
-            room.setPlanName(rs.getString("PLAN_NAME"));
-            room.setRoomId(rs.getLong("room_id"));
-            room.setRoomMode(rs.getString("ROOM_MODE"));
+            room.setBilling_day(rs.getInt("BILLING_DAY"));
+            room.setClose_effective_date(rs.getString("CLOSE_EFFECTIVE_DATE"));
+            room.setClose_notice(rs.getString("CLOSE_NOTICE"));
+            room.setClose_reason(rs.getString("CLOSE_REASON"));
+            room.setClose_requested_at(rs.getString("CLOSE_REQUESTED_AT"));
+            room.setClosed_at(rs.getString("CLOSED_AT"));
+            room.setCreated_at(rs.getString("CREATED_AT"));
+            room.setHost_login_id(rs.getString("HOST_LOGIN_ID"));
+            room.setInvite_code(rs.getString("INVITE_CODE"));
+            room.setMember_limit(rs.getInt("member_limit"));
+            room.setOtt_service_id(rs.getLong("OTT_SERVICE_ID"));
+            room.setRoom_name(rs.getString("ROOM_NAME"));
+            room.setPlan_name(rs.getString("PLAN_NAME"));
+            room.setRoom_id(rs.getLong("room_id"));
+            room.setRoom_mode(rs.getString("ROOM_MODE"));
             room.setStatus(rs.getString("STATUS"));
-            room.setTotalPrice(rs.getInt("TOTAL_PRICE"));
+            room.setTotal_price(rs.getInt("TOTAL_PRICE"));
             room.setSettlement_status(rs.getString("settlement_status"));
             return room;
         }, today,endday, status);
@@ -167,13 +168,13 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         try {
             return (List<OttRoomMemberDTO>) jdbcTemplate.query(selectTodaySettlementmember, (rs, rowNum) -> {
                 OttRoomMemberDTO mem = new OttRoomMemberDTO();
-                mem.setFeeAmount(rs.getInt("fee_amount"));
-                mem.setRoomId(rs.getLong("room_id"));
-                mem.setJoinedAt(rs.getString("joined_at"));
+                mem.setFee_amount(rs.getInt("fee_amount"));
+                mem.setRoom_id(rs.getLong("room_id"));
+                mem.setJoined_at(rs.getString("joined_at"));
                 mem.setSettlement_status(rs.getString("settlement_status"));
-                mem.setMember_id(rs.getString("member_login_id"));
-                mem.setPayAmount(rs.getInt("pay_amount"));
-                mem.setFeeRate(rs.getDouble("fee_rate"));
+                mem.setMember_login_id(rs.getString("member_login_id"));
+                mem.setPay_amount(rs.getInt("pay_amount"));
+                mem.setFee_rate(rs.getDouble("fee_rate"));
                 mem.setPay_late_day(rs.getInt("pay_late_day"));
                 mem.setPay_day(rs.getInt("pay_day"));
             return mem;
@@ -185,26 +186,25 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     }
     } 
     @Override
-    public void updateEscrowStatus(int roomId) {
-        jdbcTemplate.update(insertTodayexcrow, roomId);
+    public void updateEscrowStatus(int room_id) {
+        jdbcTemplate.update(insertTodayexcrow, room_id);
+
     }
     @Override
-    public void updatSettlementStatus(int roomId) {
-        jdbcTemplate.update(updateTodaysettlement, roomId);
+    public void updatSettlementStatus(int room_id) {
+        jdbcTemplate.update(updateTodaysettlement, room_id);
     }
     @Override
-    public void updatSettlementStatusYET(int day) {
-        jdbcTemplate.update(updateCheckTodaysettlement, day);
-    }
-    @Override
-    public String roomMemberByroomIdCount (int roomId, String userId) throws DataAccessException{
-        
+
+    public String roomMemberByroomIdCount (int room_id, String userId) throws DataAccessException{
+
+
         try {
             return jdbcTemplate.queryForObject(selectRoomMember, (rs, rowNum) -> {
                 String count = rs.getString("id");
                 return count;
                 
-        }, roomId, userId);
+        }, room_id, userId);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
             // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
             return null; 
@@ -229,5 +229,9 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         @Override
         public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) {
             jdbcTemplate.update(updateTodaysettlementroommemberlate, late_day,roomId,userId);
+        }
+        @Override
+        public void updatSettlementStatusYET(int day) {
+            jdbcTemplate.update(updateCheckTodaysettlement, day);
         }
 }

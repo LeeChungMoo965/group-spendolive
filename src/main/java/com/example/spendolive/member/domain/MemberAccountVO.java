@@ -11,14 +11,16 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberAccountVO {
-    private int accountIdx;        // account_idx (NUMBER -> int 또는 Integer)
-    private String accountHolderNam; // 예금주
+
+    private int account_idx;        // account_idx (NUMBER -> int 또는 Integer)
+    private String account_holder_nam;
     private String id;             // id (VARCHAR2)
-    private String bankCode;       // bank_code (VARCHAR2)
-    private String accountNumber;  // account_number (VARCHAR2)
-    private String fintechUseNum;  // fintech_use_num (VARCHAR2) 결제 사용 인증키ㄴ
-    private int balance;           // balance (NUMBER) 계좌 잔액
-    private String openBankToken;  // open_bank_token (VARCHAR2) 계좌 조회 인증코드
-    private String openBankUserSeq;// open_bank_user_seq (VARCHAR2) 사용자 식별 번호
-    private  LocalDateTime regDate;          // reg_date (DATE) YYYY/mm/DD HH:MM
+    private String bank_code;       // bank_code (VARCHAR2)
+    private String account_number;  // account_number (VARCHAR2)
+    private String fintech_use_num;  // fintech_use_num (VARCHAR2)
+    private int balance;           // balance (NUMBER)
+    private String open_bank_token;  // open_bank_token (VARCHAR2)
+    private String open_bank_user_seq;// open_bank_user_seq (VARCHAR2)
+    private  LocalDateTime reg_date;          // reg_date (DATE)
+
 }

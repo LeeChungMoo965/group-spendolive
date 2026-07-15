@@ -40,14 +40,15 @@ CREATE TABLE member_tb (
 CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
 
 /* =========================================================
-   2. [develop + 마이페이지/OTT 반영] 오픈뱅킹 계좌 연동 컬럼
-      - open_bank_user_seq_no : 금융결제원 사용자 일련번호
-      - open_bank_token       : 오픈뱅킹 Access Token
-      - fintech_use_num       : 실제 계좌 출금/이체에 사용하는 핀테크 이용번호
+   2. 마이페이지/OTT 연동 상태 컬럼
+      - 실제 오픈뱅킹 값은 member_account_tb에 저장
+      - 실제 카드 빌링키는 member_card_tb에 저장
    ========================================================= */
 ALTER TABLE member_tb ADD (
-    account_status  VARCHAR2(4),
-    card_status VARCHAR2(4)
+    account_status  VARCHAR2(4) DEFAULT 'NO' NOT NULL,
+    card_status     VARCHAR2(4) DEFAULT 'NO' NOT NULL,
+    CONSTRAINT ck_member_account_status CHECK (account_status IN ('YES', 'NO')),
+    CONSTRAINT ck_member_card_link_status CHECK (card_status IN ('YES', 'NO'))
 );
 
 alter table member_tb add(
@@ -90,7 +91,11 @@ CREATE TABLE MEMBER_CARD_TB (
     REG_DATE        DATE DEFAULT SYSDATE,                            -- 등록일
     
     -- 회원 테이블과의 연관 관계 설정 (회원 탈퇴 시 카드 정보도 삭제되게)
+<<<<<<< HEAD
     CONSTRAINT FK_CARD_member_id FOREIGN KEY (member_id) 
+=======
+    CONSTRAINT FK_CARD_MEMBER_ID FOREIGN KEY (ID) 
+>>>>>>> aitest
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
 

@@ -14,11 +14,11 @@ public interface AdminOttService {
 
     List<OttServiceDTO> getOttServiceList();
 
-    OttServiceDTO getOttService(Long ottServiceId);
+    OttServiceDTO getOttService(Long ott_service_id);
 
     void addOttService(OttServiceDTO ottService);
 
     boolean modifyOttService(OttServiceDTO ottService);
 
-    boolean hideOttService(Long ottServiceId);
+    boolean hideOttService(Long ott_service_id);
 }

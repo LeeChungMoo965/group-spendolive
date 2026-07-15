@@ -68,15 +68,15 @@
                         <c:otherwise>
                             <c:forEach var="inq" items="${inquiryList}">
                                 <tr>
-                                    <td style="text-align:center;">${inq.inquiryId}</td>
+                                    <td style="text-align:center;">${inq.inquiry_id}</td>
                                     <td style="text-align:center;">${inq.category}</td>
-                                    <td style="text-align:center;">${inq.inquiryType}</td>
+                                    <td style="text-align:center;">${inq.inquiry_type}</td>
                                     <td>
-                                        <a href="${contextPath}/spendolive/admin/inquiry/detail.do?inquiryNo=${inq.inquiryId}">${inq.title}</a>
+                                        <a href="${contextPath}/spendolive/admin/inquiry/detail.do?inquiryNo=${inq.inquiry_id}">${inq.title}</a>
                                     </td>
                                     <td style="text-align:center;">
                                         <c:choose>
-                                            <c:when test="${not empty inq.writerNickname}">${inq.writerNickname}</c:when>
+                                            <c:when test="${not empty inq.writer_nickname}">${inq.writer_nickname}</c:when>
                                             <c:otherwise>${inq.id}</c:otherwise>
                                         </c:choose>
                                     </td>
@@ -87,7 +87,7 @@
                                             <c:otherwise><span class="badge yellow">대기</span></c:otherwise>
                                         </c:choose>
                                     </td>
-                                    <td style="text-align:center;">${inq.regDate}</td>
+                                    <td style="text-align:center;">${inq.reg_date}</td>
                                 </tr>
                             </c:forEach>
                         </c:otherwise>

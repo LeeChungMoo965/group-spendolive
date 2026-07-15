@@ -37,12 +37,12 @@ public class CalendarApiController {
      * 응답 예시:
      * [
      *   {
-     *     "expenseId": 101,
-     *     "expenseDate": "2026-07-05",
-     *     "expenseTitle": "월세",
+     *     "expense_id": 101,
+     *     "expense_date": "2026-07-05",
+     *     "expense_title": "월세",
      *     "amount": 500000,
-     *     "categoryName": "고정지출",
-     *     "expenseType": "FIXED"
+     *     "category_name": "고정지출",
+     *     "expense_type": "FIXED"
      *   },
      *   ...
      * ]
@@ -78,12 +78,12 @@ public class CalendarApiController {
             new Object[]{ member_id, Date.valueOf(start), Date.valueOf(end) },
             (rs, rowNum) -> {
                 Map<String, Object> row = new HashMap<>();
-                row.put("expenseId", rs.getLong("expense_id"));
-                row.put("expenseTitle", rs.getString("expense_title"));
+                row.put("expense_id", rs.getLong("expense_id"));
+                row.put("expense_title", rs.getString("expense_title"));
                 row.put("amount", rs.getLong("amount"));
-                row.put("expenseDate", rs.getDate("expense_date").toLocalDate().toString());
-                row.put("categoryName", rs.getString("category_name"));
-                row.put("expenseType", rs.getString("expense_type"));
+                row.put("expense_date", rs.getDate("expense_date").toLocalDate().toString());
+                row.put("category_name", rs.getString("category_name"));
+                row.put("expense_type", rs.getString("expense_type"));
                 return row;
             }
         );

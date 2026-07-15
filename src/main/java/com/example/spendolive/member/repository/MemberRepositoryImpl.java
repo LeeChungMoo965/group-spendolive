@@ -34,7 +34,8 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "WHERE id = ? "
   + "AND password = ? "
   + "AND status = 'ACTIVE'";
-  private final String selectMemberAll =
+
+  private final String selectMemberAllSql =
     "SELECT member_id, id, email, password, member_name, nickname, "
   + "phone, login_type, blocked_until, warning_count, role, status, "
   + "verify_type, account_status, card_status, "
@@ -70,7 +71,7 @@ public class MemberRepositoryImpl implements MemberRepository{
     private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
     private final String selectMemberAccountById= "select accountHolderNam,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE "
                                                 +"from member_account_tb where id=? ";
-    private final String selectMemberCardById= "select BILLING_KEY,BILLING_KEY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,ID,STATUS "
+    private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
                                                 +"from member_card_tb where id=? ";
     private final String updateWarning="update member_tb set warning_count=? where id=? ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
@@ -143,7 +144,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setRole(rs.getString("role"));
         member.setStatus(rs.getString("status"));
         member.setCreated_at(rs.getString("created_at"));
-        member.setUpdate_at(rs.getString("updated_at"));
+        member.setUpdated_at(rs.getString("updated_at"));
         member.setBlocked_until(rs.getString("blocked_until"));
         member.setLast_login_at(rs.getString("last_login_at"));
         member.setVerify_type(rs.getString("verify_type"));
@@ -249,7 +250,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setRole(rs.getString("role"));
         member.setStatus(rs.getString("status"));
         member.setCreated_at(rs.getString("created_at"));
-        member.setUpdate_at(rs.getString("updated_at"));
+        member.setUpdated_at(rs.getString("updated_at"));
         member.setBlocked_until(rs.getString("blocked_until"));
         member.setLast_login_at(rs.getString("last_login_at"));
         member.setAccount_status(rs.getString("account_status"));
@@ -263,9 +264,9 @@ public class MemberRepositoryImpl implements MemberRepository{
     try{
         return jdbcTemplate.queryForObject(selectMemverCardById, (rs, rowNum) ->{
             MemberCardVO card = new MemberCardVO();
-            card.setBillingKey(rs.getString("billing_key"));
-            card.setCardCompany(rs.getString("card_company"));
-            card.setCardNumber(rs.getString("card_number"));
+            card.setBilling_key(rs.getString("billing_key"));
+            card.setCard_company(rs.getString("card_company"));
+            card.setCard_number(rs.getString("card_number"));
             return card;
         }, userId);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -369,13 +370,13 @@ public class MemberRepositoryImpl implements MemberRepository{
         try {
             return jdbcTemplate.queryForObject(selectMemberCardById, (rs, rowNum) -> {
             MemberCardVO card = new MemberCardVO();
-            card.setCardCompany(rs.getString("card_campany"));
-            card.setBillingKey(rs.getString("billing_key"));
-            card.setCardIdx(rs.getInt("card_idx"));
-            card.setCardNumber(rs.getString("card_number"));
+            card.setCard_company(rs.getString("card_company"));
+            card.setBilling_key(rs.getString("billing_key"));
+            card.setCard_idx(rs.getInt("card_idx"));
+            card.setCard_number(rs.getString("card_number"));
             card.setId(rs.getString("id"));
-            card.setRegDate(rs.getObject("reg_date", LocalDateTime.class));
-            card.setStatus(rs.getString("status0"));
+            card.setReg_date(rs.getObject("reg_date", LocalDateTime.class));
+            card.setStatus(rs.getString("status"));
             return card;
             },userId);
         }catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -388,16 +389,17 @@ public class MemberRepositoryImpl implements MemberRepository{
         try {
             return jdbcTemplate.queryForObject(selectMemberAccountById, (rs, rowNum) -> {
             MemberAccountVO account = new MemberAccountVO();
-            account.setAccountIdx(rs.getInt("account_idx"));
-            account.setAccountNumber(rs.getString("account_number"));
-            account.setAccountHolderNam(rs.getString("accountHolderNam"));
+
+            account.setAccount_idx(rs.getInt("account_idx"));
+            account.setAccount_number(rs.getString("account_number"));
+            account.setAccount_holder_nam(rs.getString("account_holder_nam"));
             account.setBalance(rs.getInt("balance"));
-            account.setOpenBankUserSeq(rs.getString("OPEN_BANK_USER_SEQ"));
-            account.setBankCode(rs.getString("BANK_CODE"));
-            account.setFintechUseNum(rs.getString("FINTECH_USE_NUM"));
+            account.setOpen_bank_user_seq(rs.getString("OPEN_BANK_USER_SEQ"));
+            account.setBank_code(rs.getString("BANK_CODE"));
+            account.setFintech_use_num(rs.getString("FINTECH_USE_NUM"));
             account.setId(rs.getString("id"));
-            account.setOpenBankToken(rs.getString("OPEN_BANK_TOKEN"));
-            account.setRegDate(rs.getObject("reg_date", LocalDateTime.class));
+            account.setOpen_bank_token(rs.getString("OPEN_BANK_TOKEN"));
+            account.setReg_date(rs.getObject("reg_date", LocalDateTime.class));
 
             return account;
             },userId);
@@ -412,10 +414,6 @@ public class MemberRepositoryImpl implements MemberRepository{
     }
     @Override
     public List<MemberVO> selectMemberAll() throws DataAccessException {
-        try {
-            return (List<MemberVO>) jdbcTemplate.query(selectMemberAll, (rs, rowNum) -> mapMember(rs));
-        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
-            return null;
-        }
+        return jdbcTemplate.query(selectMemberAllSql, (rs, rowNum) -> mapMember(rs));
     }
 }

@@ -45,8 +45,8 @@ public class FaqServiceImpl implements FaqService {
     }
 
     @Override
-    public FaqVO getFaqDetail(int faqId) {
-        return faqRepository.findById(faqId);
+    public FaqVO getFaqDetail(int faq_id) {
+        return faqRepository.findById(faq_id);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class FaqServiceImpl implements FaqService {
     }
 
     @Override
-    public void deleteFaq(int faqId) {
-        faqRepository.deleteFaq(faqId);
+    public void deleteFaq(int faq_id) {
+        faqRepository.deleteFaq(faq_id);
     }
 }

@@ -272,8 +272,8 @@ function updateFixedPlanForm(form) {
   const select = form.querySelector('.ott-service-select');
   const option = select && select.selectedOptions ? select.selectedOptions[0] : null;
   const preview = form.querySelector('.ott-fixed-plan-preview');
-  const roomMode = form.dataset.roomMode || 'RECRUIT';
-  const isFriendRoom = roomMode === 'FRIEND';
+  const room_mode = form.dataset.room_mode || 'RECRUIT';
+  const isFriendRoom = room_mode === 'FRIEND';
 
   if (!option || !option.value) {
     form.querySelector('.ott-plan-input')?.setAttribute('value', '');
@@ -285,15 +285,15 @@ function updateFixedPlanForm(form) {
     return;
   }
 
-  const serviceName = option.dataset.serviceName || option.textContent.trim();
+  const service_name = option.dataset.service_name || option.textContent.trim();
   const plan = option.dataset.plan || '프리미엄';
-  const basePrice = toNumber(option.dataset.basePrice);
+  const base_price = toNumber(option.dataset.base_price);
   const extraFee = toNumber(option.dataset.extraFee);
   const extraCount = toNumber(option.dataset.extraCount);
-  const totalPrice = toNumber(option.dataset.totalPrice);
-  const memberLimit = toNumber(option.dataset.memberLimit);
-  const shareAmount = toNumber(option.dataset.shareAmount);
-  const feeAmount = toNumber(option.dataset.feeAmount);
+  const total_price = toNumber(option.dataset.total_price);
+  const member_limit = toNumber(option.dataset.member_limit);
+  const share_amount = toNumber(option.dataset.share_amount);
+  const fee_amount = toNumber(option.dataset.fee_amount);
   const personAmount = toNumber(option.dataset.personAmount);
 
   const planInput = form.querySelector('.ott-plan-input');
@@ -301,11 +301,11 @@ function updateFixedPlanForm(form) {
   const memberInput = form.querySelector('.ott-member-limit-input');
 
   if (planInput) planInput.value = plan;
-  if (totalInput) totalInput.value = totalPrice;
-  if (memberInput) memberInput.value = memberLimit;
+  if (totalInput) totalInput.value = total_price;
+  if (memberInput) memberInput.value = member_limit;
 
-  const displayTotalPrice = isFriendRoom ? basePrice : totalPrice;
-  const displayShareAmount = memberLimit > 0 ? Math.floor(displayTotalPrice / memberLimit) : 0;
+  const displayTotalPrice = isFriendRoom ? base_price : total_price;
+  const displayShareAmount = member_limit > 0 ? Math.floor(displayTotalPrice / member_limit) : 0;
   const displayFeeAmount = Math.floor(displayShareAmount * 0.03);
   const displayPersonAmount = displayShareAmount + displayFeeAmount;
   
@@ -317,11 +317,11 @@ function updateFixedPlanForm(form) {
 
   if (preview) {
     preview.innerHTML = `
-      <strong>${serviceName} · ${plan}</strong>
+      <strong>${service_name} · ${plan}</strong>
       <div class="ott-plan-preview-grid">
-        <span><b>기본 구독료</b>${formatWon(basePrice)}</span>
+        <span><b>기본 구독료</b>${formatWon(base_price)}</span>
         <span><b>${isFriendRoom ? '공유 기준' : '추가 비용'}</b>${extraText}</span>
-        <span><b>N분의 1 기준 금액</b>${formatWon(displayTotalPrice)} / ${memberLimit}명</span>
+        <span><b>N분의 1 기준 금액</b>${formatWon(displayTotalPrice)} / ${member_limit}명</span>
         <span><b>1인 결제금액</b>${formatWon(displayPersonAmount)} <small>분담금 ${formatWon(displayShareAmount)} + 수수료 ${formatWon(displayFeeAmount)}(3%)</small></span>
       </div>
     `;

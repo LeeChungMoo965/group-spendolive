@@ -121,17 +121,17 @@ public class PaymentServiceImpl implements PaymentService{
             if ("A0000".equals(rspCode)) {
                 // 🚀 [성공] 1단계: 팀원별 입금 장부(SettlementPayment) 상태를 PAID로 변경
                 paymentInfo.setPayment_status("PAID");
-                paymentInfo.setPaidAt(LocalDateTime.now());
+                paymentInfo.setPaid_at(LocalDateTime.now());
                 paymentRepository.updatePaymentStatus(paymentInfo); // 레포지토리에 반영
 
                 // 🚀 [성공] 2단계: 먹튀 방지를 위해 에스크로(Escrow) 금고 테이블에 돈 묶어두기
                 EscrowPayoutVO escrow = new EscrowPayoutVO();
-                escrow.setSettlementId(paymentInfo.getSettlementId());
+                escrow.setSettlement_id(paymentInfo.getSettlement_id());
                 // 방의 룸 ID와 방장 ID는 원래 룸 정보에서 꺼내와야 하므로 데이터 바인딩 필요
-                escrow.setRoomId(1); // 예시 ID
+                escrow.setRoom_id(1); // 예시 ID
                 escrow.setPayerId(paymentInfo.getId());
                 escrow.setHostId("방장ID_조회필요");
-                escrow.setAmount(paymentInfo.getBaseAmount()); // 수수료 뺀 원금 보관
+                escrow.setAmount(paymentInfo.getBase_amount()); // 수수료 뺀 원금 보관
                 escrow.setStatus("HELD"); // 보관 상태로 지정
                 
                 paymentRepository.insertEscrow(escrow); // 에스크로 인서트
@@ -212,11 +212,11 @@ public class PaymentServiceImpl implements PaymentService{
     restTemplate.getMessageConverters().add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
     
     MemberCardVO cardVo = memberRepository.getCardInfoByUserId(userId);
-    if (cardVo == null || cardVo.getBillingKey() == null) {
+    if (cardVo == null || cardVo.getBilling_key() == null) {
         throw new RuntimeException("등록된 결제 카드가 없습니다.");
     }
     
-    String billingKey = cardVo.getBillingKey();
+    String billingKey = cardVo.getBilling_key();
 
     
     String url = "https://api.tosspayments.com/v1/billing/" + billingKey;
@@ -256,7 +256,7 @@ public class PaymentServiceImpl implements PaymentService{
             String paymentKey = (String) resBody.get("paymentKey");
             String status = (String) resBody.get("status"); // DONE 이면 결제 완료
             String orderid = (String) resBody.get("orderId");
-            int totalamount = (int) resBody.get("totalAmount");
+            int totalamount = (int) resBody.get("total_amount");
             String approvedAtStr = (String) resBody.get("approvedAt");
             LocalDateTime approved_at = OffsetDateTime.parse(approvedAtStr).toLocalDateTime();
             String cardnumber = (String) cardInfo.get("number");
@@ -344,12 +344,12 @@ public class PaymentServiceImpl implements PaymentService{
     }
 }
     @Override
-    public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int roomId) throws Exception {
-        return paymentRepository.settlement_paymentByroomId(userId, roomId);
+    public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int room_id) throws Exception {
+        return paymentRepository.settlement_paymentByroomId(userId, room_id);
     }
     @Override
-    public OttSettlementDTO selectMySettlements(int roomId)  throws Exception{
-        return paymentRepository.settlementByroomId(roomId);
+    public OttSettlementDTO selectMySettlements(int room_id)  throws Exception{
+        return paymentRepository.settlementByroomId(room_id);
     }
     //토스 정산금 보낼 셀러 등록 프로세스(권한 문제로 보류)
     @Override
@@ -406,19 +406,20 @@ public class PaymentServiceImpl implements PaymentService{
             Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
             
             // 🌟 5. v1 응답 데이터 구조에 맞춰 파싱 및 DB 저장
-            SellerAccountVO seller = new SellerAccountVO().builder()
+
+            SellerAccountVO seller = SellerAccountVO.builder()
                     .member_id(userId)
-                    .bankName((String) resBody.get("bank"))
-                    .accountNumber((String) resBody.get("accountNumber"))
+                    .bank_name((String) resBody.get("bank"))
+                    .account_number((String) resBody.get("accountNumber"))
                     .traceId(UUID.randomUUID().toString()) // v1은 traceId를 안 주므로 내부용 임의 생성
                     .build();
                     
             try{
             String traceId ="1123412312321413243142sadsadadsdsadasd";        
-            SellerAccountVO seller = new SellerAccountVO().builder()
+            SellerAccountVO seller = SellerAccountVO.builder()
             .member_id(userId)
-            .bankName(bankCode)
-            .accountNumber(accNum)
+            .bank_name(bankCode)
+            .account_number(accNum)
             .traceId(traceId) // v1은 traceId를 안 주므로 내부용 임의 생성
             .build();
             paymentRepository.insertSeller(seller);
@@ -481,8 +482,10 @@ public class PaymentServiceImpl implements PaymentService{
     
     //정산금 송금 후 상태값 변경 프로세스
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String updateExcrow(int roomId) throws Exception {
+    @Transactional
+    public String updateExcrow(int room_id) throws Exception {
+
+
         try{
         //추후 사업자 등록 후 토스지급대행 , 금결원 출금이체 api 사용 메서드      
         }catch(Exception e){
@@ -492,8 +495,8 @@ public class PaymentServiceImpl implements PaymentService{
             return "송금중 문제가 생겼습니다. ";
             }
         try{
-            paymentRepository.updateEscrowStatus(roomId);
-            paymentRepository.updatSettlementStatus(roomId);
+            paymentRepository.updateEscrowStatus(room_id);
+            paymentRepository.updatSettlementStatus(room_id);
         }catch(Exception e){
             System.err.println("🚨 [시스템 에러]: " + e.getMessage());
             return "송금 완료 후 서버 쪽에서 오류 가 생겼습니다. 송금을 취소 하는 중이니 잠시만 기다려 주세요. ";
@@ -502,8 +505,8 @@ public class PaymentServiceImpl implements PaymentService{
     }
     
     @Override
-    public String roomMemberByroomIdCount(int roomId, String userId) throws Exception {
-        return paymentRepository.roomMemberByroomIdCount(roomId, userId);
+    public String roomMemberByroomIdCount(int room_id, String userId) throws Exception {
+        return paymentRepository.roomMemberByroomIdCount(room_id, userId);
     }
     @Override
     public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) throws Exception {

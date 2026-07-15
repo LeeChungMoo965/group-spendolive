@@ -8,7 +8,7 @@ public interface NoticeService {
 
     List<NoticeDTO> getNoticeList(String id);
 
-    NoticeDTO getNoticeDetail(int noticeId);
+    NoticeDTO getNoticeDetail(int notice_id);
 
     int getNoticeCount();
 
@@ -16,14 +16,14 @@ public interface NoticeService {
 
     List<NoticeDTO> getImportantList(String id);
 
-    void readNotice(int noticeId, String id);
+    void readNotice(int notice_id, String id);
 
     List<NoticeDTO> getUnreadNoticeList(String id);
 
-    void toggleNoticeStar(int noticeId, String id);
+    void toggleNoticeStar(int notice_id, String id);
 
     // 관리자 기능
     int insertNotice(NoticeDTO notice);
     void updateNotice(NoticeDTO notice);
-    void deleteNotice(int noticeId);
+    void deleteNotice(int notice_id);
 }

@@ -231,22 +231,24 @@
                                 <c:forEach var="report" items="${myReportList}">
                                     <tr>
                                         <td>
-                                            <strong>${report.reportedMemberNickname}</strong>
-                                            <small>${report.reportedmember_id}</small>
+
+                                            <strong>${report.reported_member_nickname}</strong>
+                                            <small>${report.reported_member_id}</small>
+
                                         </td>
-                                        <td class="mypage-reason">${report.reportReason}</td>
+                                        <td class="mypage-reason">${report.report_reason}</td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${report.reportStatus == 'WAIT'}"><span class="chip wait">접수</span></c:when>
-                                                <c:when test="${report.reportStatus == 'PROCESSING'}"><span class="chip request">처리중</span></c:when>
-                                                <c:when test="${report.reportStatus == 'COMPLETE'}"><span class="chip done">처리완료</span></c:when>
-                                                <c:when test="${report.reportStatus == 'REJECT'}"><span class="chip muted-chip">반려</span></c:when>
-                                                <c:otherwise><span class="chip muted-chip">${report.reportStatus}</span></c:otherwise>
+                                                <c:when test="${report.report_status == 'WAIT'}"><span class="chip wait">접수</span></c:when>
+                                                <c:when test="${report.report_status == 'PROCESSING'}"><span class="chip request">처리중</span></c:when>
+                                                <c:when test="${report.report_status == 'COMPLETE'}"><span class="chip done">처리완료</span></c:when>
+                                                <c:when test="${report.report_status == 'REJECT'}"><span class="chip muted-chip">반려</span></c:when>
+                                                <c:otherwise><span class="chip muted-chip">${report.report_status}</span></c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${report.blockedYn == 'Y'}"><span class="chip done">차단됨</span></c:when>
+                                                <c:when test="${report.blocked_yn == 'Y'}"><span class="chip done">차단됨</span></c:when>
                                                 <c:otherwise><span class="chip muted-chip">미차단</span></c:otherwise>
                                             </c:choose>
                                         </td>
@@ -278,12 +280,12 @@
                         <c:forEach var="room" items="${friendRoomList}">
                             <div class="mypage-room-card">
                                 <div>
-                                    <strong>${room.roomName}</strong>
-                                    <p>${room.serviceName} · ${room.planName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
-                                    <small>결제일 매월 ${room.billingDay}일 · 상태 ${room.status}</small>
+                                    <strong>${room.room_name}</strong>
+                                    <p>${room.service_name} · ${room.plan_name} · ${room.current_member_count}/${room.member_limit}명</p>
+                                    <small>결제일 매월 ${room.billing_day}일 · 상태 ${room.status}</small>
                                 </div>
                                 <div class="mypage-room-actions">
-                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary">대화방</a>
                                 </div>
                             </div>
                         </c:forEach>
@@ -313,11 +315,11 @@
                                 <c:forEach var="room" items="${hostedRecruitRoomList}">
                                     <div class="mypage-room-card">
                                         <div>
-                                            <strong>${room.roomName}</strong>
-                                            <p>${room.serviceName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
+                                            <strong>${room.room_name}</strong>
+                                            <p>${room.service_name} · ${room.current_member_count}/${room.member_limit}명</p>
                                             <small>내가 만든 방 · ${room.status}</small>
                                         </div>
-                                        <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                        <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary">대화방</a>
                                     </div>
                                 </c:forEach>
                             </div>
@@ -336,17 +338,17 @@
                                 <c:forEach var="room" items="${joinedRecruitRoomList}">
                                     <div class="mypage-room-card">
                                         <div>
-                                            <strong>${room.roomName}</strong>
-                                            <p>${room.serviceName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
-                                            <small>방장 ${room.hostNickname}</small>
+                                            <strong>${room.room_name}</strong>
+                                            <p>${room.service_name} · ${room.current_member_count}/${room.member_limit}명</p>
+                                            <small>방장 ${room.host_nickname}</small>
                                             <c:choose>
-                                                <c:when test="${room.myApplicationStatus eq 'APPLIED'}">
+                                                <c:when test="${room.my_application_status eq 'APPLIED'}">
                                                     <span class="status-pill APPLIED">승인 대기중</span>
                                                 </c:when>
-                                                <c:when test="${room.myApplicationStatus eq 'REJECTED'}">
+                                                <c:when test="${room.my_application_status eq 'REJECTED'}">
                                                     <span class="status-pill REJECTED">거절됨</span>
                                                 </c:when>
-                                                <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
+                                                <c:when test="${room.my_application_status eq 'ACTIVE'}">
                                                     <span class="status-pill ACTIVE">참여중</span>
                                                 </c:when>
                                                 <c:otherwise>
@@ -354,8 +356,8 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
-                                        <c:if test="${room.myApplicationStatus eq 'ACTIVE' or empty room.myApplicationStatus}">
-                                            <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                        <c:if test="${room.my_application_status eq 'ACTIVE' or empty room.my_application_status}">
+                                            <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary">대화방</a>
                                         </c:if>
                                     </div>
                                 </c:forEach>

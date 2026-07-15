@@ -58,21 +58,21 @@
                                     <td style="text-align:center;">${s.count}</td>
                                     <td style="text-align:center;">${faq.categoryLabel}</td>
                                     <td>
-                                        <a href="${contextPath}/spendolive/admin/faq/edit.do?faqId=${faq.faqId}">${faq.question}</a>
+                                        <a href="${contextPath}/spendolive/admin/faq/edit.do?faq_id=${faq.faq_id}">${faq.question}</a>
                                     </td>
-                                    <td style="text-align:center;">${faq.sortOrder}</td>
+                                    <td style="text-align:center;">${faq.sort_order}</td>
                                     <td style="text-align:center;">
                                         <c:choose>
-                                            <c:when test="${faq.useYn == 'Y'}"><span class="badge green">노출</span></c:when>
+                                            <c:when test="${faq.use_yn == 'Y'}"><span class="badge green">노출</span></c:when>
                                             <c:otherwise><span class="badge gray">숨김</span></c:otherwise>
                                         </c:choose>
                                     </td>
                                     <td>
                                         <div class="table-actions" style="justify-content:center;">
-                                            <a href="${contextPath}/spendolive/admin/faq/edit.do?faqId=${faq.faqId}" class="mini-btn">수정</a>
+                                            <a href="${contextPath}/spendolive/admin/faq/edit.do?faq_id=${faq.faq_id}" class="mini-btn">수정</a>
                                             <form action="${contextPath}/spendolive/admin/faq/delete.do" method="post" style="display:inline;"
                                                   onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                                                <input type="hidden" name="faqId" value="${faq.faqId}">
+                                                <input type="hidden" name="faq_id" value="${faq.faq_id}">
                                                 <button type="submit" class="mini-btn danger">삭제</button>
                                             </form>
                                         </div>

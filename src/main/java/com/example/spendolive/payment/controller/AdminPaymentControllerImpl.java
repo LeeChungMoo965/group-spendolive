@@ -67,12 +67,12 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
     }
     @Override
     @PostMapping("/pay.do")
-    public String pay(@RequestParam("roomId") String roomIdStr, HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+    public String pay(@RequestParam("room_id") String roomIdStr, HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
         session = request.getSession();
-        int roomId = Integer.parseInt(roomIdStr);
+        int room_id = Integer.parseInt(roomIdStr);
         
         try {
-            String msg = paymentService.updateExcrow(roomId);
+            String msg = paymentService.updateExcrow(room_id);
             redirectAttributes.addFlashAttribute("msg", msg);
             return "redirect:/admin/settlement/list.do";
         } catch (Exception e) {
@@ -96,13 +96,13 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         response.setContentType("text/html; charset=UTF-8");
         int roomId = Integer.parseInt(roomIdStr);
         OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(roomId);
-        int total_amount =  settlementInfo.getTotalPrice();
+        int total_amount =  settlementInfo.getTotal_price();
         int member_limit = settlementInfo.getMember_limit();
         int base_amount = total_amount / member_limit;
         int fee_amount = (base_amount / 100) * member_limit;
         int total_price = base_amount + fee_amount; 
-        String host_id = settlementInfo.getHost_id();
-        int settlement_id = (int) settlementInfo.getSettlementId().longValue();
+        String host_id = settlementInfo.getHost_login_id();
+        int settlement_id = (int) settlementInfo.getSettlement_id().longValue();
 
         try {
             paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);

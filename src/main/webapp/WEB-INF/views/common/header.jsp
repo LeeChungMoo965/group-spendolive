@@ -19,7 +19,7 @@
                 </div>
             </a>
             <nav class="admin-nav">
-                <a href="index.html" data-nav="dashboard">대시보드</a>
+                <a href="${contextPath}/spendolive/admin/main.do" data-nav="dashboard">대시보드</a>
                 <a href="${contextPath}/admin/member/list.do" data-nav="member">회원관리</a>
                 <a href="${contextPath}/admin/ott/list.do" data-nav="ott">OTT 관리</a>
                 <a href="${contextPath}/admin/settlement/list.do" data-nav="settlement">정산관리</a>

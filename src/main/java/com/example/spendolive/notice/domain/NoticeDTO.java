@@ -7,18 +7,19 @@ import lombok.Setter;
 
 public class NoticeDTO {
 
-    private int noticeId;
-    private String adminId;
+    private int notice_id;
+    private String admin_id;
 
     private String title;
     private String content;
 
-    private String pinnedYn;
+    private String pinned_yn;
 
     private String created_at;
-    private String updatedAt;
-    private String readYn;
-    private String starYn;
+    private String updated_at;
+    private String read_yn;
+    private String star_yn;
+
     
 
     

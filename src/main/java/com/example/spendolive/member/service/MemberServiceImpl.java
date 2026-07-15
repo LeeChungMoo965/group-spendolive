@@ -327,12 +327,12 @@ public class MemberServiceImpl implements MemberService {
 
         Map<String, Object> firstAccount = resList.get(0);
 
-        String fintechUseNum = (String) firstAccount.get("fintech_use_num");
+        String fintech_use_num = (String) firstAccount.get("fintech_use_num");
         String accountNum = (String) firstAccount.get("account_num_masked");
         String bankCode = (String) firstAccount.get("bank_code_std");
         String accountHolderName = (String) firstAccount.get("accountHolderName");
 
-        System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
+        System.out.println("👉 진짜 24자리 번호 획득: " + fintech_use_num);
         System.out.println("👉 은행 코드 획득: " + bankCode);
         System.out.println("👉 계좌번호 획득: " + accountNum);
 
@@ -343,7 +343,7 @@ public class MemberServiceImpl implements MemberService {
         String balanceUrl =
                 "https://testapi.openbanking.or.kr/v2.0/account/balance/fintech_use_num"
                         + "?fintech_use_num="
-                        + fintechUseNum
+                        + fintech_use_num
                         + "&tran_dtime="
                         + tranDtime;
 
@@ -366,7 +366,7 @@ public class MemberServiceImpl implements MemberService {
                 userId,
                 accessToken,
                 userSeqNo,
-                fintechUseNum,
+                fintech_use_num,
                 bankCode,
                 accountNum,
                 balance,
