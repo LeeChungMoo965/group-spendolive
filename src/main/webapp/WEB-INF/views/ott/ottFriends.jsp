@@ -128,9 +128,8 @@
                                         <small class="warn-text">미결제자 발생으로 대체 모집 중</small>
                                     </c:if>
 
-                                    <%-- 방장 초대 공유 --%>
-                                    <c:if test="${room.host_login_id eq loginId and not empty room.invite_code and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
-                                        <div class="invite-share-box" data-room-name="${fn:escapeXml(room.room_name)}">
+                                    <c:if test="${room.hostMemberId eq loginId and not empty room.inviteCode and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
+                                        <div class="invite-share-box" data-room-name="${fn:escapeXml(room.roomName)}">
                                             <strong>초대 링크 공유</strong>
                                             <small>URL 복사, QR 코드, 카카오톡 공유 중 하나로 초대할 수 있습니다. 링크를 타고 들어오면 결제 화면으로 이동합니다.</small>
 
@@ -159,8 +158,7 @@
                                     <span class="status-pill ${room.status}">${room.status}</span>
                                     <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-outline btn-mini">대화방</a>
 
-                                    <%-- 참여자별 방 관리 기능 --%>
-                                    <c:if test="${room.host_login_id ne loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
+                                    <c:if test="${room.hostMemberId ne loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
                                         <c:choose>
                                             <c:when test="${room.leave_reserved_yn eq 'Y'}">
                                                 <small class="warn-text">나가기 예약됨 · ${room.leave_scheduled_date} 자동 퇴장</small>
@@ -180,7 +178,7 @@
                                         </c:choose>
                                     </c:if>
 
-                                    <c:if test="${room.host_login_id eq loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
+                                    <c:if test="${room.hostMemberId eq loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
                                         <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form compact-close-form">
                                             <input type="hidden" name="room_id" value="${room.room_id}">
                                             <input type="hidden" name="returnPage" value="friends">
@@ -368,8 +366,8 @@
                                 <c:forEach var="payment" items="${hostedSettlementPaymentList}">
                                     <div class="team-payment-row">
                                         <span>
-                                            <strong>${payment.room_name}</strong>
-                                            <small>${payment.settlement_month} 이용분 · ${payment.member_name}(${payment.member_login_id})</small>
+                                            <strong>${payment.roomName}</strong>
+                                            <small>${payment.settlementMonth} 이용분 · ${payment.memberName}(${payment.memberId})</small>
                                         </span>
                                         <b><fmt:formatNumber value="${payment.total_amount}" pattern="#,##0" />원</b>
                                         <em class="${payment.payment_status eq 'PAID' or payment.payment_status eq 'CONFIRMED' ? 'done' : 'wait'}">${payment.payment_status}</em>

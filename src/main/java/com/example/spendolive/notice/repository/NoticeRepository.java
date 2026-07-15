@@ -26,9 +26,11 @@ public class NoticeRepository {
         notice.setAdmin_id(rs.getString("admin_id"));
         notice.setTitle(rs.getString("title"));
         notice.setContent(rs.getString("content"));
+
         notice.setPinned_yn(rs.getString("pinned_yn"));
         notice.setCreated_at(rs.getString("created_at"));
         notice.setUpdated_at(rs.getString("updated_at"));
+
         
         return notice;
     }
@@ -169,7 +171,7 @@ public class NoticeRepository {
     }
 
     /* ─── 안 읽은 목록 ────────────────────────────────────── */
-    public List<NoticeDTO> findUnreadByMemberId(String id) {
+    public List<NoticeDTO> findUnreadBymember_id(String id) {
         if (id == null || id.isBlank()) return Collections.emptyList();
 
         String sql = """
@@ -192,7 +194,7 @@ public class NoticeRepository {
                 return notice;
             }, id);
         } catch (DataAccessException e) {
-            System.err.println("[NoticeRepository.findUnreadByMemberId] DB 오류: " + e.getMessage());
+            System.err.println("[NoticeRepository.findUnreadBymember_id] DB 오류: " + e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -220,22 +222,24 @@ public class NoticeRepository {
     }
 
     /* ─── 전체 회원 ID 조회 (알림 발송용) ─────────────────── */
-    public List<String> findAllMemberIds() {
+    public List<String> findAllmember_ids() {
         try {
             return jdbcTemplate.queryForList(
                 "SELECT id FROM member_tb WHERE status = 'ACTIVE'",
                 String.class
             );
         } catch (DataAccessException e) {
-            System.err.println("[NoticeRepository.findAllMemberIds] DB 오류: " + e.getMessage());
+            System.err.println("[NoticeRepository.findAllmember_ids] DB 오류: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /* ─── 공지 알림 전체 회원 발송 ────────────────────────── */
+
     public void insertNoticeAlertForAll(String title, String notice_id) {
-        List<String> memberIds = findAllMemberIds();
-        if (memberIds.isEmpty()) return;
+        List<String> member_ids = findAllmember_ids();
+        if (member_ids.isEmpty()) return;
+
 
         String sql = """
             INSERT INTO notification_tb
@@ -245,11 +249,13 @@ public class NoticeRepository {
         String message = "새 공지사항이 등록되었습니다.";
         String link_url = "/spendolive/notice/detail.do?notice_id=" + notice_id;
 
-        for (String memberId : memberIds) {
+        for (String member_id : member_ids) {
             try {
-                jdbcTemplate.update(sql, memberId, title, message, link_url);
+
+                jdbcTemplate.update(sql, member_id, title, message, link_url);
+
             } catch (DataAccessException e) {
-                System.err.println("[NoticeRepository.insertNoticeAlertForAll] " + memberId + " 실패: " + e.getMessage());
+                System.err.println("[NoticeRepository.insertNoticeAlertForAll] " + member_id + " 실패: " + e.getMessage());
             }
         }
     }

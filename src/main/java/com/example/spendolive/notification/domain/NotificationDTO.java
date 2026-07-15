@@ -11,8 +11,10 @@ public class NotificationDTO {
     private String notification_type;
     private String title;
     private String message;
+
     private String link_url;
     private String read_yn;
     private String star_yn;
+
     private String created_at;
 }

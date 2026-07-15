@@ -78,7 +78,9 @@
                                 <a href="${contextPath}/spendolive/notice/detail.do?notice_id=${notice.notice_id}"
                                    style="color:#111;text-decoration:none;">${notice.title}</a>
                             </td>
+
                             <td>${notice.admin_id}</td>
+
                             <td>${notice.created_at}</td>
                             <td class="col-act">
                                 <a href="${contextPath}/spendolive/admin/notice/edit.do?notice_id=${notice.notice_id}" class="btn-edit">수정</a>

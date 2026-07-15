@@ -57,9 +57,9 @@ public class MyPageServiceImpl implements MyPageService {
                         : accountInfo.getOpen_bank_user_seq()
         );
     
-        myPage.setWarningCount(Math.max(
+        myPage.setWarning_count(Math.max(
                 memberInfo == null ? 0 : memberInfo.getWarning_count(),
-                myPageReportRepository.selectWarningCount(loginId)
+                myPageReportRepository.selectwarning_count(loginId)
         ));
     
         myPage.setMyReportCount(

@@ -85,8 +85,10 @@
                                 <c:when test="${message.system_yn eq 'Y'}">
                                     <div class="chat-message-row system">
                                         <div class="chat-system-bubble">
+
                                             <strong>${message.sender_id}</strong>
                                             <p>${message.message_content}</p>
+
                                             <small>${message.created_at}</small>
                                         </div>
                                     </div>
@@ -94,8 +96,10 @@
                                 <c:otherwise>
                                     <div class="chat-message-row ${message.mine_yn eq 'Y' ? 'mine' : 'other'}">
                                         <div class="chat-message-bubble">
+
                                             <strong>${message.sender_name}</strong>
                                             <p>${message.message_content}</p>
+
                                             <small>${message.created_at}</small>
                                             
                                         </div>
@@ -148,7 +152,9 @@
 
         const time = document.createElement('small');
         time.textContent = message.created_at || '';
+
         if (!isSystem && message.mine_yn !== 'Y') {
+
                 const reportLink = document.createElement('a');
                 reportLink.href = '/report/report.do?reported_member_id='+message.sender_id+'?room_id='+room_id+'?chat_text='+message.message_content;
                 reportLink.textContent = ' 신고하기';

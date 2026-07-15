@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OttRoomMemberDTO {
+
     // 멤버 및 방 식별 정보
     private Long room_member_id;
     private Long room_id;

@@ -17,13 +17,13 @@ public class ReportRepositoryImpl implements ReportRepository {
 
     private final String insertReport = "INSERT INTO report_tb (room_id, reporter_id, reported_member_id, report_reason, report_status)"
                                         +" VALUES (?,?,?,?, 'WAIT') ";
-    private final String selectReportAll = "SELECT REPORT_ID,REPORTER_ID,REPORTED_MEMBER_ID,ROOM_ID,REPORT_REASON,REPORT_STATUS,ADMIN_COMMENT,created_at,processed_at "
+    private final String selectReportAll = "SELECT REPORT_ID,REPORTER_ID,REPORTED_member_id,ROOM_ID,REPORT_REASON,REPORT_STATUS,ADMIN_COMMENT,created_at,processed_at "
                                         +"from report_tb ";
-    private final String selectReport = "SELECT REPORT_ID,REPORTER_ID,REPORTED_MEMBER_ID,ROOM_ID,REPORT_REASON,REPORT_STATUS,ADMIN_COMMENT,created_at,processed_at "
+    private final String selectReport = "SELECT REPORT_ID,REPORTER_ID,REPORTED_member_id,ROOM_ID,REPORT_REASON,REPORT_STATUS,ADMIN_COMMENT,created_at,processed_at "
                                         +"from report_tb where report_status=? ";
                                                                          
     private final String updateComment = "UPDATE report_tb SET admin_comment =? , processed_at =SYSDATE , report_status =? WHERE report_id=? ";
-    private final String insertWarning = "INSERT INTO warning_tb (member_id, report_id, warning_reason, status, CREATED_AT)"
+    private final String insertWarning = "INSERT INTO warning_tb (member_id, report_id, warning_reason, status, created_at)"
                                         +" VALUES (?,?,?,?,SYSDATE) ";
     
     @Override

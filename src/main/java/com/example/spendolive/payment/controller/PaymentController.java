@@ -20,8 +20,8 @@ public interface PaymentController {
         @RequestParam("authKey") String authKey,
         HttpServletRequest request, HttpServletResponse response,
         HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
-    public void requestTossBillingKey(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception;
     public String payment(
             HttpServletRequest request, HttpServletResponse response,
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
+    public String tossCallback(RedirectAttributes redirectAttributes)throws Exception;
 }

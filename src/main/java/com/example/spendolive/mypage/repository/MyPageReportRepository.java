@@ -36,7 +36,7 @@ public class MyPageReportRepository {
         }
     }
 
-    public int selectWarningCount(String loginId) {
+    public int selectwarning_count(String loginId) {
         String sql = """
                 SELECT COUNT(*)
                 FROM warning_tb
@@ -94,6 +94,7 @@ public class MyPageReportRepository {
                 report.setCreated_at(rs.getString("created_at"));
                 report.setProcessed_at(rs.getString("processed_at"));
                 report.setBlocked_yn(rs.getString("blocked_yn"));
+
                 return report;
             }
         };

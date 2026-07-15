@@ -24,7 +24,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     private final String insertEscrow = "INSERT INTO escrow_payout_tb (SETTLEMENT_ID, room_id, payer_id, host_id, amount, status, created_at)  "
     +" VALUES(?,?,?,?,?,?,?) ";
     private final String insertRevenue = "INSERT INTO platform_revenue_tb ("
-    +"SETTLEMENT_ID, ROOM_ID, PAYER_ID, BASE_AMOUNT, FEE_RATE, FEE_AMOUNT, STATUS, CREATED_AT) "
+    +"SETTLEMENT_ID, ROOM_ID, PAYER_ID, BASE_AMOUNT, FEE_RATE, FEE_AMOUNT, STATUS, created_at) "
     +" VALUES(?,?,?,?,?,?,?,?) ";
     private final String insertSeller = "INSERT INTO seller_account_tb ("
     +"member_id, bank_name, account_number, traceId) "
@@ -43,9 +43,9 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + "TO_CHAR(r.CLOSE_EFFECTIVE_DATE, 'YYYY-MM-DD') AS CLOSE_EFFECTIVE_DATE, "
     + "TO_CHAR(r.CLOSE_REQUESTED_AT, 'YYYY-MM-DD') AS CLOSE_REQUESTED_AT, "
     + "TO_CHAR(r.CLOSED_AT, 'YYYY-MM-DD') AS CLOSED_AT, "
-    + "TO_CHAR(r.CREATED_AT, 'YYYY-MM-DD') AS CREATED_AT, "
+    + "TO_CHAR(r.created_at, 'YYYY-MM-DD') AS created_at, "
     + "s.SETTLEMENT_STATUS "         
-    + "from ott_room_tb r INNER JOIN settlement_tb s ON r.ROOM_ID = s.ROOM_ID where r.BILLING_DAY =? AND r.status= 'ACTIVE' "
+    + "from ott_room_tb r INNER JOIN settlement_tb s ON r.ROOM_ID = s.ROOM_ID where r.BILLING_DAY >=? AND r.BILLING_DAY <=? AND r.status= 'ACTIVE' "
     + "AND s.settlement_status =? ";
     private final String insertTodayexcrow = "UPDATE escrow_payout_tb set STATUS = 'RELEASED' ,PAYOUT_AT =sysdate where ROOM_ID =? ";
     private final String updateTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? ";
@@ -54,9 +54,16 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + "where room_id =? and member_login_id=? and status ='ACTIVE' ";
     private final String selectTodaySettlementmember = "SELECT FEE_AMOUNT,FEE_RATE,MEMBER_LOGIN_ID,PAY_AMOUNT,PAY_DAY,PAY_LATE_DAY,ROOM_ID, settlement_status, "
     + "TO_CHAR(JOINED_AT , 'YYYY-MM-DD') AS JOINED_AT "     
-    + "from ott_room_member_tb where pay_day + pay_late_day =? AND status= 'ACTIVE' "
-    + "AND settlement_status =? ";
-
+    + "from ott_room_member_tb where (pay_day + pay_late_day) >=? AND (pay_day + pay_late_day) <=? AND status= 'ACTIVE' "
+    + "AND settlement_status =? and MEMBER_ROLE='MEMBER'";
+    private final String updateReadyfromYet="UPDATE settlement_tb set settlement_status = 'READY'  where settlement_status='YET'  AND room_id "
+       + " IN (SELECT room_id FROM ott_room_tb WHERE BILLING_DAY >=? AND BILLING_DAY <=?) ";
+    private final String updateCheckTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'YET' where SETTLEMENT_STATUS ='DONE' AND ROOM_ID IN (SELECT room_id FROM ott_room_tb WHERE billing_day < ?) ";
+    private final String updateCheckTodayroommember = "UPDATE ott_room_member_tb set SETTLEMENT_STATUS = 'YET' where SETTLEMENT_STATUS ='DONE' and (pay_day + pay_late_day) <? ";
+    private final String updateReadyfromYettoroommember="UPDATE ott_room_member_tb set settlement_status = 'READY'  where settlement_status='YET'  AND room_id "
+    + " IN (SELECT room_id FROM ott_room_tb WHERE BILLING_DAY >=? AND BILLING_DAY <=?) ";
+    private final String updateTodaysettlementroommemberstatus = "UPDATE ott_room_member_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? and member_login_id =? ";
+    private final String updateTodaysettlementroommemberlate = "UPDATE ott_room_member_tb set pay_late_day =? + 1 where ROOM_ID =? and member_login_id =? ";
     public PaymentRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -118,6 +125,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     }
     @Override
     public void insertSeller(SellerAccountVO sellerInfo) {
+
         jdbcTemplate.update(insertSeller, sellerInfo.getMember_id(), sellerInfo.getBank_name(), sellerInfo.getAccount_number(),sellerInfo.getTraceId());
     }
     @Override
@@ -125,7 +133,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         jdbcTemplate.update(insertRevenue, revenueInfo.getSettlement_id(),revenueInfo.getRoom_id(), revenueInfo.getPayer_id() , revenueInfo.getBase_amount() ,revenueInfo.getFee_rate(), revenueInfo.getFee_amount(),revenueInfo.getStatus(),revenueInfo.getCreated_at());
     }
     @Override
-    public List<OttRoomDTO> selectTodaysettlement(int day, String status) throws Exception {
+    public List<OttRoomDTO> selectTodaysettlement(int today,int endday, String status) throws Exception {
         try {
             return (List<OttRoomDTO>) jdbcTemplate.query(selectTodatSettlement, (rs, rowNum) -> {
             OttRoomDTO room = new OttRoomDTO();
@@ -148,7 +156,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
             room.setTotal_price(rs.getInt("TOTAL_PRICE"));
             room.setSettlement_status(rs.getString("settlement_status"));
             return room;
-        }, day, status);
+        }, today,endday, status);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
         // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
         System.out.println("spl오류");
@@ -156,7 +164,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     }
 } 
     @Override
-    public List<OttRoomMemberDTO> selectTodaysettlementMember(int day, String status) throws Exception {
+    public List<OttRoomMemberDTO> selectTodaysettlementMember(int today,int endday, String status) throws Exception {
         try {
             return (List<OttRoomMemberDTO>) jdbcTemplate.query(selectTodaySettlementmember, (rs, rowNum) -> {
                 OttRoomMemberDTO mem = new OttRoomMemberDTO();
@@ -170,7 +178,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
                 mem.setPay_late_day(rs.getInt("pay_late_day"));
                 mem.setPay_day(rs.getInt("pay_day"));
             return mem;
-        }, day, status);
+        }, today,endday, status);
     }catch (org.springframework.dao.EmptyResultDataAccessException e) {
         // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
         System.out.println("spl오류");
@@ -187,7 +195,9 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         jdbcTemplate.update(updateTodaysettlement, room_id);
     }
     @Override
+
     public String roomMemberByroomIdCount (int room_id, String userId) throws DataAccessException{
+
 
         try {
             return jdbcTemplate.queryForObject(selectRoomMember, (rs, rowNum) -> {
@@ -200,4 +210,28 @@ public class PaymentRepositoryImpl implements PaymentRepository{
             return null; 
         }
     }
+    @Override
+    public void updateReadyfromYet(int today,int endday) {
+        jdbcTemplate.update(updateReadyfromYet, today,endday);
+    }
+    @Override
+    public void updateReadyfromYettoroommember(int today,int endday) {
+        jdbcTemplate.update(updateReadyfromYettoroommember, today,endday);
+    }
+    @Override
+    public void updatSettlementStatusYETroommember(int day) {
+        jdbcTemplate.update(updateCheckTodayroommember, day);
+    }
+    @Override
+    public void updatSettlementroommemberStatus(int roomId,String userId) {
+        jdbcTemplate.update(updateTodaysettlementroommemberstatus, roomId,userId);
+    }
+        @Override
+        public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) {
+            jdbcTemplate.update(updateTodaysettlementroommemberlate, late_day,roomId,userId);
+        }
+        @Override
+        public void updatSettlementStatusYET(int day) {
+            jdbcTemplate.update(updateCheckTodaysettlement, day);
+        }
 }

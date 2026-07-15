@@ -87,7 +87,7 @@
                 <div class="mypage-report-summary mypage-report-summary-vertical">
                     <div class="mypage-report-line">
                         <span>내 패널티</span>
-                        <strong>${warningCount}번째</strong>
+                        <strong>${warning_count}번째</strong>
                     </div>
                     <div class="mypage-report-line">
                         <span>내가 신고한 건수</span>
@@ -231,8 +231,10 @@
                                 <c:forEach var="report" items="${myReportList}">
                                     <tr>
                                         <td>
+
                                             <strong>${report.reported_member_nickname}</strong>
                                             <small>${report.reported_member_id}</small>
+
                                         </td>
                                         <td class="mypage-reason">${report.report_reason}</td>
                                         <td>

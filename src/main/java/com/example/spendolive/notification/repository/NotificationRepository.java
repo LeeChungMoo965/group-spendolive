@@ -41,9 +41,11 @@ public class NotificationRepository {
                 dto.setNotification_type(rs.getString("notification_type"));
                 dto.setTitle(rs.getString("title"));
                 dto.setMessage(rs.getString("message"));
+
                 dto.setLink_url(rs.getString("link_url"));
                 dto.setRead_yn(rs.getString("read_yn"));
                 dto.setStar_yn(rs.getString("star_yn"));
+
                 dto.setCreated_at(rs.getString("created_at"));
                 return dto;
             }, id);

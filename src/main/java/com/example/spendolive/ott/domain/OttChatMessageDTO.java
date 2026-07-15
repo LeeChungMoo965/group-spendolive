@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OttChatMessageDTO {
+
     // 메시지 PK
     private Long message_id;
     // 메시지가 속한 공유방 PK
@@ -23,4 +24,5 @@ public class OttChatMessageDTO {
     private String mine_yn;
     // 입장·퇴장·정산 등의 시스템 메시지 여부(Y/N)
     private String system_yn;
+
 }

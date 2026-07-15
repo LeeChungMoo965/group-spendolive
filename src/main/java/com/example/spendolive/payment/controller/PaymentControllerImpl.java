@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,9 +17,12 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.ott.domain.OttRoomDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
+import com.example.spendolive.ott.repository.OttRepository;
 import com.example.spendolive.ott.service.OttService;
 import com.example.spendolive.payment.domain.SettlementPaymentVO;
+import com.example.spendolive.payment.repository.PaymentRepository;
 import com.example.spendolive.payment.service.PaymentService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,9 +34,9 @@ import jakarta.servlet.http.HttpSession;
 public class PaymentControllerImpl implements PaymentController{
     @Autowired
     private PaymentService paymentService;
-
     @Autowired
     private OttService ottService;
+
     @Value("${toss.client-key}")
     private String clientKey;
 
@@ -44,9 +48,7 @@ public class PaymentControllerImpl implements PaymentController{
         HttpSession session = request.getSession();
         String roomIdStr = request.getParameter("room_id");
         int room_id = Integer.parseInt(roomIdStr);
-        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String userId = memberVO.getId();
-        SettlementPaymentVO settlement_PaymentInfo =  paymentService.getSettlement_PaymentByRoomId(userId, room_id);
+        OttRoomDTO roomInfo = paymentService.selectRoomByRoomId(room_id);
         OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(room_id);
         if (settlementInfo == null) {
             ModelAndView mav =
@@ -59,7 +61,6 @@ public class PaymentControllerImpl implements PaymentController{
         
             return mav;
         }
-        session.setAttribute("settlementInfo", settlementInfo);
         int member_limit = settlementInfo.getMember_limit();
         Integer total_price = settlementInfo.getTotal_price();
         Integer base_amount = total_price / member_limit;
@@ -68,7 +69,8 @@ public class PaymentControllerImpl implements PaymentController{
         session.setAttribute("total_amount", total_price);
         session.setAttribute("base_amount", base_amount);
         session.setAttribute("fee_amount", fee_amount);
-        session.setAttribute("Settlement_PaymentInfo", settlement_PaymentInfo);
+        session.setAttribute("roomInfo", roomInfo);
+        session.setAttribute("settlementInfo", settlementInfo);
        
         session.setAttribute("room_id", room_id);  
         return layout("/WEB-INF/views/payment/detail.jsp");
@@ -89,31 +91,8 @@ public class PaymentControllerImpl implements PaymentController{
         paymentService.processWithdraw(paymentInfo, memberInfo);
         return layout("/WEB-INF/views/payment/detail.jsp");
     } */
-    @Override
-    @GetMapping("/tossRequest.do")
-    public void requestTossBillingKey(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
-    
-        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String userId = (memberVO != null) ? memberVO.getId() : "CHUNGMOO_TEST_USER";
-    
-        String contextPath = request.getContextPath();
-        
-        // 🚀 하드코딩 지우고 상단의 baseUrl 변수와 정확한 컨트롤러 경로(/payment) 적용!
-        String successUrl = URLEncoder.encode(baseUrl + contextPath + "/payment/callback.do", "UTF-8");
-        String failUrl = URLEncoder.encode(baseUrl + contextPath + "/payment/fail.do", "UTF-8");
-        
-        String tossUrl = "https://api.tosspayments.com/v1/billing/authorizations"
-               + "?clientKey=" + clientKey
-               + "&customerKey=" + userId
-               + "&successUrl=" + successUrl
-               + "&failUrl=" + failUrl; // (오타 수정: 파라미터 연결이므로 &failUrl 이 맞음)
-                       
-        System.out.println("👉 [토스 출발] 카드창으로 강제 이송: " + tossUrl);
-        response.sendRedirect(tossUrl);
-    }
-    // ────────────────────────────────────────────────────────
-    // [B단계] 카드인증 성공 시 토스가 형 서버를 찌르는 성공 콜백
-    // ────────────────────────────────────────────────────────
+    //토스 
+    // 토스 카드 등록 성공시 callback
     @Override
     @GetMapping("/callback.do")
     public String tossCallback(
@@ -141,13 +120,21 @@ public class PaymentControllerImpl implements PaymentController{
         }
     }
     @Override
+    @GetMapping("/fail.do")
+    public String tossCallback(RedirectAttributes redirectAttributes) throws Exception {
+
+            redirectAttributes.addFlashAttribute("msg", "'카드 등록에 실패 하였습니다. 카드 정보를 확인 후 다시 시도해 주세요");
+            return "redirect:/spendolive/main.do";
+        
+    }
+    @Override
     @GetMapping("/paymenting.do")
     public String payment(
             HttpServletRequest request, HttpServletResponse response,
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
-
+        
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
         if (settlementInfo == null) {

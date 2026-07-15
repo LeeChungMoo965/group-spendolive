@@ -114,6 +114,10 @@ public interface OttRepository {
     // 채팅방 마지막 읽은 시각 갱신
     void markChatRoomAsRead(Long room_id, String loginId);
 
+
+    OttRoomDTO selectRoom(Long room_id); 
+
     // 모집방 생성 직후 결제 연동용 READY 정산 생성
     void createReadySettlement(Long room_id, String hostId);
+
 }

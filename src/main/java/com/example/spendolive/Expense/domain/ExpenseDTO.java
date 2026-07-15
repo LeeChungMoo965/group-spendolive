@@ -11,10 +11,10 @@ import lombok.Setter;
 @Setter
 public class ExpenseDTO {
 
+
     private Long expense_id;
     private Long member_id;
     private Long category_id;
-
     private String category_name;
     private String expense_type;
 

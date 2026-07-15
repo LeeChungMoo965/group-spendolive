@@ -7,7 +7,7 @@
 <div class="container">
         <div class="table-card card" >
             <div class="table-wrap">
-            <h2>aaa</h2>
+            <h2>${roomInfo.room_name}</h2>
                             <table>
                                 <thead>
                                     <tr>
