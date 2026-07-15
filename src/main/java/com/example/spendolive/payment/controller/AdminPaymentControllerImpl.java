@@ -1,5 +1,6 @@
 package com.example.spendolive.payment.controller;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.domain.OttRoomDTO;
+import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.payment.service.PaymentService;
 import com.example.spendolive.report.domain.ReportVO;
 import com.example.spendolive.report.service.ReportService;
@@ -33,12 +35,30 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         
         try {
             List<OttRoomDTO> settlementList = paymentService.selectTodaysettlement(status);
+           
             session.setAttribute("settlementList", settlementList);
             return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
             return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
+        }
+    }
+    @Override
+    @GetMapping("/paymentlist.do")
+    public ModelAndView paymentlistUpSettlement(@RequestParam(value = "status", required = false) String status,HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+        session = request.getSession();
+        if(status==null){status = "READY";}
+        
+        try {
+            List<OttRoomMemberDTO> paymentList = paymentService.selectTodaysettlementmember(status);
+
+            session.setAttribute("paymentList", paymentList);
+            return layout("/WEB-INF/views/admin/settlement/payment.jsp");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
+            return layout("/WEB-INF/views/admin/settlement/payment.jsp");
         }
     }
     @Override

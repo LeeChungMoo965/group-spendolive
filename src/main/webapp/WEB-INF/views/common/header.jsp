@@ -20,7 +20,7 @@
             </a>
             <nav class="admin-nav">
                 <a href="index.html" data-nav="dashboard">대시보드</a>
-                <a href="member.html" data-nav="member">회원관리</a>
+                <a href="${contextPath}/admin/member/list.do" data-nav="member">회원관리</a>
                 <a href="${contextPath}/admin/ott/list.do" data-nav="ott">OTT 관리</a>
                 <a href="${contextPath}/admin/settlement/list.do" data-nav="party">정산관리</a>
                 <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>

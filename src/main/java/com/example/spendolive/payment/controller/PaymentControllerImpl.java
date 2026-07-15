@@ -150,12 +150,16 @@ public class PaymentControllerImpl implements PaymentController{
 
         try {
             paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);
-
-            ottService.completePaidRoomEntry((long) roomId, userId);
+            if(paymentService.roomMemberByroomIdCount(roomId,userId).equals("false")){
+                ottService.completePaidRoomEntry((long) roomId, userId);
+                redirectAttributes.addFlashAttribute("msg", "자동결제가 완료 되었습니다 !");
+                return "redirect:/spendolive/main.do";
+            }
             
-            redirectAttributes.addFlashAttribute("msg", "자동결제가 완료 되었습니다 !");
-            return "redirect:/spendolive/main.do";
-
+            redirectAttributes.addFlashAttribute("msg", "결제가 완료 되었습니다 !");
+            return "redirect:/admin/settlement/paymentlist.do";
+      
+            
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "자동결제가 실패 되었습니다 다시 시도 해주세요");
             return "redirect:/spendolive/main.do";

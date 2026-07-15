@@ -10,16 +10,16 @@
     <div class="admin-shell">
     <main class="admin-main">
     
-    <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>신고관리</h1>
+    <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>회원관리</h1>
     <p>신고 리스트에서 신고 항목, 내용, 신고자와 대상자를 확인하고 처리결과 상태를 변경합니다.</p></div></section>
     <br>
     <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Report List</div>
-    <h2>신고 리스트(총 ${reportList.size()}건)</h2><p>신고 항목과 내용을 확인한 뒤 처리 상태를 바꿀 수 있습니다.</p></div>
+    <h2>회원 리스트(총 ${memberList.size()}명)</h2><p>신고 항목과 내용을 확인한 뒤 처리 상태를 바꿀 수 있습니다.</p></div>
     <div class="filter-pills"><button onclick="location.href='${contextPath}/admin/report/list.do'">전체</button><button onclick="location.href='${contextPath}/admin/report/list.do?status=WAIT'">대기</button><button onclick="location.href='${contextPath}/admin/report/list.do?status=COMPLETE'">완료</button></div>
     </div><div class="table-wrap">
       
     <c:choose>
-                <c:when test="${empty reportList}">
+                <c:when test="${empty memberList}">
                 <div class="panel-title" style="padding: 20px; text-align: center;">
                     <div class="section-kicker">신고 건이 없습니다</div>
                 </div>
@@ -27,10 +27,10 @@
                 <c:otherwise>
                 <table class="admin-table">
                 <thead><tr><th>번호</th><th>신고자</th><th>신고대상</th><th>신고내용</th><th>신고 날짜</th><th>상태</th><th>처리</th></tr></thead><tbody>
-                        <c:forEach var="report" items="${reportList}" varStatus="s">
+                        <c:forEach var="member" items="${memberList}" varStatus="s">
                       
-    <tr><td>${s.count}</td><td>${report.reporter_id}</td><td>${report.reported_member_id}</td><td><textarea style="margin-top: 12px;" class="form-textarea"  readonly>${report.report_reason}</textarea></td><td>${report.created_at}</td><td><span class="badge yellow">${report.report_status}</span></td>
-    <td><button type="button" class="mini-btn" onclick="comment('${report.report_id}', '${report.reported_member_id}','${s.count}','${report.report_reason}')">처리</button></td></tr>
+    <tr><td>${s.count}</td><td>${member.id}</td><td>${member.member_name}</td><td>${member.phone}</td><td>${member.created_at}</td><td><span class="badge yellow">${member.status}</span></td>
+    <td>${member.email}</td></tr>
     
                         </c:forEach>
                         </tbody></table>

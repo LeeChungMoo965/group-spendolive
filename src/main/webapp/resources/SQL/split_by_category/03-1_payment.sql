@@ -80,6 +80,7 @@ CREATE INDEX idx_payment_settlement ON settlement_payment_tb(settlement_id);
 CREATE INDEX idx_payment_member ON settlement_payment_tb(id, payment_status);
 CREATE INDEX idx_payment_status ON settlement_payment_tb(payment_status, paid_at);
 
+
 /* =========================================================
    2. 환불 기록 테이블
    ========================================================= */
