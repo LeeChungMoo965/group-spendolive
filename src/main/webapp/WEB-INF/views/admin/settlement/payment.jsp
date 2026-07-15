@@ -41,8 +41,9 @@
     </c:when>
      <c:otherwise>
 
-     <form action="${contextPath}/payment/paymenting.do" method="post"><input id="room_id" type="hidden" name="room_id" value="${room.room_id}">
-    <button class="mini-btn warning">정산금 받기</button></form>
+     <form action="${contextPath}/admin/settlement/paymenting.do" method="post"><input id="room_id" type="hidden" name="room_id" value="${member.room_id}"><input id="room_id" type="hidden" name="member_login_id" value="${member.member_login_id}">
+    <button class="mini-btn warning">정산금 받기</button></form> </td><td> <span><form action="${contextPath}/admin/settlement/paymentlate.do" method="post"><input id="roomId" type="hidden" name="room_id" value="${member.room_id}">
+    <input id="roomId" type="hidden" name="member_login_id" value="${member.member_login_id}"><input id="roomId" type="hidden" name="pay_late_day" value="${member.pay_late_day}"><button class="mini-btn">연기</button></form></span>
       </c:otherwise>
     </c:choose>
     </td></tr>

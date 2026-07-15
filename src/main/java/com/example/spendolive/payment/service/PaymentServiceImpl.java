@@ -256,7 +256,7 @@ public class PaymentServiceImpl implements PaymentService{
             String paymentKey = (String) resBody.get("paymentKey");
             String status = (String) resBody.get("status"); // DONE 이면 결제 완료
             String orderid = (String) resBody.get("orderId");
-            int totalamount = (int) resBody.get("total_amount");
+            int totalamount = (int) resBody.get("totalAmount");
             String approvedAtStr = (String) resBody.get("approvedAt");
             LocalDateTime approved_at = OffsetDateTime.parse(approvedAtStr).toLocalDateTime();
             String cardnumber = (String) cardInfo.get("number");

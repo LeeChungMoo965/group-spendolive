@@ -89,13 +89,13 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
     @Override
     @PostMapping("/paymenting.do")
     public String payment(
-        @RequestParam("userId") String userId,@RequestParam("roomId") String roomIdStr,
+        @RequestParam("member_login_id") String member_login_id,@RequestParam("room_id") String room_idStr,
             HttpServletRequest request, HttpServletResponse response,
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
-        int roomId = Integer.parseInt(roomIdStr);
-        OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(roomId);
+        int room_id = Integer.parseInt(room_idStr);
+        OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(room_id);
         int total_amount =  settlementInfo.getTotal_price();
         int member_limit = settlementInfo.getMember_limit();
         int base_amount = total_amount / member_limit;
@@ -105,7 +105,7 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         int settlement_id = (int) settlementInfo.getSettlement_id().longValue();
 
         try {
-            paymentService.executeAutomaticPayment(userId, total_price, roomId,fee_amount ,base_amount, settlement_id, host_id);
+            paymentService.executeAutomaticPayment(member_login_id, total_price, room_id,fee_amount ,base_amount, settlement_id, host_id);
             redirectAttributes.addFlashAttribute("msg", "결제가 완료 되었습니다 !");
             return "redirect:/admin/settlement/paymentlist.do";
       
@@ -118,16 +118,16 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
     @Override
     @PostMapping("/paymentlate.do")
     public String paymentlate(
-        @RequestParam("userId") String userId,@RequestParam("roomId") String roomIdStr,@RequestParam("late_day") String late_dayStr,
+        @RequestParam("member_login_id") String member_login_id,@RequestParam("room_id") String room_idStr,@RequestParam("pay_late_day") String pay_late_dayStr,
             HttpServletRequest request, HttpServletResponse response,
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
-        int roomId = Integer.parseInt(roomIdStr);
-        int late_day = Integer.parseInt(late_dayStr);
+        int room_id = Integer.parseInt(room_idStr);
+        int pay_late_day = Integer.parseInt(pay_late_dayStr);
 
         try {
-            paymentService.updateTodaysettlementroommemberlate(roomId,userId,late_day);
+            paymentService.updateTodaysettlementroommemberlate(room_id,member_login_id,pay_late_day);
             redirectAttributes.addFlashAttribute("msg", "정산이 하루 연기 되었습니다 !");
             return "redirect:/admin/settlement/paymentlist.do";
       
