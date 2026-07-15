@@ -469,6 +469,7 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
     @Override
     @Transactional
     public String updateExcrow(int room_id) throws Exception {
+
         try{
         //추후 사업자 등록 후 토스지급대행 , 금결원 출금이체 api 사용 메서드      
         }catch(Exception e){

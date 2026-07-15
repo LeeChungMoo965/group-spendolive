@@ -65,7 +65,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         jdbcTemplate.update(successpayment, paymentInfo.getSettlement_id(), paymentInfo.getId() ,paymentInfo.getBase_amount(), paymentInfo.getFee_rate(),paymentInfo.getFee_amount(),paymentInfo.getTotal_amount(), paymentInfo.getPayment_status(), paymentInfo.getCard_number(), paymentInfo.getCard_company(), paymentInfo.getPaid_at(), paymentInfo.getPaymentKey(), paymentInfo.getOrderId(),paymentInfo.getMemo());
     }
     @Override
-    public SettlementPaymentVO settlement_paymentByroomId(String userId, int room_id) throws DataAccessException{
+    public SettlementPaymentVO settlement_paymentByroomId(String userId, int room_id) throws DataAccessException {
         try {
             return (SettlementPaymentVO) jdbcTemplate.queryForObject(settlement_paymentByroomId, (rs, rowNum) -> {
             SettlementPaymentVO settlementPaymentVO = new SettlementPaymentVO();
@@ -180,6 +180,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     @Override
     public void updateEscrowStatus(int room_id) {
         jdbcTemplate.update(insertTodayexcrow, room_id);
+
     }
     @Override
     public void updatSettlementStatus(int room_id) {
@@ -187,7 +188,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     }
     @Override
     public String roomMemberByroomIdCount (int room_id, String userId) throws DataAccessException{
-        
+
         try {
             return jdbcTemplate.queryForObject(selectRoomMember, (rs, rowNum) -> {
                 String count = rs.getString("id");

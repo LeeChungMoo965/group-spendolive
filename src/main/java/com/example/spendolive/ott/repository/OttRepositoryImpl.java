@@ -1229,6 +1229,7 @@ public class OttRepositoryImpl implements OttRepository {
                     """;
             LocalDate today = LocalDate.now();
             int day = today.getDayOfMonth();
+
             jdbcTemplate.update(insertSql, room_member_id, room_id, loginId, share_amount, fee_rate, fee_amount, pay_amount,day);
         } else {
             String updateSql = """

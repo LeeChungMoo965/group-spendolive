@@ -34,6 +34,7 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "WHERE id = ? "
   + "AND password = ? "
   + "AND status = 'ACTIVE'";
+
   private final String selectMemberAllSql =
     "SELECT member_id, id, email, password, member_name, nickname, "
   + "phone, login_type, blocked_until, warning_count, role, status, "

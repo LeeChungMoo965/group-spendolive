@@ -171,6 +171,7 @@ public class PaymentControllerImpl implements PaymentController{
             paymentService.executeAutomaticPayment(userId, total_price, room_id,fee_amount ,base_amount, settlement_id, host_login_id);
             if(paymentService.roomMemberByroomIdCount(room_id,userId).equals("false")){
                 ottService.completePaidRoomEntry((long) room_id, userId);
+
                 redirectAttributes.addFlashAttribute("msg", "자동결제가 완료 되었습니다 !");
                 return "redirect:/spendolive/main.do";
             }
