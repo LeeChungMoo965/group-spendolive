@@ -18,7 +18,7 @@ public class FaqRepository {
 
     // faqList.jsp 화면에 보여줄 카테고리 고정 순서 (계정→지출→OTT→공지→기타)
     private static final String CATEGORY_ORDER_SQL =
-            "CASE category " +
+            " CASE category " +
             "WHEN 'account' THEN 1 " +
             "WHEN 'expense' THEN 2 " +
             "WHEN 'ott' THEN 3 " +
@@ -80,7 +80,7 @@ public class FaqRepository {
     }
 
     /* ─── 단건 조회 (관리자 수정 폼) ──────────────────────────── */
-    public FaqVO findById(int faqId) {
+    public FaqVO findById(int faq_id) {
         String sql = """
             SELECT faq_id, category, question, answer, sort_order, use_yn,
                    TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
@@ -88,7 +88,7 @@ public class FaqRepository {
             WHERE faq_id = ?
         """;
         try {
-            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), faqId);
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), faq_id);
         } catch (EmptyResultDataAccessException e) {
             return null;
         } catch (DataAccessException e) {
@@ -99,44 +99,67 @@ public class FaqRepository {
 
     /* ─── 등록 ────────────────────────────────────────────────── */
     public int insertFaq(FaqVO faq) {
-        Long faqId = jdbcTemplate.queryForObject("SELECT seq_faq.NEXTVAL FROM dual", Long.class);
+        Long faq_id = jdbcTemplate.queryForObject("SELECT seq_faq.NEXTVAL FROM dual", Long.class);
         String sql = """
             INSERT INTO faq_tb(faq_id, category, question, answer, sort_order, use_yn, created_at)
             VALUES(?, ?, ?, ?, ?, ?, SYSDATE)
         """;
         try {
             jdbcTemplate.update(sql,
-                    faqId, faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
+                    faq_id, faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
                     faq.getSortOrder(), faq.getUseYn());
-            return faqId.intValue();
+            return faq_id.intValue();
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.insertFaq] DB 오류: " + e.getMessage());
             throw e;
         }
     }
 
-    /* ─── 수정 ────────────────────────────────────────────────── */
+    /* ─── 수정 (sort_order는 여기서 안 건드림 — 순서는 moveUp/moveDown 전용) ─── */
     public void updateFaq(FaqVO faq) {
         String sql = """
             UPDATE faq_tb
-            SET category = ?, question = ?, answer = ?, sort_order = ?, use_yn = ?
+            SET category = ?, question = ?, answer = ?, use_yn = ?
             WHERE faq_id = ?
         """;
         try {
             jdbcTemplate.update(sql,
                     faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
-                    faq.getSortOrder(), faq.getUseYn(), faq.getFaqId());
+                    faq.getUseYn(), faq.getFaqId());
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.updateFaq] DB 오류: " + e.getMessage());
             throw e;
         }
     }
 
+    /* ─── 새 FAQ가 들어갈 다음 순서 (해당 카테고리 맨 뒤) ────────── */
+    public int getNextSortOrder(String category) {
+        String sql = "SELECT NVL(MAX(sort_order), -1) + 1 FROM faq_tb WHERE category = ?";
+        try {
+            Integer next = jdbcTemplate.queryForObject(sql, Integer.class, category);
+            return next != null ? next : 0;
+        } catch (DataAccessException e) {
+            System.err.println("[FaqRepository.getNextSortOrder] DB 오류: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    /* ─── 순서값만 갱신 (▲▼ 버튼 swap용) ─────────────────────── */
+    public void updateSortOrder(int faq_id, int sortOrder) {
+        String sql = "UPDATE faq_tb SET sort_order = ? WHERE faq_id = ?";
+        try {
+            jdbcTemplate.update(sql, sortOrder, faq_id);
+        } catch (DataAccessException e) {
+            System.err.println("[FaqRepository.updateSortOrder] DB 오류: " + e.getMessage());
+            throw e;
+        }
+    }
+
     /* ─── 삭제 ────────────────────────────────────────────────── */
-    public void deleteFaq(int faqId) {
+    public void deleteFaq(int faq_id) {
         String sql = "DELETE FROM faq_tb WHERE faq_id = ?";
         try {
-            jdbcTemplate.update(sql, faqId);
+            jdbcTemplate.update(sql, faq_id);
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.deleteFaq] DB 오류: " + e.getMessage());
             throw e;

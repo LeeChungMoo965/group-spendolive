@@ -10,11 +10,6 @@
             <p class="eyebrow">FAQ</p>
             <h1>자주 묻는 질문</h1>
             <p class="hero-sub">SpendOlive 이용 중 궁금한 점을 빠르게 해결하세요.</p>
-            <div class="search-bar">
-                <input type="text" id="faqSearchInput" placeholder="질문을 검색해보세요 (예: 비밀번호 변경)"
-                       onkeydown="if(event.key==='Enter'){ searchFaq(); }">
-                <button type="button" onclick="searchFaq()">검색</button>
-            </div>
         </div>
     </div>
 
@@ -25,7 +20,13 @@
                 <p>${errorMsg}</p>
             </div>
         </c:if>
-
+        <div class="search-barb">
+            <div class="search-bar">
+                <input type="text" id="faqSearchInput" placeholder="질문을 검색해보세요 (예: 비밀번호 변경)"
+                       onkeydown="if(event.key==='Enter'){ searchFaq(); }">
+                <button type="button" onclick="searchFaq()">검색</button>
+            </div>
+        </div>
         <div class="cats">
             <button type="button" class="cat-btn active" onclick="filterFaqCat(this,'all')">전체</button>
             <button type="button" class="cat-btn" onclick="filterFaqCat(this,'account')">계정·로그인</button>

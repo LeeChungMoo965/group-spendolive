@@ -323,6 +323,27 @@ textarea {
     margin-bottom: 20px;
 }
 
+.flash-ok,
+.flash-err {
+    padding: 14px 20px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.flash-ok {
+    background: var(--olive-100);
+    border: 1px solid var(--olive-200);
+    color: var(--olive-800);
+}
+
+.flash-err {
+    background: #fbe9e6;
+    border: 1px solid #f3c7bf;
+    color: var(--danger);
+}
+
 .panel-header {
     display: flex;
     align-items: flex-end;
@@ -344,6 +365,28 @@ textarea {
     color: var(--muted);
     font-weight: 700;
     line-height: 1.6;
+}
+
+.category-group-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 28px 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--olive-500);
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--olive-900);
+}
+
+.category-group-heading:first-of-type {
+    margin-top: 4px;
+}
+
+.category-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
 }
 
 .toolbar {
@@ -517,6 +560,11 @@ textarea {
     background: #f1f4df;
     font-size: 12px;
     font-weight: 900;
+}
+
+.mini-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
 }
 
 .mini-btn.danger {

@@ -2,33 +2,32 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
+<link rel="stylesheet" href="${contextPath}/resources/css/faq.css">
 
-<section class="page-hero">
-    <div class="container">
-        <div class="notice-hero-text">
+<div class="faq-page">
+    <div class="page-hero">
+        <div class="wrap">
             <p class="eyebrow">ADMIN</p>
             <h1>${empty faq ? 'FAQ 작성' : 'FAQ 수정'}</h1>
         </div>
     </div>
-</section>
 
-<div class="write-wrap">
-    <h2>${empty faq ? '새 FAQ 등록' : 'FAQ 수정'}</h2>
-
-    <c:if test="${not empty errorMsg}">
-        <div class="flash-err">⚠ ${errorMsg}</div>
-    </c:if>
-
-    <form action="${contextPath}/spendolive/admin/faq/${empty faq ? 'insert' : 'update'}.do" method="post" id="faqForm">
-
-        <c:if test="${not empty faq}">
-            <input type="hidden" name="faqId" value="${faq.faqId}">
+    <div class="wrap">
+        <c:if test="${not empty errorMsg}">
+            <div class="flash-err">⚠ ${errorMsg}</div>
         </c:if>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label for="category">카테고리</label>
-                <select id="category" name="category" required>
+        <form class="form-card" action="${contextPath}/spendolive/admin/faq/${empty faq ? 'insert' : 'update'}.do" method="post" id="faqForm">
+
+            <h2>${empty faq ? '새 FAQ 등록' : 'FAQ 수정'}</h2>
+
+            <c:if test="${not empty faq}">
+                <input type="hidden" name="faq_id" value="${faq.faqId}">
+            </c:if>
+
+            <div class="field">
+                <label>카테고리 <span>필수</span></label>
+                <select name="category" required>
                     <option value="">선택하세요</option>
                     <option value="account" ${faq.category == 'account' ? 'selected' : ''}>계정·로그인</option>
                     <option value="expense" ${faq.category == 'expense' ? 'selected' : ''}>지출관리</option>
@@ -36,35 +35,32 @@
                     <option value="notice"  ${faq.category == 'notice' ? 'selected' : ''}>공지·알림</option>
                     <option value="etc"     ${faq.category == 'etc' ? 'selected' : ''}>기타</option>
                 </select>
+                <c:if test="${empty faq}">
+                    <span class="hint">새로 등록하면 선택한 카테고리 안에서 맨 마지막 순서로 추가돼요. 순서는 목록에서 ▲▼로 바꿀 수 있어요.</span>
+                </c:if>
             </div>
-            <div class="form-group">
-                <label for="sortOrder">노출 순서</label>
-                <input type="number" id="sortOrder" name="sortOrder" value="${empty faq ? 0 : faq.sortOrder}" min="0">
+
+            <div class="field">
+                <label>질문 <span>필수</span></label>
+                <input type="text" name="question" value="${faq.question}" placeholder="질문을 입력하세요" required>
             </div>
-        </div>
 
-        <div class="form-group">
-            <label for="question">질문</label>
-            <input type="text" id="question" name="question" value="${faq.question}" placeholder="질문을 입력하세요" required>
-        </div>
+            <div class="field">
+                <label>답변 <span>필수</span></label>
+                <textarea name="answer" placeholder="답변 내용을 입력하세요" required>${faq.answer}</textarea>
+            </div>
 
-        <div class="form-group">
-            <label for="answer">답변</label>
-            <textarea id="answer" name="answer" placeholder="답변 내용을 입력하세요" required>${faq.answer}</textarea>
-        </div>
-
-        <div class="form-group">
-            <div class="use-group">
+            <label class="check-row">
                 <input type="checkbox" id="useYn" value="Y" ${empty faq || faq.useYn == 'Y' ? 'checked' : ''}>
-                <label for="useYn">사용자 화면에 노출</label>
-            </div>
-        </div>
+                <span>사용자 화면에 노출</span>
+            </label>
 
-        <div class="btn-row">
-            <a href="${contextPath}/spendolive/admin/faq/list.do" class="btn-cancel">취소</a>
-            <button type="submit" class="btn-submit">${empty faq ? '등록' : '수정'}</button>
-        </div>
-    </form>
+            <div class="form-actions">
+                <a class="btn btn-outline" style="flex:1;height:50px" href="${contextPath}/spendolive/admin/faq/list.do">취소</a>
+                <button type="submit" class="btn btn-primary" style="flex:2;height:50px;font-size:15px">${empty faq ? '등록' : '수정'}</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>

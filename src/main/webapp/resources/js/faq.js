@@ -14,6 +14,7 @@ function toggleFaq(el) {
 /* ---- faqList.jsp : 카테고리 필터 ---- */
 function filterFaqCat(btn, cat) {
     // 카테고리를 누르면 검색어/검색 결과 숨김 상태를 초기화하고 카테고리 기준으로만 다시 보여준다
+    if (document.querySelectorAll('.faq-list').length === 0) return;
     const searchInput = document.getElementById('faqSearchInput');
     if (searchInput) searchInput.value = '';
     document.querySelectorAll('.faq-item').forEach(item => { item.style.display = ''; });

@@ -4,10 +4,14 @@
    대상 페이지: faqList.jsp, inquiryWrite.jsp, inquiryList.jsp
    ============================================================ */
 
+   .faq-page .page-hero{padding:32px 0 8px}
+   .faq-page .page-hero .wrap{margin-left:max(20px, calc((100% - 1140px) / 2));
+      margin-right:auto;}
    .faq-page .wrap{max-width:860px;margin:0 auto;padding:0 20px 60px}
    .faq-page .hero-sub{color:var(--muted);font-size:16px;line-height:1.7;margin-bottom:28px}
    
    /* ---- FAQ 목록 ---- */
+   .faq-page .search-barb{margin-top:40px;}
    .faq-page .search-bar{display:flex;gap:10px;max-width:520px}
    .faq-page .search-bar input{margin:0}
    .faq-page .search-bar button{height:48px;min-width:64px;padding:0 20px;background:var(--olive);color:#fff;border:0;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;word-break:keep-all;writing-mode:horizontal-tb;line-height:1;flex:0 0 auto}
@@ -66,12 +70,12 @@
    .faq-page .privacy-table tr:not(:last-child) td{border-bottom:1px solid var(--line)}
    .faq-page .privacy-refuse-note{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
    .faq-page .form-actions{display:flex;gap:12px;margin-top:28px}
-   .faq-page .tips{background:var(--olive-soft);border:1px solid #d2dba0;border-radius:16px;padding:18px 20px;margin-bottom:24px}
+   .faq-page .tips{background:var(--olive-soft);border:1px solid #d2dba0;border-radius:16px;padding:18px 20px;margin-bottom:24px;margin-top:30px}
    .faq-page .tips h4{font-size:13px;font-weight:900;color:var(--olive-dark);margin-bottom:8px}
    .faq-page .tips ul{padding-left:16px;color:var(--muted);font-size:13px;line-height:2;margin:0}
    
    /* ---- 내 문의 조회 ---- */
-   .faq-page .board-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;margin-top:32px;flex-wrap:wrap;gap:12px}
+   .faq-page .board-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;margin-top:12px;flex-wrap:wrap;gap:12px}
    .faq-page .board-header h2{font-size:22px;letter-spacing:-.04em}
    .faq-page .filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
    .faq-page .filter-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border:1px solid #dbe7d4;border-radius:999px;background:#fff;color:#40523d;font-size:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 18px rgba(52, 74, 48, .05);transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease;white-space:nowrap;text-decoration:none}

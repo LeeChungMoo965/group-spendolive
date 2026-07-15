@@ -26,7 +26,7 @@
                 <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>
                 <a href="${contextPath}/spendolive/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
                 <a href="${contextPath}/spendolive/admin/notice/list.do" data-nav="notice">공지사항 관리</a>
-                <a href="${contextPath}/spendolive/admin/faq/list.do" data-nav="faq">FAQ 관리</a>
+                
             </nav>
             <div class="admin-actions">
                 <strong><a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>

@@ -35,54 +35,69 @@
             <a href="${contextPath}/spendolive/admin/faq/write.do" class="btn primary">+ 새 FAQ 작성</a>
         </div>
 
-        <div class="table-wrap">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th style="width:50px;text-align:center;">번호</th>
-                        <th style="width:110px;text-align:center;">카테고리</th>
-                        <th>질문</th>
-                        <th style="width:70px;text-align:center;">순서</th>
-                        <th style="width:80px;text-align:center;">노출</th>
-                        <th style="width:150px;text-align:center;">관리</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:choose>
-                        <c:when test="${empty faqList}">
-                            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">등록된 FAQ가 없습니다.</td></tr>
-                        </c:when>
-                        <c:otherwise>
-                            <c:forEach var="faq" items="${faqList}" varStatus="s">
-                                <tr>
-                                    <td style="text-align:center;">${s.count}</td>
-                                    <td style="text-align:center;">${faq.categoryLabel}</td>
-                                    <td>
-                                        <a href="${contextPath}/spendolive/admin/faq/edit.do?faqId=${faq.faqId}">${faq.question}</a>
-                                    </td>
-                                    <td style="text-align:center;">${faq.sortOrder}</td>
-                                    <td style="text-align:center;">
-                                        <c:choose>
-                                            <c:when test="${faq.useYn == 'Y'}"><span class="badge green">노출</span></c:when>
-                                            <c:otherwise><span class="badge gray">숨김</span></c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <div class="table-actions" style="justify-content:center;">
-                                            <a href="${contextPath}/spendolive/admin/faq/edit.do?faqId=${faq.faqId}" class="mini-btn">수정</a>
-                                            <form action="${contextPath}/spendolive/admin/faq/delete.do" method="post" style="display:inline;"
-                                                  onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                                                <input type="hidden" name="faqId" value="${faq.faqId}">
-                                                <button type="submit" class="mini-btn danger">삭제</button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </c:otherwise>
-                    </c:choose>
-                </tbody>
-            </table>
-        </div>
+        <c:if test="${empty faqGroups}">
+            <div class="table-wrap">
+                <table class="admin-table">
+                    <tbody>
+                        <tr><td style="text-align:center;padding:40px;color:var(--muted);">등록된 FAQ가 없습니다.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </c:if>
+
+        <c:forEach var="entry" items="${faqGroups}">
+            <h3 class="category-group-heading">${entry.value[0].categoryLabel}
+                <span class="category-count">${entry.value.size()}건</span>
+            </h3>
+
+            <div class="table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th style="width:60px;text-align:center;">번호</th>
+                            <th>질문</th>
+                            <th style="width:70px;text-align:center;">순서</th>
+                            <th style="width:80px;text-align:center;">노출</th>
+                            <th style="width:150px;text-align:center;">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:forEach var="faq" items="${entry.value}" varStatus="s">
+                            <tr>
+                                <td style="text-align:center;">${faq.faqId}</td>
+                                <td>
+                                    <a href="${contextPath}/spendolive/admin/faq/edit.do?faq_id=${faq.faqId}">${faq.question}</a>
+                                </td>
+                                <td style="text-align:center;">${faq.sortOrder}</td>
+                                <td style="text-align:center;">
+                                    <c:choose>
+                                        <c:when test="${faq.useYn == 'Y'}"><span class="badge green">노출</span></c:when>
+                                        <c:otherwise><span class="badge gray">숨김</span></c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>
+                                    <div class="table-actions" style="justify-content:center;">
+                                        <form action="${contextPath}/spendolive/admin/faq/moveUp.do" method="post" style="display:inline;">
+                                            <input type="hidden" name="faq_id" value="${faq.faqId}">
+                                            <button type="submit" class="mini-btn" ${s.index == 0 ? 'disabled' : ''}>▲</button>
+                                        </form>
+                                        <form action="${contextPath}/spendolive/admin/faq/moveDown.do" method="post" style="display:inline;">
+                                            <input type="hidden" name="faq_id" value="${faq.faqId}">
+                                            <button type="submit" class="mini-btn" ${s.index == entry.value.size()-1 ? 'disabled' : ''}>▼</button>
+                                        </form>
+                                        <a href="${contextPath}/spendolive/admin/faq/edit.do?faq_id=${faq.faqId}" class="mini-btn">수정</a>
+                                        <form action="${contextPath}/spendolive/admin/faq/delete.do" method="post" style="display:inline;"
+                                              onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                                            <input type="hidden" name="faq_id" value="${faq.faqId}">
+                                            <button type="submit" class="mini-btn danger">삭제</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+        </c:forEach>
     </div>
 </div>

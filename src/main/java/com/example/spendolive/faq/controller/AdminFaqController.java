@@ -1,6 +1,7 @@
 package com.example.spendolive.faq.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -41,8 +42,10 @@ public class AdminFaqController {
         mav.addObject("body_page", "/WEB-INF/views/admin/adminFaqList.jsp");
         try {
             mav.addObject("faqList", faqService.getAllFaqList());
+            mav.addObject("faqGroups", faqService.getAllFaqGroupedByCategory());
         } catch (Exception e) {
             mav.addObject("faqList", List.of());
+            mav.addObject("faqGroups", Map.of());
             mav.addObject("errorMsg", "FAQ 목록을 불러오는 중 오류가 발생했습니다.");
         }
         return mav;
@@ -63,7 +66,6 @@ public class AdminFaqController {
             @RequestParam(value = "category",  required = false) String category,
             @RequestParam(value = "question",  required = false) String question,
             @RequestParam(value = "answer",    required = false) String answer,
-            @RequestParam(value = "sortOrder", defaultValue = "0") int sortOrder,
             @RequestParam(value = "useYn",     defaultValue = "N") String useYn,
             HttpSession session, RedirectAttributes ra) {
 
@@ -81,7 +83,7 @@ public class AdminFaqController {
         faq.setCategory(category);
         faq.setQuestion(question.strip());
         faq.setAnswer(answer.strip());
-        faq.setSortOrder(sortOrder);
+        faq.setSortOrder(faqService.getNextSortOrder(category)); // 항상 해당 카테고리 맨 뒤에 추가
         faq.setUseYn(useYn);
 
         try {
@@ -97,17 +99,17 @@ public class AdminFaqController {
     /* ─── 수정 폼 ───────────────────────────────────────────── */
     @GetMapping("/edit.do")
     public ModelAndView edit(
-            @RequestParam(value = "faqId", defaultValue = "0") int faqId,
+            @RequestParam(value = "faq_id", defaultValue = "0") int faq_id,
             HttpSession session, RedirectAttributes ra) {
 
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
-        if (faqId <= 0) {
+        if (faq_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 FAQ 번호입니다.");
             return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
         }
 
         FaqVO faq = null;
-        try { faq = faqService.getFaqDetail(faqId); } catch (Exception ignored) {}
+        try { faq = faqService.getFaqDetail(faq_id); } catch (Exception ignored) {}
 
         if (faq == null) {
             ra.addFlashAttribute("errorMsg", "존재하지 않는 FAQ입니다.");
@@ -123,16 +125,15 @@ public class AdminFaqController {
     /* ─── 수정 처리 ─────────────────────────────────────────── */
     @PostMapping("/update.do")
     public ModelAndView update(
-            @RequestParam(value = "faqId",     defaultValue = "0") int faqId,
+            @RequestParam(value = "faq_id",     defaultValue = "0") int faq_id,
             @RequestParam(value = "category",  required = false) String category,
             @RequestParam(value = "question",  required = false) String question,
             @RequestParam(value = "answer",    required = false) String answer,
-            @RequestParam(value = "sortOrder", defaultValue = "0") int sortOrder,
             @RequestParam(value = "useYn",     defaultValue = "N") String useYn,
             HttpSession session, RedirectAttributes ra) {
 
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
-        if (faqId <= 0) {
+        if (faq_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 FAQ 번호입니다.");
             return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
         }
@@ -140,16 +141,15 @@ public class AdminFaqController {
                 || question == null || question.isBlank()
                 || answer == null || answer.isBlank()) {
             ra.addFlashAttribute("errorMsg", "카테고리, 질문, 답변을 모두 입력해 주세요.");
-            return new ModelAndView("redirect:/spendolive/admin/faq/edit.do?faqId=" + faqId);
+            return new ModelAndView("redirect:/spendolive/admin/faq/edit.do?faq_id=" + faq_id);
         }
         if (!"Y".equals(useYn)) useYn = "N";
 
         FaqVO faq = new FaqVO();
-        faq.setFaqId(faqId);
+        faq.setFaqId(faq_id);
         faq.setCategory(category);
         faq.setQuestion(question.strip());
         faq.setAnswer(answer.strip());
-        faq.setSortOrder(sortOrder);
         faq.setUseYn(useYn);
 
         try {
@@ -157,24 +157,46 @@ public class AdminFaqController {
             ra.addFlashAttribute("msg", "FAQ가 수정되었습니다.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "수정 중 오류가 발생했습니다.");
-            return new ModelAndView("redirect:/spendolive/admin/faq/edit.do?faqId=" + faqId);
+            return new ModelAndView("redirect:/spendolive/admin/faq/edit.do?faq_id=" + faq_id);
         }
+        return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
+    }
+
+    /* ─── 순서 위로 ─────────────────────────────────────────── */
+    @PostMapping("/moveUp.do")
+    public ModelAndView moveUp(
+            @RequestParam(value = "faq_id", defaultValue = "0") int faq_id,
+            HttpSession session) {
+
+        if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
+        if (faq_id > 0) faqService.moveFaqUp(faq_id);
+        return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
+    }
+
+    /* ─── 순서 아래로 ───────────────────────────────────────── */
+    @PostMapping("/moveDown.do")
+    public ModelAndView moveDown(
+            @RequestParam(value = "faq_id", defaultValue = "0") int faq_id,
+            HttpSession session) {
+
+        if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
+        if (faq_id > 0) faqService.moveFaqDown(faq_id);
         return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
     }
 
     /* ─── 삭제 처리 ─────────────────────────────────────────── */
     @PostMapping("/delete.do")
     public ModelAndView delete(
-            @RequestParam(value = "faqId", defaultValue = "0") int faqId,
+            @RequestParam(value = "faq_id", defaultValue = "0") int faq_id,
             HttpSession session, RedirectAttributes ra) {
 
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
-        if (faqId <= 0) {
+        if (faq_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 FAQ 번호입니다.");
             return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
         }
         try {
-            faqService.deleteFaq(faqId);
+            faqService.deleteFaq(faq_id);
             ra.addFlashAttribute("msg", "FAQ가 삭제되었습니다.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "삭제 중 오류가 발생했습니다.");
