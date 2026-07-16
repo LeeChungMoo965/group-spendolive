@@ -136,7 +136,7 @@ public class PaymentControllerImpl implements PaymentController{
         try {
             paymentService.executeAutomaticPayment(userId, total_price, room_id,fee_amount ,base_amount, settlement_id, host_login_id);
             ottService.completePaidRoomEntry((long) room_id, userId);
-            redirectAttributes.addFlashAttribute("msg", "자동결제가 등록 되었습니다 ! 자동 결제일은 매월 "+ day +" 입니다.");
+            redirectAttributes.addFlashAttribute("msg", "자동결제가 등록 되었습니다 ! 자동 결제일은 매월 "+ day +"일 입니다.");
             return "redirect:/spendolive/ott/chat/room.do?room_id=" + room_id;
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "자동결제가 실패 되었습니다 다시 시도 해주세요");

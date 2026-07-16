@@ -40,17 +40,11 @@
         });
     });
 })();
-<<<<<<< HEAD
-function comment(reportId, reportedmember_id,count,reportReason) {
 
-    $('#form_report_id').val(reportId);
-    $('#form_reported_member_id').val(reportedmember_id);
-=======
 function comment(report_id, reported_member_id,count,report_reason) {
 
     $('#form_report_id').val(report_id);
     $('#form_reported_member_id').val(reported_member_id);
->>>>>>> aitest
     $('#form_count').val(count);
     $('#form_report_reason').val(report_reason);
 

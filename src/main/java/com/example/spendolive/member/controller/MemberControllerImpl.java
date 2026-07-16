@@ -12,9 +12,9 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,6 +26,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.service.MemberService;
 @Controller("memberController")
+@ControllerAdvice
 @RequestMapping(value="/member")
 public class MemberControllerImpl implements MemberController{
     @Autowired
@@ -319,7 +320,6 @@ public class MemberControllerImpl implements MemberController{
     // 현재 로그인한 사용자의 ID나 고유 번호 가져오기 (세션 등 활용)
     MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
     String userId = memberVO.getId();
-    String message = null;
     ResponseEntity resEntity = null;
     HttpHeaders responseHeaders = new HttpHeaders();
     try {
@@ -371,7 +371,6 @@ public class MemberControllerImpl implements MemberController{
             result.put("message", "인증번호를 발송했습니다. 콘솔에 출력된 인증번호를 입력해주세요.");
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
             result.put("success", false);
             result.put("message", "인증번호 발송 중 오류가 발생했습니다.");
             return result;
@@ -419,7 +418,6 @@ public class MemberControllerImpl implements MemberController{
             result.put("message", "가입된 아이디는 [ " + foundId + " ] 입니다.");
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
             result.put("success", false);
             result.put("message", "아이디 찾기 중 오류가 발생했습니다.");
             return result;
@@ -476,7 +474,6 @@ public class MemberControllerImpl implements MemberController{
             result.put("message", "인증번호를 발송했습니다. 콘솔에 출력된 인증번호를 입력해주세요.");
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
             result.put("success", false);
             result.put("message", "인증번호 발송 중 오류가 발생했습니다.");
             return result;
@@ -517,7 +514,6 @@ public class MemberControllerImpl implements MemberController{
             result.put("message", "휴대폰 인증이 완료되었습니다. 새 비밀번호를 입력해주세요.");
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
             result.put("success", false);
             result.put("message", "인증 확인 중 오류가 발생했습니다.");
             return result;
@@ -579,7 +575,6 @@ public class MemberControllerImpl implements MemberController{
             result.put("message", "비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.");
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
             result.put("success", false);
             result.put("message", "비밀번호 변경 중 오류가 발생했습니다.");
             return result;
