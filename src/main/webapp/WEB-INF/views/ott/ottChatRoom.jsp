@@ -125,6 +125,10 @@
 </section>
 
 <script>
+var msg = "${msg}";
+    if(msg && msg !== "") {
+        alert(msg);
+    }
 // 채팅 AJAX 처리 - 1.5초마다 메시지 조회 후 화면 갱신
 (function () {
     const room_id = '${chatRoom.room_id}';
@@ -156,7 +160,7 @@
         if (!isSystem && message.mine_yn !== 'Y') {
 
                 const reportLink = document.createElement('a');
-                reportLink.href = '/report/report.do?reported_member_id='+message.sender_id+'?room_id='+room_id+'?chat_text='+message.message_content;
+                reportLink.href = '/report/report.do?reported_member_id='+message.sender_id+'&room_id='+room_id+'&chat_text='+message.message_content;
                 reportLink.textContent = ' 신고하기';
                 reportLink.className = 'danger-outline';
                 // 필요한 경우 여기에 신고하기 클릭 이벤트 리스너를 달 수 있습니다.
@@ -202,7 +206,6 @@
                 messages.forEach(function (message) {
                     list.appendChild(makeMessageRow(message));
                 });
-                scrollToBottom();
             })
             .catch(function () {
                 // 네트워크 문제가 있어도 화면은 유지한다.

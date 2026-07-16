@@ -76,7 +76,7 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
             redirectAttributes.addFlashAttribute("msg", msg);
             return "redirect:/admin/settlement/list.do";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("msg", "정산에 실패 하였습니다. ");
+            redirectAttributes.addFlashAttribute("msg", "정산에 실패 하였습니다.송금 완료 후 서버 쪽에서 오류 가 생겼습니다. 송금을 취소하겠습니다. ");
             return "redirect:/admin/settlement/list.do";
         }
     }

@@ -81,7 +81,7 @@ public class MemberControllerImpl implements MemberController{
     public ModelAndView loginForm(@RequestParam(value = "log", required = false) String log, HttpServletRequest request, HttpServletResponse response) throws Exception {
         
         HttpSession session = request.getSession();
-        session.setAttribute("log", log);
+        session.setAttribute("log", log); // log = 원래 이동하려던 페이지 정보 
         String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize"
                             + "?client_id=" + kakaoclientId 
                             + "&redirect_uri=" +kakaoredirectUri
@@ -159,7 +159,7 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             session.setAttribute("verificationCode", verificationCode);
             
-            return "SUCCESS"; // 프론트엔드(JSP)에 성공 신호 보냄
+            return "SUCCESS"; // 프론트 Ajax의 success로 신호 전달
         } catch (Exception e) {
             return "ERROR";
         }
@@ -173,8 +173,7 @@ public class MemberControllerImpl implements MemberController{
     @ResponseBody
     public boolean verifyEmail(@RequestParam("inputCode") String inputCode, HttpServletRequest request) {
         HttpSession session = request.getSession();
-        
-        // 세션에 저장해 둔 진짜 인증번호 꺼내기
+    
         String originalCode = (String) session.getAttribute("verificationCode");
         
         // 사용자가 화면에 입력한 값과 진짜 값이 일치하는지 판별 (true / false 반환)
@@ -320,8 +319,6 @@ public class MemberControllerImpl implements MemberController{
     // 현재 로그인한 사용자의 ID나 고유 번호 가져오기 (세션 등 활용)
     MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
     String userId = memberVO.getId();
-    response.setContentType("text/html; charset=UTF-8");
-    request.setCharacterEncoding("utf-8");
     String message = null;
     ResponseEntity resEntity = null;
     HttpHeaders responseHeaders = new HttpHeaders();

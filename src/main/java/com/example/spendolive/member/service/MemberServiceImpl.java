@@ -85,15 +85,9 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public String overlapped(String id) throws Exception {
-        throw new UnsupportedOperationException("Unimplemented method 'overlapped'");
-    }
-
-    @Override
     public String sendVerificationEmail(String toEmail) throws Exception {
 
         String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
-        // 윈도우 한글 이름으로 인해 구글이 EOF 뱉는 현상을 방어하기 위해 로컬호스트 강제 지정
 
         if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
             java.util.Properties props =
@@ -104,7 +98,7 @@ public class MemberServiceImpl implements MemberService {
 
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("chung100302@gmail.com");
+        message.setFrom("j.yeah110@gmail.com");
         message.setTo(toEmail);
         message.setSubject("[SpendOlive] 회원가입 인증번호 안내");
         message.setText(
@@ -261,7 +255,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @SuppressWarnings("unchecked")
     public void registerOpenBankingToken(
             String code,
@@ -375,6 +369,7 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.updateMember_account_status(userId);
 
         // 토스 지급대행은 보안키 지원 문제로 현재 API 요청을 생략하는 구조
+        /*
         paymentService.registerSubMall(
                 userId,
                 bankCode,
@@ -382,6 +377,7 @@ public class MemberServiceImpl implements MemberService {
                 accountHolderName,
                 memberVO
         );
+         */
     }
 
     @Override

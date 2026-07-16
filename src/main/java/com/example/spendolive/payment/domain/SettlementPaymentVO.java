@@ -20,12 +20,12 @@ public class SettlementPaymentVO {
     private String card_number;    // card_number (VARCHAR2)
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    private LocalDateTime paid_at;       // 토스 카드 결제 완료 시점 
+    private LocalDateTime paid_at;       // 토스 카드 결제 완료 시점  YYYY/mm/DD HH:MM
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    private LocalDateTime confirmed_at;  // 정산 확정 시점 (방장에게 돈 가도 된다고 확정) 
+    private LocalDateTime confirmed_at;  // 정산 확정 시점 (방장에게 돈 가도 된다고 확정)  YYYY/mm/DD HH:MM
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    private LocalDateTime expired_at;    // 안 내고 버티다 추방된 시점 
+    private LocalDateTime expired_at;    // 안 내고 버티다 추방된 시점  YYYY/mm/DD HH:MM
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    private LocalDateTime cancelled_at;  // 환불/취소 완료 시점 
+    private LocalDateTime cancelled_at;  // 환불/취소 완료 시점  YYYY/mm/DD HH:MM
     private String memo;                // 환불 사유 등 비고란 
 }
