@@ -72,7 +72,7 @@ CREATE TABLE MEMBER_ACCOUNT_TB (
     BALANCE              NUMBER DEFAULT 0,                                -- 계좌 잔액 (실시간 동기화용 💰)
     OPEN_BANK_TOKEN      VARCHAR2(255) NOT NULL,                          -- 금결원 사용자 토큰
     OPEN_BANK_USER_SEQ   VARCHAR2(50) NOT NULL,                           -- 금결원 사용자 일련번호
-    accountHolderNam   VARCHAR2(50),
+    ACCOUNT_HOLDER_NAM   VARCHAR2(50),
     REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
     
     -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
