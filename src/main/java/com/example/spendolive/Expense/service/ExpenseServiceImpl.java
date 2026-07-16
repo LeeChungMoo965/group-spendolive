@@ -38,8 +38,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+
     public void removeExpense(Long expense_id, Long member_id) {
         expenseRepository.deleteExpense(expense_id, member_id);
+
     }
 
     @Override

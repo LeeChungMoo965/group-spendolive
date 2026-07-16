@@ -16,4 +16,5 @@ public class MyPageReportDTO {
     private String created_at;
     private String processed_at;
     private String blocked_yn;
+
 }

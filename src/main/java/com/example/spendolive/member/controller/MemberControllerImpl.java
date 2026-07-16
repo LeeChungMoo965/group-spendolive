@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.service.MemberService;
@@ -42,6 +42,8 @@ public class MemberControllerImpl implements MemberController{
     @Value("${openbanking.client-secret}")
     private String openbankingclientSecret;    
     @Override
+    
+    // 코드리뷰.4
     @RequestMapping(value="/login.do" ,method = RequestMethod.POST )
     public ModelAndView login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
             throws Exception {
@@ -72,6 +74,8 @@ public class MemberControllerImpl implements MemberController{
         }
         return mav;
     }
+    
+    // 코드리뷰.3 ->loginform.jsp
     @Override
     @RequestMapping(value="/loginForm.do" , method = {RequestMethod.POST, RequestMethod.GET})
     public ModelAndView loginForm(@RequestParam(value = "log", required = false) String log, HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -85,9 +89,9 @@ public class MemberControllerImpl implements MemberController{
         ModelAndView mav = new ModelAndView();
         mav.addObject("kakaoAuthUrl", kakaoAuthUrl);
         mav.setViewName("member/loginForm");
-
         return mav;
     }
+    
     @Override
     @RequestMapping(value="/logout.do" ,method = RequestMethod.GET)
     public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -100,38 +104,33 @@ public class MemberControllerImpl implements MemberController{
         mav.setViewName("redirect:/spendolive/main.do");
         return mav;
     }
-
+    
+    
+    // 코드리뷰.2
     @Override
     @RequestMapping(value="/addmember.do" ,method = RequestMethod.POST)
-    public ResponseEntity addMember(@ModelAttribute("memberVO") MemberVO member, HttpServletRequest request, HttpServletResponse response)
+    public ModelAndView addMember(@ModelAttribute("memberVO") MemberVO member, HttpServletRequest request, HttpServletResponse response ,RedirectAttributes redirectAttributes)
             throws Exception {
         response.setContentType("text/html; charset=UTF-8");
         request.setCharacterEncoding("utf-8");
-        String message = null;
-        ResponseEntity resEntity = null;
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.add("Content-Type", "text/html; charset=utf-8");
-        try {
-            memberService.addMember(member);
-            message  = "<script>";
-            message +=" alert('회원 가입을 완료했습니다. 로그인창으로 이동합니다.');"; 
-            message += " location.href='"+request.getContextPath()+"/member/loginForm.do';";
-            message += " </script>";
-            
-        }catch(Exception e) {
-            message  = "<script>";
-            message +=" alert('작업 중 오류가 발생했습니다. 다시 시도해 주세요.');"; 
-            message += " location.href='"+request.getContextPath()+"/member/signup.do';";
-            message += " </script>";
-            e.printStackTrace();
-        }
         HttpSession session = request.getSession();
         session.removeAttribute("id");
         session.removeAttribute("member_name");
-        resEntity = new ResponseEntity(message, responseHeaders, HttpStatus.OK);
-        return resEntity;
+        try {
+            memberService.addMember(member);
+            redirectAttributes.addFlashAttribute("msg", "회원가입에 성공하였습니다 ! ");
+            return new ModelAndView("redirect:/member/loginForm.do");
+        }catch(Exception e) {
+            redirectAttributes.addFlashAttribute("msg", "회원가입에 실패하였습니다 ! ");
+            return new ModelAndView("redirect:/member/singup.do");
+        }
+        
     }
-
+    
+    
+    // 코드리뷰.1 -> signup.jsp -> js
     //회원가입 페이지 이동 메서드
     @Override
     @RequestMapping(value="/signup.do" , method = RequestMethod.GET)
@@ -145,6 +144,9 @@ public class MemberControllerImpl implements MemberController{
         
         return mav;
     }
+ 
+ 
+    // 코드리뷰.2-1
     @Override
     @ResponseBody
     @RequestMapping(value="/sendEmail", method = RequestMethod.POST)
@@ -164,6 +166,8 @@ public class MemberControllerImpl implements MemberController{
         
     }
  
+ 
+    // 코드리뷰.2-2
     @Override
     @RequestMapping(value="/verifyEmail", method = RequestMethod.POST)
     @ResponseBody
@@ -181,22 +185,24 @@ public class MemberControllerImpl implements MemberController{
         
         return false;
     }
+    
+    
+    // 코드리뷰.2-3
             // 1. 휴대폰 인증번호 발송 요청 처리
         @Override
         @RequestMapping(value="/sendSms", method = RequestMethod.POST)
         @ResponseBody
         public String sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
-            // 가상 시뮬레이터 가동해서 6자리 번호 획득
             
-            String verificationCode = memberService.sendSmsVerification(phone.replace("-", ""));
-            
-            // 이메일 때처럼 서버 세션을 열어서 발급된 인증번호를 임시 저장
+            String verificationCode = memberService.sendSmsVerification(phone.replace("-", ""));//인증번호 생성
             HttpSession session = request.getSession();
             session.setAttribute("smsCode", verificationCode);
             
             return "success"; // 프론트 Ajax의 success로 신호 전달
         }
-
+    
+    
+        // 코드리뷰.2-4
         // 2. 사용자가 입력한 인증번호 검증 처리
         @Override
         @RequestMapping(value="/verifySms", method = RequestMethod.POST)
@@ -215,6 +221,7 @@ public class MemberControllerImpl implements MemberController{
             
             return false;
         }
+        
         //아이디 중복확인
         @Override
         @RequestMapping(value="/checkId", method = RequestMethod.POST)
@@ -236,18 +243,20 @@ public class MemberControllerImpl implements MemberController{
         }
 
 
+
+// 코드리뷰.4-1 -> signup.jsp
     // 카카오 로그인 콜백 (Redirect URI로 설정된 주소)
     @Override
     @RequestMapping(value="/kakaoCallback.do", method = RequestMethod.GET)
     public ModelAndView kakaoCallback(@RequestParam(value = "code", required = false) String code, 
-                                      HttpServletRequest request) {
+                                      HttpServletRequest request,RedirectAttributes redirectAttributes) {
         ModelAndView mav = new ModelAndView();
                                     
         // 1. 인가 코드 누락(사용자가 취소 버튼을 누른 경우 등) 처리
         if (code == null || code.trim().isEmpty()) {
-            mav.addObject("message", "카카오 로그인이 취소되었거나 오류가 발생했습니다.");
-            mav.setViewName("/member/loginForm");
-            return mav;
+            redirectAttributes.addFlashAttribute("msg", "카카오 로그인이 취소되었거나 오류가 발생했습니다."); 
+            return layout("/WEB-INF/views/member/loginForm.jsp");
+
         }
        
         try {
@@ -260,8 +269,8 @@ public class MemberControllerImpl implements MemberController{
             if(memberService.checkId(id)){
                 session.setAttribute("login_type", "KAKAO");
                 session.setAttribute("id", id);
-                session.setAttribute("member_name", userInfo.get("nickname"));
-                mav.setViewName("/member/signup");  
+                session.setAttribute("member_name", userInfo.get("nickname")); 
+                return layout("/WEB-INF/views/member/signup.jsp");
             } else {
                 memberVO = memberService.login(userInfo);
                 session.setAttribute("memberInfo", memberVO);
@@ -270,24 +279,19 @@ public class MemberControllerImpl implements MemberController{
                 try{String log = (String) session.getAttribute("log");
                 if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
                 else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
-                else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
-                
-            }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
+                else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}  
+                }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
+                }      
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("msg", "카카오 로그인 연동 중 서버 오류가 발생했습니다."); 
+                return layout("/WEB-INF/views/member/loginForm.jsp");
             }
-
-            // 기존 회원이면 로그인 처리, 신규 회원이면 회원가입 페이지 이동 혹은 자동 가입 로직 추가 가능
-
-            // 성공 시 메인 화면으로 이동
             
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            mav.addObject("message", "카카오 로그인 연동 중 서버 오류가 발생했습니다.");
-            mav.setViewName("/member/loginForm");
-        }
-        
         return mav;
     }
+   
+   
+   
     @Override
     @RequestMapping(value="/openBankingAuth.do", method = RequestMethod.GET)
     public String openBankingAuth() throws UnsupportedEncodingException {
@@ -305,11 +309,11 @@ public class MemberControllerImpl implements MemberController{
     }
     @Override
     @RequestMapping(value="/openBankingcallback.do", method = RequestMethod.GET)
-    public ResponseEntity openBankingCallback(
+    public ModelAndView openBankingCallback(
         @RequestParam("code") String code,
         @RequestParam("state") String state,
         HttpServletRequest request, HttpServletResponse response,
-        HttpSession session) throws UnsupportedEncodingException { // 로그인한 회원의 정보를 알기 위해 세션 사용
+        HttpSession session,RedirectAttributes redirectAttributes) throws UnsupportedEncodingException { // 로그인한 회원의 정보를 알기 위해 세션 사용
 
     // [보안 체크] 내가 보냈던 state 값이 맞는지 검증하는 로직을 넣으면 더 안전합니다.
     
@@ -324,22 +328,15 @@ public class MemberControllerImpl implements MemberController{
     try {
         // 비즈니스 로직 처리를 위해 서비스 호출
         memberService.registerOpenBankingToken(code, userId, responseHeaders, resEntity,memberVO);
-        message  = "<script>";
-        message +=" alert('계좌인증을 완료했습니다. 로그인을 다시 해주세요');"; 
-        message += " location.href='"+request.getContextPath()+"/member/logout.do';";
-        message += " </script>";
-        
+        redirectAttributes.addFlashAttribute("msg", "계좌인증을 완료했습니다. 로그인을 다시 해주세요."); 
+        return new ModelAndView("redirect:/member/logout.do");
         // 연동 성공 후 완료 페이지나 메인 화면으로 이동
     
         
     } catch (Exception e) {
-        message  = "<script>";
-        message +=" alert('계좌 인증에 실패하였습니다. 다시 시도해 주세요.');"; 
-        message += " location.href='"+request.getContextPath()+"/spendolive/main.do';";
-        message += " </script>";
-        e.printStackTrace();
+        redirectAttributes.addFlashAttribute("msg", "계좌 인증에 실패하였습니다. 다시 시도해 주세요."); 
+        return new ModelAndView("redirect:/spendolive/main.do");
     }
-    return new ResponseEntity(message, responseHeaders, HttpStatus.OK);
 }
 
     /* =========================================================
@@ -605,5 +602,10 @@ public class MemberControllerImpl implements MemberController{
         }
         return phone.replaceAll("[^0-9]", "");
     }
-
+    private ModelAndView layout(String bodyPage) {
+        ModelAndView mav = new ModelAndView();
+        mav.setViewName("common/layout");
+        mav.addObject("body_page", bodyPage);
+        return mav;
+    }
 }

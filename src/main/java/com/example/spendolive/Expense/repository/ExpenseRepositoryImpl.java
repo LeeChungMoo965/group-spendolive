@@ -212,8 +212,10 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
         jdbcTemplate.update(
                 insertExpenseSql,
                 expenseDTO.getMember_id(),
+
                 expenseDTO.getCategory_id(),
                 expenseDTO.getExpense_title(),
+
                 expenseDTO.getAmount(),
                 toSqlDate(expenseDTO.getExpense_date()),
                 expenseDTO.getPayment_method(),
@@ -243,8 +245,10 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
     }
 
     @Override
+
     public void deleteExpense(Long expense_id, Long member_id) {
         jdbcTemplate.update(deleteExpenseSql, expense_id, member_id);
+
     }
 
     @Override
@@ -320,16 +324,19 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
         repeated.setCategory_name(base.getCategory_name());
         repeated.setExpense_type(base.getExpense_type());
         repeated.setExpense_title(base.getExpense_title());
+
         repeated.setAmount(base.getAmount());
         repeated.setExpense_date(Date.valueOf(repeatedDate));
         repeated.setPayment_method(base.getPayment_method());
         repeated.setMemo(base.getMemo());
+
         repeated.setRepeat_yn(base.getRepeat_yn());
         repeated.setRepeat_cycle(base.getRepeat_cycle());
         repeated.setFixed_yn(base.getFixed_yn());
         repeated.setAuto_generated_yn("Y");
         repeated.setCreated_at(base.getCreated_at());
         repeated.setUpdated_at(base.getUpdated_at());
+
 
         return repeated;
     }
@@ -340,22 +347,26 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
             public ExpenseDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
                 ExpenseDTO expense = new ExpenseDTO();
 
+
                 expense.setExpense_id(rs.getLong("expense_id"));
                 expense.setMember_id(rs.getLong("member_id"));
                 expense.setCategory_id(rs.getLong("category_id"));
                 expense.setCategory_name(rs.getString("category_name"));
                 expense.setExpense_type(rs.getString("expense_type"));
                 expense.setExpense_title(rs.getString("expense_title"));
+
                 expense.setAmount(rs.getInt("amount"));
                 expense.setExpense_date(rs.getDate("expense_date"));
                 expense.setPayment_method(rs.getString("payment_method"));
                 expense.setMemo(rs.getString("memo"));
+
                 expense.setRepeat_yn(rs.getString("repeat_yn"));
                 expense.setRepeat_cycle(rs.getString("repeat_cycle"));
                 expense.setFixed_yn(rs.getString("fixed_yn"));
                 expense.setAuto_generated_yn("N");
                 expense.setCreated_at(rs.getTimestamp("created_at"));
                 expense.setUpdated_at(rs.getTimestamp("updated_at"));
+
 
                 return expense;
             }

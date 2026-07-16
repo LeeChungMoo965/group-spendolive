@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberAccountVO {
+
     private int account_idx;        // account_idx (NUMBER -> int 또는 Integer)
     private String account_holder_nam;
     private String id;             // id (VARCHAR2)
@@ -21,4 +22,5 @@ public class MemberAccountVO {
     private String open_bank_token;  // open_bank_token (VARCHAR2)
     private String open_bank_user_seq;// open_bank_user_seq (VARCHAR2)
     private  LocalDateTime reg_date;          // reg_date (DATE)
+
 }

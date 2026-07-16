@@ -159,7 +159,11 @@ function drawNoticePage() {
                             ${notice.title}
                         </a>
                     </td>
+<<<<<<< HEAD
+                    <td>${notice.adminId}</td>
+=======
                     <td>${notice.admin_id}</td>
+>>>>>>> aitest
                     <td>${notice.created_at}</td>
                 </tr>
             `;
@@ -258,7 +262,11 @@ function drawNotifPage() {
                             ${notification.title}
                         </a>
                     </td>
+<<<<<<< HEAD
+                    <td>${notification.notificationType}</td>
+=======
                     <td>${notification.notification_type}</td>
+>>>>>>> aitest
                     <td>${notification.created_at}</td>
                 </tr>`;
         });
@@ -345,7 +353,11 @@ function moveNotifPage(page) {
                                     </a>
                                 </td>
                     
+<<<<<<< HEAD
+                                <td>${notice.adminId}</td>
+=======
                                 <td>${notice.admin_id}</td>
+>>>>>>> aitest
                                 <td>${notice.created_at}</td>
                             </tr>
                         `;

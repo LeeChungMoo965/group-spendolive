@@ -171,14 +171,18 @@
                             <c:when test="${not empty recruitRoomList}">
                                 <div class="recruit-card-grid">
                                     <c:forEach var="room" items="${recruitRoomList}">
+
                                         <div class="recruit-card ${room.host_login_id eq loginId ? 'my-recruit-card' : ''}">
+
                                             <div class="recruit-card-head">
                                                 <div>
                                                     <h3>${room.room_name}</h3>
                                                     <p>${room.service_name} · ${room.plan_name}</p>
                                                 </div>
                                                 <div class="recruit-card-badges">
+
                                                     <c:if test="${room.host_login_id eq loginId}">
+
                                                         <span class="owner-badge">내가 만든 방</span>
                                                     </c:if>
                                                     <span class="status-pill ${room.status}">${room.status}</span>
@@ -207,8 +211,10 @@
 
                                             <%-- 사용자 상태별 버튼 분기 --%>
                                             <c:choose>
+
                                                 <c:when test="${room.host_login_id eq loginId}">
                                                     <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-outline full">내 모집글 대화방</a>
+
                                                 </c:when>
                                                 <c:when test="${(room.status eq 'RECRUITING' or room.status eq 'REPLACE_RECRUITING') and room.my_application_status eq 'NONE'}">
                                                     <form action="${contextPath}/payment/detail.do" method="post">
@@ -294,9 +300,11 @@
                                                             <div class="apply-manage-row application-row ACTIVE">
                                                                 <div>
                                                                     <strong>${member.member_name}</strong>
+
                                                                     <p>아이디: ${member.member_login_id} · 참여일 ${member.joined_at}</p>
                                                                     <c:if test="${member.leave_reserved_yn eq 'Y'}">
                                                                         <p class="warn-text">나가기 예약됨 · ${member.leave_scheduled_date} 자동 퇴장 예정</p>
+
                                                                     </c:if>
                                                                 </div>
                                                                 <div class="apply-price-box">
@@ -484,8 +492,10 @@
                                             <c:forEach var="payment" items="${hostedSettlementPaymentList}">
                                                 <div class="team-payment-row">
                                                     <span>
+
                                                         <strong>${payment.room_name}</strong>
                                                         <small>${payment.settlement_month} 이용분 · ${payment.member_name}(${payment.member_login_id})</small>
+
                                                     </span>
                                                     <b><fmt:formatNumber value="${payment.total_amount}" pattern="#,##0" />원</b>
                                                     <em class="${payment.payment_status eq 'PAID' or payment.payment_status eq 'CONFIRMED' ? 'done' : 'wait'}">${payment.payment_status}</em>

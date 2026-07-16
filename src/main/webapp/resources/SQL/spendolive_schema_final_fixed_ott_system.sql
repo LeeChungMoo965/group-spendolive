@@ -1172,18 +1172,18 @@ COMMIT;
    25. 자주 쓰는 SQL 예시
    =========================================================
    아래 SQL은 참고용입니다.
-   전체 스키마 실행 시 바인드 변수(:memberId 등) 때문에 멈출 수 있으므로 주석 처리했습니다.
+   전체 스키마 실행 시 바인드 변수(:member_id 등) 때문에 멈출 수 있으므로 주석 처리했습니다.
 
 -- 알림 이모지 빨간 점 표시용: 안 읽은 알림 개수
 SELECT COUNT(*) AS unread_count
 FROM alert_tb
-WHERE id = :memberId
+WHERE id = :member_id
   AND read_yn = 'N';
 
 -- 배너에 띄울 안 읽은 알림 목록
 SELECT alert_id, title, content, target_url, created_at
 FROM alert_tb
-WHERE id = :memberId
+WHERE id = :member_id
   AND read_yn = 'N'
   AND banner_yn = 'Y'
 ORDER BY created_at DESC;
@@ -1194,7 +1194,7 @@ SET read_yn = 'Y',
     read_at = SYSDATE,
     banner_yn = 'N'
 WHERE alert_id = :alertId
-  AND id = :memberId;
+  AND id = :member_id;
 
 -- 3% 수수료 계산 예시
 SELECT
@@ -1217,7 +1217,7 @@ SELECT
     SUM(e.amount) AS total_amount,
     COUNT(*) AS expense_count
 FROM expense_tb e
-WHERE e.member_id = :memberId
+WHERE e.member_id = :member_id
   AND TO_CHAR(e.expense_date, 'YYYY-MM') = :month
 GROUP BY TO_CHAR(e.expense_date, 'YYYY-MM-DD')
 ORDER BY expense_date;
@@ -1235,7 +1235,7 @@ SELECT
     c.expense_type
 FROM expense_tb e
 JOIN expense_category_tb c ON e.category_id = c.category_id
-WHERE e.member_id = :memberId
+WHERE e.member_id = :member_id
   AND TRUNC(e.expense_date) = TO_DATE(:expenseDate, 'YYYY-MM-DD')
 ORDER BY e.expense_id DESC;
 

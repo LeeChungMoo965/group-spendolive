@@ -38,8 +38,10 @@ public class FaqRepository {
         faq.setCategory(rs.getString("category"));
         faq.setQuestion(rs.getString("question"));
         faq.setAnswer(rs.getString("answer"));
+
         faq.setSort_order(rs.getInt("sort_order"));
         faq.setUse_yn(rs.getString("use_yn"));
+
         faq.setCreated_at(rs.getString("created_at"));
         return faq;
     }

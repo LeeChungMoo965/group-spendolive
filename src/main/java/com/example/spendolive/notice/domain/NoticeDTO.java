@@ -19,6 +19,7 @@ public class NoticeDTO {
     private String updated_at;
     private String read_yn;
     private String star_yn;
+
     
 
     

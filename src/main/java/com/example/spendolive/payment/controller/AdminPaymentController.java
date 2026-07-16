@@ -12,4 +12,12 @@ public interface AdminPaymentController {
     public ModelAndView listUpSettlement(@RequestParam(value = "status", required = false) String status,HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
     public String pay(@RequestParam("room_id") String roomIdStr, HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
     public ModelAndView paymentlistUpSettlement(@RequestParam(value = "status", required = false) String status,HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
+    public String payment(
+        @RequestParam("userId") String userId,@RequestParam("roomId") String roomIdStr,
+            HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
+    public String paymentlate(
+        @RequestParam("userId") String userId,@RequestParam("roomId") String roomIdStr,@RequestParam("late_day") String late_day,
+            HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
 }

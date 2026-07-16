@@ -50,7 +50,7 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public List<NoticeDTO> getUnreadNoticeList(String id) {
-    return noticeRepository.findUnreadByMemberId(id);
+    return noticeRepository.findUnreadBymember_id(id);
     }
 
     @Override

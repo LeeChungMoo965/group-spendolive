@@ -42,7 +42,9 @@
 
                 <div class="notif-detail-meta">
                     <span>수신일 ${notification.created_at}</span>
+
                     <span>${notification.read_yn == 'Y' ? '읽음' : '안 읽음'}</span>
+
                 </div>
 
                 <div class="notif-detail-message">${notification.message}</div>

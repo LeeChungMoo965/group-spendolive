@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 public class MemberCardVO {
     private int card_idx;          // card_idx (NUMBER -> int)
     private String id;            // id (VARCHAR2)
+
     private String billing_key;    // billing_key (VARCHAR2)
     private String card_company;   // card_company (VARCHAR2)
     private String card_number;    // card_number (VARCHAR2)

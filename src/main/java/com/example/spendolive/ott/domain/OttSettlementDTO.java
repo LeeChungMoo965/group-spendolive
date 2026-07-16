@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OttSettlementDTO {
+
     // 정산 회차 정보
     private Long settlement_id;
     private Long room_id;
@@ -16,6 +17,7 @@ public class OttSettlementDTO {
     private Integer total_price;
     private Integer total_fee;
     private Integer total_pay_amount;
+
 
     // 결제 및 이용 기간
     private String due_date;

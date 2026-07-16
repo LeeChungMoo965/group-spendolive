@@ -66,11 +66,11 @@ public class PaymentServiceImpl implements PaymentService{
     @Value("${toss.secret-key}")
     private String secretKey;
     
-/*
+
     @Override
-    @Transactional(rollbackFor = Exception.class) // 💥 돈 관련 로직이므로 에러 나면 무조건 DB 롤백!
+    @Transactional(rollbackFor = Exception.class) 
     public boolean processWithdraw(SettlementPaymentVO paymentInfo, MemberVO memberInfo) throws Exception {
-        
+        /*
         // 1. 금결원 출금이체 API 주소
         String apiUrl = "https://testapi.openbanking.or.kr/v2.0/transfer/withdraw/fintech_use_num";
 
@@ -94,8 +94,7 @@ public class PaymentServiceImpl implements PaymentService{
         bodyMap.put("cntr_account_num", cntrAccountNum);        // 우리 수납 계좌
         bodyMap.put("dps_print_text", "SpendOlive입금");        // 우리 통장에 찍힐 문구
         
-        // 중요: 돈을 빼올 파티원의 핀테크이용번호 (이건 이전에 계좌조회로 얻어와서 세션이나 매개변수로 넘겨받아야 함)
-        // 여기선 셈플로 파티원의 메모 필드나 가상 필드에 들고 있다고 가정합니다.
+   
         bodyMap.put("fintech_use_num", "199000000000000000000001"); 
         
         bodyMap.put("wd_print_text", "스펜드올리브출금");          // 파티원 통장에 찍힐 문구
@@ -144,12 +143,12 @@ public class PaymentServiceImpl implements PaymentService{
                 return false;
             }
         }
-        
+     */   
         return false;
     }
-     */
+      // 카드 등록 프로세스
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void issueAndSaveBillingKey(String customerKey, String authKey, String userId) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         
@@ -176,7 +175,6 @@ public class PaymentServiceImpl implements PaymentService{
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
 
         try {
-            // String으로 생으로 받아서 꼬임 방지
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
             System.out.println("[토스 응답 바디] : " + response.getBody());
@@ -204,12 +202,13 @@ public class PaymentServiceImpl implements PaymentService{
             throw new RuntimeException("토스 통신 실패: " + e.getMessage());
         }
     }
+    // 결제 프로세스
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void executeAutomaticPayment(String userId, int amount, int room_id, int fee, int base, int settlement_id, String host_id) throws Exception {
     RestTemplate restTemplate = new RestTemplate();
     
-    // 한글 깨짐 방지 처리 
+
     restTemplate.getMessageConverters().add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
     
     MemberCardVO cardVo = memberRepository.getCardInfoByUserId(userId);
@@ -257,7 +256,7 @@ public class PaymentServiceImpl implements PaymentService{
             String paymentKey = (String) resBody.get("paymentKey");
             String status = (String) resBody.get("status"); // DONE 이면 결제 완료
             String orderid = (String) resBody.get("orderId");
-            int totalamount = (int) resBody.get("total_amount");
+            int totalamount = (int) resBody.get("totalAmount");
             String approvedAtStr = (String) resBody.get("approvedAt");
             LocalDateTime approved_at = OffsetDateTime.parse(approvedAtStr).toLocalDateTime();
             String cardnumber = (String) cardInfo.get("number");
@@ -307,10 +306,12 @@ public class PaymentServiceImpl implements PaymentService{
                     paymentRepository.updatePaymentStatus(paymentInfo);
                     paymentRepository.insertEscrow(escrowInfo);
                     paymentRepository.insertPlatfoem_Revenue(revenueInfo);
+                    paymentRepository.updatSettlementroommemberStatus(room_id, userId);
+                    
                 }catch(Exception e){
                     //취소 api 요청
                     //헤더는 위에 것 그대로 사용 
-                    url = "https://api.tosspayments.com/v1/payments/tosspayments_paymentkey_"+ paymentKey + "/cancel ";
+                    url = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel ";
                     //바디 설정
                     Map<String, Object> bodys = new HashMap<>();
                     bodys.put("cancelReason", "서버 오류로 인한 취소");                //취소 이유
@@ -350,15 +351,16 @@ public class PaymentServiceImpl implements PaymentService{
     public OttSettlementDTO selectMySettlements(int room_id)  throws Exception{
         return paymentRepository.settlementByroomId(room_id);
     }
+    //토스 정산금 보낼 셀러 등록 프로세스(권한 문제로 보류)
     @Override
     @Transactional
-public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
-    
-    // 🌟 1. 암호화가 전혀 필요 없는 구형 v1 정산 API 주소
+    public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
+    /* 
+    // 1. v1 정산 API 주소
     String TOSS_API_URL = "https://api.tosspayments.com/v1/payouts/sub-malls"; 
     
     try {
-        /* 
+        
         RestTemplate restTemplate = new RestTemplate();
         String name = memberVO.getMember_name();
         
@@ -404,13 +406,14 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
             Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
             
             // 🌟 5. v1 응답 데이터 구조에 맞춰 파싱 및 DB 저장
+
             SellerAccountVO seller = SellerAccountVO.builder()
                     .member_id(userId)
                     .bank_name((String) resBody.get("bank"))
                     .account_number((String) resBody.get("accountNumber"))
                     .traceId(UUID.randomUUID().toString()) // v1은 traceId를 안 주므로 내부용 임의 생성
                     .build();
-                    */
+                    
             try{
             String traceId ="1123412312321413243142sadsadadsdsadasd";        
             SellerAccountVO seller = SellerAccountVO.builder()
@@ -434,41 +437,54 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
     } catch (Exception e) {
         System.err.println("🚨 [시스템 에러]: " + e.getMessage());
         throw new RuntimeException("토스 서브몰 등록 중 시스템 오류 발생");
-    }
+    }*/
 }
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<OttRoomDTO> selectTodaysettlement(String status) throws Exception {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfMonth();
-        LocalDate nextMonth = today.plusMonths(1);
-        int maxDayOfNextMonth = YearMonth.from(nextMonth).lengthOfMonth();
-        int actualPayDay = Math.min(day, maxDayOfNextMonth);
-       
-        try{
-        return paymentRepository.selectTodaysettlement(actualPayDay,status);
-        }catch(Exception e){
-            return null;
+        int endday = YearMonth.from(today).lengthOfMonth();
+        if(day == endday && endday<31){
+            endday =31;
+      
+        }else{
+            endday = day;
+            
         }
+        paymentRepository.updatSettlementStatusYET(endday); // 빌링데이가 지난 데이터는 다시 상태를YET으로 
+        paymentRepository.updateReadyfromYet(day,endday); //오늘 정산금 송금 할 내역들은 YET에서 READY로
+ 
+            
+        return paymentRepository.selectTodaysettlement(day,endday,status);
+       
     }
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<OttRoomMemberDTO> selectTodaysettlementmember(String status) throws Exception {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfMonth();
-        LocalDate nextMonth = today.plusMonths(1);
-        int maxDayOfNextMonth = YearMonth.from(nextMonth).lengthOfMonth();
-        int actualPayDay = Math.min(day, maxDayOfNextMonth);
-       
-        try{
-        return paymentRepository.selectTodaysettlementMember(actualPayDay,status);
-        }catch(Exception e){
-            return null;
+        int endday = YearMonth.from(today).lengthOfMonth();
+       if(day == endday && endday<31){
+            endday =31;
+      
+        }else{
+            endday = day;
+            
         }
-    }
+
+            paymentRepository.updatSettlementStatusYETroommember(day); // 페이데이가 지난 데이터는 다시 상태를YET으로 
+            paymentRepository.updateReadyfromYettoroommember(day,endday); //오늘 정산금 정산 할 내역들은 YET에서 READY로
+            return paymentRepository.selectTodaysettlementMember(day,endday,status);
+
+ 
+        }
+    
+    //정산금 송금 후 상태값 변경 프로세스
     @Override
     @Transactional
     public String updateExcrow(int room_id) throws Exception {
+
 
         try{
         //추후 사업자 등록 후 토스지급대행 , 금결원 출금이체 api 사용 메서드      
@@ -487,9 +503,20 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
         }
         return "송금을 정상적으로 완료 하였습니다.";
     }
+    
     @Override
     public String roomMemberByroomIdCount(int room_id, String userId) throws Exception {
         return paymentRepository.roomMemberByroomIdCount(room_id, userId);
     }
-    
-}
+    @Override
+    public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) throws Exception {
+        paymentRepository.updateTodaysettlementroommemberlate(roomId, userId,late_day);
+    }
+    @Override
+    public OttRoomDTO selectRoomByRoomId(int roomId) throws Exception {
+        String roomidStr = String.valueOf(roomId);
+        Long roomid = Long.parseLong(roomidStr);
+        return ottRepository.selectRoom(roomid);
+    }
+}    
+

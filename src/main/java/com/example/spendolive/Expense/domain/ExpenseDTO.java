@@ -18,6 +18,7 @@ public class ExpenseDTO {
     private String category_name;   // 카테고리 이름
     private String expense_type;    // 지출 유형(FIXED: 고정, VARIABLE: 변동, OTT: OTT)
 
+
     private String expense_title;   // 지출 내역 제목
     private Integer amount;         // 지출 금액
 
