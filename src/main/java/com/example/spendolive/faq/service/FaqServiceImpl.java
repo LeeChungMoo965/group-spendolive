@@ -87,37 +87,28 @@ public class FaqServiceImpl implements FaqService {
         return grouped;
     }
 
-    /* 같은 카테고리 안에서 바로 이웃한 항목과 순서를 바꿈.
-       클릭할 때마다 그 카테고리 전체를 0,1,2...로 먼저 정규화해서
-       예전에 값이 겹치거나 건너뛴 데이터가 있어도 자동으로 깨끗해지게 함 */
+   
     private void moveFaq(int faq_id, boolean up) {
-        List<FaqVO> all = faqRepository.findAll(); // 카테고리 고정순서 → sort_order asc → faq_id asc
-
-        String category = all.stream()
-                .filter(f -> f.getFaqId() == faq_id)
-                .map(FaqVO::getCategory)
-                .findFirst()
-                .orElse(null);
-        if (category == null) return;
-
-        List<FaqVO> sameCat = all.stream()
-                .filter(f -> category.equals(f.getCategory()))
-                .toList();
-
+        // 1) 대상 FAQ 단건만 조회해서 카테고리 확인 (전체 테이블 안 불러옴)
+        FaqVO target = faqRepository.findById(faq_id);
+        if (target == null) return;
+        String category = target.getCategory();
+    
+        // 2) 해당 카테고리 안의 FAQ만 조회 (범위를 좁혀서 조회)
+        List<FaqVO> sameCat = faqRepository.findByCategory(category);
+    
         int idx = -1;
         for (int i = 0; i < sameCat.size(); i++) {
             if (sameCat.get(i).getFaqId() == faq_id) { idx = i; break; }
         }
         if (idx < 0) return;
-
+    
         int neighborIdx = up ? idx - 1 : idx + 1;
         if (neighborIdx < 0 || neighborIdx >= sameCat.size()) return; // 카테고리 맨 위/맨 아래면 무시
-
-        // 1) 카테고리 내 전체를 현재 화면 순서 그대로 0,1,2...로 정규화
+    
         for (int i = 0; i < sameCat.size(); i++) {
             faqRepository.updateSortOrder(sameCat.get(i).getFaqId(), i);
         }
-        // 2) 정규화된 값 기준으로 두 항목만 swap
         faqRepository.updateSortOrder(sameCat.get(idx).getFaqId(), neighborIdx);
         faqRepository.updateSortOrder(sameCat.get(neighborIdx).getFaqId(), idx);
     }

@@ -50,6 +50,16 @@ public class FaqRepository {
             WHERE faq_id = ?
         """;
 
+    // 특정 카테고리의 FAQ만 (moveFaq에서 사용 — 전체 조회 대신 범위를 좁힘)
+        private static final String FIND_BY_CATEGORY_SQL = """
+            SELECT faq_id, category, question, answer, sort_order, use_yn,
+                TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
+            FROM faq_tb
+            WHERE category = ?
+            ORDER BY sort_order ASC, faq_id ASC
+        """;
+
+
     // 등록
     private static final String INSERT_SQL = """
             INSERT INTO faq_tb(faq_id, category, question, answer, sort_order, use_yn, created_at)
@@ -128,6 +138,18 @@ public class FaqRepository {
             return null;
         }
     }
+
+    /* ─── 특정 카테고리의 FAQ 목록 (순서이동 시 사용) ────────── */
+    public List<FaqVO> findByCategory(String category) {
+        try {
+            return jdbcTemplate.query(FIND_BY_CATEGORY_SQL, (rs, rowNum) -> mapRow(rs), category);
+        } catch (DataAccessException e) {
+            System.err.println("[FaqRepository.findByCategory] DB 오류: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+
 
     public int insertFaq(FaqVO faq) {
         Long faq_id = jdbcTemplate.queryForObject("SELECT seq_faq.NEXTVAL FROM dual", Long.class);
