@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 @Repository
 public class MemberRepositoryImpl implements MemberRepository{

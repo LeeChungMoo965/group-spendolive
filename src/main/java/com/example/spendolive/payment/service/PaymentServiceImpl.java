@@ -1,18 +1,15 @@
 package com.example.spendolive.payment.service;
 
-import java.nio.charset.StandardCharsets;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.text.DecimalFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -22,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.RollbackOn;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -36,15 +32,6 @@ import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.repository.OttRepository;
 import com.example.spendolive.payment.domain.*;
 import com.example.spendolive.payment.repository.PaymentRepository;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.JWEObject;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.DirectEncrypter;
-
-import tools.jackson.databind.ObjectMapper;
-
 @Service
 public class PaymentServiceImpl implements PaymentService{
     @Autowired
@@ -155,12 +142,9 @@ public class PaymentServiceImpl implements PaymentService{
         
         // 1. 최신 2024-06-01 버전 규격 엔드포인트 주소
         String url = "https://api.tosspayments.com/v1/billing/authorizations/issue";
-
-       
-        String myRealSecretKey = secretKey; 
         
         // 토스 규격대로 뒤에 콜론(:)을 붙이고 Base64로 인코딩
-        String rawKey = myRealSecretKey.trim() + ":";
+        String rawKey = secretKey.trim() + ":";
         String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
 
         // 헤더 설정
@@ -298,7 +282,7 @@ public class PaymentServiceImpl implements PaymentService{
 
             if ("DONE".equals(status)) {
                 try{
-                    
+                    if(totalamount != amount){throw new RuntimeException("결제 금액 미부합 ");}
                     paymentRepository.updatePaymentStatus(paymentInfo);
                     paymentRepository.insertEscrow(escrowInfo);
                     paymentRepository.insertPlatfoem_Revenue(revenueInfo);
@@ -325,7 +309,6 @@ public class PaymentServiceImpl implements PaymentService{
                         throw new RuntimeException("결제 취소 중 오류 발생 다시 시도 하겠습니다: " + status);
 
                     }
-                    e.printStackTrace();
                     throw new RuntimeException("결제 완료 후 데이터 저장 중 오류 발생   결제를 취소하겠습니다: " + status);
                 }
 
