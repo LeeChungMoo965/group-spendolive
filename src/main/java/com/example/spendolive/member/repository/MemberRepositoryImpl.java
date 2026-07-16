@@ -51,7 +51,7 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" from member_tb where email =? AND STATUS ='ACTIVE'";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
     +" from member_tb where phone =? AND STATUS ='ACTIVE'";
-    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,account_holder_nam) "
+    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,accountHolderNam) "
     +" values(?,?,?,?,?,?,?,?) ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
@@ -69,7 +69,7 @@ public class MemberRepositoryImpl implements MemberRepository{
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
     private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
     private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
-    private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE "
+    private final String selectMemberAccountById= "select accountHolderNam,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE "
                                                 +"from member_account_tb where id=? ";
     private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
                                                 +"from member_card_tb where id=? ";
@@ -169,7 +169,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         );
     }
     @Override
-    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num, String bank_code, String account_num, int balance,String account_holder_nam) throws DataAccessException {
+    public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num, String bank_code, String account_num, int balance,String accountHolderNam) throws DataAccessException {
         jdbcTemplate.update(updatePinNO,
         userId,
         bank_code,
@@ -178,7 +178,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         accessToken,
         userSeqNo,
         balance,
-        account_holder_nam
+        accountHolderNam
         );
     }
 
@@ -389,6 +389,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         try {
             return jdbcTemplate.queryForObject(selectMemberAccountById, (rs, rowNum) -> {
             MemberAccountVO account = new MemberAccountVO();
+
             account.setAccount_idx(rs.getInt("account_idx"));
             account.setAccount_number(rs.getString("account_number"));
             account.setAccount_holder_nam(rs.getString("account_holder_nam"));
