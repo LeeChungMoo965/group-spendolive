@@ -148,5 +148,12 @@ function validateInquiryForm(formEl) {
         alert('제목과 상세 내용을 입력해 주세요.');
         return false;
     }
+
+
+
+    const submitBtn = formEl.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '등록 중...';
+    
     return true;
 }

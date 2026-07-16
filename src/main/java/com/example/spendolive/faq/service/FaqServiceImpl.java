@@ -23,20 +23,7 @@ public class FaqServiceImpl implements FaqService {
 
     @Override
     public Map<String, List<FaqVO>> getVisibleFaqGroupedByCategory() {
-        List<FaqVO> all = faqRepository.findAllVisible();
-
-        Map<String, List<FaqVO>> grouped = new LinkedHashMap<>();
-        for (String cat : CATEGORY_ORDER) {
-            List<FaqVO> inCat = all.stream()
-                    .filter(f -> cat.equals(f.getCategory()))
-                    .toList();
-            // 항목이 하나도 없는 카테고리는 아예 map에 안 넣음
-            // → faqList.jsp에서 그 카테고리 섹션 자체가 안 뜨고, 필터 버튼 눌러도 "등록된 FAQ 없음"으로 자연스럽게 처리됨
-            if (!inCat.isEmpty()) {
-                grouped.put(cat, inCat);
-            }
-        }
-        return grouped;
+        return groupByCategory(faqRepository.findAllVisible());
     }
 
     @Override
@@ -46,18 +33,7 @@ public class FaqServiceImpl implements FaqService {
 
     @Override
     public Map<String, List<FaqVO>> getAllFaqGroupedByCategory() {
-        List<FaqVO> all = faqRepository.findAll(); // 숨김(N) 포함 전체
-
-        Map<String, List<FaqVO>> grouped = new LinkedHashMap<>();
-        for (String cat : CATEGORY_ORDER) {
-            List<FaqVO> inCat = all.stream()
-                    .filter(f -> cat.equals(f.getCategory()))
-                    .toList();
-            if (!inCat.isEmpty()) {
-                grouped.put(cat, inCat);
-            }
-        }
-        return grouped;
+        return groupByCategory(faqRepository.findAll()); // 숨김(N) 포함 전체
     }
 
     @Override
@@ -93,6 +69,22 @@ public class FaqServiceImpl implements FaqService {
     @Override
     public void moveFaqDown(int faq_id) {
         moveFaq(faq_id, false);
+    }
+
+    /* FAQ 리스트를 CATEGORY_ORDER 순서대로 그룹핑.
+       항목이 하나도 없는 카테고리는 아예 map에 안 넣음
+       → jsp에서 그 카테고리 섹션 자체가 안 뜨고, 필터 버튼 눌러도 "등록된 FAQ 없음"으로 자연스럽게 처리됨 */
+    private Map<String, List<FaqVO>> groupByCategory(List<FaqVO> all) {
+        Map<String, List<FaqVO>> grouped = new LinkedHashMap<>();
+        for (String cat : CATEGORY_ORDER) {
+            List<FaqVO> inCat = all.stream()
+                    .filter(f -> cat.equals(f.getCategory()))
+                    .toList();
+            if (!inCat.isEmpty()) {
+                grouped.put(cat, inCat);
+            }
+        }
+        return grouped;
     }
 
     /* 같은 카테고리 안에서 바로 이웃한 항목과 순서를 바꿈.

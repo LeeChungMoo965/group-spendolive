@@ -10,9 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import com.example.spendolive.faq.domain.FaqVO;
 
-/*
- * 테이블 DDL: faq_tb (faq_id, category, question, answer CLOB, sort_order, use_yn, created_at)
- */
 @Repository
 public class FaqRepository {
 
@@ -25,6 +22,61 @@ public class FaqRepository {
             "WHEN 'notice' THEN 4 " +
             "WHEN 'etc' THEN 5 " +
             "ELSE 99 END";
+
+    // 사용자 화면용: 노출(use_yn='Y')인 것만
+    private static final String FIND_ALL_VISIBLE_SQL = """
+            SELECT faq_id, category, question, answer, sort_order, use_yn,
+                   TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
+            FROM faq_tb
+            WHERE use_yn = 'Y'
+            ORDER BY """ + CATEGORY_ORDER_SQL + """
+            , sort_order ASC, faq_id ASC
+        """;
+
+    // 관리자 화면용: 숨김(N) 포함 전체
+    private static final String FIND_ALL_SQL = """
+            SELECT faq_id, category, question, answer, sort_order, use_yn,
+                   TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
+            FROM faq_tb
+            ORDER BY """ + CATEGORY_ORDER_SQL + """
+            , sort_order ASC, faq_id ASC
+        """;
+
+    // 단건 조회 (관리자 수정 폼)
+    private static final String FIND_BY_ID_SQL = """
+            SELECT faq_id, category, question, answer, sort_order, use_yn,
+                   TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
+            FROM faq_tb
+            WHERE faq_id = ?
+        """;
+
+    // 등록
+    private static final String INSERT_SQL = """
+            INSERT INTO faq_tb(faq_id, category, question, answer, sort_order, use_yn, created_at)
+            VALUES(?, ?, ?, ?, ?, ?, SYSDATE)
+        """;
+
+    // 수정 (sort_order는 여기서 안 건드림 — 순서는 moveUp/moveDown 전용)
+    private static final String UPDATE_SQL = """
+            UPDATE faq_tb
+            SET category = ?, question = ?, answer = ?, use_yn = ?
+            WHERE faq_id = ?
+        """;
+
+    // 새 FAQ가 들어갈 다음 순서 (해당 카테고리 맨 뒤)
+    private static final String NEXT_SORT_ORDER_SQL =
+            "SELECT NVL(MAX(sort_order), -1) + 1 FROM faq_tb WHERE category = ?";
+
+    // 순서값만 갱신 (▲▼ 버튼 swap용)
+    private static final String UPDATE_SORT_ORDER_SQL =
+            "UPDATE faq_tb SET sort_order = ? WHERE faq_id = ?";
+
+    // 삭제
+    private static final String DELETE_SQL = "DELETE FROM faq_tb WHERE faq_id = ?";
+
+    // ────────────────────────────────────────────────────────────
+    // 필드 / 생성자
+    // ────────────────────────────────────────────────────────────
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -44,51 +96,31 @@ public class FaqRepository {
         return faq;
     }
 
-    /* ─── 사용자 화면용: 노출(use_yn='Y')인 것만 ─────────────── */
+    // ────────────────────────────────────────────────────────────
+    // 조회 / 등록 / 수정 / 삭제 메서드
+    // ────────────────────────────────────────────────────────────
+
     public List<FaqVO> findAllVisible() {
-        String sql = """
-            SELECT faq_id, category, question, answer, sort_order, use_yn,
-                   TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
-            FROM faq_tb
-            WHERE use_yn = 'Y'
-            ORDER BY """ + CATEGORY_ORDER_SQL + """
-, sort_order ASC, faq_id ASC
-        """;
         try {
-            return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs));
+            return jdbcTemplate.query(FIND_ALL_VISIBLE_SQL, (rs, rowNum) -> mapRow(rs));
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.findAllVisible] DB 오류: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
-    /* ─── 관리자 화면용: 숨김(N) 포함 전체 ────────────────────── */
     public List<FaqVO> findAll() {
-        String sql = """
-            SELECT faq_id, category, question, answer, sort_order, use_yn,
-                   TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
-            FROM faq_tb
-            ORDER BY """ + CATEGORY_ORDER_SQL + """
-, sort_order ASC, faq_id ASC
-        """;
         try {
-            return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs));
+            return jdbcTemplate.query(FIND_ALL_SQL, (rs, rowNum) -> mapRow(rs));
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.findAll] DB 오류: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
-    /* ─── 단건 조회 (관리자 수정 폼) ──────────────────────────── */
     public FaqVO findById(int faq_id) {
-        String sql = """
-            SELECT faq_id, category, question, answer, sort_order, use_yn,
-                   TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
-            FROM faq_tb
-            WHERE faq_id = ?
-        """;
         try {
-            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), faq_id);
+            return jdbcTemplate.queryForObject(FIND_BY_ID_SQL, (rs, rowNum) -> mapRow(rs), faq_id);
         } catch (EmptyResultDataAccessException e) {
             return null;
         } catch (DataAccessException e) {
@@ -97,15 +129,10 @@ public class FaqRepository {
         }
     }
 
-    /* ─── 등록 ────────────────────────────────────────────────── */
     public int insertFaq(FaqVO faq) {
         Long faq_id = jdbcTemplate.queryForObject("SELECT seq_faq.NEXTVAL FROM dual", Long.class);
-        String sql = """
-            INSERT INTO faq_tb(faq_id, category, question, answer, sort_order, use_yn, created_at)
-            VALUES(?, ?, ?, ?, ?, ?, SYSDATE)
-        """;
         try {
-            jdbcTemplate.update(sql,
+            jdbcTemplate.update(INSERT_SQL,
                     faq_id, faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
                     faq.getSortOrder(), faq.getUseYn());
             return faq_id.intValue();
@@ -115,15 +142,9 @@ public class FaqRepository {
         }
     }
 
-    /* ─── 수정 (sort_order는 여기서 안 건드림 — 순서는 moveUp/moveDown 전용) ─── */
     public void updateFaq(FaqVO faq) {
-        String sql = """
-            UPDATE faq_tb
-            SET category = ?, question = ?, answer = ?, use_yn = ?
-            WHERE faq_id = ?
-        """;
         try {
-            jdbcTemplate.update(sql,
+            jdbcTemplate.update(UPDATE_SQL,
                     faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
                     faq.getUseYn(), faq.getFaqId());
         } catch (DataAccessException e) {
@@ -132,11 +153,9 @@ public class FaqRepository {
         }
     }
 
-    /* ─── 새 FAQ가 들어갈 다음 순서 (해당 카테고리 맨 뒤) ────────── */
     public int getNextSortOrder(String category) {
-        String sql = "SELECT NVL(MAX(sort_order), -1) + 1 FROM faq_tb WHERE category = ?";
         try {
-            Integer next = jdbcTemplate.queryForObject(sql, Integer.class, category);
+            Integer next = jdbcTemplate.queryForObject(NEXT_SORT_ORDER_SQL, Integer.class, category);
             return next != null ? next : 0;
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.getNextSortOrder] DB 오류: " + e.getMessage());
@@ -144,22 +163,18 @@ public class FaqRepository {
         }
     }
 
-    /* ─── 순서값만 갱신 (▲▼ 버튼 swap용) ─────────────────────── */
     public void updateSortOrder(int faq_id, int sortOrder) {
-        String sql = "UPDATE faq_tb SET sort_order = ? WHERE faq_id = ?";
         try {
-            jdbcTemplate.update(sql, sortOrder, faq_id);
+            jdbcTemplate.update(UPDATE_SORT_ORDER_SQL, sortOrder, faq_id);
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.updateSortOrder] DB 오류: " + e.getMessage());
             throw e;
         }
     }
 
-    /* ─── 삭제 ────────────────────────────────────────────────── */
     public void deleteFaq(int faq_id) {
-        String sql = "DELETE FROM faq_tb WHERE faq_id = ?";
         try {
-            jdbcTemplate.update(sql, faq_id);
+            jdbcTemplate.update(DELETE_SQL, faq_id);
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.deleteFaq] DB 오류: " + e.getMessage());
             throw e;
