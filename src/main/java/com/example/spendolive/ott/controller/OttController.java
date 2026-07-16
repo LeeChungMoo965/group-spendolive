@@ -158,24 +158,6 @@ public class OttController {
         return "redirect:/spendolive/ott/recruit.do?tab=all&result=created";
     }
 
-    // 결제 완료 입장 처리 - 사용자를 ACTIVE 멤버로 등록 후 채팅방 이동
-    // 신청하기 로직
-    @GetMapping("/ott/recruit/apply.do")
-    public String applyRecruitRoom( HttpSession session) {
-        String loginId = getLoginId(session);
-        OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
-        Long room_id = settlementInfo.getRoom_id().longValue();
-        if (loginId == null) {
-            return "redirect:/member/loginForm.do";
-        }
-
-        // 신청하기 누르면 바로 방 구성원으로 등록
-        ottService.completePaidRoomEntry(room_id, loginId);
-
-        // 바로 채팅방 입장
-        return "redirect:/spendolive/ott/chat/room.do?room_id=" + room_id;
-    }
-
     // 빠른 참가 처리 - 참가 가능한 가장 오래된 모집방 조회
     @PostMapping("/ott/recruit/quick-join.do")
     public String quickJoinRecruitRoom(@RequestParam(value = "ott_service_id", required = false) String ott_service_id,

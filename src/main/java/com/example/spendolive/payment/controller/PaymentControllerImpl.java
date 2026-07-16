@@ -2,6 +2,7 @@ package com.example.spendolive.payment.controller;
 
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -51,16 +52,11 @@ public class PaymentControllerImpl implements PaymentController{
         OttRoomDTO roomInfo = paymentService.selectRoomByRoomId(room_id);
         OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(room_id);
         if (settlementInfo == null) {
-            ModelAndView mav =
-                    new ModelAndView("redirect:/spendolive/ott.do");
-        
-            mav.addObject(
-                    "msg",
-                    "해당 방의 정산 정보가 없습니다."
-            );
-        
+            ModelAndView mav = new ModelAndView("redirect:/spendolive/ott.do");
+            mav.addObject("msg","해당 방의 정산 정보가 없습니다.");
             return mav;
         }
+        //정산금 계산 로직
         int member_limit = settlementInfo.getMember_limit();
         Integer total_price = settlementInfo.getTotal_price();
         Integer base_amount = total_price / member_limit;
@@ -81,17 +77,7 @@ public class PaymentControllerImpl implements PaymentController{
         mav.setViewName("common/layout");
         mav.addObject("body_page", bodyPage);
         return mav;
-    }/*
-    @Override
-    @RequestMapping(value = "/payment.do", method = {RequestMethod.GET})
-    public ModelAndView payment(SettlementPaymentVO paymentInfo , HttpServletRequest request, HttpServletResponse response) throws Exception {
-        HttpSession session = request.getSession();
-        paymentInfo.setTotal_amount(10000);
-        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
-        paymentService.processWithdraw(paymentInfo, memberInfo);
-        return layout("/WEB-INF/views/payment/detail.jsp");
-    } */
-    //토스 
+    }
     // 토스 카드 등록 성공시 callback
     @Override
     @GetMapping("/callback.do")
@@ -108,13 +94,10 @@ public class PaymentControllerImpl implements PaymentController{
         String userId = memberVO.getId();
 
         try {
-            // 💥 서비스단 호출해서 토스 API 최종 연동 후 진짜 빌링키 뜯어내서 DB 저장!
             paymentService.issueAndSaveBillingKey(customerKey, authKey, userId);
             redirectAttributes.addFlashAttribute("msg", "'결제 카드가 정상적으로 등록되었습니다! 정산 준비 완료.");
             return "redirect:/spendolive/main.do";
-
         } catch (Exception e) {
-           
             redirectAttributes.addFlashAttribute("msg", "'카드 등록 최종 승인 중 에러가 발생했습니다.");
             return "redirect:/spendolive/main.do";
         }
@@ -122,10 +105,8 @@ public class PaymentControllerImpl implements PaymentController{
     @Override
     @GetMapping("/fail.do")
     public String tossCallback(RedirectAttributes redirectAttributes) throws Exception {
-
             redirectAttributes.addFlashAttribute("msg", "'카드 등록에 실패 하였습니다. 카드 정보를 확인 후 다시 시도해 주세요");
             return "redirect:/spendolive/main.do";
-        
     }
     @Override
     @GetMapping("/paymenting.do")
@@ -138,13 +119,10 @@ public class PaymentControllerImpl implements PaymentController{
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
         if (settlementInfo == null) {
-            redirectAttributes.addFlashAttribute(
-                    "msg",
-                    "정산 정보가 없어 결제할 수 없습니다."
-            );
-        
+            redirectAttributes.addFlashAttribute("msg","정산 정보가 없어 결제할 수 없습니다.");
             return "redirect:/spendolive/ott.do";
         }
+        //정산금 계산 로직
         int base_amount = (int) session.getAttribute("total_amount");
         int member_limit = settlementInfo.getMember_limit();
         int fee_amount = (base_amount / 100) * member_limit;
@@ -153,24 +131,16 @@ public class PaymentControllerImpl implements PaymentController{
         String userId = memberVO.getId();
         int settlement_id = (int) settlementInfo.getSettlement_id().longValue();
         int room_id = (int) settlementInfo.getRoom_id().longValue();
-
+        LocalDate today = LocalDate.now();
+        int day = today.getDayOfMonth();
         try {
             paymentService.executeAutomaticPayment(userId, total_price, room_id,fee_amount ,base_amount, settlement_id, host_login_id);
-            if(paymentService.roomMemberByroomIdCount(room_id,userId).equals("false")){
-                ottService.completePaidRoomEntry((long) room_id, userId);
-
-                redirectAttributes.addFlashAttribute("msg", "자동결제가 완료 되었습니다 !");
-                return "redirect:/spendolive/main.do";
-            }
-            
-            redirectAttributes.addFlashAttribute("msg", "결제가 완료 되었습니다 !");
-            return "redirect:/admin/settlement/paymentlist.do";
-      
-            
+            ottService.completePaidRoomEntry((long) room_id, userId);
+            redirectAttributes.addFlashAttribute("msg", "자동결제가 등록 되었습니다 ! 자동 결제일은 매월 "+ day +" 입니다.");
+            return "redirect:/spendolive/ott/chat/room.do?room_id=" + room_id;
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "자동결제가 실패 되었습니다 다시 시도 해주세요");
             return "redirect:/spendolive/main.do";
         }
     }
-
 }

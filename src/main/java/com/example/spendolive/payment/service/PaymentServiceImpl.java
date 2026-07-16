@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.RollbackOn;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -68,7 +69,7 @@ public class PaymentServiceImpl implements PaymentService{
     
 
     @Override
-    @Transactional(rollbackFor = Exception.class) 
+    @Transactional(rollbackFor = Exception.class) //금결원 출금이체 프로세스 (권한 문제로 홀딩)
     public boolean processWithdraw(SettlementPaymentVO paymentInfo, MemberVO memberInfo) throws Exception {
         /*
         // 1. 금결원 출금이체 API 주소
@@ -176,7 +177,6 @@ public class PaymentServiceImpl implements PaymentService{
 
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-
             System.out.println("[토스 응답 바디] : " + response.getBody());
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
@@ -184,18 +184,14 @@ public class PaymentServiceImpl implements PaymentService{
                 Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
                 String billingKey = (String) resBody.get("billingKey"); 
                 Map<String, Object> cardInfo = (Map<String, Object>) resBody.get("card");
-                
                 String card_num = null;
                 String card_company = null;
                 if (cardInfo != null) {
                     card_num = (String) cardInfo.get("number"); 
                     card_company = (String) cardInfo.get("issuerCode"); 
                 }
-               
-                
                 memberRepository.updateTossInfo(userId, card_num, card_company, billingKey);
                 memberRepository.updateMember_card_status(userId);
-                
             }
         } catch (Exception e) {
             System.out.println("[최종 에러 디버깅] : " + e.getMessage());
@@ -230,7 +226,7 @@ public class PaymentServiceImpl implements PaymentService{
     headers.set("Authorization", "Basic " + encodedSecretKey);
     headers.setContentType(MediaType.APPLICATION_JSON);
 
-    // 매 결제마다 고유해야 하는 주문번호(orderId) 생성 (UUID 기반)
+    // 주문번호(orderId) 생성
     String orderId = "SPENDOLIVE_" + java.util.UUID.randomUUID().toString().substring(0, 12).toUpperCase();
     // 바디 설정
     Map<String, Object> body = new HashMap<>();
@@ -252,9 +248,9 @@ public class PaymentServiceImpl implements PaymentService{
             tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
             Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
             Map<String, Object> cardInfo = (Map<String, Object>) resBody.get("card");
-            // 토스 응답에서 결제 고유 번호(paymentKey) 추출 (나중에 혹시 취소/환불할 때 무조건 필요함!)
+            // 토스 응답에서 결제 고유 번호(paymentKey) 
             String paymentKey = (String) resBody.get("paymentKey");
-            String status = (String) resBody.get("status"); // DONE 이면 결제 완료
+            String status = (String) resBody.get("status"); 
             String orderid = (String) resBody.get("orderId");
             int totalamount = (int) resBody.get("totalAmount");
             String approvedAtStr = (String) resBody.get("approvedAt");
@@ -311,19 +307,20 @@ public class PaymentServiceImpl implements PaymentService{
                 }catch(Exception e){
                     //취소 api 요청
                     //헤더는 위에 것 그대로 사용 
-                    url = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel ";
+                    String cancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
                     //바디 설정
-                    Map<String, Object> bodys = new HashMap<>();
-                    bodys.put("cancelReason", "서버 오류로 인한 취소");                //취소 이유
-                    jsonBody = jsonMapper.writeValueAsString(bodys);
-                    entity = new HttpEntity<>(jsonBody, headers);
+                    Map<String, Object> cancelBody = new HashMap<>();
+                    cancelBody.put("cancelReason", "서버 오류로 인한 취소");//취소 이유
+                    String cancelJson = jsonMapper.writeValueAsString(cancelBody);
+                    HttpEntity<String> cancelEntity = new HttpEntity<>(cancelJson, headers);
                     try{
-                    if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                        // 추후 취소 내역 테이블 생성후 처리
-                        mapper = new tools.jackson.databind.ObjectMapper();
-                        Map<String, Object> resBodys = mapper.readValue(response.getBody(), Map.class);
-                        String canceledAtStr = (String) resBodys.get("approvedAt");
-                    }
+                        ResponseEntity<String> cancelResponse = restTemplate.postForEntity(cancelUrl, cancelEntity, String.class);
+                        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                            // 추후 취소 내역 테이블 생성후 처리
+                            mapper = new tools.jackson.databind.ObjectMapper();
+                            Map<String, Object> resBodys = mapper.readValue(response.getBody(), Map.class);
+                            String canceledAtStr = (String) resBodys.get("approvedAt");
+                        }
                     }catch(Exception a){
                         throw new RuntimeException("결제 취소 중 오류 발생 다시 시도 하겠습니다: " + status);
 
@@ -355,7 +352,7 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     @Transactional
     public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
-    /* 
+    
     // 1. v1 정산 API 주소
     String TOSS_API_URL = "https://api.tosspayments.com/v1/payouts/sub-malls"; 
     
@@ -416,7 +413,7 @@ public class PaymentServiceImpl implements PaymentService{
                     
             try{
             String traceId ="1123412312321413243142sadsadadsdsadasd";        
-            SellerAccountVO seller = SellerAccountVO.builder()
+            SellerAccountVO sellerInfo = SellerAccountVO.builder()
             .member_id(userId)
             .bank_name(bankCode)
             .account_number(accNum)
@@ -429,7 +426,7 @@ public class PaymentServiceImpl implements PaymentService{
                 //취소 api요청
                 throw new RuntimeException("서버 오류 로 송금을 취소합니다");
             }
-        //}
+        }
 
     } catch (HttpClientErrorException e) {
         System.err.println("🚨 [토스 API 리턴 에러]: " + e.getResponseBodyAsString());
@@ -437,8 +434,9 @@ public class PaymentServiceImpl implements PaymentService{
     } catch (Exception e) {
         System.err.println("🚨 [시스템 에러]: " + e.getMessage());
         throw new RuntimeException("토스 서브몰 등록 중 시스템 오류 발생");
-    }*/
+    }
 }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<OttRoomDTO> selectTodaysettlement(String status) throws Exception {
@@ -476,8 +474,6 @@ public class PaymentServiceImpl implements PaymentService{
             paymentRepository.updatSettlementStatusYETroommember(day); // 페이데이가 지난 데이터는 다시 상태를YET으로 
             paymentRepository.updateReadyfromYettoroommember(day,endday); //오늘 정산금 정산 할 내역들은 YET에서 READY로
             return paymentRepository.selectTodaysettlementMember(day,endday,status);
-
- 
         }
     
     //정산금 송금 후 상태값 변경 프로세스
@@ -498,8 +494,7 @@ public class PaymentServiceImpl implements PaymentService{
             paymentRepository.updateEscrowStatus(room_id);
             paymentRepository.updatSettlementStatus(room_id);
         }catch(Exception e){
-            System.err.println("🚨 [시스템 에러]: " + e.getMessage());
-            return "송금 완료 후 서버 쪽에서 오류 가 생겼습니다. 송금을 취소 하는 중이니 잠시만 기다려 주세요. ";
+            throw new RuntimeException("DB 업데이트 실패: 송금 완료 후 서버 쪽에서 오류가 생겼습니다.");
         }
         return "송금을 정상적으로 완료 하였습니다.";
     }
