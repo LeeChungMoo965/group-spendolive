@@ -55,6 +55,7 @@
                             <option value="2">퇴출</option>
                             <option value="3">반려</option>
                         </select>
+                        
                     </div>
            
          

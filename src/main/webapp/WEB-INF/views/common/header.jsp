@@ -4,8 +4,6 @@
     <c:set var="contextPath" value="${pageContext.request.contextPath}" />
     <c:set var="requestURI" value="${pageContext.request.requestURI}" />
 
-    <link rel="stylesheet" href="${contextPath}/resources/css/bellIcon.css">
-
 <c:choose>
     <c:when test="${memberInfo.role == 'ADMIN'}">
     <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
@@ -176,6 +174,10 @@
                             <ul class="so-submenu">
                                 <li>
                                     <a class="so-menu-link"
+                                    href="${contextPath}/member/openBankingIntegratedAuth.do">
+                                        통합 계좌 연동
+                                    </a>
+                                    <a class="so-menu-link"
                                     href="${contextPath}/member/openBankingAuth.do">
                                         계좌 연동
                                     </a>
@@ -243,4 +245,8 @@
             customerName: '${memberInfo.member_name}',
             });
         }
+        var msg = "${msg}";
+if(msg && msg !== "") {
+    alert(msg);
+}
     </script>

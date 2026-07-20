@@ -55,7 +55,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     private final String selectTodaySettlementmember = "SELECT FEE_AMOUNT,FEE_RATE,MEMBER_LOGIN_ID,PAY_AMOUNT,PAY_DAY,PAY_LATE_DAY,ROOM_ID, settlement_status, "
     + "TO_CHAR(JOINED_AT , 'YYYY-MM-DD') AS JOINED_AT "     
     + "from ott_room_member_tb where (pay_day + pay_late_day) >=? AND (pay_day + pay_late_day) <=? AND status= 'ACTIVE' "
-    + "AND settlement_status =? and MEMBER_ROLE='MEMBER'";
+    + "AND settlement_status =? and MEMBER_ROLE='MEMBER' AND room_id IN ( SELECT room_id from ott_room_tb where status ='ACTIVE' ) ";
     private final String updateReadyfromYet="UPDATE settlement_tb set settlement_status = 'READY'  where settlement_status='YET'  AND room_id "
        + " IN (SELECT room_id FROM ott_room_tb WHERE BILLING_DAY >=? AND BILLING_DAY <=?) ";
     private final String updateCheckTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'YET' where SETTLEMENT_STATUS ='DONE' AND ROOM_ID IN (SELECT room_id FROM ott_room_tb WHERE billing_day < ?) ";

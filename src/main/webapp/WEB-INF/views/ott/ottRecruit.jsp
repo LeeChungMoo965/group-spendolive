@@ -10,15 +10,15 @@
 --%>
 
 <%-- 페이지 상단 영역 --%>
-<section class="page-hero ott-sub-hero">
-    <div class="container ott-wide-container">
+<section class="page-hero">
+    <div class="container ">
         <p class="eyebrow">OTT RECRUIT</p>
         <h1>모든 모집글</h1>
         <p class="hero-text">
             외부 다른 사람들과 함께 이용할 OTT 파티를 찾고, 신청 버튼을 통해 결제 화면으로 이동합니다.
         </p>
         <div class="ott-page-actions">
-            <a href="${contextPath}/spendolive/ott.do" class="btn btn-outline">OTT관리로 돌아가기</a>
+            <a href="${contextPath}/spendolive/ott.do" class="btn btn-primary">OTT관리로 돌아가기</a>
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=write" class="btn btn-primary">모집글 작성</a>
         </div>
     </div>
@@ -157,7 +157,7 @@
 
                             <div class="recruit-search-actions">
                                 <button type="submit" class="btn btn-primary">검색</button>
-                                <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="btn btn-outline">초기화</a>
+                                <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="btn btn-danger-outline">초기화</a>
                             </div>
                         </form>
 
@@ -213,20 +213,20 @@
                                             <c:choose>
 
                                                 <c:when test="${room.host_login_id eq loginId}">
-                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-outline full">내 모집글 대화방</a>
+                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary full">내 모집글 대화방</a>
 
                                                 </c:when>
                                                 <c:when test="${(room.status eq 'RECRUITING' or room.status eq 'REPLACE_RECRUITING') and room.my_application_status eq 'NONE'}">
                                                     <form action="${contextPath}/payment/detail.do" method="post">
                                                         <input type="hidden" name="room_id" value="${room.room_id}">
-                                                        <button type="submit" class="btn btn-primary full">신청하기</button>
+                                                        <button type="submit" style = "background:#959945;color:var(--olive-dark); color : #fff " class="btn btn-primary full">신청하기</button>
                                                     </form>
                                                 </c:when>
                                                 <c:when test="${room.my_application_status eq 'ACTIVE'}">
-                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary full">대화방 입장</a>
+                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}"  class="btn btn-primary full">대화방 입장</a>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <button type="button" class="btn btn-outline full" disabled>${room.my_application_status}</button>
+                                                    <button type="button" class="btn btn-primary full" disabled>${room.my_application_status}</button>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
@@ -279,14 +279,14 @@
                                                 </div>
                                                 <div class="family-room-actions">
                                                     <span class="status-pill ${room.status}">${room.status}</span>
-                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-outline btn-mini">대화방</a>
+                                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary btn-mini">대화방</a>
                                                     <c:if test="${room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
                                                         <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form compact-close-form">
                                                             <input type="hidden" name="room_id" value="${room.room_id}">
                                                             <input type="hidden" name="returnPage" value="recruit">
                                                             <input type="hidden" name="close_reason" value="파티장 요청">
                                                             <input type="text" name="close_notice" placeholder="종료 공지 입력">
-                                                            <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('방 삭제 요청을 진행할까요? 이번 이용 기간 종료일까지 유지되고, 다음 이용분 결제 완료 건은 자동 환불됩니다.');">방 삭제 요청</button>
+                                                            <button type="submit" class="btn btn-danger-outline btn-mini" onclick="return confirm('방 삭제 요청을 진행할까요? 이번 이용 기간 종료일까지 유지되고, 다음 이용분 결제 완료 건은 자동 환불됩니다.');">방 삭제 요청</button>
                                                         </form>
                                                     </c:if>
                                                 </div>
@@ -357,14 +357,14 @@
                                                             <form action="${contextPath}/spendolive/ott/room/leave-cancel.do" method="post" class="compact-close-form">
                                                                 <input type="hidden" name="room_id" value="${room.room_id}">
                                                                 <input type="hidden" name="returnPage" value="recruit">
-                                                                <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('나가기 예약을 취소할까요?');">예약 취소</button>
+                                                                <button type="submit" class="btn btn-danger-outline btn-mini" onclick="return confirm('나가기 예약을 취소할까요?');">예약 취소</button>
                                                             </form>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <form action="${contextPath}/spendolive/ott/room/leave-reserve.do" method="post" class="compact-close-form">
                                                                 <input type="hidden" name="room_id" value="${room.room_id}">
                                                                 <input type="hidden" name="returnPage" value="recruit">
-                                                                <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('나가기 예약을 할까요? 다음 결제일 7일 전 자동으로 방에서 나가집니다.');">나가기 예약</button>
+                                                                <button type="submit" class="btn btn-danger-outline btn-mini" onclick="return confirm('나가기 예약을 할까요? 다음 결제일 7일 전 자동으로 방에서 나가집니다.');">나가기 예약</button>
                                                             </form>
                                                         </c:otherwise>
                                                     </c:choose>
@@ -427,7 +427,7 @@
                                                             <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 7일 전</small>
                                                         </div>
 
-                                                        <button type="submit" class="btn btn-primary settlement-send-btn">정산 요청 보내기</button>
+                                                        <button type="submit" class="btn btn-primary">정산 요청 보내기</button>
                                                     </form>
                                                 </c:if>
                                             </c:forEach>

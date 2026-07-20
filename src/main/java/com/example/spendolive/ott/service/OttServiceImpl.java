@@ -397,6 +397,10 @@ public class OttServiceImpl implements OttService {
         }
 
         int share_amount = safeDivide(room.getTotal_price(), room.getMember_limit());
+        int pay_day = room.getBilling_day() - 10;
+        if(pay_day <= 0){
+            pay_day = 30 + pay_day;
+        }
         int fee_amount = calculateFeeAmount(share_amount, PLATFORM_FEE_RATE);
         int pay_amount = share_amount + fee_amount;
 
@@ -408,7 +412,7 @@ public class OttServiceImpl implements OttService {
                     PLATFORM_FEE_RATE,
                     fee_amount,
                     pay_amount,
-                    LocalDate.now().getDayOfMonth());
+                    pay_day);
         } else {
             ottRepository.reactivateRoomMember(
                     room_id,
@@ -422,16 +426,16 @@ public class OttServiceImpl implements OttService {
         if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
             ottRepository.updateRoomStatus(room_id, "ACTIVE");
         }
-
+/*
         String member_name = ottRepository.selectMemberDisplayName(loginId);
         insertSystemChatMessage(room_id, loginId,
-                member_name + "님이 결제를 완료하고 공유방에 입장했습니다.");
+                member_name + "님이 결제를 완료하고 공유방에 입장했습니다.");// 메서드 없음
         notifyActiveRoomMembers(
                 room_id,
                 "OTT 공유방 입장 알림",
                 member_name + "님이 " + room.getRoom_name() + " 공유방에 입장했습니다.",
                 "/spendolive/ott/chat/room.do?room_id=" + room_id,
-                loginId);
+                loginId);//메서드 없음 */
     }
 
     // =========================================================

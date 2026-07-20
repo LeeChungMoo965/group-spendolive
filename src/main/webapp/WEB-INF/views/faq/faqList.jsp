@@ -5,18 +5,18 @@
 <link rel="stylesheet" href="${contextPath}/resources/css/faq.css">
 
 <div class="faq-page">
-    <div class="page-hero">
-        <div class="wrap">
+    <section class="page-hero ">
+    <div class="container ">  
             <p class="eyebrow">FAQ</p>
             <h1>자주 묻는 질문</h1>
-            <p class="hero-sub">SpendOlive 이용 중 궁금한 점을 빠르게 해결하세요.</p>
+            <p class="hero-text">SpendOlive 이용 중 궁금한 점을 빠르게 해결하세요.</p>
             <div class="search-bar">
                 <input type="text" id="faqSearchInput" placeholder="질문을 검색해보세요 (예: 비밀번호 변경)"
                        onkeydown="if(event.key==='Enter'){ searchFaq(); }">
                 <button type="button" onclick="searchFaq()">검색</button>
             </div>
         </div>
-    </div>
+    </section>
 
     <div class="wrap">
         <c:if test="${not empty errorMsg}">

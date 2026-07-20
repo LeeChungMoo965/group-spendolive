@@ -21,7 +21,7 @@
         </div>
 
         <section class="hero">
-            <div class="container hero-grid">
+            <div class="container page-hero-grid">
                 <div>
                     <p class="eyebrow">
                         EXPENSE · CALENDAR · OTT MANAGEMENT
@@ -38,7 +38,7 @@
                         <a href="${contextPath}/spendolive/expense.do" class="btn btn-primary btn-large">
                             지출관리 바로가기
                         </a>
-                        <a href="${contextPath}/spendolive/calendar.do" class="btn btn-outline btn-large">
+                        <a href="${contextPath}/spendolive/calendar.do" class="btn btn-primary btn-large">
                             캘린더 보기
                         </a>
                     </div>
@@ -144,7 +144,7 @@
                 <p>
                     고정지출, 변동지출, OTT지출을 나누어 등록하고 통계와 랭킹을 확인합니다.
                 </p>
-                <a href="${contextPath}/spendolive/expense/list.do" class="btn btn-outline full">
+                <a href="${contextPath}/spendolive/expense/list.do" class="btn btn-primary full">
                     자세히 보기
                 </a>
             </article>
@@ -158,7 +158,7 @@
                 <p>
                     월별 달력에서 날짜별 지출 금액과 카테고리를 편하게 확인합니다.
                 </p>
-                <a href="${contextPath}/spendolive/calendar.do" class="btn btn-outline full">
+                <a href="${contextPath}/spendolive/calendar.do" class="btn btn-primary full">
                     자세히 보기
                 </a>
             </article>
@@ -172,7 +172,7 @@
                 <p>
                     지인과의 공유방, 다른 사람들과의 모집 게시판, 정산 요청을 관리합니다.
                 </p>
-                <a href="${contextPath}/spendolive/ott.do" class="btn btn-outline full">
+                <a href="${contextPath}/spendolive/ott.do" class="btn btn-primary full">
                     자세히 보기
                 </a>
             </article>
@@ -186,7 +186,7 @@
                 <p>
                     나의 지출 현황, 정산 상태, 회원정보를 한 화면에서 확인합니다.
                 </p>
-                <a href="${contextPath}/spendolive/mypage.do" class="btn btn-outline full">
+                <a href="${contextPath}/spendolive/mypage.do" class="btn btn-primary full">
                     자세히 보기
                 </a>
             </article>
@@ -194,13 +194,7 @@
     </div>
 </section>
 </main>
-<script>
-    // 컨트롤러가 보낸 일회성 메시지(msg)가 있다면 alert을 띄운다
-    var msg = "${msg}";
-    if(msg && msg !== "") {
-        alert(msg);
-    }
-</script>
+
 
 <script>
     /* =========================================================

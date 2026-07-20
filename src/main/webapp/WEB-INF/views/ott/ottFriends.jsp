@@ -68,15 +68,15 @@
 </style>
 
 <%-- 페이지 상단 영역 --%>
-<section class="page-hero ott-sub-hero">
-    <div class="container ott-wide-container">
+<section class="page-hero ">
+    <div class="container ">    
         <p class="eyebrow">FRIENDS SHARE ROOM</p>
         <h1>가족 · 지인 공유방</h1>
         <p class="hero-text">
             가족 또는 지인과 함께 쓸 OTT 공유방을 만들고, 초대 URL·QR·카카오톡 링크로 결제 화면까지 바로 연결합니다.
         </p>
         <div class="ott-page-actions">
-            <a href="${contextPath}/spendolive/ott.do" class="btn btn-outline">OTT관리로 돌아가기</a>
+            <a href="${contextPath}/spendolive/ott.do" class="btn btn-primary">OTT관리로 돌아가기</a>
             <a href="#createRoom" class="btn btn-primary">공유방 만들기</a>
         </div>
     </div>
@@ -139,12 +139,12 @@
                                                        class="invite-url-input"
                                                        readonly
                                                        value="${pageContext.request.scheme}://${pageContext.request.serverName}:${pageContext.request.serverPort}${contextPath}/spendolive/ott/friends/invite.do?code=${room.invite_code}">
-                                                <button type="button" class="btn btn-outline btn-mini invite-copy-btn">URL 복사</button>
+                                                <button type="button" class="btn btn-primary btn-mini">URL 복사</button>
                                             </div>
 
                                             <div class="invite-share-actions">
-                                                <button type="button" class="btn btn-outline btn-mini invite-qr-btn">QR 코드 보기</button>
-                                                <button type="button" class="btn btn-primary btn-mini invite-kakao-btn">카카오톡 공유</button>
+                                                <button type="button" class="btn btn-primary btn-mini">QR 코드 보기</button>
+                                                <button type="button" class="btn btn-primary btn-mini">카카오톡 공유</button>
                                             </div>
 
                                             <div class="invite-qr-box">
@@ -157,7 +157,7 @@
 
                                 <div class="family-room-actions">
                                     <span class="status-pill ${room.status}">${room.status}</span>
-                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-outline btn-mini">대화방</a>
+                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary btn-mini">대화방</a>
 
                                     <%-- 참여자별 방 관리 기능 --%>
                                     <c:if test="${room.host_login_id ne loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
@@ -174,7 +174,7 @@
                                                 <form action="${contextPath}/spendolive/ott/room/leave-reserve.do" method="post" class="compact-close-form">
                                                     <input type="hidden" name="room_id" value="${room.room_id}">
                                                     <input type="hidden" name="returnPage" value="friends">
-                                                    <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('나가기 예약을 할까요? 다음 결제일 7일 전 자동으로 방에서 나가집니다.');">나가기 예약</button>
+                                                    <button type="submit" class="btn btn-primary btn-mini" onclick="return confirm('나가기 예약을 할까요? 다음 결제일 7일 전 자동으로 방에서 나가집니다.');">나가기 예약</button>
                                                 </form>
                                             </c:otherwise>
                                         </c:choose>
@@ -186,7 +186,7 @@
                                             <input type="hidden" name="returnPage" value="friends">
                                             <input type="hidden" name="close_reason" value="파티장 요청">
                                             <input type="text" name="close_notice" placeholder="종료 공지 입력">
-                                            <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('방 삭제 요청을 진행할까요? 이번 이용 기간 종료일까지 유지되고, 다음 이용분 결제 완료 건은 자동 환불됩니다.');">방 삭제 요청</button>
+                                            <button type="submit" class="btn btn-danger-outline btn-mini" onclick="return confirm('방 삭제 요청을 진행할까요? 이번 이용 기간 종료일까지 유지되고, 다음 이용분 결제 완료 건은 자동 환불됩니다.');">방 삭제 요청</button>
                                         </form>
                                     </c:if>
                                 </div>
@@ -304,7 +304,7 @@
                                                 <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 7일 전</small>
                                             </div>
 
-                                            <button type="submit" class="btn btn-primary settlement-send-btn">정산 요청 보내기</button>
+                                            <button type="submit" class="btn btn-primary ">정산 요청 보내기</button>
                                         </form>
                                     </c:if>
                                 </c:forEach>

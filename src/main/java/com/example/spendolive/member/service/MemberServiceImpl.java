@@ -264,7 +264,7 @@ public class MemberServiceImpl implements MemberService {
             ResponseEntity<Map> response,
             MemberVO memberVO
     ) throws Exception {
-
+//토큰 발급
         String tokenUrl = "https://testapi.openbanking.or.kr/oauth/2.0/token";
         RestTemplate restTemplate = new RestTemplate();
 
@@ -297,7 +297,7 @@ public class MemberServiceImpl implements MemberService {
 
         System.out.println("발급된 Access Token: " + accessToken);
         System.out.println("발급된 사용자 일련번호(user_seq_no): " + userSeqNo);
-
+//계좌 조회
         String accountUrl =
                 "https://testapi.openbanking.or.kr/v2.0/account/list?user_seq_no="
                         + userSeqNo
@@ -329,7 +329,7 @@ public class MemberServiceImpl implements MemberService {
         System.out.println("👉 진짜 24자리 번호 획득: " + fintech_use_num);
         System.out.println("👉 은행 코드 획득: " + bankCode);
         System.out.println("👉 계좌번호 획득: " + accountNum);
-
+//잔액 조회
         String tranDtime =
                 java.time.LocalDateTime.now()
                         .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -344,7 +344,7 @@ public class MemberServiceImpl implements MemberService {
         HttpEntity<String> balanceEntity = new HttpEntity<>(headers);
         ResponseEntity<Map> balanceResponse =
                 restTemplate.exchange(balanceUrl, HttpMethod.GET, balanceEntity, Map.class);
-
+        
         int balance = 0;
 
         if (balanceResponse.getStatusCode() == HttpStatus.OK
@@ -379,7 +379,7 @@ public class MemberServiceImpl implements MemberService {
         );
          */
     }
-
+    
     @Override
     public String findIdByPhone(String phone) throws Exception {
         return memberRepository.findIdByPhone(phone);

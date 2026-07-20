@@ -115,7 +115,8 @@ public class PaymentControllerImpl implements PaymentController{
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
         response.setContentType("text/html; charset=UTF-8");
-        
+        OttRoomDTO roomInfo = (OttRoomDTO) session.getAttribute("roomInfo");
+
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
         OttSettlementDTO settlementInfo = (OttSettlementDTO) session.getAttribute("settlementInfo");
         if (settlementInfo == null) {
@@ -131,12 +132,14 @@ public class PaymentControllerImpl implements PaymentController{
         String userId = memberVO.getId();
         int settlement_id = (int) settlementInfo.getSettlement_id().longValue();
         int room_id = (int) settlementInfo.getRoom_id().longValue();
-        LocalDate today = LocalDate.now();
-        int day = today.getDayOfMonth();
+        int pay_day = roomInfo.getBilling_day() - 10;
+        if(pay_day <= 0){
+            pay_day = 30 + pay_day;
+        }
         try {
             paymentService.executeAutomaticPayment(userId, total_price, room_id,fee_amount ,base_amount, settlement_id, host_login_id);
             ottService.completePaidRoomEntry((long) room_id, userId);
-            redirectAttributes.addFlashAttribute("msg", "자동결제가 등록 되었습니다 ! 자동 결제일은 매월 "+ day +"일 입니다.");
+            redirectAttributes.addFlashAttribute("msg", "자동결제가 등록 되었습니다 ! 자동 결제일은 매월 "+ pay_day +"일 입니다.");
             return "redirect:/spendolive/ott/chat/room.do?room_id=" + room_id;
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "자동결제가 실패 되었습니다 다시 시도 해주세요");
