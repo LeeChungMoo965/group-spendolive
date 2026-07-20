@@ -132,6 +132,15 @@ public class InquiryService {
         return (int) Math.ceil((double) totalCount / PAGE_SIZE);
     }
 
+    /** 화면에 표시할 "몇 번째 문의인지" 계산용 (inquiry_id는 삭제된 데이터 때문에 듬성듬성 빌 수 있어서 따로 계산) */
+    public int getAdminInquiryTotalCount(String status) {
+        return inquiryRepository.countAllForAdmin(status);
+    }
+
+    public int getAdminPageSize() {
+        return PAGE_SIZE;
+    }
+
     /** 답변 등록/수정 + 상태 변경(보통 DONE, 검토만 하고 싶으면 REVIEW로도 가능) */
     public void replyToInquiry(int inquiryId, String replyContent, String status) {
         inquiryRepository.replyToInquiry(inquiryId, replyContent, status);

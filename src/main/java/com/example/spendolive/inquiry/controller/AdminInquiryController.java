@@ -59,17 +59,22 @@ public class AdminInquiryController {
         try {
             int totalPages = inquiryService.getAdminInquiryTotalPages(normalizedStatus);
             int currentPage = Math.min(Math.max(page, 1), totalPages);
+            int totalCount = inquiryService.getAdminInquiryTotalCount(normalizedStatus);
+            int pageSize = inquiryService.getAdminPageSize();
 
             mav.addObject("inquiryList", inquiryService.getAllInquiriesForAdmin(normalizedStatus, currentPage));
             mav.addObject("currentPage", currentPage);
             mav.addObject("totalPages", totalPages);
             mav.addObject("currentStatus", status.toLowerCase());
+            // 목록은 최신순(내림차순)이라, 화면 맨 위 줄이 startNumber, 그 아래로 1씩 감소하며 매김 (오래된 문의=1)
+            mav.addObject("startNumber", totalCount - (currentPage - 1) * pageSize);
         } catch (Exception e) {
             System.err.println("[AdminInquiryController.list] 목록 로드 실패: " + e.getMessage());
             mav.addObject("inquiryList", List.of());
             mav.addObject("currentPage", 1);
             mav.addObject("totalPages", 1);
             mav.addObject("currentStatus", "all");
+            mav.addObject("startNumber", 0);
             mav.addObject("errorMsg", "문의 목록을 불러오는 중 오류가 발생했습니다.");
         }
         return mav;

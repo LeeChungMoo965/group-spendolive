@@ -64,7 +64,7 @@
                     <tbody>
                         <c:forEach var="faq" items="${entry.value}" varStatus="s">
                             <tr>
-                                <td style="text-align:center;">${faq.faqId}</td>
+                                <td style="text-align:center;">${s.count}</td>
                                 <td>
                                     <a href="${contextPath}/spendolive/admin/faq/edit.do?faq_id=${faq.faqId}">${faq.question}</a>
                                 </td>
