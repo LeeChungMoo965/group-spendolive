@@ -1218,7 +1218,7 @@ public class OttRepositoryImpl implements OttRepository {
             jdbcTemplate.update(
                     "UPDATE ott_room_tb SET status = 'ACTIVE', updated_at = SYSDATE WHERE room_id = ? AND status IN ('RECRUITING', 'REPLACE_RECRUITING')",
                     room_id);
-            return;
+            // return;
         }
 
         int share_amount = safeDivide(room.getTotal_price(), room.getMember_limit());

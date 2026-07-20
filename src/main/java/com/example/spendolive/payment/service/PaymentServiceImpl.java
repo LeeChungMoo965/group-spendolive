@@ -302,7 +302,7 @@ public class PaymentServiceImpl implements PaymentService{
                         if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                             // 추후 취소 내역 테이블 생성후 처리
                             mapper = new tools.jackson.databind.ObjectMapper();
-                            Map<String, Object> resBodys = mapper.readValue(response.getBody(), Map.class);
+                            Map<String, Object> resBodys = mapper.readValue(cancelResponse.getBody(), Map.class);
                             String canceledAtStr = (String) resBodys.get("approvedAt");
                         }
                     }catch(Exception a){
