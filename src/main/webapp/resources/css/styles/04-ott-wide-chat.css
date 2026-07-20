@@ -6,13 +6,7 @@
 /* =========================================================
    OTT v2: 넓은 화면, 승인형 신청관리, 카톡형 대화방
    ========================================================= */
-.ott-wide-container,
-.ott-main-section .container,
-.ott-page-section .container,
-.ott-sub-hero .container {
-    width: min(1380px, calc(100% - 64px));
-    max-width: 1380px;
-}
+
 
 .ott-page-section .card {
     padding: 28px;
@@ -39,12 +33,7 @@
     flex: 0 0 auto;
 }
 
-.btn-mini {
-    min-height: 32px;
-    padding: 6px 10px;
-    font-size: 12px;
-    border-radius: 10px;
-}
+
 
 .status-pill.APPLIED {
     background: #fff4d7;
@@ -229,12 +218,6 @@
     .application-actions {
         width: 100%;
     }
-
-    .application-actions form,
-    .application-actions .btn {
-        width: 100%;
-    }
-
     .chat-room-page-head {
         flex-direction: column;
     }

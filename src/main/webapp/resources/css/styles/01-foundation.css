@@ -6,8 +6,8 @@
 /* SpendOlive Complete Fixed CSS */
 :root{
   --bg:#f7f7ef;--paper:#fffdf5;--card:#fff;--text:#26301e;--muted:#6c745f;
-  --line:#dfe5d4;--olive:#7b7f36;--olive-dark:#55591f;--olive-soft:#eef3dc;
-  --sage:#a4b677;--cream:#fbfaf1;--amber:#c48a2c;--brown:#9a7b4f;
+  --line:#dfe5d4;--olive:#7b7f36;--olive-dark:#55591f;--olive-soft:#eef3dc;--olives:#f8fadb;
+  --sage:#a4b677;--cream:#fbfaf1;--amber:#c48a2c;--brown:#9a714f;
   --red:#c0564a;--shadow:0 14px 32px rgba(70,78,38,.12);--radius:22px;
 }
 *{box-sizing:border-box}
@@ -15,7 +15,9 @@ html{scroll-behavior:smooth}
 body{margin:0;font-family:"Noto Sans KR","Malgun Gothic",Arial,sans-serif;color:var(--text);background:var(--bg)}
 a{text-decoration:none;color:inherit} button,input,select,textarea{font-family:inherit}
 .container{width:min(1140px,calc(100% - 40px));margin:0 auto}
+.body-container{width: min(1440px, calc(100% - 64px));}
 
+.section.compact .container{ width: min(1440px, calc(100% - 64px));}
 /* Header */
 .site-header{position:sticky;top:0;z-index:30;background:rgba(251,250,241,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .header-inner{min-height:76px;display:flex;align-items:center;gap:28px}
@@ -27,10 +29,40 @@ a{text-decoration:none;color:inherit} button,input,select,textarea{font-family:i
 
 /* Buttons */
 .btn{border:0;border-radius:13px;padding:10px 16px;font-weight:900;cursor:pointer;transition:.2s ease;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px}
-.btn:hover{transform:translateY(-1px)}
-.btn-primary{background:var(--olive);color:#fff;box-shadow:0 10px 20px rgba(122,127,54,.24)}.btn-primary:hover{background:var(--olive-dark)}
+.btn:hover{transform:translateY(-3px)}
+.btn-primary{background:var(--olives);color:var(--olive-dark);border:1px solid #c4c96a}.btn-primary:hover{background:#e5e9b4;
+  border-color: #6c7458;
+  color: var(--olive-dark);
+  }
+.btn-danger-outline {
+  border: 1px solid rgba(193, 77, 57, .45);
+  background: #fff5f2;
+  color: #b8422e;
+}
+
+.btn-danger-outline:hover {
+background: #fde6df;
+border-color: rgba(184, 66, 46, .75);
+color: #9f321f;
+}
+
+.btn-danger {
+border: 1px solid #c44732;
+background: #c44732;
+color: #fff;
+}
+.btn-danger:hover {
+background: #a93624;
+border-color: #a93624;
+}
 .btn-light{background:var(--olive-soft);color:var(--olive-dark)}.btn-outline{background:#fff;color:var(--olive-dark);border:1px solid #c8d4a5}
-.btn-large{padding:14px 22px;border-radius:16px;font-size:15px}.full{width:100%}
+
+.btn-large{padding:14px 22px;border-radius:16px;font-size:15px}
+.full{width:100%}
+.btn-mini {min-height: 32px;padding: 6px 10px;font-size: 12px;border-radius: 10px;}
+
+
+
 
 /* Common layout */
 .hero,.page-hero{padding:72px 0 60px;background:radial-gradient(circle at 18% 8%,rgba(122,127,54,.16),transparent 36%),radial-gradient(circle at 82% 20%,rgba(196,138,44,.11),transparent 38%)}
@@ -115,3 +147,107 @@ label{color:#3f4c25;font-weight:900} input,select,textarea{width:100%;margin-top
 @media(max-width:1040px){.nav{display:none}.hero-grid,.page-hero-grid,.expense-layout,.analytics-grid,.ott-two-grid,.ott-extra-grid,.dashboard-grid,.footer-layout,.calendar-page-layout{grid-template-columns:1fr}.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}.calendar-grid button{min-height:90px;font-size:13px}}
 @media(max-width:980px){.auth-wrap{grid-template-columns:1fr}.auth-brand-panel{min-height:360px;padding:36px 24px}.auth-brand-stats{grid-template-columns:1fr}}
 @media(max-width:700px){.container{width:min(100% - 26px,1140px)}.header-inner{min-height:auto;padding:14px 0;flex-wrap:wrap}.header-actions{width:100%}.header-actions .btn{flex:1}.hero-stats{flex-direction:column}.hero-stats div{width:100%}.row-title,.calendar-header,.panel-header,.preview-header{align-items:start;flex-direction:column}.grid-2,.grid-4,.ott-service-grid{grid-template-columns:1fr}.donut-wrap{grid-template-columns:1fr;justify-items:center}.board-list div{grid-template-columns:1fr}.board-list button{grid-column:auto;grid-row:auto}.calendar-grid{min-width:760px}.calendar{overflow-x:auto}.auth-card,.auth-card.auth-card-wide{padding:24px}.auth-grid-2{grid-template-columns:1fr}.auth-input-row{flex-direction:column}.auth-btn{width:100%}.auth-options{flex-direction:column}}
+/* alert */
+.alert {
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-weight: 900;
+  border: 1px solid var(--line);
+  }
+  
+  .alert.done {
+  background: #eef6dd;
+  color: var(--olive-dark);
+  }
+  
+  .alert.warn {
+  background: #fff1d6;
+  color: #9a5f13;
+  }
+  /* 팝업 */
+  .withdraw-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+    }
+    
+    
+    .withdraw-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    place-items: center;
+    padding: 22px;
+    background: rgba(31, 36, 24, .55);
+    }
+    
+    .withdraw-modal.show {
+    display: grid;
+    }
+    
+    .withdraw-modal-box {
+    position: relative;
+    width: min(520px, 100%);
+    display: grid;
+    gap: 14px;
+    padding: 30px;
+    border-radius: 28px;
+    border: 1px solid rgba(196, 71, 50, .16);
+    background: #fff;
+    box-shadow: 0 26px 90px rgba(31, 36, 24, .28);
+    }
+    
+    .withdraw-modal-box h2 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: -.04em;
+    color: #2f3a1e;
+    }
+    
+    .withdraw-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 999px;
+    background: #f5eee8;
+    color: #8f3827;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    }
+    
+    .withdraw-list {
+    display: grid;
+    gap: 8px;
+    margin: 2px 0 4px;
+    padding: 14px 16px 14px 32px;
+    border-radius: 18px;
+    background: #fff8f5;
+    color: #7c4a3b;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.55;
+    }
+    
+    .withdraw-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+    }
+    
+    @media(max-width:700px) {
+    .withdraw-row {
+      justify-content: stretch;
+    }
+    
+    
+    .withdraw-actions {
+      display: grid;
+    }
+    }

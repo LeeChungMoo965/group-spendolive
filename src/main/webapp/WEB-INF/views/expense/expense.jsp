@@ -3,7 +3,6 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
 
 <main>
     <section class="page-hero">
@@ -16,8 +15,8 @@
                 </p>
                 <div class="hero-buttons">
                     <a href="#expense-form" class="btn btn-primary btn-large">지출 등록</a>
-                    <a href="#expense-list" class="btn btn-outline btn-large">월별 내역 보기</a>
-                    <a href="${contextPath}/spendolive/calendar.do" class="btn btn-outline btn-large">캘린더</a>
+                    <a href="#expense-list" class="btn btn-primary btn-large">월별 내역 보기</a>
+                    <a href="${contextPath}/spendolive/calendar.do" class="btn btn-primary btn-large">캘린더</a>
                 </div>
             </div>
 

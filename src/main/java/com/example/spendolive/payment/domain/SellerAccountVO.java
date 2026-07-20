@@ -17,6 +17,6 @@ public class SellerAccountVO {
     private String bank_name;        // BANK_NAME (VARCHAR2)
     private String account_number;   // ACCOUNT_NUMBER (VARCHAR2)
     private String traceId;         // traceId (VARCHAR2) - 금결원 거래고유번호나 토스 서브몰 ID 킵하는 용도
-    private Date reg_date;           // REG_DATE (DATE -> java.util.Date)
+    private Date reg_date;           // REG_DATE (DATE -> java.util.Date)  YYYY/mm/DD
 
 }

@@ -341,3 +341,30 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 })();
 // 알림 배지는 bellIcon.js 에서 처리
+
+//팝업
+function openWithdrawModal() {
+  const modal = document.getElementById('withdrawModal');
+  const confirmInput = document.getElementById('withdrawConfirm');
+  if (!modal) {
+      return;
+  }
+
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+  if (confirmInput) {
+      confirmInput.value = '';
+      setTimeout(function () {
+          confirmInput.focus();
+      }, 80);
+  }
+}
+function closeWithdrawModal() {
+  const modal = document.getElementById('withdrawModal');
+  if (!modal) {
+      return;
+  }
+
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+}

@@ -39,7 +39,7 @@ public class ExpenseController {
                             Model model,
                             RedirectAttributes redirectAttributes,  
                             HttpSession session) {
-        Long member_id = getLoginMemberId(session);
+        Long member_id = getLoginMember_id(session);
 
         if (member_id == null) {
             redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
@@ -94,7 +94,7 @@ public class ExpenseController {
                              @RequestParam(value = "yearMonth", required = false) String yearMonth,
                              HttpSession session) {
 
-        Long member_id = getLoginMemberId(session);
+        Long member_id = getLoginMember_id(session);
 
         if (member_id == null) {
             return "redirect:/member/loginForm.do";
@@ -117,7 +117,7 @@ public class ExpenseController {
                                 @RequestParam(value = "yearMonth", required = false) String yearMonth,
                                 HttpSession session) {
 
-        Long member_id = getLoginMemberId(session);
+        Long member_id = getLoginMember_id(session);
 
         if (member_id == null) {
             return "redirect:/member/loginForm.do";
@@ -140,7 +140,7 @@ public class ExpenseController {
                                 @RequestParam(value = "yearMonth", required = false) String yearMonth,
                                 HttpSession session) {
 
-        Long member_id = getLoginMemberId(session);
+        Long member_id = getLoginMember_id(session);
 
         if (member_id == null) {
             return "redirect:/member/loginForm.do";
@@ -155,7 +155,7 @@ public class ExpenseController {
         return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
     }
 
-    private Long getLoginMemberId(HttpSession session) {
+    private Long getLoginMember_id(HttpSession session) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
 
         if (memberInfo == null) {

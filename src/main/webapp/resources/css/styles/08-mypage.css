@@ -12,23 +12,7 @@ width: min(1320px, calc(100% - 56px));
 padding-top: 52px;
 }
 
-.mypage-alert {
-margin-bottom: 18px;
-padding: 14px 18px;
-border-radius: 16px;
-font-weight: 900;
-border: 1px solid var(--line);
-}
 
-.mypage-alert.done {
-background: #eef6dd;
-color: var(--olive-dark);
-}
-
-.mypage-alert.warn {
-background: #fff1d6;
-color: #9a5f13;
-}
 
 .mypage-top-grid {
 display: grid;
@@ -277,11 +261,6 @@ color: var(--olive-dark);
   justify-content: stretch;
 }
 
-.mypage-form-actions .btn,
-.mypage-room-actions .btn,
-.mypage-room-card .btn {
-  width: 100%;
-}
 }
 
 
@@ -427,11 +406,6 @@ color: #9a5f13;
 .mypage-field-with-button,
 .mypage-code-row {
   grid-template-columns: 1fr;
-}
-
-.mypage-field-with-button .btn,
-.mypage-code-row .btn {
-  width: 100%;
 }
 }
 

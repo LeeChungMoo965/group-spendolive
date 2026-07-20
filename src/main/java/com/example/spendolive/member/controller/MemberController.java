@@ -1,4 +1,5 @@
 package com.example.spendolive.member.controller;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,4 +29,10 @@ public interface MemberController {
 	public ModelAndView kakaoCallback(@RequestParam(value = "code", required = false) String code, HttpServletRequest request,RedirectAttributes redirectAttributes) throws Exception;
 	public ModelAndView openBankingCallback(@RequestParam("code") String code,@RequestParam("state") String state, HttpServletRequest request, HttpServletResponse response ,HttpSession session,RedirectAttributes redirectAttributes) throws Exception;
 	public String openBankingAuth() throws Exception;
+	public String openBankingIntegratedAuth() throws UnsupportedEncodingException;
+	public ModelAndView openBankingIntegratedcallback(
+    @RequestParam("code") String code,
+    @RequestParam("state") String state,
+    HttpServletRequest request, HttpServletResponse response,
+    HttpSession session,RedirectAttributes redirectAttributes) throws UnsupportedEncodingException;
 }

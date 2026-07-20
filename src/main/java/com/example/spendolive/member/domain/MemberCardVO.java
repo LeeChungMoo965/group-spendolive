@@ -1,6 +1,6 @@
 package com.example.spendolive.member.domain;
 
-import java.sql.Date;
+
 import java.time.LocalDateTime;
 
 import lombok.Data;

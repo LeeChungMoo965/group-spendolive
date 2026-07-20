@@ -4,18 +4,20 @@
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
 <link rel="stylesheet" href="${contextPath}/resources/css/notice.css">
-
 <section class="page-hero">
     <div class="container">
-        <div class="notice-hero-text">
-            <p class="eyebrow">NOTICE CENTER</p>
-            <h1>공지사항 · 알림센터</h1>
-            <p class="hero-text">
-                SpendOlive의 공지사항과 개인 알림을 한눈에 확인하세요.
-            </p>
-        </div>
-    </div>
+                <p class="eyebrow">
+                    NOTICE CENTER
+                </p>
+                <h1>
+                    공지사항 · 알림센터
+                </h1>
+                <p class="hero-text">
+                    SpendOlive의 공지사항과 개인 알림을 한눈에 확인하세요.
+                </p>
+            </div>
 </section>
+
 
 <section class="section compact notice-list-section">
     <div class="container">
