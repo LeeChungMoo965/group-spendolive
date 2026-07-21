@@ -70,6 +70,7 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "FROM member_tb "
   + "WHERE id = ? "
   + "AND status = 'ACTIVE'";
+
   private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE,FROM_DATE,FROM_TIME,TO_DATE,TO_TIME,ACCOUNT_NAME,STATUS "
                                                 +"from member_account_tb where id=? ";
     private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
@@ -78,7 +79,7 @@ public class MemberRepositoryImpl implements MemberRepository{
 //update 
     private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
     private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
-    
+
     private final String updateWarning="update member_tb set warning_count=? where id=? ";
    
     private final String updatebalance="update member_account_tb set balance=(balance + ?) where account_idx=? ";
