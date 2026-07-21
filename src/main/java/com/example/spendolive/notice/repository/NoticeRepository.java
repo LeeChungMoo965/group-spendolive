@@ -128,19 +128,19 @@ public class NoticeRepository {
         notice.setAdmin_id(rs.getString("admin_id"));
         notice.setTitle(rs.getString("title"));
         notice.setContent(rs.getString("content"));
-        notice.setPinnedYn(rs.getString("pinned_yn"));
-        notice.setCreatedAt(rs.getString("created_at"));
-        notice.setUpdatedAt(rs.getString("updated_at"));
+        notice.setPinned_yn(rs.getString("pinned_yn"));
+        notice.setCreated_at(rs.getString("created_at"));
+        notice.setUpdated_at(rs.getString("updated_at"));
         return notice;
     }
 
-    /** mapRow + read_yn/star_yn(조인 결과) 포함. findAll/findImportantList 공용 */
     private NoticeDTO mapRowWithReadStar(java.sql.ResultSet rs) throws java.sql.SQLException {
         NoticeDTO notice = mapRow(rs);
-        notice.setReadYn(rs.getString("read_yn"));
-        notice.setStarYn(rs.getString("star_yn"));
+        notice.setRead_yn(rs.getString("read_yn"));
+        notice.setStar_yn(rs.getString("star_yn"));
         return notice;
     }
+
 
     // ────────────────────────────────────────────────────────────
     // 조회 / 등록 / 수정 / 삭제 메서드
@@ -162,7 +162,7 @@ public class NoticeRepository {
         try {
             return jdbcTemplate.queryForObject(FIND_BY_ID_SQL, (rs, rowNum) -> mapRow(rs), noticeId);
         } catch (EmptyResultDataAccessException e) {
-            System.err.println("[NoticeRepository.findById] notice_id=" + notice_id + " 존재하지 않음");
+            System.err.println("[NoticeRepository.findById] notice_id=" + noticeId + " 존재하지 않음");
             return null;
         } catch (DataAccessException e) {
             System.err.println("[NoticeRepository.findById] DB 오류: " + e.getMessage());
@@ -206,7 +206,7 @@ public class NoticeRepository {
     public void insertNoticeRead(int notice_id, String id) {
         if (id == null || id.isBlank()) return;
         try {
-            jdbcTemplate.update(INSERT_NOTICE_READ_SQL, noticeId, id, noticeId, id);
+            jdbcTemplate.update(INSERT_NOTICE_READ_SQL, notice_id, id, notice_id, id);
         } catch (DataAccessException e) {
             System.err.println("[NoticeRepository.insertNoticeRead] DB 오류: " + e.getMessage());
         }
@@ -218,7 +218,7 @@ public class NoticeRepository {
         try {
             return jdbcTemplate.query(FIND_UNREAD_SQL, (rs, rowNum) -> {
                 NoticeDTO notice = mapRow(rs);
-                notice.setReadYn("N"); // 안 읽은 목록 전용 조회라 무조건 N으로 채움
+                notice.setRead_yn("N"); // 안 읽은 목록 전용 조회라 무조건 N으로 채움
                 return notice;
             }, id);
         } catch (DataAccessException e) {
@@ -231,11 +231,11 @@ public class NoticeRepository {
     public void toggleNoticeStar(int notice_id, String id) {
         if (id == null || id.isBlank()) return;
         try {
-            Integer count = jdbcTemplate.queryForObject(CHECK_STAR_SQL, Integer.class, noticeId, id);
+            Integer count = jdbcTemplate.queryForObject(CHECK_STAR_SQL, Integer.class, notice_id, id);
             if (count != null && count > 0) {
-                jdbcTemplate.update(DELETE_STAR_SQL, noticeId, id);
+                jdbcTemplate.update(DELETE_STAR_SQL, notice_id, id);
             } else {
-                jdbcTemplate.update(INSERT_STAR_SQL, noticeId, id);
+                jdbcTemplate.update(INSERT_STAR_SQL, notice_id, id);
             }
         } catch (DataAccessException e) {
             System.err.println("[NoticeRepository.toggleNoticeStar] DB 오류: " + e.getMessage());
@@ -254,11 +254,11 @@ public class NoticeRepository {
 
     /* ─── 공지 알림 전체 회원 발송 (batchUpdate로 한 번에 전송) ─── */
     public void insertNoticeAlertForAll(String title, String noticeId) {
-        List<String> memberIds = findAllMemberIds();
+        List<String> memberIds = findAllmember_ids();
         if (memberIds.isEmpty()) return;
 
         String message = "새 공지사항이 등록되었습니다.";
-        String link_url = "/spendolive/notice/detail.do?notice_id=" + notice_id;
+        String linkUrl = "/spendolive/notice/detail.do?notice_id=" + noticeId;
 
         try {
             jdbcTemplate.batchUpdate(INSERT_NOTICE_ALERT_SQL, new BatchPreparedStatementSetter() {
@@ -292,7 +292,7 @@ public class NoticeRepository {
         try {
             jdbcTemplate.update(conn -> {
                 java.sql.PreparedStatement ps = conn.prepareStatement(INSERT_NOTICE_SQL, new String[]{"notice_id"});
-                ps.setString(1, notice.getAdminId());
+                ps.setString(1, notice.getAdmin_id());
                 ps.setString(2, notice.getTitle());
                 ps.setString(3, notice.getContent());
                 ps.setString(4, notice.getPinned_yn() != null ? notice.getPinned_yn() : "N");
@@ -306,7 +306,6 @@ public class NoticeRepository {
         }
     }
 
-    /* ─── 관리자: 공지 수정 ────────────────────────────────── */
     public void updateNotice(NoticeDTO notice) {
         if (notice == null || notice.getNotice_id() <= 0)
             throw new IllegalArgumentException("공지 수정: 유효하지 않은 notice_id.");
@@ -332,9 +331,9 @@ public class NoticeRepository {
         if (notice_id <= 0)
             throw new IllegalArgumentException("공지 삭제: 유효하지 않은 notice_id.");
         try {
-            jdbcTemplate.update(DELETE_FAVORITE_SQL, noticeId);
-            jdbcTemplate.update(DELETE_READ_SQL, noticeId);
-            int rows = jdbcTemplate.update(DELETE_NOTICE_SQL, noticeId);
+            jdbcTemplate.update(DELETE_FAVORITE_SQL, notice_id);
+            jdbcTemplate.update(DELETE_READ_SQL, notice_id);
+            int rows = jdbcTemplate.update(DELETE_NOTICE_SQL, notice_id);
             if (rows == 0)
                 System.err.println("[NoticeRepository.deleteNotice] 대상 없음: " + notice_id);
         } catch (DataAccessException e) {

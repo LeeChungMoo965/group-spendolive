@@ -100,10 +100,8 @@ public class FaqRepository {
         faq.setCategory(rs.getString("category"));
         faq.setQuestion(rs.getString("question"));
         faq.setAnswer(rs.getString("answer"));
-
         faq.setSort_order(rs.getInt("sort_order"));
         faq.setUse_yn(rs.getString("use_yn"));
-
         faq.setCreated_at(rs.getString("created_at"));
         return faq;
     }
@@ -158,7 +156,7 @@ public class FaqRepository {
         try {
             jdbcTemplate.update(INSERT_SQL,
                     faq_id, faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
-                    faq.getSortOrder(), faq.getUseYn());
+                    faq.getSort_order(), faq.getUse_yn());
             return faq_id.intValue();
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.insertFaq] DB 오류: " + e.getMessage());
@@ -170,7 +168,7 @@ public class FaqRepository {
         try {
             jdbcTemplate.update(UPDATE_SQL,
                     faq.getCategory(), faq.getQuestion(), faq.getAnswer(),
-                    faq.getUseYn(), faq.getFaqId());
+                    faq.getUse_yn(), faq.getFaq_id());
         } catch (DataAccessException e) {
             System.err.println("[FaqRepository.updateFaq] DB 오류: " + e.getMessage());
             throw e;

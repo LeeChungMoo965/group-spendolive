@@ -62,7 +62,7 @@ public class InquiryService {
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
         int safePage = Math.min(Math.max(page, 1), totalPages);
         int offset = (safePage - 1) * PAGE_SIZE;
-        List<InquiryVO> list = inquiryRepository.findByMemberId(id, status, offset, PAGE_SIZE);
+        List<InquiryVO> list = inquiryRepository.findBymember_id(id, status, offset, PAGE_SIZE);
 
         // 각 문의에 첨부파일 목록을 채워 넣는다 (목록 카드에서 썸네일 표시용)
         for (InquiryVO inquiry : list) {
@@ -72,7 +72,7 @@ public class InquiryService {
     }
 
     public int getMyInquiryTotalPages(String id, String status) {
-        int totalCount = inquiryRepository.countByMemberId(id, status);
+        int totalCount = inquiryRepository.countBymember_id(id, status);
         if (totalCount == 0) {
             return 1;
         }

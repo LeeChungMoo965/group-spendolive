@@ -302,11 +302,7 @@ CREATE TABLE settlement_tb (
         settlement_status IN (
             'YET',
             'READY',              -- 정산 안됨
-<<<<<<< HEAD
             'DONE'               -- 정산 완료
-=======
-            'DONE'                -- 정산 완료
->>>>>>> aitest
         )
     ),
     CONSTRAINT ck_settlement_total_price CHECK (total_price >= 0),

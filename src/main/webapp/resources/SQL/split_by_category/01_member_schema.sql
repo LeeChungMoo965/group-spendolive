@@ -91,11 +91,7 @@ CREATE TABLE MEMBER_CARD_TB (
     REG_DATE        DATE DEFAULT SYSDATE,                            -- 등록일
     
     -- 회원 테이블과의 연관 관계 설정 (회원 탈퇴 시 카드 정보도 삭제되게)
-<<<<<<< HEAD
-    CONSTRAINT FK_CARD_member_id FOREIGN KEY (member_id) 
-=======
     CONSTRAINT FK_CARD_MEMBER_ID FOREIGN KEY (ID) 
->>>>>>> aitest
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
 

@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="${contextPath}/resources/css/notice.css">
+<link rel="stylesheet" href="/resources/css/styles.css">
 
 <section class="section compact">
     <div class="container">

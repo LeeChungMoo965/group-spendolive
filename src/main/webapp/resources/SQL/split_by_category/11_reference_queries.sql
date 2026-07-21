@@ -14,16 +14,6 @@ SET DEFINE OFF;
 
 -- 알림 아이콘 빨간 점 표시용: 안 읽은 알림 개수
 SELECT COUNT(*) AS unread_count
-<<<<<<< HEAD
-FROM alert_tb
-WHERE id = :member_id
-  AND read_yn = 'N';
-
--- 배너에 띄울 안 읽은 알림 목록
-SELECT alert_id, title, content, target_url, created_at
-FROM alert_tb
-WHERE id = :member_id
-=======
 FROM notification_tb
 WHERE id = :member_login_id
   AND read_yn = 'N';
@@ -32,24 +22,14 @@ WHERE id = :member_login_id
 SELECT notification_id, notification_type, title, message, link_url, created_at
 FROM notification_tb
 WHERE id = :member_login_id
->>>>>>> aitest
   AND read_yn = 'N'
 ORDER BY created_at DESC;
 
 -- 알림 클릭 시 읽음 처리
-<<<<<<< HEAD
-UPDATE alert_tb
-SET read_yn = 'Y',
-    read_at = SYSDATE,
-    banner_yn = 'N'
-WHERE alert_id = :alertId
-  AND id = :member_id;
-=======
 UPDATE notification_tb
 SET read_yn = 'Y'
 WHERE notification_id = :notification_id
   AND id = :member_login_id;
->>>>>>> aitest
 
 -- 3% 수수료 계산 예시
 SELECT

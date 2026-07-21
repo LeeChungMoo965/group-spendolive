@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="${contextPath}/resources/css/faq.css">
+<link rel="stylesheet" href="/resources/css/styles.css">
 
 <div class="faq-page">
     <div class="page-hero">
@@ -22,7 +22,7 @@
             <h2>${empty faq ? '새 FAQ 등록' : 'FAQ 수정'}</h2>
 
             <c:if test="${not empty faq}">
-                <input type="hidden" name="faq_id" value="${faq.faqId}">
+                <input type="hidden" name="faq_id" value="${faq.faq_id}">
             </c:if>
 
             <div class="field">
@@ -51,7 +51,7 @@
             </div>
 
             <label class="check-row">
-                <input type="checkbox" id="useYn" value="Y" ${empty faq || faq.useYn == 'Y' ? 'checked' : ''}>
+                <input type="checkbox" id="useYn" value="Y" ${empty faq || faq.use_yn == 'Y' ? 'checked' : ''}>
                 <span>사용자 화면에 노출</span>
             </label>
 

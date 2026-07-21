@@ -77,14 +77,14 @@ public class AdminFaqController {
             ra.addFlashAttribute("errorMsg", "카테고리, 질문, 답변을 모두 입력해 주세요.");
             return new ModelAndView("redirect:/spendolive/admin/faq/write.do");
         }
-        if (!"Y".equals(use_yn)) use_yn = "N";
+        if (!"Y".equals(useYn)) useYn = "N";
 
         FaqVO faq = new FaqVO();
         faq.setCategory(category);
         faq.setQuestion(question.strip());
         faq.setAnswer(answer.strip());
-        faq.setSortOrder(faqService.getNextSortOrder(category)); // 항상 해당 카테고리 맨 뒤에 추가
-        faq.setUseYn(useYn);
+        faq.setSort_order(faqService.getNextSortOrder(category));
+        faq.setUse_yn(useYn);
 
         try {
             faqService.insertFaq(faq);
@@ -108,7 +108,7 @@ public class AdminFaqController {
             return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
         }
 
-        FaqVO faq = null;
+        FaqVO faq = null; 
         try { faq = faqService.getFaqDetail(faq_id); } catch (Exception ignored) {}
 
         if (faq == null) {
@@ -143,14 +143,14 @@ public class AdminFaqController {
             ra.addFlashAttribute("errorMsg", "카테고리, 질문, 답변을 모두 입력해 주세요.");
             return new ModelAndView("redirect:/spendolive/admin/faq/edit.do?faq_id=" + faq_id);
         }
-        if (!"Y".equals(use_yn)) use_yn = "N";
+        if (!"Y".equals(useYn)) useYn = "N";
 
         FaqVO faq = new FaqVO();
-        faq.setFaqId(faq_id);
+        faq.setFaq_id(faq_id);
         faq.setCategory(category);
         faq.setQuestion(question.strip());
         faq.setAnswer(answer.strip());
-        faq.setUseYn(useYn);
+        faq.setUse_yn(useYn);
 
         try {
             faqService.updateFaq(faq);

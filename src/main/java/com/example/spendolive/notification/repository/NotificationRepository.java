@@ -77,15 +77,15 @@ public class NotificationRepository {
     /* ─── 공통 RowMapper. findById/findByNotificationId 공용 ─── */
     private NotificationDTO mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         NotificationDTO dto = new NotificationDTO();
-        dto.setNotificationId(rs.getInt("notification_id"));
+        dto.setNotification_id(rs.getInt("notification_id"));
         dto.setId(rs.getString("id"));
-        dto.setNotificationType(rs.getString("notification_type"));
+        dto.setNotification_type(rs.getString("notification_type"));
         dto.setTitle(rs.getString("title"));
         dto.setMessage(rs.getString("message"));
-        dto.setLinkUrl(rs.getString("link_url"));
-        dto.setReadYn(rs.getString("read_yn"));
-        dto.setStarYn(rs.getString("star_yn"));
-        dto.setCreatedAt(rs.getString("created_at"));
+        dto.setLink_url(rs.getString("link_url"));
+        dto.setRead_yn(rs.getString("read_yn"));
+        dto.setStar_yn(rs.getString("star_yn"));
+        dto.setCreated_at(rs.getString("created_at"));
         return dto;
     }
 
@@ -122,7 +122,7 @@ public class NotificationRepository {
         try {
             int rows = jdbcTemplate.update(UPDATE_READ_YN_SQL, notificationId, id);
             if (rows == 0) {
-                System.err.println("[NotificationRepository.updateReadYn] 대상 없음: notification_id=" + notification_id);
+                System.err.println("[NotificationRepository.updateReadYn] 대상 없음: notification_id=" + notificationId);
             }
         } catch (DataAccessException e) {
             System.err.println("[NotificationRepository.updateReadYn] DB 오류: " + e.getMessage());
@@ -148,12 +148,13 @@ public class NotificationRepository {
         try {
             int rows = jdbcTemplate.update(TOGGLE_STAR_SQL, notificationId, id);
             if (rows == 0) {
-                System.err.println("[NotificationRepository.toggleStar] 대상 없음: notification_id=" + notification_id);
+                System.err.println("[NotificationRepository.toggleStar] 대상 없음: notification_id=" + notificationId);
             }
         } catch (DataAccessException e) {
             System.err.println("[NotificationRepository.toggleStar] DB 오류: " + e.getMessage());
         }
     }
+
 
     /* ─── 알림 1건 생성 (모든 기능이 공용으로 쓰는 발송 창구) ─── */
     public void insertNotification(String id, String type, String title, String message, String linkUrl) {
