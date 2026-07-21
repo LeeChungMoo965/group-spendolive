@@ -3,7 +3,7 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="${contextPath}/resources/css/faq.css">
+<link rel="stylesheet" href="/resources/css/styles.css">
 
 <%--
   참고: 상태 필터(전체/답변대기/답변완료/검토중)는 서버에 status 파라미터로 다시 요청해서

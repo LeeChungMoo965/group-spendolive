@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="${contextPath}/resources/css/calendar.css">
+<link rel="stylesheet" href="/resources/css/styles.css">
 
 <main>
     <section class="page-hero">
