@@ -79,6 +79,8 @@ CREATE TABLE MEMBER_ACCOUNT_TB (
     from_date VARCHAR2(8) default '20260701',
     to_time VARCHAR2(6) default '235959',
     from_time VARCHAR2(6) default '000000',
+    status         VARCHAR2(20) DEFAULT 'NO' NOT NULL,
+    CONSTRAINT ck_member_account_status CHECK (status IN ('YES', 'NO')),
     
     -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
 
@@ -91,7 +93,9 @@ ALTER TABLE member_account_tb ADD (
     from_date VARCHAR2(8) default '20260701',
     to_time VARCHAR2(6) default '235959',
     from_time VARCHAR2(6) default '000000',
-    account_name VARCHAR2(20) default '계좌'
+    account_name VARCHAR2(20) default '계좌',
+     status         VARCHAR2(20) DEFAULT 'NO' NOT NULL,
+    CONSTRAINT ck_member_account_status CHECK (status IN ('YES', 'NO'))
 );
 
 CREATE TABLE MEMBER_CARD_TB (
@@ -113,16 +117,14 @@ ALTER TABLE member_card_tb ADD (
 );
 
 CREATE TABLE MEMBER_tran_TB (
-    MEMBER_tran_IDX NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
-    ID            VARCHAR2(20) NOT NULL,                           -- 회원 ID (MEMBER_TB 외래키)
-    ACCOUNT_IDX            NUMBER NOT NULL,                           -- 은행명 (ex: 신한은행, 국민은행)
-    tran_date       VARCHAR2(30) NOT NULL,                           -- 마스킹된 계좌번호 (ex: 110-***-1234)
-    inout_type      VARCHAR2(10) NOT NULL,                           -- 금결원 핵심 키 (핀테크이용번호 💥)
-    tran_amt              NUMBER ,                                -- 계좌 잔액 (실시간 동기화용 💰)
-    REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
+    MEMBER_tran_IDX NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    ID            VARCHAR2(20) NOT NULL,                           
+    ACCOUNT_IDX            NUMBER NOT NULL,                          
+    tran_date       VARCHAR2(30) NOT NULL,                           
+    inout_type      VARCHAR2(10) NOT NULL,                       
+    tran_amt              NUMBER ,                           
+    REG_DATE             DATE DEFAULT SYSDATE,              
     
-    -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
-
     CONSTRAINT FK_MEMBER_tran_member_id FOREIGN KEY (ID) 
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE,
     
