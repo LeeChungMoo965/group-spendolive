@@ -73,6 +73,7 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         
         try {
             String msg = paymentService.updateExcrow(room_id);
+            
             redirectAttributes.addFlashAttribute("msg", msg);
             return "redirect:/admin/settlement/list.do";
         } catch (Exception e) {
