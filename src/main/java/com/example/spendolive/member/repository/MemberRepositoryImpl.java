@@ -79,6 +79,7 @@ public class MemberRepositoryImpl implements MemberRepository{
 //update 
     private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
     private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
+
     private final String updateWarning="update member_tb set warning_count=? where id=? ";
    
     private final String updatebalance="update member_account_tb set balance=(balance + ?) where account_idx=? ";
