@@ -36,4 +36,19 @@ public class NotificationService {
     public NotificationDTO getNotificationDetail(int notificationId, String id) {
         return notificationRepository.findByNotificationId(notificationId, id);
     }
+
+    /**
+     * 알림 1건 생성 (공용 발송 창구).
+     * 채팅/결제/정산/문의답변/캘린더 등 어떤 기능이든 알림을 보내야 하면 이 메서드를 호출하면 된다.
+     * type은 NotificationType 상수를 사용할 것.
+     *
+     * @param id       수신자 회원 ID
+     * @param type     NotificationType 상수 (예: NotificationType.INQUIRY_REPLY)
+     * @param title    알림 제목
+     * @param message  알림 본문
+     * @param linkUrl  클릭 시 이동할 경로 (없으면 null)
+     */
+    public void createNotification(String id, String type, String title, String message, String linkUrl) {
+        notificationRepository.insertNotification(id, type, title, message, linkUrl);
+    }
 }

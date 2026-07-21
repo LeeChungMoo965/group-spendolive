@@ -185,7 +185,10 @@ CREATE TABLE notification_tb (
     notification_id    NUMBER          NOT NULL,
     id                  VARCHAR2(50)    NOT NULL,
 
-    notification_type   VARCHAR2(20)    NOT NULL,  -- HOME / PERSONAL / OTT
+    notification_type   VARCHAR2(20)    NOT NULL,  -- HOME(공지) / CHAT / PAYMENT_FAIL / PAYMENT_DUE /
+                                                     -- SIGNUP / SETTLEMENT_REQUEST / SETTLEMENT_DONE /
+                                                     -- ROOM_FULL / ROOM_LEAVE_KICK / CARD_EXPIRING /
+                                                     -- REFUND_DONE / INQUIRY_REPLY / EXPENSE_DUE
     title               VARCHAR2(200)   NOT NULL,
     message             VARCHAR2(1000)  NOT NULL,
     link_url            VARCHAR2(500),
@@ -196,7 +199,13 @@ CREATE TABLE notification_tb (
 
     CONSTRAINT pk_notification PRIMARY KEY (notification_id),
     CONSTRAINT fk_notification_member_id FOREIGN KEY (id) REFERENCES member_tb(id),
-    CONSTRAINT chk_notification_type CHECK (notification_type IN ('HOME', 'PERSONAL', 'OTT')),
+    CONSTRAINT chk_notification_type CHECK (notification_type IN (
+        'HOME', 'PERSONAL', 'OTT',
+        'CHAT', 'PAYMENT_FAIL', 'PAYMENT_DUE', 'SIGNUP',
+        'SETTLEMENT_REQUEST', 'SETTLEMENT_DONE',
+        'ROOM_FULL', 'ROOM_LEAVE_KICK', 'CARD_EXPIRING',
+        'REFUND_DONE', 'INQUIRY_REPLY', 'EXPENSE_DUE'
+    )),
     CONSTRAINT chk_notification_read CHECK (read_yn IN ('Y', 'N')),
     CONSTRAINT chk_notification_star CHECK (star_yn IN ('Y', 'N'))
 );

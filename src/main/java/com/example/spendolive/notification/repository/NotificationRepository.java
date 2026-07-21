@@ -57,6 +57,13 @@ public class NotificationRepository {
             WHERE notification_id = ? AND id = ?
         """;
 
+    // 알림 1건 생성 (채팅/결제/정산/문의답변 등 모든 이벤트가 공용으로 쓰는 발송 창구)
+    private static final String INSERT_NOTIFICATION_SQL = """
+            INSERT INTO notification_tb
+                (id, notification_type, title, message, link_url, read_yn, star_yn, created_at)
+            VALUES (?, ?, ?, ?, ?, 'N', 'N', SYSDATE)
+        """;
+
     // ────────────────────────────────────────────────────────────
     // 필드 / 생성자 / RowMapper
     // ────────────────────────────────────────────────────────────
@@ -145,6 +152,20 @@ public class NotificationRepository {
             }
         } catch (DataAccessException e) {
             System.err.println("[NotificationRepository.toggleStar] DB 오류: " + e.getMessage());
+        }
+    }
+
+    /* ─── 알림 1건 생성 (모든 기능이 공용으로 쓰는 발송 창구) ─── */
+    public void insertNotification(String id, String type, String title, String message, String linkUrl) {
+        if (id == null || id.isBlank() || type == null || type.isBlank()
+                || title == null || title.isBlank() || message == null || message.isBlank()) {
+            System.err.println("[NotificationRepository.insertNotification] 필수 값 누락으로 생성 건너뜀 (id=" + id + ", type=" + type + ")");
+            return;
+        }
+        try {
+            jdbcTemplate.update(INSERT_NOTIFICATION_SQL, id, type, title, message, linkUrl);
+        } catch (DataAccessException e) {
+            System.err.println("[NotificationRepository.insertNotification] DB 오류: " + e.getMessage());
         }
     }
 }
