@@ -4,6 +4,9 @@
 
 /* FullCalendar 기본 이벤트 박스를 파란색 하나로 깔끔하게 정리
    (칩이랑 이중으로 안 겹치게, 배경/테두리는 여기서만 준다) */
+
+
+   .page-hero{padding:32px 0 8px}
    .fc .fc-daygrid-event-harness{
     background: transparent !important;
   }
@@ -42,6 +45,12 @@
     color:rgba(255,255,255,.85);
     font-size:11px;
   }
+
+
+
+  .calendar-controls{margin-bottom: -70px;}
+  .side-column{margin-top:80px}
+  .side-column{margin-left: 16px;}
   
   /* =========================================================
      FullCalendar "+N개" 더보기 링크

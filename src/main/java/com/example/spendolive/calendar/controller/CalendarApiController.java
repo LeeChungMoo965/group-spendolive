@@ -75,7 +75,6 @@ public class CalendarApiController {
 
         return jdbcTemplate.query(
             sql,
-            new Object[]{ member_id, Date.valueOf(start), Date.valueOf(end) },
             (rs, rowNum) -> {
                 Map<String, Object> row = new HashMap<>();
                 row.put("expense_id", rs.getLong("expense_id"));
@@ -85,7 +84,8 @@ public class CalendarApiController {
                 row.put("category_name", rs.getString("category_name"));
                 row.put("expense_type", rs.getString("expense_type"));
                 return row;
-            }
+            },
+            memberId, Date.valueOf(start), Date.valueOf(end)  
         );
     }
 }

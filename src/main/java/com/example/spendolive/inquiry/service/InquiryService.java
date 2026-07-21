@@ -11,6 +11,8 @@ import com.example.spendolive.inquiry.domain.InquiryFileVO;
 import com.example.spendolive.inquiry.domain.InquiryVO;
 import com.example.spendolive.inquiry.repository.InquiryFileRepository;
 import com.example.spendolive.inquiry.repository.InquiryRepository;
+import com.example.spendolive.notification.domain.NotificationType;
+import com.example.spendolive.notification.service.NotificationService;
 
 @Service
 public class InquiryService {
@@ -21,13 +23,16 @@ public class InquiryService {
     private final InquiryRepository inquiryRepository;
     private final InquiryFileRepository inquiryFileRepository;
     private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
     public InquiryService(InquiryRepository inquiryRepository,
                            InquiryFileRepository inquiryFileRepository,
-                           FileStorageService fileStorageService) {
+                           FileStorageService fileStorageService,
+                           NotificationService notificationService) {
         this.inquiryRepository = inquiryRepository;
         this.inquiryFileRepository = inquiryFileRepository;
         this.fileStorageService = fileStorageService;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -54,15 +59,10 @@ public class InquiryService {
             return Collections.emptyList();
         }
 
-        List<InquiryVO> list;
-        if (totalCount <= PAGINATION_THRESHOLD) {
-            // 10개 이하면 페이지 나누지 않고 전부 반환
-            list = inquiryRepository.findBymember_id(id, status, 0, totalCount);
-        } else {
-            int safePage = Math.max(page, 1);
-            int offset = (safePage - 1) * PAGE_SIZE;
-            list = inquiryRepository.findBymember_id(id, status, offset, PAGE_SIZE);
-        }
+        int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+        int safePage = Math.min(Math.max(page, 1), totalPages);
+        int offset = (safePage - 1) * PAGE_SIZE;
+        List<InquiryVO> list = inquiryRepository.findByMemberId(id, status, offset, PAGE_SIZE);
 
         // 각 문의에 첨부파일 목록을 채워 넣는다 (목록 카드에서 썸네일 표시용)
         for (InquiryVO inquiry : list) {
@@ -72,9 +72,9 @@ public class InquiryService {
     }
 
     public int getMyInquiryTotalPages(String id, String status) {
-        int totalCount = inquiryRepository.countBymember_id(id, status);
-        if (totalCount <= PAGINATION_THRESHOLD) {
-            return 1; // 10개 이하면 페이지네이션 UI 자체를 숨김 (inquiryList.jsp의 totalPages > 1 조건)
+        int totalCount = inquiryRepository.countByMemberId(id, status);
+        if (totalCount == 0) {
+            return 1;
         }
         return (int) Math.ceil((double) totalCount / PAGE_SIZE);
     }
@@ -135,8 +135,28 @@ public class InquiryService {
         return (int) Math.ceil((double) totalCount / PAGE_SIZE);
     }
 
-    /** 답변 등록/수정 + 상태 변경(보통 DONE, 검토만 하고 싶으면 REVIEW로도 가능) */
-    public void replyToInquiry(int inquiry_id, String reply_content, String status) {
-        inquiryRepository.replyToInquiry(inquiry_id, reply_content, status);
+    /** 화면에 표시할 "몇 번째 문의인지" 계산용 (inquiry_id는 삭제된 데이터 때문에 듬성듬성 빌 수 있어서 따로 계산) */
+    public int getAdminInquiryTotalCount(String status) {
+        return inquiryRepository.countAllForAdmin(status);
+    }
+
+    public int getAdminPageSize() {
+        return PAGE_SIZE;
+    }
+
+    /** 답변 등록/수정 + 상태 변경(보통 DONE, 검토만 하고 싶으면 REVIEW로도 가능) + 문의 작성자에게 답변 완료 알림 발송 */
+    public void replyToInquiry(int inquiryId, String replyContent, String status) {
+        inquiryRepository.replyToInquiry(inquiryId, replyContent, status);
+
+        InquiryVO inquiry = inquiryRepository.findById(inquiryId);
+        if (inquiry != null && inquiry.getId() != null && !inquiry.getId().isBlank()) {
+            notificationService.createNotification(
+                    inquiry.getId(),
+                    NotificationType.INQUIRY_REPLY,
+                    "문의하신 내용에 답변이 등록되었습니다",
+                    "\"" + inquiry.getTitle() + "\" 문의에 관리자 답변이 등록되었습니다.",
+                    "/spendolive/inquiry/list.do"
+            );
+        }
     }
 }

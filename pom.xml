@@ -113,10 +113,6 @@
 			<artifactId>sdk</artifactId>
 			<version>1.0.3</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
 		
 	</dependencies>
 
@@ -170,7 +166,36 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- Spring Boot 플러그인 등 기존 플러그인들 아래에 추가 -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+          		<version>5.0.0.4389</version>
+            </plugin>
 		</plugins>
 	</build>
 
-</project>
+
+<!-- 소나큐브 서버 연결 및 프로젝트 기본 설정 -->
+    <profiles>
+        <profile>
+            <id>sonar</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- 소나큐브 서버 주소 -->
+                <sonar.host.url>http://localhost:9000</sonar.host.url>
+                <!-- 대시보드에 표시될 프로젝트 키 및 이름 -->
+                <sonar.projectKey>SpendOlive-platform</sonar.projectKey>
+                <sonar.projectName>SpendOlive</sonar.projectName>
+                <!-- 인코딩 및 제외 파일 설정 -->
+                <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+                <sonar.exclusions>**/test/**, **/Q*.java</sonar.exclusions> 
+            </properties>
+        </profile>
+    </profiles>
+
+
+</project>	

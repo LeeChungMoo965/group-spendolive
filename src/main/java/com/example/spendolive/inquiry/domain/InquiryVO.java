@@ -10,16 +10,16 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InquiryVO {
-    private int inquiry_id;
-    private String id;            // member_tb.id (작성자)
-    private String category;      // 계정·로그인 / 지출관리 / OTT관리 / 캘린더 / 공지·알림 / 결제·정산 / 기타
-    private String inquiry_type;   // 오류/버그 신고 / 기능 개선 제안 / 사용 방법 문의 / 기타 문의
-    private String title;
-    private String content;
-    private String status;        // WAIT | DONE | REVIEW (DB 저장값, 대문자)
-    private String reg_date;
-    private String reply_content;
-    private String reply_date;
+    private int inquiryId;         // (PK)
+    private String id;             // 작성자 회원 ID
+    private String category;       // 문의 작성 폼의 분류값 (계정·로그인 / 지출관리 / OTT관리 / 캘린더 / 공지·알림 / 결제·정산 / 기타)
+    private String inquiryType;    // 카테고리보다 더 세부적 문의 성격(오류/버그 신고 / 기능 개선 제안 / 사용 방법 문의 / 기타 문의)
+    private String title;          // 문의 제목
+    private String content;        // 문의 내용 본문
+    private String status;         // 문의 상태값 (WAIT | DONE | REVIEW)
+    private String regDate;        // 문의 등록일
+    private String replyContent;   // 관리자 답변내용
+    private String replyDate;      // 답변 등록일
 
 
     /** 관리자 화면용: 작성자 닉네임 (member_tb.nickname 조인 결과, inquiry_tb 자체 컬럼 아님).

@@ -10,9 +10,43 @@ import org.springframework.stereotype.Repository;
 
 import com.example.spendolive.inquiry.domain.InquiryVO;
 
-
 @Repository
 public class InquiryRepository {
+
+    // ────────────────────────────────────────────────────────────
+    // SQL 정의
+    // ────────────────────────────────────────────────────────────
+
+    // findByMemberId / findById / findAllForAdmin에서 공통으로 쓰는 SELECT 컬럼 목록
+    private static final String SELECT_COLUMNS = """
+            inquiry_id, id, category, inquiry_type, title, content, status, reply_content,
+            TO_CHAR(reg_date, 'YYYY.MM.DD') AS reg_date,
+            TO_CHAR(reply_date, 'YYYY.MM.DD') AS reply_date
+        """;
+
+    // 등록
+    private static final String INSERT_SQL = """
+            INSERT INTO inquiry_tb(inquiry_id, id, category, inquiry_type, title, content, status, reg_date)
+            VALUES(?, ?, ?, ?, ?, ?, 'WAIT', SYSDATE)
+        """;
+
+    // 단건 조회
+    private static final String FIND_BY_ID_SQL = """
+            SELECT """ + SELECT_COLUMNS + """
+            FROM inquiry_tb
+            WHERE inquiry_id = ?
+        """;
+
+    // 관리자: 답변 등록/수정 (상태도 같이 변경)
+    private static final String REPLY_SQL = """
+            UPDATE inquiry_tb
+            SET reply_content = ?, reply_date = SYSDATE, status = ?
+            WHERE inquiry_id = ?
+        """;
+
+    // ────────────────────────────────────────────────────────────
+    // 필드 / 생성자 / RowMapper
+    // ────────────────────────────────────────────────────────────
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -36,31 +70,27 @@ public class InquiryRepository {
         return inquiry;
     }
 
-
-
-
-     /** 관리자 화면용: mapRow + 작성자 닉네임(member_tb 조인 결과) 포함 */
-     private InquiryVO mapRowWithWriter(java.sql.ResultSet rs) throws java.sql.SQLException {
+    /** 관리자 화면용: mapRow + 작성자 닉네임(member_tb 조인 결과) 포함 */
+    private InquiryVO mapRowWithWriter(java.sql.ResultSet rs) throws java.sql.SQLException {
         InquiryVO inquiry = mapRow(rs);
         inquiry.setWriter_nickname(rs.getString("writer_nickname"));
         return inquiry;
     }
 
-    /* ─── 등록 ────────────────────────────────────────────── */
+    // ────────────────────────────────────────────────────────────
+    // 조회 / 등록 / 수정 메서드
+    // ────────────────────────────────────────────────────────────
+
     /**
      * inquiry_tb에 INSERT하고, 생성된 inquiry_id를 반환한다.
      * (첨부파일을 inquiry_file_tb에 연결하려면 이 inquiry_id가 필요하기 때문에
      *  시퀀스 값을 먼저 뽑아서 INSERT문에 명시적으로 넣는 방식을 사용)
      */
     public int insertInquiry(InquiryVO inquiry) {
-        Long inquiry_id = jdbcTemplate.queryForObject("SELECT inquiry_seq.NEXTVAL FROM dual", Long.class);
-        String sql = """
-            INSERT INTO inquiry_tb(inquiry_id, id, category, inquiry_type, title, content, status, reg_date)
-            VALUES(?, ?, ?, ?, ?, ?, 'WAIT', SYSDATE)
-        """;
+        Long inquiryId = jdbcTemplate.queryForObject("SELECT inquiry_seq.NEXTVAL FROM dual", Long.class);
         try {
-            jdbcTemplate.update(sql,
-                    inquiry_id, inquiry.getId(), inquiry.getCategory(), inquiry.getInquiry_type(),
+            jdbcTemplate.update(INSERT_SQL,
+                    inquiryId, inquiry.getId(), inquiry.getCategory(), inquiry.getInquiryType(),
                     inquiry.getTitle(), inquiry.getContent());
             return inquiry_id.intValue();
         } catch (DataAccessException e) {
@@ -69,23 +99,17 @@ public class InquiryRepository {
         }
     }
 
-    /* ─── 내 문의 목록 (페이지네이션 + 상태 필터) ─────────── */
     /**
+     * 내 문의 목록 (페이지네이션 + 상태 필터)
      * @param status null 또는 blank면 전체 조회, 아니면 해당 상태(WAIT/DONE/REVIEW)만 조회
+     * (status 유무에 따라 WHERE 절이 달라져서 상수 SQL로 못 빼고 여기서 조립함)
      */
     public List<InquiryVO> findBymember_id(String id, String status, int offset, int limit) {
         if (id == null || id.isBlank()) return Collections.emptyList();
 
-        String sql = """
-            SELECT inquiry_id, id, category, inquiry_type, title, content, status, reply_content,
-                   TO_CHAR(reg_date, 'YYYY.MM.DD') AS reg_date,
-                   TO_CHAR(reply_date, 'YYYY.MM.DD') AS reply_date
-            FROM inquiry_tb
-            WHERE id = ?
-        """ + (status != null && !status.isBlank() ? " AND status = ? " : "") + """
-            ORDER BY inquiry_id DESC
-            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-        """;
+        String sql = "SELECT " + SELECT_COLUMNS + " FROM inquiry_tb WHERE id = ?"
+                + (status != null && !status.isBlank() ? " AND status = ? " : "")
+                + " ORDER BY inquiry_id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         try {
             if (status != null && !status.isBlank()) {
                 return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), id, status, offset, limit);
@@ -115,16 +139,9 @@ public class InquiryRepository {
     }
 
     /* ─── 단건 조회 ───────────────────────────────────────── */
-    public InquiryVO findById(int inquiry_id) {
-        String sql = """
-            SELECT inquiry_id, id, category, inquiry_type, title, content, status, reply_content,
-                   TO_CHAR(reg_date, 'YYYY.MM.DD') AS reg_date,
-                   TO_CHAR(reply_date, 'YYYY.MM.DD') AS reply_date
-            FROM inquiry_tb
-            WHERE inquiry_id = ?
-        """;
+    public InquiryVO findById(int inquiryId) {
         try {
-            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), inquiry_id);
+            return jdbcTemplate.queryForObject(FIND_BY_ID_SQL, (rs, rowNum) -> mapRow(rs), inquiryId);
         } catch (EmptyResultDataAccessException e) {
             System.err.println("[InquiryRepository.findById] inquiry_id=" + inquiry_id + " 존재하지 않음");
             return null;
@@ -134,17 +151,14 @@ public class InquiryRepository {
         }
     }
 
-    /* ─── 관리자용: 전체 회원 문의 목록 (페이지네이션 + 상태 필터) ─── */
+    /**
+     * 관리자용: 전체 회원 문의 목록 (페이지네이션 + 상태 필터)
+     * (status 유무에 따라 WHERE 절이 달라져서 상수 SQL로 못 빼고 여기서 조립함)
+     */
     public List<InquiryVO> findAllForAdmin(String status, int offset, int limit) {
-        String sql = """
-            SELECT inquiry_id, id, category, inquiry_type, title, content, status, reply_content,
-                   TO_CHAR(reg_date, 'YYYY.MM.DD') AS reg_date,
-                   TO_CHAR(reply_date, 'YYYY.MM.DD') AS reply_date
-            FROM inquiry_tb
-        """ + (status != null && !status.isBlank() ? " WHERE status = ? " : "") + """
-            ORDER BY inquiry_id DESC
-            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-        """;
+        String sql = "SELECT " + SELECT_COLUMNS + " FROM inquiry_tb"
+                + (status != null && !status.isBlank() ? " WHERE status = ? " : "")
+                + " ORDER BY inquiry_id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         try {
             if (status != null && !status.isBlank()) {
                 return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), status, offset, limit);
@@ -172,14 +186,9 @@ public class InquiryRepository {
     }
 
     /* ─── 관리자용: 답변 등록/수정 (상태도 같이 변경) ─────────── */
-    public void replyToInquiry(int inquiry_id, String reply_content, String status) {
-        String sql = """
-            UPDATE inquiry_tb
-            SET reply_content = ?, reply_date = SYSDATE, status = ?
-            WHERE inquiry_id = ?
-        """;
+    public void replyToInquiry(int inquiryId, String replyContent, String status) {
         try {
-            jdbcTemplate.update(sql, reply_content, status, inquiry_id);
+            jdbcTemplate.update(REPLY_SQL, replyContent, status, inquiryId);
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.replyToInquiry] DB 오류: " + e.getMessage());
             throw e;

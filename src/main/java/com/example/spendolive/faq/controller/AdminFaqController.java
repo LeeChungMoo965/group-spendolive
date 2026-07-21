@@ -1,6 +1,7 @@
 package com.example.spendolive.faq.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -41,8 +42,10 @@ public class AdminFaqController {
         mav.addObject("body_page", "/WEB-INF/views/admin/adminFaqList.jsp");
         try {
             mav.addObject("faqList", faqService.getAllFaqList());
+            mav.addObject("faqGroups", faqService.getAllFaqGroupedByCategory());
         } catch (Exception e) {
             mav.addObject("faqList", List.of());
+            mav.addObject("faqGroups", Map.of());
             mav.addObject("errorMsg", "FAQ 목록을 불러오는 중 오류가 발생했습니다.");
         }
         return mav;
@@ -63,8 +66,7 @@ public class AdminFaqController {
             @RequestParam(value = "category",  required = false) String category,
             @RequestParam(value = "question",  required = false) String question,
             @RequestParam(value = "answer",    required = false) String answer,
-            @RequestParam(value = "sort_order", defaultValue = "0") int sort_order,
-            @RequestParam(value = "use_yn",     defaultValue = "N") String use_yn,
+            @RequestParam(value = "useYn",     defaultValue = "N") String useYn,
             HttpSession session, RedirectAttributes ra) {
 
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
@@ -81,8 +83,8 @@ public class AdminFaqController {
         faq.setCategory(category);
         faq.setQuestion(question.strip());
         faq.setAnswer(answer.strip());
-        faq.setSort_order(sort_order);
-        faq.setUse_yn(use_yn);
+        faq.setSortOrder(faqService.getNextSortOrder(category)); // 항상 해당 카테고리 맨 뒤에 추가
+        faq.setUseYn(useYn);
 
         try {
             faqService.insertFaq(faq);
@@ -127,8 +129,7 @@ public class AdminFaqController {
             @RequestParam(value = "category",  required = false) String category,
             @RequestParam(value = "question",  required = false) String question,
             @RequestParam(value = "answer",    required = false) String answer,
-            @RequestParam(value = "sort_order", defaultValue = "0") int sort_order,
-            @RequestParam(value = "use_yn",     defaultValue = "N") String use_yn,
+            @RequestParam(value = "useYn",     defaultValue = "N") String useYn,
             HttpSession session, RedirectAttributes ra) {
 
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
@@ -145,12 +146,11 @@ public class AdminFaqController {
         if (!"Y".equals(use_yn)) use_yn = "N";
 
         FaqVO faq = new FaqVO();
-        faq.setFaq_id(faq_id);
+        faq.setFaqId(faq_id);
         faq.setCategory(category);
         faq.setQuestion(question.strip());
         faq.setAnswer(answer.strip());
-        faq.setSort_order(sort_order);
-        faq.setUse_yn(use_yn);
+        faq.setUseYn(useYn);
 
         try {
             faqService.updateFaq(faq);
@@ -159,6 +159,28 @@ public class AdminFaqController {
             ra.addFlashAttribute("errorMsg", "수정 중 오류가 발생했습니다.");
             return new ModelAndView("redirect:/spendolive/admin/faq/edit.do?faq_id=" + faq_id);
         }
+        return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
+    }
+
+    /* ─── 순서 위로 ─────────────────────────────────────────── */
+    @PostMapping("/moveUp.do")
+    public ModelAndView moveUp(
+            @RequestParam(value = "faq_id", defaultValue = "0") int faq_id,
+            HttpSession session) {
+
+        if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
+        if (faq_id > 0) faqService.moveFaqUp(faq_id);
+        return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
+    }
+
+    /* ─── 순서 아래로 ───────────────────────────────────────── */
+    @PostMapping("/moveDown.do")
+    public ModelAndView moveDown(
+            @RequestParam(value = "faq_id", defaultValue = "0") int faq_id,
+            HttpSession session) {
+
+        if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
+        if (faq_id > 0) faqService.moveFaqDown(faq_id);
         return new ModelAndView("redirect:/spendolive/admin/faq/list.do");
     }
 
