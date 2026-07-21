@@ -90,9 +90,9 @@ public class InquiryRepository {
         Long inquiryId = jdbcTemplate.queryForObject("SELECT inquiry_seq.NEXTVAL FROM dual", Long.class);
         try {
             jdbcTemplate.update(INSERT_SQL,
-                    inquiryId, inquiry.getId(), inquiry.getCategory(), inquiry.getInquiryType(),
+                    inquiryId, inquiry.getId(), inquiry.getCategory(), inquiry.getInquiry_type(),
                     inquiry.getTitle(), inquiry.getContent());
-            return inquiry_id.intValue();
+            return inquiryId.intValue();
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.insertInquiry] DB 오류: " + e.getMessage());
             throw e;
@@ -143,7 +143,7 @@ public class InquiryRepository {
         try {
             return jdbcTemplate.queryForObject(FIND_BY_ID_SQL, (rs, rowNum) -> mapRow(rs), inquiryId);
         } catch (EmptyResultDataAccessException e) {
-            System.err.println("[InquiryRepository.findById] inquiry_id=" + inquiry_id + " 존재하지 않음");
+            System.err.println("[InquiryRepository.findById] inquiry_id=" + inquiryId + " 존재하지 않음");
             return null;
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.findById] DB 오류: " + e.getMessage());

@@ -99,17 +99,17 @@ public class FaqServiceImpl implements FaqService {
     
         int idx = -1;
         for (int i = 0; i < sameCat.size(); i++) {
-            if (sameCat.get(i).getFaqId() == faq_id) { idx = i; break; }
+            if (sameCat.get(i).getFaq_id() == faq_id) { idx = i; break; }
         }
         if (idx < 0) return;
-    
+
         int neighborIdx = up ? idx - 1 : idx + 1;
-        if (neighborIdx < 0 || neighborIdx >= sameCat.size()) return; // 카테고리 맨 위/맨 아래면 무시
-    
+        if (neighborIdx < 0 || neighborIdx >= sameCat.size()) return;
+
         for (int i = 0; i < sameCat.size(); i++) {
-            faqRepository.updateSortOrder(sameCat.get(i).getFaqId(), i);
+            faqRepository.updateSortOrder(sameCat.get(i).getFaq_id(), i);
         }
-        faqRepository.updateSortOrder(sameCat.get(idx).getFaqId(), neighborIdx);
-        faqRepository.updateSortOrder(sameCat.get(neighborIdx).getFaqId(), idx);
+        faqRepository.updateSortOrder(sameCat.get(idx).getFaq_id(), neighborIdx);
+        faqRepository.updateSortOrder(sameCat.get(neighborIdx).getFaq_id(), idx);
     }
 }

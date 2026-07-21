@@ -75,8 +75,8 @@ public class InquiryFileRepository {
     public void insertFile(InquiryFileVO file) {
         try {
             jdbcTemplate.update(INSERT_SQL,
-                    file.getInquiryId(), file.getOriginName(), file.getSavedName(),
-                    file.getFilePath(), file.getFileSize());
+                    file.getInquiry_id(), file.getOrigin_name(), file.getSaved_name(),
+                    file.getFile_path(), file.getFile_size());
         } catch (DataAccessException e) {
             System.err.println("[InquiryFileRepository.insertFile] DB 오류: " + e.getMessage());
             throw e;
