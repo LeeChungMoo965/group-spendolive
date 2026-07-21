@@ -2,15 +2,15 @@
    14. 챗봇 (FAQ 자동응답 위젯)
    ========================================================= */
 
-/* 우하단에 고정된 챗봇 토글 버튼. 색상은 원래 보라색으로 복귀 */
+/* 우하단에 고정된 챗봇 토글 버튼. */
 .chatbot-toggle {position: fixed;right: 28px;bottom: 100px;width: 62px;height: 62px;border-radius: 24px;background: rgba(203, 175, 255, 0.925);color: #fff;border: 0;box-shadow: 0 16px 38px rgba(31, 54, 29, 0.3);cursor: pointer;font-size: 28px;display: flex;align-items: center;justify-content: center;z-index: 80;transition: transform .15s ease;}.chatbot-toggle:hover {transform: scale(1.06);}
-/* 챗봇 대화창 패널 — 넓이 340px로 초록 위젯과 통일 */
+/* 챗봇 대화창 패널  */
 .chatbot-panel {position: fixed;right: 28px;bottom: 176px;width: 380px;max-height: 480px;overflow: auto;background: #f5f8f4;border: 1px solid #e0eadc;border-radius: 26px;box-shadow: 0 22px 60px rgba(34, 52, 31, 0.22);padding: 18px;display: none;flex-direction: column;z-index: 80;}.chatbot-panel.show {display: flex;}
 /* 패널 상단 헤더 */
 .chatbot-header {display: flex;justify-content: space-between;gap: 12px;align-items: flex-start;margin-bottom: 14px;}.chatbot-header .eyebrow {margin: 0;font-size: 12px;letter-spacing: .05em;color: #8a917f;font-weight: 700;text-transform: uppercase;}.chatbot-header strong {display: block;margin: 2px 0 0;font-size: 19px;color: #22301f;font-weight: 800;}.chatbot-header span {font-size: 13px;color: #6c7768;display: block;margin-top: 4px;}.chatbot-close {width: 32px;height: 32px;border-radius: 50%;display: inline-flex;align-items: center;justify-content: center;background: #f0f5ef;border: 0;cursor: pointer;font-size: 22px;color: #455f41;line-height: 1;flex-shrink: 0;}
-/* 대화 메시지가 쌓이는 스크롤 영역 — 배경을 연한 톤으로 (말풍선과 색 스왑) */
+/* 대화 메시지가 쌓이는 스크롤 영역 */
 .chatbot-body {flex: 1;overflow-y: auto;display: flex;flex-direction: column;gap: 10px;background: #f8fbf7;}
-/* 메시지 말풍선 — 봇 말풍선은 흰색으로 (배경과 색 스왑) */
+/* 메시지 말풍선  */
 .chatbot-msg {max-width: 80%;padding: 12px 14px;border-radius: 18px;font-size: 13px;line-height: 1.55;}.chatbot-msg.bot {align-self: flex-start;background: #ffffff;border: 1px solid #e4eee1;color: #2f482c;border-bottom-left-radius: 6px;}.chatbot-msg.user {align-self: flex-end;background: #355c32;color: #fff;border-bottom-right-radius: 6px;}
 /* FAQ 매칭에 실패해서 "1:1 문의 남겨주세요" 안내가 나갈 때(fallback)는
    일반 봇 말풍선과 구분되도록 앰버 톤으로 강조 */

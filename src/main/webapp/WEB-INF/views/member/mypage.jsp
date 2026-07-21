@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
 <section class="page-hero">
@@ -34,6 +35,19 @@
         <c:if test="${param.profileError == 'updateFailed'}">
             <div class="alert warn">회원정보 수정 중 오류가 발생했습니다. 이메일/전화번호 중복 여부를 확인해 주세요.</div>
         </c:if>
+        <%-- =====================================================
+             [마이페이지 계좌·카드 연결 추가]
+             계좌 제목 수정 결과 메시지
+             ===================================================== --%>
+        <c:if test="${param.accountNameUpdated == 'Y'}">
+            <div class="alert done">계좌 제목이 수정되었습니다.</div>
+        </c:if>
+        <c:if test="${param.assetError == 'invalidAccountName'}">
+            <div class="alert warn">계좌 제목은 1자 이상 20자 이하로 입력해주세요.</div>
+        </c:if>
+        <c:if test="${param.assetError == 'accountNameUpdateFailed'}">
+            <div class="alert warn">계좌 제목 수정 중 오류가 발생했습니다.</div>
+        </c:if>
 
         <c:if test="${param.withdrawError == 'confirmRequired'}">
             <div class="alert warn">회원탈퇴를 진행하려면 확인 문구를 정확히 입력해주세요.</div>
@@ -44,14 +58,16 @@
 
         <div class="mypage-top-grid">
             <article class="card mypage-profile-card">
+                <p class="eyebrow">PROFILE</p>
                 <div class="avatar">${profileInitial}</div>
                 <div>
-                    <p class="eyebrow">PROFILE</p>
                     <h3>${memberInfo.member_name}</h3>
-                    <p class="mypage-muted">${memberInfo.nickname} · ${memberInfo.id}</p>
-                    <p class="mypage-muted">가입일 ${memberInfo.created_at}</p>
+                    <p class="mypage-muted">닉네임 : ${memberInfo.nickname}</p>
+                    <p class="mypage-muted">아이디 : ${memberInfo.id}</p>
+                    <p class="mypage-muted">가입일 : ${memberInfo.created_at}</p>
                 </div>
-                <a href="#profile-edit" class="btn btn-primary full">회원정보 수정</a>
+                <%-- [마이페이지 화면 전환 추가] 최초에는 숨기고 버튼을 눌렀을 때 회원정보 수정 영역 표시 --%>
+                <button type="button" class="btn btn-primary full" onclick="showMyPagePanel('profile-edit')">회원정보 수정</button>
             </article>
 
             <article class="card mypage-stat-card">
@@ -62,23 +78,35 @@
                 <a href="${contextPath}/spendolive/expense/list.do" class="btn btn-primary full">지출관리로 이동</a>
             </article>
 
+            <%-- =====================================================
+                 [마이페이지 계좌·카드 연결 추가]
+                 첫 번째 등록 계좌를 상단 계좌관리 카드에 표시한다.
+                 계좌가 없어도 빈 안내가 표시되고 페이지는 정상적으로 열린다.
+                 ===================================================== --%>
             <article class="card mypage-bank-card">
                 <p class="eyebrow">OPEN BANKING</p>
                 <h3>계좌관리</h3>
                 <c:choose>
-                    <c:when test="${accountConnected}">
-                        <p class="mypage-muted">연결된 오픈뱅킹 계정</p>
+                    <c:when test="${not empty currentAccount}">
+                        <c:set var="currentBankName" value="${bankNameMap[currentAccount.bank_code]}" />
+                        <p class="mypage-muted">현재 계좌번호</p>
                         <div class="mypage-account-box">
-                            <span>사용자번호</span>
-                            <strong>${openBankUserSeq}</strong>
+                            <span><c:out value="${empty currentAccount.account_name ? '계좌' : currentAccount.account_name}" /></span>
+                            <strong>
+                                <c:out value="${empty currentBankName ? currentAccount.bank_code : currentBankName}" />
+                                · <c:out value="${currentAccount.account_number}" />
+                            </strong>
                         </div>
-                        <a href="${contextPath}/member/openBankingAuth.do" class="btn btn-primary full">계좌 다시 연동하기</a>
                     </c:when>
                     <c:otherwise>
                         <p class="mypage-muted">현재 연결된 계좌가 없습니다.</p>
-                        <a href="${contextPath}/member/openBankingAuth.do" class="btn btn-primary full">안전한 오픈뱅킹 계좌 연동하기</a>
+                        <div class="mypage-account-box">
+                            <span>현재 계좌번호</span>
+                            <strong>계좌 정보가 없습니다.</strong>
+                        </div>
                     </c:otherwise>
                 </c:choose>
+                <button type="button" class="btn btn-primary full" onclick="showMyPagePanel('asset-manage')">나의 계좌 · 카드 목록보기</button>
             </article>
 
             <article class="card mypage-report-card">
@@ -94,11 +122,13 @@
                         <strong>${myReportCount}건</strong>
                     </div>
                 </div>
-                <a href="#report-manage" class="btn btn-primary full">신고/차단 내역 보기</a>
+                <%-- [마이페이지 화면 전환 추가] 버튼을 눌렀을 때 신고·차단 영역 표시 --%>
+                <button type="button" class="btn btn-primary full" onclick="showMyPagePanel('report-manage')">신고/차단 내역 보기</button>
             </article>
         </div>
 
-        <article id="profile-edit" class="card mypage-panel mypage-profile-edit">
+        <%-- [마이페이지 화면 전환 추가] 최초 진입 시 숨겨지는 회원정보 수정 영역 --%>
+        <article id="profile-edit" class="card mypage-panel mypage-profile-edit mypage-toggle-panel is-hidden">
             <div class="mypage-panel-head">
                 <div>
                     <p class="eyebrow">EDIT PROFILE</p>
@@ -202,7 +232,8 @@
             </form>
         </article>
 
-        <article id="report-manage" class="card mypage-panel">
+        <%-- [마이페이지 화면 전환 추가] 최초 진입 시 숨겨지는 신고·차단 내역 영역 --%>
+        <article id="report-manage" class="card mypage-panel mypage-toggle-panel is-hidden">
             <div class="mypage-panel-head">
                 <div>
                     <p class="eyebrow">REPORT HISTORY</p>
@@ -261,6 +292,85 @@
                 </c:otherwise>
             </c:choose>
         </article>
+
+        <%-- =====================================================
+             [마이페이지 계좌·카드 연결 추가 시작]
+             담당자가 만든 조회 결과를 계좌와 카드로 나누어 출력한다.
+             한 페이지에 각각 4칸을 보여주며 부족한 칸은 JavaScript가 빈 칸으로 채운다.
+             계좌의 수정 버튼은 ACCOUNT_NAME을 변경하고 거래내역 버튼은 현재 UI만 준비한다.
+             ===================================================== --%>
+        <article id="asset-manage" class="card mypage-panel mypage-toggle-panel is-hidden">
+            <div class="mypage-panel-head">
+                <div>
+                    <p class="eyebrow">MY ASSETS</p>
+                    <h2>나의 계좌 · 카드 목록</h2>
+                </div>
+                <span>계좌와 카드를 각각 한 화면에 4개씩 확인합니다.</span>
+            </div>
+
+            <section class="mypage-asset-section">
+                <div class="mypage-asset-section-head">
+                    <h3>계좌</h3>
+                    <div class="mypage-asset-pager" data-pager-for="accountAssetList">
+                        <button type="button" class="btn btn-outline btn-mini" data-page-direction="prev">이전</button>
+                        <span><b data-current-page>1</b> / <b data-total-page>1</b></span>
+                        <button type="button" class="btn btn-outline btn-mini" data-page-direction="next">다음</button>
+                    </div>
+                </div>
+
+                <div class="mypage-asset-list" id="accountAssetList" data-empty-text="계좌 정보가 없습니다.">
+                    <c:forEach var="account" items="${accountList}">
+                        <c:set var="accountBankName" value="${bankNameMap[account.bank_code]}" />
+                        <div class="mypage-asset-item" data-asset-item>
+                            <div class="mypage-asset-main">
+                                <form action="${contextPath}/spendolive/mypage/account/name/update.do" method="post" class="mypage-asset-title-form">
+                                    <input type="hidden" name="accountIdx" value="${account.account_idx}">
+                                    <input type="text" name="accountName" maxlength="20" readonly
+                                           value="${fn:escapeXml(empty account.account_name ? '계좌' : account.account_name)}"
+                                           aria-label="계좌 제목">
+                                    <button type="button" class="btn btn-outline btn-mini" onclick="toggleAccountNameEdit(this)">수정</button>
+                                </form>
+                                <p>
+                                    <c:out value="${empty accountBankName ? account.bank_code : accountBankName}" />
+                                    계좌번호 - <c:out value="${account.account_number}" />
+                                </p>
+                            </div>
+                            <div class="mypage-account-balance">
+                                <span>남은 금액</span>
+                                <strong><fmt:formatNumber value="${account.balance}" pattern="#,##0" />원</strong>
+                            </div>
+                            <button type="button" class="btn btn-outline btn-mini" data-account-idx="${account.account_idx}">거래내역</button>
+                        </div>
+                    </c:forEach>
+                </div>
+            </section>
+
+            <section class="mypage-asset-section">
+                <div class="mypage-asset-section-head">
+                    <h3>카드</h3>
+                    <div class="mypage-asset-pager" data-pager-for="cardAssetList">
+                        <button type="button" class="btn btn-outline btn-mini" data-page-direction="prev">이전</button>
+                        <span><b data-current-page>1</b> / <b data-total-page>1</b></span>
+                        <button type="button" class="btn btn-outline btn-mini" data-page-direction="next">다음</button>
+                    </div>
+                </div>
+
+                <div class="mypage-asset-list" id="cardAssetList" data-empty-text="카드 정보가 없습니다.">
+                    <c:forEach var="card" items="${cardList}">
+                        <div class="mypage-asset-item mypage-card-item" data-asset-item>
+                            <div class="mypage-asset-main">
+                                <strong><c:out value="${empty card.card_company ? '카드' : card.card_company}" /></strong>
+                                <p>
+                                    <c:out value="${empty card.card_company ? '카드' : card.card_company}" />
+                                    카드번호 - <c:out value="${card.card_number}" />
+                                </p>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </div>
+            </section>
+        </article>
+        <%-- [마이페이지 계좌·카드 연결 추가 끝] --%>
 
         <article class="card mypage-panel">
             <div class="mypage-panel-head">
@@ -401,6 +511,119 @@
 </div>
 
 <script>
+/* =========================================================
+   [마이페이지 계좌·카드 연결 JavaScript 추가 시작]
+   화면 전환, 계좌 제목 수정, 계좌·카드 4개 단위 페이지 처리를 담당한다.
+   ========================================================= */
+// 상단 버튼을 누른 경우에만 회원정보·신고내역·계좌카드 영역을 표시한다.
+function showMyPagePanel(panelId) {
+    document.querySelectorAll('.mypage-toggle-panel').forEach(function (panel) {
+        panel.classList.add('is-hidden');
+    });
+
+    const target = document.getElementById(panelId);
+    if (!target) {
+        return;
+    }
+
+    target.classList.remove('is-hidden');
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.history.replaceState(null, '', '#' + panelId);
+}
+
+// 계좌 제목은 처음에는 읽기 전용으로 표시하고, 수정 버튼을 누르면 입력과 저장이 가능해진다.
+function toggleAccountNameEdit(button) {
+    const form = button.closest('.mypage-asset-title-form');
+    const input = form ? form.querySelector('input[name="accountName"]') : null;
+    if (!form || !input) {
+        return;
+    }
+
+    if (input.readOnly) {
+        input.readOnly = false;
+        input.focus();
+        input.select();
+        button.textContent = '저장';
+        return;
+    }
+
+    if (!input.value.trim()) {
+        alert('계좌 제목을 입력해주세요.');
+        input.focus();
+        return;
+    }
+
+    form.submit();
+}
+
+// 계좌와 카드 목록은 4개 단위로 보이며, 부족한 칸은 빈 정보 카드로 채운다.
+function initializeAssetPager(listId) {
+    const list = document.getElementById(listId);
+    const pager = document.querySelector('[data-pager-for="' + listId + '"]');
+    if (!list || !pager) {
+        return;
+    }
+
+    let items = Array.from(list.querySelectorAll('[data-asset-item]'));
+    const emptyText = list.dataset.emptyText || '정보가 없습니다.';
+    const requiredSlots = Math.max(4, Math.ceil(items.length / 4) * 4);
+
+    while (items.length < requiredSlots) {
+        const emptyItem = document.createElement('div');
+        emptyItem.className = 'mypage-asset-item mypage-asset-empty';
+        emptyItem.setAttribute('data-asset-item', '');
+        emptyItem.textContent = emptyText;
+        list.appendChild(emptyItem);
+        items.push(emptyItem);
+    }
+
+    const totalPages = Math.max(1, Math.ceil(items.length / 4));
+    let currentPage = 1;
+    const currentPageText = pager.querySelector('[data-current-page]');
+    const totalPageText = pager.querySelector('[data-total-page]');
+    const prevButton = pager.querySelector('[data-page-direction="prev"]');
+    const nextButton = pager.querySelector('[data-page-direction="next"]');
+
+    function renderPage() {
+        items.forEach(function (item, index) {
+            const itemPage = Math.floor(index / 4) + 1;
+            item.classList.toggle('is-hidden', itemPage !== currentPage);
+        });
+
+        currentPageText.textContent = currentPage;
+        totalPageText.textContent = totalPages;
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage === totalPages;
+    }
+
+    prevButton.addEventListener('click', function () {
+        if (currentPage > 1) {
+            currentPage -= 1;
+            renderPage();
+        }
+    });
+
+    nextButton.addEventListener('click', function () {
+        if (currentPage < totalPages) {
+            currentPage += 1;
+            renderPage();
+        }
+    });
+
+    renderPage();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initializeAssetPager('accountAssetList');
+    initializeAssetPager('cardAssetList');
+
+    const targetId = window.location.hash.replace('#', '');
+    if (['profile-edit', 'report-manage', 'asset-manage'].includes(targetId)) {
+        showMyPagePanel(targetId);
+    }
+});
+/* [마이페이지 계좌·카드 연결 JavaScript 추가 끝] */
+
 (function () {
     const emailInput = document.getElementById('mypageEmail');
     const phoneInput = document.getElementById('mypagePhone');

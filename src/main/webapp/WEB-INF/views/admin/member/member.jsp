@@ -3,7 +3,6 @@
     <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
     <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
     <c:set var="contextPath" value="${pageContext.request.contextPath}" />
-    <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
 
 
     <body data-page="member">

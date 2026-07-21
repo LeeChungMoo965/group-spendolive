@@ -54,7 +54,7 @@
 /* 페이지네이션 */
 .faq-page .pagination { display: flex; justify-content: center; gap: 6px; margin-top: 28px; }.faq-page .pg-btn {width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--line);background: #fff; color: var(--muted); font-weight: 900; cursor: pointer; font-size: 13px;text-decoration: none; display: inline-flex; align-items: center; justify-content: center;}.faq-page .pg-btn.active { background: var(--olive); color: #fff; border-color: var(--olive); }
 /* ---- 문의 카드 첨부파일(사진/파일) ---- */
-.faq-page .inq-attachments { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.faq-page .inq-attachments { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
 /* 이미지 파일 → 정사각 썸네일로 표시 */
 .faq-page .inq-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); cursor: pointer; transition: .2s; }.faq-page .inq-thumb:hover { border-color: var(--sage); transform: translateY(-1px); }
 /* 이미지가 아닌 파일(PDF 등) → 다운로드 링크 버튼 형태로 표시 */

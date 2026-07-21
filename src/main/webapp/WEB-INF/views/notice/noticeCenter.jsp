@@ -3,7 +3,6 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-
 <section class="page-hero">
     <div class="container">
                 <p class="eyebrow">

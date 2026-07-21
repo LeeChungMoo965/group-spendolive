@@ -2,6 +2,7 @@ package com.example.spendolive.member.controller;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.service.MemberService;
 @Controller("memberController")
@@ -32,6 +34,7 @@ public class MemberControllerImpl implements MemberController{
     @Autowired
     private MemberService memberService;
     private MemberVO memberVO;
+    private MemberAccountVO accountmemberVO;
     @Value("${kakao.client.id}")
     private String kakaoclientId;
     @Value("${kakao.redirect.uri}")
@@ -40,7 +43,7 @@ public class MemberControllerImpl implements MemberController{
     private String openbankingclientId;
     @Value("${openbanking.redirect-uri}")
     private String openbankingredirectUri;
-    @Value("${openbanking.Integratedredirect-uri}")
+    @Value("${openbanking.integrated-redirect-uri}")
     private String openbankingIntegratedredirectUri;
     @Value("${openbanking.client-secret}")
     private String openbankingclientSecret;    
@@ -52,12 +55,23 @@ public class MemberControllerImpl implements MemberController{
             throws Exception {
         ModelAndView mav = new ModelAndView();
         memberVO = memberService.login(loginMap);
+        String id = memberVO.getId();
+        List<MemberAccountVO> accountList =memberService.getAccountById(id);
         //로그인 성공 하여 memberVO객체가 생성될 시 home화면 이동
         if(memberVO != null && memberVO.getId() != null && !memberVO.getId().equals("")) {
             HttpSession session = request.getSession();
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
-            try{String log = (String) session.getAttribute("log");
+            if(accountList != null){
+                for(MemberAccountVO account : accountList){
+                    if(account.getOpen_bank_token() != null){
+                        memberService.registerOpenBankingIntegratedToken(memberVO,account);
+                    }
+                }
+            }
+            try{
+                
+                String log = (String) session.getAttribute("log");
                 if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
                 else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
                 else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
@@ -298,22 +312,16 @@ public class MemberControllerImpl implements MemberController{
     public String openBankingIntegratedAuth() throws UnsupportedEncodingException {
     
         String state = UUID.randomUUID().toString().replace("-", "");
-        String encodedRedirectUri = URLEncoder.encode(openbankingIntegratedredirectUri, StandardCharsets.UTF_8.name());
-    
         String targetUrl = String.format(
-            "https://testapi.openbanking.or.kr/oauth/2.0/authorize" +
-            "?response_type=code" +
-            "&client_id=%s" +
-            "&redirect_uri=%s" +
-            "&scope=login+inquiry" + 
-            "&state=%s" +
-            "&auth_type=0",
-            openbankingclientId, encodedRedirectUri, state
+        "https://testapi.openbanking.or.kr/oauth/2.0/authorize?response_type=code&client_id=%s&redirect_uri=%s&scope=login+accountinfo&state=%s",
+        openbankingclientId, openbankingIntegratedredirectUri, state
         );
-    
-        // 금결원 본인인증/통합조회 동의 페이지로 리다이렉트
         return "redirect:" + targetUrl;
     }
+
+
+
+
     @Override
     @RequestMapping(value="/openBankingAuth.do", method = RequestMethod.GET)
     public String openBankingAuth() throws UnsupportedEncodingException {
@@ -374,7 +382,7 @@ ResponseEntity resEntity = null;
 HttpHeaders responseHeaders = new HttpHeaders();
 try {
     // 비즈니스 로직 처리를 위해 서비스 호출
-    //memberService.registerOpenBankingToken(code, userId, responseHeaders, resEntity,memberVO);
+    
     System.out.println("발급된 사용자 일련번호(user_seq_no): " + code +"발급된 사용자 일련번호(user_seq_no):"+state);
     redirectAttributes.addFlashAttribute("msg", "계좌인증을 완료했습니다. 로그인을 다시 해주세요."); 
     return new ModelAndView("redirect:/member/logout.do");

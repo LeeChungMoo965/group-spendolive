@@ -1,5 +1,7 @@
 package com.example.spendolive.mypage.controller;
 
+import java.util.Map;
+
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.mypage.domain.MyPageDTO;
 import com.example.spendolive.member.service.MemberService;
@@ -19,6 +22,32 @@ import com.example.spendolive.mypage.service.MyPageService;
 @Controller
 @RequestMapping("/spendolive")
 public class MyPageController {
+
+    /* =========================================================
+       [마이페이지 계좌·카드 연결 추가]
+       DB의 은행코드를 JSP에서 사용자에게 보여줄 은행명으로 변환한다.
+       ========================================================= */
+    private static final Map<String, String> BANK_NAME_MAP = Map.ofEntries(
+            Map.entry("002", "산업은행"),
+            Map.entry("003", "기업은행"),
+            Map.entry("004", "국민은행"),
+            Map.entry("007", "수협은행"),
+            Map.entry("011", "농협은행"),
+            Map.entry("020", "우리은행"),
+            Map.entry("023", "SC제일은행"),
+            Map.entry("027", "한국씨티은행"),
+            Map.entry("031", "대구은행"),
+            Map.entry("032", "부산은행"),
+            Map.entry("034", "광주은행"),
+            Map.entry("035", "제주은행"),
+            Map.entry("037", "전북은행"),
+            Map.entry("039", "경남은행"),
+            Map.entry("081", "하나은행"),
+            Map.entry("088", "신한은행"),
+            Map.entry("089", "케이뱅크"),
+            Map.entry("090", "카카오뱅크"),
+            Map.entry("092", "토스뱅크")
+    );
 
     private final MyPageService myPageService;
     private final MemberService memberService;
@@ -53,6 +82,14 @@ public class MyPageController {
         mav.addObject("thisMonthExpenseTotal", myPage.getThisMonthExpenseTotal());
         mav.addObject("accountConnected", myPage.isAccountConnected());
         mav.addObject("openBankUserSeq", myPage.getOpenBankUserSeq());
+        /* =========================================================
+           [마이페이지 계좌·카드 연결 추가]
+           JSP에서 계좌·카드 목록, 상단 현재 계좌, 은행명을 사용할 수 있게 전달한다.
+           ========================================================= */
+        mav.addObject("accountList", myPage.getAccountList());
+        mav.addObject("cardList", myPage.getCardList());
+        mav.addObject("currentAccount", firstAccount(myPage));
+        mav.addObject("bankNameMap", BANK_NAME_MAP);
         mav.addObject("warning_count", myPage.getWarning_count());
         mav.addObject("myReportCount", myPage.getMyReportCount());
         mav.addObject("myReportList", myPage.getMyReportList());
@@ -129,6 +166,40 @@ public class MyPageController {
         return mav;
     }
 
+
+    /* =========================================================
+       [마이페이지 계좌·카드 연결 추가 시작]
+       마이페이지 계좌 목록의 제목 수정 요청을 처리한다.
+       로그인 확인, 공백·20자 제한 검사 후 Service를 호출한다.
+       ========================================================= */
+    @PostMapping("/mypage/account/name/update.do")
+    public ModelAndView updateAccountName(@RequestParam("accountIdx") int accountIdx,
+                                          @RequestParam("accountName") String accountName,
+                                          HttpSession session) {
+        ModelAndView mav = new ModelAndView();
+        MemberVO loginMember = (MemberVO) session.getAttribute("memberInfo");
+
+        if (loginMember == null || loginMember.getId() == null || loginMember.getId().isBlank()) {
+            mav.setViewName("redirect:/member/loginForm.do");
+            return mav;
+        }
+
+        String safeAccountName = accountName == null ? "" : accountName.trim();
+        if (safeAccountName.isBlank() || safeAccountName.length() > 20) {
+            mav.setViewName("redirect:/spendolive/mypage.do?assetError=invalidAccountName#asset-manage");
+            return mav;
+        }
+
+        try {
+            memberService.updateAccountName(loginMember.getId(), accountIdx, safeAccountName);
+            mav.setViewName("redirect:/spendolive/mypage.do?accountNameUpdated=Y#asset-manage");
+        } catch (Exception e) {
+            mav.setViewName("redirect:/spendolive/mypage.do?assetError=accountNameUpdateFailed#asset-manage");
+        }
+
+        return mav;
+    }
+    /* [마이페이지 계좌·카드 연결 추가 끝] */
 
     @PostMapping("/mypage/withdraw.do")
     public ModelAndView withdrawMember(@RequestParam(value = "withdrawConfirm", required = false) String withdrawConfirm,
@@ -246,6 +317,17 @@ public class MyPageController {
         session.removeAttribute("mypagePhoneTarget");
         session.removeAttribute("mypagePhoneVerified");
         session.removeAttribute("mypagePhoneVerifiedValue");
+    }
+
+    /* =========================================================
+       [마이페이지 계좌·카드 연결 추가]
+       계좌가 없어도 오류가 발생하지 않도록 첫 계좌를 안전하게 꺼낸다.
+       ========================================================= */
+    private MemberAccountVO firstAccount(MyPageDTO myPage) {
+        if (myPage == null || myPage.getAccountList() == null || myPage.getAccountList().isEmpty()) {
+            return null;
+        }
+        return myPage.getAccountList().get(0);
     }
 
     private ModelAndView layout(String bodyPage) {
