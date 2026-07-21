@@ -2,7 +2,7 @@ function loadNotificationBadge() {
     const badge = document.getElementById("notificationBadge");
     if (!badge) return;
 
-    fetch("/spendolive/notification/ajax/unread_count.do")
+    fetch("/spendolive/notification/ajax/unreadCount.do",  { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error("HTTP " + response.status);
             return response.json();

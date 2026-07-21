@@ -113,10 +113,6 @@
 			<artifactId>sdk</artifactId>
 			<version>1.0.3</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
 		
 	</dependencies>
 
@@ -172,5 +168,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-</project>
+</project>	
