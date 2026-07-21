@@ -3,47 +3,44 @@
    header.jsp의 알림 벨 아이콘 + 안읽은 알림 개수 배지
    ========================================================= */
 
-
-
 /* 벨 아이콘을 감싸는 클릭 영역.
    position: relative로 잡아서, 안쪽 .notification-badge가
    이 박스를 기준점 삼아 우상단에 겹쳐 뜨도록 한다. */
-.header-bell {
+   .header-bell {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 2.125rem;
+    height: 2.125rem;
 }
 
 /* 실제 종 모양 아이콘(이모지/아이콘 폰트) 크기 */
 .bell-icon {
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1;
 }
 
 /* 안읽은 알림 개수를 보여주는 빨간 동그라미 배지. */
 .notification-badge {
     position: absolute;
-    top: 2px;
-    right: 1px;
+    top: 0.125rem;
+    right: 0.0625rem;
 
-    min-width: 17px;
-    height: 17px;
-    padding: 0 4px;
+    min-width: 1.0625rem;
+    height: 1.0625rem;
+    padding: 0 0.25rem;
 
     border-radius: 999px;
     background: #ef4444;
     color: #fff;
 
-    font-size: 10px;
+    font-size: 0.625rem;
     font-weight: 900;
-    line-height: 17px;
+    line-height: 1.0625rem;
     text-align: center;
-
 
     /* 흰 테두리를 둘러서, 벨 아이콘 배경이 어두울 때도
        배지 경계가 뭉개지지 않고 또렷하게 보이도록 함 */
-    box-shadow: 0 0 0 2px #fff;
+    box-shadow: 0 0 0 0.125rem #fff;
 }

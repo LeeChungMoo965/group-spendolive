@@ -6,7 +6,7 @@
 
 /* 캘린더 페이지는 히어로 영역이 다른 페이지보다 낮아서 여백만 줄임 */
 .page-hero {
-  padding: 32px 0 8px;
+  padding: 2rem 0 0.5rem;
 }
 
 /* ---------------------------------------------------------
@@ -54,24 +54,24 @@
 .calendar-expense-chip {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-top: 3px;
-  padding: 5px 8px;
-  font-size: 13px;
+  gap: 0.125rem;
+  margin-top: 0.1875rem;
+  padding: 0.3125rem 0.5rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
   overflow: hidden;
   color: #fff;
   background: #d97757;   /* 분류(chip-type-*)를 못 받았을 때의 fallback 색상 */
-  border-radius: 8px;
+  border-radius: 0.5rem;
 }
 .calendar-expense-chip .chip-amount {
   font-weight: 900;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #fff;
 }
 .calendar-expense-chip .chip-category {
   color: rgba(255, 255, 255, .85);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 /* 지출 분류별 칩 색상.
@@ -105,24 +105,24 @@
  레이아웃 여백 보정
  --------------------------------------------------------- */
 .calendar-controls {
-  margin-bottom: -70px;   /* 상단 컨트롤(월 이동 버튼 등)과 달력 사이 여백 보정 */
+  margin-bottom: -4.375rem;   /* 상단 컨트롤(월 이동 버튼 등)과 달력 사이 여백 보정 */
 }
 .side-column {
-  margin-top: 80px;       /* 사이드 패널을 달력 상단 컨트롤 높이만큼 아래로 내림 */
-  margin-left: 16px;
+  margin-top: 5rem;       /* 사이드 패널을 달력 상단 컨트롤 높이만큼 아래로 내림 */
+  margin-left: 1rem;
 }
 /* 사이드 패널(이번 달 주요 지출) 카드들을 세로로 나열 */
 .side-column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1.25rem;
 }
 
 /* ---------------------------------------------------------
  FullCalendar 날짜 칸 높이 고정
  --------------------------------------------------------- */
 .fc .fc-daygrid-day-frame {
-  height: 125px;
+  height: 7.8125rem;
 }
 
 /* ---------------------------------------------------------
@@ -131,13 +131,13 @@
  --------------------------------------------------------- */
 .fc .fc-daygrid-more-link {
   display: inline-block;
-  margin-top: 3px;
-  padding: 3px 8px;
-  border-radius: 8px;
+  margin-top: 0.1875rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.5rem;
   background: #ecf1b8;
   border: 1px solid var(--line);
   color: var(--olive-dark);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 900;
 }
 .fc .fc-daygrid-more-link:hover {
@@ -150,12 +150,12 @@
  --------------------------------------------------------- */
 .fc .fc-popover {
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 1rem;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
 .fc .fc-popover-header {
-  padding: 10px 14px;
+  padding: 0.625rem 0.875rem;
   background: linear-gradient(135deg, var(--olive-dark), var(--olive));
   color: #fff;
   font-weight: 900;
@@ -166,18 +166,18 @@
 .fc .fc-popover-close {
   color: #fff;
   opacity: .85;
-  font-size: 16px;
+  font-size: 1rem;
 }
 .fc .fc-popover-close:hover {
   opacity: 1;
 }
 .fc .fc-popover-body {
-  padding: 8px;
+  padding: 0.5rem;
   background: #fff;
 }
 /* 팝오버 안에서도 지출 칩은 목록용으로 위아래 여백만 살짝 조정 */
 .fc .fc-popover-body .calendar-expense-chip {
-  margin: 4px 2px;
+  margin: 0.25rem 0.125rem;
 }
 
 /* ---------------------------------------------------------
@@ -185,20 +185,20 @@
  --------------------------------------------------------- */
 .side-pager {
   display: flex;
-  gap: 4px;
+  gap: 0.25rem;
   justify-content: center;
-  margin: 12px 0 16px;
+  margin: 0.75rem 0 1rem;
 }
 .pager-num-btn {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 5px;
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding: 0 0.3125rem;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 0.4375rem;
   background: #fff;
   color: var(--muted);
   font-weight: 800;
-  font-size: 11px;
+  font-size: 0.6875rem;
   cursor: pointer;
   transition: .15s ease;
 }
@@ -210,17 +210,17 @@
   background: var(--olive);
   border-color: var(--olive);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(122, 127, 54, .25);
+  box-shadow: 0 0.25rem 0.625rem rgba(122, 127, 54, .25);
 }
 
 /* 이번 달 지출 내역이 하나도 없을 때 사이드패널에 뜨는 안내 문구 */
 .empty-text {
-  padding: 14px;
-  border-radius: 15px;
+  padding: 0.875rem;
+  border-radius: 0.9375rem;
   background: var(--cream);
   border: 1px dashed var(--line);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-align: center;
   margin: 0;
 }
@@ -247,9 +247,9 @@
  --------------------------------------------------------- */
 .side-event {
   display: block;
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  border-radius: 12px;
+  padding: 0.75rem 0.875rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.75rem;
   background: #fff;
   border: 1px solid #e5e2d8;
 }
@@ -258,14 +258,14 @@
 }
 .side-event strong {
   display: block;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 900;
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
   color: #22261a;
 }
 .side-event span {
   display: block;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 

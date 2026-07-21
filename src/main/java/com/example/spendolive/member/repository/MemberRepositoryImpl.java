@@ -19,9 +19,16 @@ import java.time.LocalDateTime;
 public class MemberRepositoryImpl implements MemberRepository{
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
+//insert
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
-    
+    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,ACCOUNT_HOLDER_NAM) "
+    +" values(?,?,?,?,?,?,?,?) ";
+    private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
+    +" values(?,?,?,?) ";
+    private final String inserttrandetail = "INSERT INTO member_tran_tb(id,Inout_type ,tran_amt,tran_date, account_idx) values(?,?,?,?,?)";
+
+//select 
+
     private final String login =
     "SELECT member_id, id, email, password, member_name, nickname, "
   + "phone, login_type, blocked_until, warning_count, role, status, "
@@ -51,10 +58,7 @@ public class MemberRepositoryImpl implements MemberRepository{
     +" from member_tb where email =? AND STATUS ='ACTIVE'";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
     +" from member_tb where phone =? AND STATUS ='ACTIVE'";
-    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,ACCOUNT_HOLDER_NAM) "
-    +" values(?,?,?,?,?,?,?,?) ";
-    private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
-    +" values(?,?,?,?) ";
+   
     private final String selectMemberByIdSql =
     "SELECT member_id, id, email, password, member_name, nickname, "
   + "phone, login_type, blocked_until, warning_count, role, status, "
@@ -66,15 +70,17 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "FROM member_tb "
   + "WHERE id = ? "
   + "AND status = 'ACTIVE'";
+  private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE,FROM_DATE,FROM_TIME,TO_DATE,TO_TIME,ACCOUNT_NAME,STATUS "
+                                                +"from member_account_tb where id=? ";
+    private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
+                                                +"from member_card_tb where id=? ";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
+//update 
     private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
     private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
-    private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE,FROM_DATE,FROM_TIME,TO_DATE,TO_TIME,ACCOUNT_NAME,STATUS "
-                                                +"from member_account_tb where id=? order by account_idx ";
-    private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
-                                                +"from member_card_tb where id=? order by card_idx ";
+    
     private final String updateWarning="update member_tb set warning_count=? where id=? ";
-    private final String inserttrandetail = "INSERT INTO member_tran_tb(id,Inout_type ,tran_amt,tran_date, account_idx) values(?,?,?,?,?)";
+   
     private final String updatebalance="update member_account_tb set balance=(balance + ?) where account_idx=? ";
     /* =========================================================
        [마이페이지 계좌·카드 연결 추가]
