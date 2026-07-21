@@ -157,8 +157,6 @@ label {
 .admin-card,
 .ott-choice-card,
 .ott-form-card,
-.ott-room-list-card,
-.recruit-board-card,
 .ott-tab-panel,
 .calendar {
   background: var(--card);
@@ -188,7 +186,6 @@ label {
 
 /* ---------- Tab System ---------- */
 .tab-list,
-.ott-tabs,
 .ott-tab-menu {
   display: flex;
   flex-wrap: wrap;
@@ -196,7 +193,6 @@ label {
 }
 
 .tab-button,
-.ott-tabs a,
 .ott-tab-menu a {
   display: inline-flex;
   align-items: center;
@@ -216,8 +212,6 @@ label {
 
 .tab-button:hover,
 .tab-button.active,
-.ott-tabs a:hover,
-.ott-tabs a.active,
 .ott-tab-menu a:hover,
 .ott-tab-menu a.active {
   background: var(--olive);

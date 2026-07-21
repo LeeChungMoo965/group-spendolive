@@ -50,27 +50,6 @@ textarea {
     flex-direction: column;
 }
 
-.admin-header {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    height: 78px;
-    background: rgba(255, 255, 248, 0.92);
-    border-bottom: 1px solid rgba(212, 217, 190, 0.8);
-    backdrop-filter: blur(18px);
-}
-
-.admin-header-inner {
-    max-width: 1420px;
-    height: 100%;
-    margin: 0 auto;
-    padding: 0 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-}
-
 .admin-brand {
     display: flex;
     align-items: center;
@@ -138,15 +117,6 @@ textarea {
     gap: 10px;
     min-width: 210px;
     justify-content: flex-end;
-}
-
-.admin-pill {
-    padding: 10px 14px;
-    border-radius: 999px;
-    background: #eef3d9;
-    color: var(--olive-800);
-    font-size: 13px;
-    font-weight: 900;
 }
 
 .admin-main {
@@ -355,15 +325,13 @@ textarea {
     margin-bottom: 18px;
 }
 
-.toolbar-left,
-.toolbar-right {
+.toolbar-left {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
 }
 
-.search-input,
 .select-input,
 .form-input,
 .form-textarea {
@@ -375,10 +343,6 @@ textarea {
     color: var(--text);
     font-weight: 700;
     outline: none;
-}
-
-.search-input {
-    min-width: 260px;
 }
 
 .form-textarea {
@@ -718,33 +682,6 @@ textarea {
     font-weight: 900;
 }
 
-.notice-card {
-    padding: 22px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    background: #fffef8;
-    margin-bottom: 14px;
-}
-
-.notice-card h3 {
-    margin: 0 0 10px;
-    color: var(--olive-900);
-}
-
-.notice-card p {
-    margin: 0;
-    color: var(--muted);
-    line-height: 1.7;
-    font-weight: 700;
-}
-
-.notice-meta {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 16px;
-}
-
 .activity-list {
     display: grid;
     gap: 12px;
@@ -852,15 +789,6 @@ textarea {
 }
 
 @media (max-width: 1180px) {
-    .admin-header {
-        height: auto;
-    }
-
-    .admin-header-inner {
-        padding: 16px 22px;
-        flex-wrap: wrap;
-    }
-
     .admin-brand,
     .admin-actions {
         min-width: auto;
@@ -917,12 +845,10 @@ textarea {
         align-items: stretch;
     }
 
-    .toolbar-left,
-    .toolbar-right {
+    .toolbar-left {
         width: 100%;
     }
 
-    .search-input,
     .select-input,
     .btn {
         width: 100%;

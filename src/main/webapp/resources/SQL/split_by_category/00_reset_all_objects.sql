@@ -73,3 +73,16 @@ END;
 /
 
 PROMPT SpendOlive 프로젝트 테이블과 시퀀스 초기화 완료
+
+
+ALTER TABLE ott_room_member_tb ADD (
+    pay_day         NUMBER ,
+    pay_late_day    NUMBER DEFAULT 0,
+    settlement_status  VARCHAR2(30) DEFAULT 'READY' , -- 방장 정산(송금) 후에 상태
+    CONSTRAINT ck_ott_member_settlement_status CHECK (
+        settlement_status IN (
+            'READY',              -- 정산 안됨
+            'DONE'               -- 정산 완료
+        )
+    )
+);
