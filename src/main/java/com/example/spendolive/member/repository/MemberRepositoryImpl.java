@@ -69,13 +69,14 @@ public class MemberRepositoryImpl implements MemberRepository{
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
     private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
     private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
-    private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE,FROM_DATE,FROM_TIME,TO_DATE,TO_TIME "
+    private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE,FROM_DATE,FROM_TIME,TO_DATE,TO_TIME,ACCOUNT_NAME,STATUS "
                                                 +"from member_account_tb where id=? ";
     private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
                                                 +"from member_card_tb where id=? ";
     private final String updateWarning="update member_tb set warning_count=? where id=? ";
     private final String inserttrandetail = "INSERT INTO member_tran_tb(id,Inout_type ,tran_amt,tran_date, account_idx) values(?,?,?,?,?)";
     private final String updatebalance="update member_account_tb set balance=(balance + ?) where account_idx=? ";
+    
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -389,7 +390,8 @@ public class MemberRepositoryImpl implements MemberRepository{
             account.setId(rs.getString("id"));
             account.setOpen_bank_token(rs.getString("OPEN_BANK_TOKEN"));
             account.setReg_date(rs.getObject("reg_date", LocalDateTime.class));
-
+            account.setAccount_name(rs.getString("account_name"));
+            account.setStatus(rs.getString("status"));
             return account;
             },userId);
         }catch (org.springframework.dao.EmptyResultDataAccessException e) {
