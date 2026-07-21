@@ -63,16 +63,10 @@ public class MemberControllerImpl implements MemberController{
             session.setAttribute("isLogOn", true);
             session.setAttribute("memberInfo", memberVO);
             if(accountList != null){
-                System.out.println("👉 [1] 계좌 리스트 크기: " + accountList.size());
                 for(MemberAccountVO account : accountList){
-                    System.out.println("👉 [2] 계좌 번호: " + account.getFintech_use_num());
-                    System.out.println("👉 [3] 토큰 값: [" + account.getOpen_bank_token() + "]");
                     if(account.getOpen_bank_token() != null){
-                        System.out.println("🚀 [4] 조건문 통과! 서비스 메서드를 호출합니다.");
                         memberService.registerOpenBankingIntegratedToken(memberVO,account);
-                        System.out.println("✅ [5] 서비스 메서드 실행 완료!");
                     }
-                    System.out.println("❌ [3-1] open_bank_token이 null이라서 메서드 호출을 건너뜁니다.");
                 }
             }
             try{
