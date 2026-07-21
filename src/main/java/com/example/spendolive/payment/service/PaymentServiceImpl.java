@@ -191,13 +191,16 @@ public class PaymentServiceImpl implements PaymentService{
 
     restTemplate.getMessageConverters().add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
     
-    MemberCardVO cardVo = memberRepository.getCardInfoByUserId(userId);
-    if (cardVo == null || cardVo.getBilling_key() == null) {
+    List<MemberCardVO> cardVoList = memberRepository.selectCardById(userId);
+    String billingKey = "";
+    if (cardVoList == null) {
         throw new RuntimeException("등록된 결제 카드가 없습니다.");
     }
-    
-    String billingKey = cardVo.getBilling_key();
-
+    for(MemberCardVO card : cardVoList){
+        if(card.getStatus().equals("YES")){
+            billingKey = card.getBilling_key();
+        }
+    }
     
     String url = "https://api.tosspayments.com/v1/billing/" + billingKey;
 
