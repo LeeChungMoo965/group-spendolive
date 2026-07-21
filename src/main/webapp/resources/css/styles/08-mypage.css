@@ -92,3 +92,42 @@
 /* 계좌관리 카드처럼 조건문 안에서 버튼이 나와도 동일하게 적용 */
 
 .mypage-bank-card > .btn,.mypage-report-card > .btn,.mypage-profile-card > .btn,.mypage-stat-card > .btn {margin-top: auto;}
+/* =========================================================
+   [마이페이지 계좌·카드 연결 CSS 추가 시작]
+   최초 화면 전환과 계좌·카드 목록, 4개 단위 페이지 표시 스타일
+   검색 키워드: 마이페이지 계좌·카드 연결
+   ========================================================= */
+/* 마이페이지 선택 영역: 최초 진입 시 공유방만 보이고 상단 버튼을 누르면 해당 영역을 표시 */
+.mypage-toggle-panel {scroll-margin-top: 104px;}
+
+/* 나의 계좌·카드 목록 */
+.mypage-asset-section {display: grid;gap: 14px;margin-top: 26px;}
+.mypage-asset-section:first-of-type {margin-top: 0;}
+.mypage-asset-section-head {display: flex;align-items: center;justify-content: space-between;gap: 16px;}
+.mypage-asset-section-head h3 {margin: 0;color: var(--olive-dark);font-size: 20px;}
+.mypage-asset-pager {display: flex;align-items: center;gap: 8px;}
+.mypage-asset-pager span {min-width: 54px;color: var(--muted);font-size: 13px;font-weight: 900;text-align: center;}
+.mypage-asset-pager .btn:disabled {cursor: default;opacity: .45;transform: none;}
+.mypage-asset-list {display: grid;gap: 12px;}
+.mypage-asset-item {display: grid;grid-template-columns: minmax(0, 1fr) 180px auto;align-items: center;gap: 16px;min-height: 96px;padding: 16px;border: 1px solid var(--line);border-radius: 18px;background: var(--cream);}
+.mypage-card-item {grid-template-columns: minmax(0, 1fr);}
+.mypage-asset-main {min-width: 0;}
+.mypage-asset-main > strong {display: block;color: var(--olive-dark);font-size: 17px;}
+.mypage-asset-main p {margin: 7px 0 0;color: var(--text);font-size: 14px;font-weight: 800;word-break: break-all;}
+.mypage-asset-title-form {display: flex;align-items: center;gap: 8px;}
+.mypage-asset-title-form input {width: min(280px, 100%);height: 36px;margin: 0;padding: 6px 10px;color: var(--olive-dark);font-size: 17px;font-weight: 900;}
+.mypage-asset-title-form input[readonly] {border-color: transparent;background: transparent;box-shadow: none;}
+.mypage-account-balance {display: grid;gap: 5px;text-align: right;}
+.mypage-account-balance span {color: var(--muted);font-size: 12px;font-weight: 850;}
+.mypage-account-balance strong {color: var(--olive-dark);font-size: 18px;white-space: nowrap;}
+.mypage-asset-empty {display: flex;grid-template-columns: 1fr;align-items: center;justify-content: center;color: var(--muted);font-weight: 850;text-align: center;}
+
+@media(max-width:700px) {
+  .mypage-asset-section-head {align-items: flex-start;flex-direction: column;}
+  .mypage-asset-pager {width: 100%;justify-content: flex-end;}
+  .mypage-asset-item {grid-template-columns: 1fr;align-items: stretch;}
+  .mypage-account-balance {text-align: left;}
+  .mypage-asset-title-form {align-items: stretch;}
+  .mypage-asset-title-form input {width: 100%;}
+}
+/* [마이페이지 계좌·카드 연결 CSS 추가 끝] */
