@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberCardVO;
+import com.example.spendolive.member.domain.MemberTranVO;
 import com.example.spendolive.member.domain.MemberVO;
 import java.time.LocalDateTime;
 @Repository
@@ -68,11 +69,13 @@ public class MemberRepositoryImpl implements MemberRepository{
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
     private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
     private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
-    private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE "
+    private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE,FROM_DATE,FROM_TIME,TO_DATE,TO_TIME "
                                                 +"from member_account_tb where id=? ";
     private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
                                                 +"from member_card_tb where id=? ";
     private final String updateWarning="update member_tb set warning_count=? where id=? ";
+    private final String inserttrandetail = "INSERT INTO member_tran_tb(id,Inout_type ,tran_amt,tran_date, account_idx) values(?,?,?,?,?)";
+    private final String updatebalance="update member_account_tb set balance=(balance + ?) where account_idx=? ";
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -167,6 +170,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         billingkey
         );
     }
+    
     @Override
     public void updateOpenBankingInfo(String userId, String accessToken, String userSeqNo, String fintech_num, String bank_code, String account_num, int balance,String accountHolderNam) throws DataAccessException {
         jdbcTemplate.update(updatePinNO,
@@ -258,21 +262,7 @@ public class MemberRepositoryImpl implements MemberRepository{
         return member;
     }
 
-    @Override
-    public MemberCardVO getCardInfoByUserId(String userId) {
-    try{
-        return jdbcTemplate.queryForObject(selectMemverCardById, (rs, rowNum) ->{
-            MemberCardVO card = new MemberCardVO();
-            card.setBilling_key(rs.getString("billing_key"));
-            card.setCard_company(rs.getString("card_company"));
-            card.setCard_number(rs.getString("card_number"));
-            return card;
-        }, userId);
-    }catch (org.springframework.dao.EmptyResultDataAccessException e) {
-            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
-            return null; 
-        }
-    }
+ 
     
 
     /* =========================================================
@@ -365,9 +355,9 @@ public class MemberRepositoryImpl implements MemberRepository{
         jdbcTemplate.update(updatemember_card_Status,id);
     }
     @Override
-    public MemberCardVO selectCardById(String userId){
+    public List<MemberCardVO> selectCardById(String userId){
         try {
-            return jdbcTemplate.queryForObject(selectMemberCardById, (rs, rowNum) -> {
+            return jdbcTemplate.query(selectMemberCardById, (rs, rowNum) -> {
             MemberCardVO card = new MemberCardVO();
             card.setCard_company(rs.getString("card_company"));
             card.setBilling_key(rs.getString("billing_key"));
@@ -384,9 +374,9 @@ public class MemberRepositoryImpl implements MemberRepository{
         }
     }
     @Override
-    public MemberAccountVO selectAccountById(String userId){
+    public List<MemberAccountVO> selectAccountById(String userId){
         try {
-            return jdbcTemplate.queryForObject(selectMemberAccountById, (rs, rowNum) -> {
+            return jdbcTemplate.query(selectMemberAccountById, (rs, rowNum) -> {
             MemberAccountVO account = new MemberAccountVO();
 
             account.setAccount_idx(rs.getInt("account_idx"));
@@ -414,5 +404,13 @@ public class MemberRepositoryImpl implements MemberRepository{
     @Override
     public List<MemberVO> selectMemberAll() throws DataAccessException {
         return jdbcTemplate.query(selectMemberAllSql, (rs, rowNum) -> mapMember(rs));
+    }
+    @Override
+    public void inserttrandetail(MemberTranVO tran){
+        jdbcTemplate.update(inserttrandetail, tran.getId(),tran.getInout_type() ,tran.getTran_amt(),tran.getTran_date(),tran.getAccount_idx());
+    }
+    @Override
+    public void updatebalance(int tran_amt, int idx){
+        jdbcTemplate.update(updatebalance, tran_amt,idx);
     }
 }

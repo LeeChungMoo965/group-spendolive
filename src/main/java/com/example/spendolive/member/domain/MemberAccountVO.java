@@ -22,5 +22,9 @@ public class MemberAccountVO {
     private String open_bank_token;  // open_bank_token (VARCHAR2) 금결원 인증 토큰
     private String open_bank_user_seq;// open_bank_user_seq (VARCHAR2) 금결원 인증 사용자 번호
     private  LocalDateTime reg_date;          // reg_date (DATE)YYYY/mm/DD 
-
+    private String from_date;  // 거래내역 조회 시작 날짜
+    private String to_date;// 거래내역 조회 종료 날짜
+    private String from_time;  // 거래내역 조회 시작 날짜
+    private String to_time;// 거래내역 조회 종료 날짜
+    
 }

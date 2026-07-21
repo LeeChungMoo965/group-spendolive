@@ -1,5 +1,7 @@
 package com.example.spendolive.mypage.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +37,8 @@ public class MyPageServiceImpl implements MyPageService {
         MemberVO memberInfo = memberService.getMemberById(loginId);
     
         // 마이페이지 요청이 들어왔을 때만 계좌 테이블을 별도로 조회
-        MemberAccountVO accountInfo = memberService.getAccountById(loginId);
-    
+        List<MemberAccountVO> accountInfoList = memberService.getAccountById(loginId);
+        MemberAccountVO accountInfo = accountInfoList.get(0);
         MyPageDTO myPage = new MyPageDTO();
     
         myPage.setMemberInfo(memberInfo);

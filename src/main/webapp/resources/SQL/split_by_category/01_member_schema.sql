@@ -74,12 +74,24 @@ CREATE TABLE MEMBER_ACCOUNT_TB (
     OPEN_BANK_USER_SEQ   VARCHAR2(50) NOT NULL,                           -- 금결원 사용자 일련번호
     ACCOUNT_HOLDER_NAM   VARCHAR2(50),
     REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
+    account_name VARCHAR2(20) default '계좌',
+     to_date VARCHAR2(8) default '20260721',
+    from_date VARCHAR2(8) default '20260701',
+    to_time VARCHAR2(6) default '235959',
+    from_time VARCHAR2(6) default '000000',
     
     -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
 
     CONSTRAINT FK_ACCOUNT_member_id FOREIGN KEY (ID) 
 
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
+);
+ALTER TABLE member_account_tb ADD (
+    to_date VARCHAR2(8) default '20260721',
+    from_date VARCHAR2(8) default '20260701',
+    to_time VARCHAR2(6) default '235959',
+    from_time VARCHAR2(6) default '000000',
+    account_name VARCHAR2(20) default '계좌'
 );
 
 CREATE TABLE MEMBER_CARD_TB (
@@ -91,15 +103,31 @@ CREATE TABLE MEMBER_CARD_TB (
     REG_DATE        DATE DEFAULT SYSDATE,                            -- 등록일
     
     -- 회원 테이블과의 연관 관계 설정 (회원 탈퇴 시 카드 정보도 삭제되게)
-<<<<<<< HEAD
-    CONSTRAINT FK_CARD_member_id FOREIGN KEY (member_id) 
-=======
+
+
     CONSTRAINT FK_CARD_MEMBER_ID FOREIGN KEY (ID) 
->>>>>>> aitest
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
 
 ALTER TABLE member_card_tb ADD (
     status         VARCHAR2(20) DEFAULT 'NO' NOT NULL,
     CONSTRAINT ck_member_card_status CHECK (status IN ('YES', 'NO'))
+);
+
+CREATE TABLE MEMBER_tran_TB (
+    MEMBER_tran_IDX NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
+    ID            VARCHAR2(20) NOT NULL,                           -- 회원 ID (MEMBER_TB 외래키)
+    ACCOUNT_IDX            NUMBER NOT NULL,                           -- 은행명 (ex: 신한은행, 국민은행)
+    tran_date       VARCHAR2(30) NOT NULL,                           -- 마스킹된 계좌번호 (ex: 110-***-1234)
+    inout_type      VARCHAR2(10) NOT NULL,                           -- 금결원 핵심 키 (핀테크이용번호 💥)
+    tran_amt              NUMBER ,                                -- 계좌 잔액 (실시간 동기화용 💰)
+    REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
+    
+    -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
+
+    CONSTRAINT FK_MEMBER_tran_member_id FOREIGN KEY (ID) 
+    REFERENCES MEMBER_TB(ID) ON DELETE CASCADE,
+    
+    CONSTRAINT FK_MEMBER_tran_account_idx FOREIGN KEY (account_idx) 
+    REFERENCES MEMBER_TB(account_idx) ON DELETE CASCADE
 );
