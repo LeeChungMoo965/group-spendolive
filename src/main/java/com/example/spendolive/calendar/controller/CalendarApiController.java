@@ -73,19 +73,19 @@ public class CalendarApiController {
             "  AND e.expense_date BETWEEN ? AND ? " +
             "ORDER BY e.expense_date, e.expense_id";
 
-        return jdbcTemplate.query(
-            sql,
-            new Object[]{ member_id, Date.valueOf(start), Date.valueOf(end) },
-            (rs, rowNum) -> {
-                Map<String, Object> row = new HashMap<>();
-                row.put("expense_id", rs.getLong("expense_id"));
-                row.put("expense_title", rs.getString("expense_title"));
-                row.put("amount", rs.getLong("amount"));
-                row.put("expense_date", rs.getDate("expense_date").toLocalDate().toString());
-                row.put("category_name", rs.getString("category_name"));
-                row.put("expense_type", rs.getString("expense_type"));
-                return row;
-            }
-        );
+            return jdbcTemplate.query(
+                sql,
+                (rs, rowNum) -> {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("expense_id", rs.getLong("expense_id"));
+                    row.put("expense_title", rs.getString("expense_title"));
+                    row.put("amount", rs.getLong("amount"));
+                    row.put("expense_date", rs.getDate("expense_date").toLocalDate().toString());
+                    row.put("category_name", rs.getString("category_name"));
+                    row.put("expense_type", rs.getString("expense_type"));
+                    return row;
+                },
+                member_id, Date.valueOf(start), Date.valueOf(end)  
+            );
     }
 }

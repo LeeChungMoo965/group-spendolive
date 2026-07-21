@@ -1,0 +1,49 @@
+/* ============================================================
+   17. 알림 상세 페이지
+   대상: notificationDetail.jsp
+   01-foundation.css의 --card/--line/--text/--muted/--olive* 토큰을
+   그대로 재사용한다 (알림 종류별 배지 색만 이 파일에서 따로 정의)
+   ============================================================ */
+
+/* 알림 상세 내용을 담는 카드 */
+.notif-detail-card {
+  max-width: 760px; margin: 40px auto; padding: 36px 40px;
+  background: var(--card); border-radius: var(--radius);
+  border: 1px solid var(--line); box-shadow: var(--shadow);
+}
+/* 카드 상단 — 알림 종류 배지 + 제목이 나란히 놓이는 줄 */
+.notif-detail-top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+}
+.notif-detail-title {
+  font-size: 1.35rem; font-weight: 900; margin: 0 0 12px;
+  color: var(--text);
+}
+/* 발신 시각 등 메타 정보 */
+.notif-detail-meta {
+  font-size: .85rem; color: var(--muted); margin-bottom: 28px;
+  display: flex; gap: 20px;
+}
+/* 알림 본문 메시지 영역 */
+.notif-detail-message {
+  font-size: .97rem; line-height: 1.8;
+  color: var(--text);
+  border-top: 1px solid var(--line);
+  padding-top: 24px; min-height: 80px;
+  white-space: pre-wrap;   /* 알림 메시지에 들어간 줄바꿈을 그대로 살림 */
+}
+/* 하단 버튼 영역 (예: "관련 페이지로 이동") */
+.notif-detail-actions {
+  margin-top: 32px; display: flex; gap: 10px;
+}
+
+/* 알림 종류 배지 — faq.css의 .badge와 같은 알약(pill) 형태로 통일 */
+.notif-badge {
+  padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 900;
+}
+/* NotificationType.NOTICE("HOME") — 공지사항 알림 */
+.badge-home     { background: var(--olive-soft); color: var(--olive-dark); }
+/* 개인 알림(문의 답변, 결제 등) — 앰버 톤 */
+.badge-personal { background: #fff1d6; color: #9a5f13; }
+/* OTT 관련 알림(공유방 모집 완료, 강퇴 등) */
+.badge-ott      { background: #eef3dc; color: var(--olive-dark); }

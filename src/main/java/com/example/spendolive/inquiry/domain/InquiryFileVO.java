@@ -9,13 +9,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InquiryFileVO {
-    private int file_id;
-    private int inquiry_id;
-    private String origin_name;   // 업로드 당시 원본 파일명
-    private String saved_name;    // 서버에 저장된 파일명 (UUID + 확장자)
-    private String file_path;     // 서버에 실제 저장된 경로
-    private long file_size;       // byte 단위
-    private String reg_date;
+    private int file_id;             //첨부파일 고유 번호(PK).
+    private int inquiry_id;          //이 파일이 속한 문의글 번호(FK).
+    private String origin_name;      // 업로드 당시 원본 파일명
+    private String saved_name;       // 서버에 저장된 파일명 (UUID + 확장자)
+    private String file_path;        // 서버에 실제 저장된 경로
+    private long file_size;          // 파일 용량(byte)
+    private String reg_date;         // 첨부파일 등록일
 
      /** 확장자로 이미지 파일 여부 판별 (inquiryList.jsp에서 썸네일 vs 파일 링크 분기용) */
      public boolean isImage() {
