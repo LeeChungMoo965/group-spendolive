@@ -44,12 +44,13 @@
 
         <div class="mypage-top-grid">
             <article class="card mypage-profile-card">
+                <p class="eyebrow">PROFILE</p>
                 <div class="avatar">${profileInitial}</div>
                 <div>
-                    <p class="eyebrow">PROFILE</p>
                     <h3>${memberInfo.member_name}</h3>
-                    <p class="mypage-muted">${memberInfo.nickname} · ${memberInfo.id}</p>
-                    <p class="mypage-muted">가입일 ${memberInfo.created_at}</p>
+                    <p class="mypage-muted">닉네임 : ${memberInfo.nickname}</p>
+                    <p class="mypage-muted">아이디 : ${memberInfo.id}</p>
+                    <p class="mypage-muted">가입일 : ${memberInfo.created_at}</p>
                 </div>
                 <a href="#profile-edit" class="btn btn-primary full">회원정보 수정</a>
             </article>

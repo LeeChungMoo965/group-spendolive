@@ -3,8 +3,6 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="/resources/css/styles.css">
-
 <%--
   참고: 상태 필터(전체/답변대기/답변완료/검토중)는 서버에 status 파라미터로 다시 요청해서
         전체 문의 중 해당 상태만 걸러 1페이지부터 보여준다 (InquiryController.normalizeStatusFilter 참고).

@@ -126,8 +126,8 @@
                                 </li>
                                 <li>
                                     <a class="so-menu-link"
-                                    href="${contextPath}/payment/paymenting.do">
-                                        정산하기
+                                    href="${contextPath}/spendolive/ott/recruit.do?tab=manage">
+                                        참여방 관리
                                     </a>
                                 </li>
                             </ul>

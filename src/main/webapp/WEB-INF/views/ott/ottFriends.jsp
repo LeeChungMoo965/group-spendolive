@@ -267,55 +267,6 @@
             </div>
 
             <div class="settlement-stack">
-                <%--
-                    정산 요청 처리
-                    방장의 다음 회차 정산 생성
-                --%>
-                <section class="settlement-wide-block settlement-request-block">
-                    <div class="settlement-sub-header">
-                        <div>
-                            <h3>정산 요청 보내기</h3>
-                            <p>정산월은 다음 이용분 기준입니다. 마감일은 결제일 7일 전으로 자동 계산됩니다.</p>
-                        </div>
-                        <span>다음 이용분 선결제</span>
-                    </div>
-
-                    <c:choose>
-                        <c:when test="${not empty hostedRoomList}">
-                            <div class="settlement-request-list settlement-wide-list">
-                                <c:forEach var="room" items="${hostedRoomList}">
-                                    <c:if test="${room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
-                                        <form action="${contextPath}/spendolive/ott/settlement/request.do" method="post" class="settlement-request-row wide-settlement-row">
-                                            <input type="hidden" name="room_id" value="${room.room_id}">
-                                            <input type="hidden" name="returnPage" value="friends">
-
-                                            <div class="settlement-room-title">
-                                                <strong>${room.room_name}</strong>
-                                                <small>${room.service_name} · ${room.plan_name} · 참여 ${room.current_member_count}/${room.member_limit}명 · 1인 결제 <fmt:formatNumber value="${room.per_person_amount}" pattern="#,##0" />원</small>
-                                            </div>
-
-                                            <label class="settlement-field">
-                                                <span>정산월</span>
-                                                <input type="month" name="settlement_month" value="${selectedSettlementMonth}">
-                                            </label>
-
-                                            <div class="settlement-auto-guide">
-                                                <b>자동 계산</b>
-                                                <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 7일 전</small>
-                                            </div>
-
-                                            <button type="submit" class="btn btn-primary ">정산 요청 보내기</button>
-                                        </form>
-                                    </c:if>
-                                </c:forEach>
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="empty-box">방장으로 만든 가족 지인 공유방이 없습니다.</div>
-                        </c:otherwise>
-                    </c:choose>
-                </section>
-
                 <%-- 개인 및 팀원 결제 상태 --%>
                 <section class="settlement-wide-block settlement-status-block">
                     <div class="settlement-sub-header">
