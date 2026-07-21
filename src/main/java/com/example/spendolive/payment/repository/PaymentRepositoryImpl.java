@@ -18,6 +18,7 @@ import com.example.spendolive.payment.domain.*;
 public class PaymentRepositoryImpl implements PaymentRepository{
     @Autowired
     private JdbcTemplate jdbcTemplate;
+//insert
 
     private final String successpayment = "INSERT INTO settlement_payment_tb (SETTLEMENT_ID, ID, BASE_AMOUNT, FEE_RATE, FEE_AMOUNT, TOTAL_AMOUNT, PAYMENT_STATUS, CARD_NUMBER, CARD_COMPANY, PAID_AT, PAYMENTKEY, ORDERID, MEMO)  "
     +" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ";
@@ -29,6 +30,8 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     private final String insertSeller = "INSERT INTO seller_account_tb ("
     +"member_id, bank_name, account_number, traceId) "
     +" VALUES(?,?,?,?) ";
+
+//select
     private final String settlement_paymentByroomId = "select "
     +"sp.payment_id, sp.settlement_id, sp.id, sp.base_amount, sp.fee_rate, sp.fee_amount, sp.total_amount, sp.payment_status, sp.card_number," 
     +"sp.card_company, sp.paid_at, sp.confirmed_at, sp.expired_at, sp.cancelled_at, sp.paymentKey, sp.orderId, sp.memo "
@@ -47,8 +50,6 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + "s.SETTLEMENT_STATUS "         
     + "from ott_room_tb r INNER JOIN settlement_tb s ON r.ROOM_ID = s.ROOM_ID where r.BILLING_DAY >=? AND r.BILLING_DAY <=? AND r.status= 'ACTIVE' "
     + "AND s.settlement_status =? ";
-    private final String insertTodayexcrow = "UPDATE escrow_payout_tb set STATUS = 'RELEASED' ,PAYOUT_AT =sysdate where ROOM_ID =? ";
-    private final String updateTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? ";
     private final String selectRoomMember = "select decode(count(*),1, 'true', 0, 'false') as id "
     +"from ott_room_member_tb "         
     + "where room_id =? and member_login_id=? and status ='ACTIVE' ";
@@ -56,6 +57,9 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + "TO_CHAR(JOINED_AT , 'YYYY-MM-DD') AS JOINED_AT "     
     + "from ott_room_member_tb where (pay_day + pay_late_day) >=? AND (pay_day + pay_late_day) <=? AND status= 'ACTIVE' "
     + "AND settlement_status =? and MEMBER_ROLE='MEMBER' AND room_id IN ( SELECT room_id from ott_room_tb where status ='ACTIVE' ) ";
+//update
+    private final String insertTodayexcrow = "UPDATE escrow_payout_tb set STATUS = 'RELEASED' ,PAYOUT_AT =sysdate where ROOM_ID =? ";
+    private final String updateTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? ";
     private final String updateReadyfromYet="UPDATE settlement_tb set settlement_status = 'READY'  where settlement_status='YET'  AND room_id "
        + " IN (SELECT room_id FROM ott_room_tb WHERE BILLING_DAY >=? AND BILLING_DAY <=?) ";
     private final String updateCheckTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'YET' where SETTLEMENT_STATUS ='DONE' AND ROOM_ID IN (SELECT room_id FROM ott_room_tb WHERE billing_day < ?) ";
