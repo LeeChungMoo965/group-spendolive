@@ -26,5 +26,7 @@ public class MemberAccountVO {
     private String to_date;// 거래내역 조회 종료 날짜
     private String from_time;  // 거래내역 조회 시작 날짜
     private String to_time;// 거래내역 조회 종료 날짜
+    private String account_name;            // 계좌 이름 별명
+    private String status;            // 계좌 이름 별명
     
 }
