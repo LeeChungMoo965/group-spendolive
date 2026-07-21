@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.domain.MemberAccountVO;
+import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.service.MemberService;
 import com.example.spendolive.mypage.domain.MyPageDTO;
 import com.example.spendolive.mypage.repository.MyPageReportRepository;
@@ -36,9 +37,19 @@ public class MyPageServiceImpl implements MyPageService {
     
         MemberVO memberInfo = memberService.getMemberById(loginId);
     
-        // 마이페이지 요청이 들어왔을 때만 계좌 테이블을 별도로 조회
+        /* =========================================================
+           [마이페이지 계좌·카드 연결 추가 시작]
+           담당자가 만든 계좌·카드 목록 조회 메서드를 호출한다.
+           조회 결과가 null 또는 빈 목록이어도 마이페이지가 500 오류 없이 열리게 처리한다.
+           첫 번째 계좌는 상단 계좌관리 카드의 현재 계좌로만 사용한다.
+           ========================================================= */
         List<MemberAccountVO> accountInfoList = memberService.getAccountById(loginId);
-        MemberAccountVO accountInfo = accountInfoList.get(0);
+        List<MemberCardVO> cardInfoList = memberService.getCardById(loginId);
+
+        accountInfoList = accountInfoList == null ? List.of() : accountInfoList;
+        cardInfoList = cardInfoList == null ? List.of() : cardInfoList;
+        MemberAccountVO accountInfo = accountInfoList.isEmpty() ? null : accountInfoList.get(0);
+        /* [마이페이지 계좌·카드 연결 추가 끝] */
         MyPageDTO myPage = new MyPageDTO();
     
         myPage.setMemberInfo(memberInfo);
@@ -58,6 +69,9 @@ public class MyPageServiceImpl implements MyPageService {
                         ? null
                         : accountInfo.getOpen_bank_user_seq()
         );
+        /* [마이페이지 계좌·카드 연결 추가] JSP로 전달할 전체 목록을 DTO에 저장한다. */
+        myPage.setAccountList(accountInfoList);
+        myPage.setCardList(cardInfoList);
     
         myPage.setWarning_count(Math.max(
                 memberInfo == null ? 0 : memberInfo.getWarning_count(),

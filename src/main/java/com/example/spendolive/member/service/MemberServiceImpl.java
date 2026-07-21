@@ -28,6 +28,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.spendolive.member.domain.MemberAccountVO;
+import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberTranVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.repository.MemberRepository;
@@ -252,6 +253,25 @@ public class MemberServiceImpl implements MemberService {
     public List<MemberAccountVO> getAccountById(String id) throws Exception {
         return memberRepository.selectAccountById(id);
     }
+
+    /* =========================================================
+       [마이페이지 계좌·카드 연결 추가 시작]
+       1) 등록 카드 목록 조회
+       2) 로그인 회원이 소유한 계좌의 제목 수정
+       ========================================================= */
+    @Override
+    public List<MemberCardVO> getCardById(String id) throws Exception {
+        return memberRepository.selectCardById(id);
+    }
+
+    @Override
+    public void updateAccountName(String id, int accountIdx, String accountName) throws Exception {
+        int updatedCount = memberRepository.updateAccountName(id, accountIdx, accountName);
+        if (updatedCount == 0) {
+            throw new IllegalArgumentException("수정할 계좌를 찾을 수 없습니다.");
+        }
+    }
+    /* [마이페이지 계좌·카드 연결 추가 끝] */
 
     @Override
     public void updateMyInfo(MemberVO memberVO, String newPassword) throws Exception {
