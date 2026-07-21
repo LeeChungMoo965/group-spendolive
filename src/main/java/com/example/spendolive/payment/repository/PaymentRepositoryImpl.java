@@ -48,7 +48,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + "TO_CHAR(r.CLOSED_AT, 'YYYY-MM-DD') AS CLOSED_AT, "
     + "TO_CHAR(r.created_at, 'YYYY-MM-DD') AS created_at, "
     + "s.SETTLEMENT_STATUS "         
-    + "from ott_room_tb r INNER JOIN settlement_tb s ON r.ROOM_ID = s.ROOM_ID where r.BILLING_DAY >=? AND r.BILLING_DAY <=? AND r.status= 'ACTIVE' "
+    + "from ott_room_tb r INNER JOIN settlement_tb s ON r.ROOM_ID = s.ROOM_ID where r.BILLING_DAY >=? AND r.BILLING_DAY <=? AND r.status IN ('ACTIVE', 'FIRST') "
     + "AND s.settlement_status =? ";
     private final String selectRoomMember = "select decode(count(*),1, 'true', 0, 'false') as id "
     +"from ott_room_member_tb "         
@@ -68,6 +68,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + " IN (SELECT room_id FROM ott_room_tb WHERE BILLING_DAY >=? AND BILLING_DAY <=?) ";
     private final String updateTodaysettlementroommemberstatus = "UPDATE ott_room_member_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? and member_login_id =? ";
     private final String updateTodaysettlementroommemberlate = "UPDATE ott_room_member_tb set pay_late_day =? + 1 where ROOM_ID =? and member_login_id =? ";
+    
     public PaymentRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -238,4 +239,5 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         public void updatSettlementStatusYET(int day) {
             jdbcTemplate.update(updateCheckTodaysettlement, day);
         }
+        
 }

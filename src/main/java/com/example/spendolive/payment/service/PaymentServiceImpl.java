@@ -479,6 +479,9 @@ public class PaymentServiceImpl implements PaymentService{
         try{
             paymentRepository.updateEscrowStatus(room_id);
             paymentRepository.updatSettlementStatus(room_id);
+            String status = "ACTIVE";
+            Long roomid = Long.valueOf(room_id);
+            ottRepository.updateRoomStatus(roomid, status);
         }catch(Exception e){
             throw new RuntimeException("DB 업데이트 실패: 송금 완료 후 서버 쪽에서 오류가 생겼습니다.");
         }

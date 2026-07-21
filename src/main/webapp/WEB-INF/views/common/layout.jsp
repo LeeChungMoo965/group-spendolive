@@ -15,7 +15,7 @@
 </head>
 
 <body>
-    <div id="modern-wrapper">
+    <div id="modern-wrapper" >
         <header id="modern-header">
             <jsp:include page="/WEB-INF/views/common/header.jsp" />
         </header>
