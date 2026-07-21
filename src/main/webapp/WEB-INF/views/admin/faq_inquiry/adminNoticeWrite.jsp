@@ -2,7 +2,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="/resources/css/styles.css">
 
 <section class="page-hero">
     <div class="container">
@@ -20,7 +19,7 @@
         <div class="flash-err">⚠ ${errorMsg}</div>
     </c:if>
 
-    <form action="${contextPath}/spendolive/admin/notice/${empty notice ? 'insert' : 'update'}.do" method="post" id="noticeForm">
+    <form action="${contextPath}/admin/notice/${empty notice ? 'insert' : 'update'}.do" method="post" id="noticeForm">
 
         <c:if test="${not empty notice}">
             <input type="hidden" name="notice_id" value="${notice.notice_id}">
@@ -45,7 +44,7 @@
         </div>
 
         <div class="btn-row">
-            <a href="${contextPath}/spendolive/admin/notice/list.do" class="btn btn-outline">취소</a>
+            <a href="${contextPath}/admin/notice/list.do" class="btn btn-outline">취소</a>
             <button type="submit" class="btn btn-primary">${empty notice ? '등록' : '수정'}</button>
         </div>
     </form>

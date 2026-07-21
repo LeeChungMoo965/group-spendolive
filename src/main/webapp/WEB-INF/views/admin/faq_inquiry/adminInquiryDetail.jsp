@@ -37,7 +37,7 @@
                     </c:choose>
                 </p>
             </div>
-            <a href="${contextPath}/spendolive/admin/inquiry/list.do" class="btn ghost">목록으로</a>
+            <a href="${contextPath}/admin/inquiry/list.do" class="btn ghost">목록으로</a>
         </div>
 
         <div class="form-group">
@@ -66,7 +66,7 @@
             </div>
         </c:if>
 
-        <form action="${contextPath}/spendolive/admin/inquiry/reply.do" method="post">
+        <form action="${contextPath}/admin/inquiry/reply.do" method="post">
             <input type="hidden" name="inquiry_id" value="${inquiry.inquiry_id}">
 
             <div class="form-row" style="display:grid;grid-template-columns:1fr 160px;gap:14px;">

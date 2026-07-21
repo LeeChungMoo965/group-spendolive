@@ -39,7 +39,7 @@ public class AdminFaqController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
 
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminFaqList.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminFaqList.jsp");
         try {
             mav.addObject("faqList", faqService.getAllFaqList());
             mav.addObject("faqGroups", faqService.getAllFaqGroupedByCategory());
@@ -56,7 +56,7 @@ public class AdminFaqController {
     public ModelAndView write(HttpSession session) {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminFaqWrite.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminFaqWrite.jsp");
         return mav;
     }
 
@@ -117,7 +117,7 @@ public class AdminFaqController {
         }
 
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminFaqWrite.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminFaqWrite.jsp");
         mav.addObject("faq", faq);
         return mav;
     }

@@ -3,7 +3,6 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="/resources/css/styles.css">
 
 <section class="page-hero">
     <div class="container">

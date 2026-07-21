@@ -1019,7 +1019,7 @@ textarea {
 }
 
 /* 탭 바로 아래 패널은 탭이랑 한 덩어리처럼 보이게 이어붙임 */
-.admin-main > .admin-board-tabs + .panel {
+#adminBoardArea > .admin-board-tabs + .panel {
     margin-top: 0 !important;      /* 기존 -34px 오프셋 무력화 */
     border-top-left-radius: 4px;   /* 위쪽 모서리는 각지게 → 탭이랑 자연스럽게 연결 */
     border-top-right-radius: 4px;
@@ -1079,7 +1079,8 @@ body {
 .admin-main > .panel,
 .admin-main > .stat-grid,
 .admin-main > .content-grid,
-.admin-main > .admin-board-tabs {
+.admin-main > .admin-board-tabs,
+.admin-main > #adminBoardArea {
     width: min(1360px, calc(100% - 64px));
     max-width: 1360px;
     margin-left: auto !important;
@@ -1087,11 +1088,21 @@ body {
     box-sizing: border-box;
 }
 
+/* #adminBoardArea(문의/FAQ 탭 AJAX 전환 껍데기) 안쪽 탭·패널은 부모 폭을 그대로 채움 */
+#adminBoardArea > .admin-board-tabs,
+#adminBoardArea > .panel {
+    width: 100%;
+    max-width: none;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
 /* hero 바로 아래 첫 번째 영역은 살짝 위로 올려서 사용자 페이지처럼 자연스럽게 연결 */
 .admin-main > .panel:first-of-type,
 .admin-main > .stat-grid:first-of-type,
-.admin-main > .content-grid:first-of-type {
-    margin-top: -34px !important;
+.admin-main > .content-grid:first-of-type,
+.admin-main > #adminBoardArea {
+    margin-top: +32px !important;
     position: relative;
     z-index: 2;
 }
@@ -1120,7 +1131,8 @@ body {
     .admin-main > .panel,
     .admin-main > .stat-grid,
     .admin-main > .content-grid,
-    .admin-main > .admin-board-tabs {
+    .admin-main > .admin-board-tabs,
+    .admin-main > #adminBoardArea {
         width: calc(100% - 32px);
     }
 

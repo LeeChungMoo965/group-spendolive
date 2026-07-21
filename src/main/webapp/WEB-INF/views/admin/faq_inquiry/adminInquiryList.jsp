@@ -4,7 +4,7 @@
 
 <%-- admin.css는 common/header.jsp가 role=='ADMIN'일 때 이미 자동으로 로드해줌 --%>
 
-<div class="admin-main">
+<div class="admin-main admin-board-page">
 
     <div class="hero">
         <div>
@@ -21,8 +21,9 @@
         <div class="flash-err">⚠ ${errorMsg}</div>
     </c:if>
 
+    <div id="adminBoardArea">
     <div class="admin-board-tabs">
-        <a href="${contextPath}/spendolive/admin/inquiry/list.do" class="admin-board-tab active">문의사항</a>
+        <a href="${contextPath}/admin/inquiry/list.do" class="admin-board-tab active">문의사항</a>
         <a href="${contextPath}/spendolive/admin/faq/list.do" class="admin-board-tab">자주 묻는 질문</a>
     </div>
 
@@ -37,13 +38,13 @@
         <div class="toolbar">
             <div class="toolbar-left filter-pills">
                 <a class="${currentStatus == 'all' ? 'active' : ''}"
-                   href="${contextPath}/spendolive/admin/inquiry/list.do?status=all">전체</a>
+                   href="${contextPath}/admin/inquiry/list.do?status=all">전체</a>
                 <a class="${currentStatus == 'wait' ? 'active' : ''}"
-                   href="${contextPath}/spendolive/admin/inquiry/list.do?status=wait">답변 대기</a>
+                   href="${contextPath}/admin/inquiry/list.do?status=wait">답변 대기</a>
                 <a class="${currentStatus == 'done' ? 'active' : ''}"
-                   href="${contextPath}/spendolive/admin/inquiry/list.do?status=done">답변 완료</a>
+                   href="${contextPath}/admin/inquiry/list.do?status=done">답변 완료</a>
                 <a class="${currentStatus == 'review' ? 'active' : ''}"
-                   href="${contextPath}/spendolive/admin/inquiry/list.do?status=review">검토 중</a>
+                   href="${contextPath}/admin/inquiry/list.do?status=review">검토 중</a>
             </div>
         </div>
 
@@ -72,7 +73,7 @@
                                     <td style="text-align:center;">${inq.category}</td>
                                     <td style="text-align:center;">${inq.inquiry_type}</td>
                                     <td>
-                                        <a href="${contextPath}/spendolive/admin/inquiry/detail.do?inquiryNo=${inq.inquiry_id}">${inq.title}</a>
+                                        <a href="${contextPath}/admin/inquiry/detail.do?inquiryNo=${inq.inquiry_id}">${inq.title}</a>
                                     </td>
                                     <td style="text-align:center;">
                                         <c:choose>
@@ -100,9 +101,12 @@
             <div class="admin-pagination">
                 <c:forEach begin="1" end="${totalPages}" var="p">
                     <a class="admin-pg-btn ${p == currentPage ? 'active' : ''}"
-                       href="${contextPath}/spendolive/admin/inquiry/list.do?status=${currentStatus}&page=${p}">${p}</a>
+                       href="${contextPath}/admin/inquiry/list.do?status=${currentStatus}&page=${p}">${p}</a>
                 </c:forEach>
             </div>
         </c:if>
     </div>
+    </div>
 </div>
+
+<script src="${contextPath}/resources/js/admin.js"></script>

@@ -79,7 +79,7 @@
             <div class="panel-title"><div class="section-kicker">Quick Tasks</div><h2>빠른 관리</h2><p>자주 확인하는 관리 메뉴입니다.</p></div>
             <div class="activity-list" style="margin-top:18px">
                 <a class="activity-item" href="report.html"><div><strong>신고 대기 18건</strong><span>처리 상태 변경 필요</span></div><span class="badge red">긴급</span></a>
-                <a class="activity-item" href="${contextPath}/spendolive/admin/inquiry/list.do"><div><strong>문의 답변 27건</strong><span>회원 정보 확인 후 답변</span></div><span class="badge yellow">대기</span></a>
+                <a class="activity-item" href="${contextPath}/admin/inquiry/list.do"><div><strong>문의 답변 27건</strong><span>회원 정보 확인 후 답변</span></div><span class="badge yellow">대기</span></a>
                 <a class="activity-item" href="party.html"><div><strong>삭제 요청 4건</strong><span>파티 상태 검토 필요</span></div><span class="badge blue">검토</span></a>
             </div>
         </section>
