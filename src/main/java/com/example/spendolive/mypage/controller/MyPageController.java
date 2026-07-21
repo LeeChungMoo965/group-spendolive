@@ -53,7 +53,7 @@ public class MyPageController {
         mav.addObject("thisMonthExpenseTotal", myPage.getThisMonthExpenseTotal());
         mav.addObject("accountConnected", myPage.isAccountConnected());
         mav.addObject("openBankUserSeq", myPage.getOpenBankUserSeq());
-        mav.addObject("warningCount", myPage.getWarningCount());
+        mav.addObject("warning_count", myPage.getWarning_count());
         mav.addObject("myReportCount", myPage.getMyReportCount());
         mav.addObject("myReportList", myPage.getMyReportList());
         mav.addObject("friendRoomList", myPage.getFriendRoomList());
@@ -123,7 +123,6 @@ public class MyPageController {
             clearMyPageVerificationSession(session);
             mav.setViewName("redirect:/spendolive/mypage.do?profileUpdated=Y");
         } catch (Exception e) {
-            e.printStackTrace();
             mav.setViewName("redirect:/spendolive/mypage.do?profileError=updateFailed#profile-edit");
         }
 
@@ -152,7 +151,6 @@ public class MyPageController {
             session.invalidate();
             mav.setViewName("redirect:/member/loginForm.do?withdraw=Y");
         } catch (Exception e) {
-            e.printStackTrace();
             mav.setViewName("redirect:/spendolive/mypage.do?withdrawError=failed#withdraw-section");
         }
 
@@ -170,7 +168,6 @@ public class MyPageController {
             session.removeAttribute("mypageEmailVerifiedValue");
             return "SUCCESS";
         } catch (Exception e) {
-            e.printStackTrace();
             return "ERROR";
         }
     }
@@ -205,7 +202,6 @@ public class MyPageController {
             session.removeAttribute("mypagePhoneVerifiedValue");
             return "SUCCESS";
         } catch (Exception e) {
-            e.printStackTrace();
             return "ERROR";
         }
     }

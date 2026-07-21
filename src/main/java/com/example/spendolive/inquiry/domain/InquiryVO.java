@@ -24,7 +24,7 @@ public class InquiryVO {
 
     /** 관리자 화면용: 작성자 닉네임 (member_tb.nickname 조인 결과, inquiry_tb 자체 컬럼 아님).
      *  카카오 등 소셜 로그인 회원은 id가 사람이 읽기 힘든 숫자라서 별도로 채워서 보여줌. */
-    private String writerNickname;
+    private String writer_nickname;
 
 
     /** 이 문의에 달린 첨부파일 목록. inquiry_tb 자체 컬럼이 아니라
@@ -48,7 +48,7 @@ public class InquiryVO {
 
     /** inquiryList.jsp의 c:if hasReply 분기용 */
     public boolean isHasReply() {
-        return replyContent != null && !replyContent.isBlank();
+        return reply_content != null && !reply_content.isBlank();
     }
 
     /** inquiryList.jsp 카드 미리보기 (100자 제한) */

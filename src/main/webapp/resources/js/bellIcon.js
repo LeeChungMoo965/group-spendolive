@@ -8,7 +8,7 @@ function loadNotificationBadge() {
             return response.json();
         })
         .then(data => {
-            const count = (data && data.unreadCount) ? data.unreadCount : 0;
+            const count = (data && data.unread_count) ? data.unread_count : 0;
             if (count <= 0) {
                 badge.style.display = "none";
                 badge.textContent   = "";

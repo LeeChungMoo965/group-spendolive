@@ -4,8 +4,6 @@
     <c:set var="contextPath" value="${pageContext.request.contextPath}" />
     <c:set var="requestURI" value="${pageContext.request.requestURI}" />
 
-    <link rel="stylesheet" href="${contextPath}/resources/css/bellIcon.css">
-
 <c:choose>
     <c:when test="${memberInfo.role == 'ADMIN'}">
     <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
@@ -19,10 +17,10 @@
                 </div>
             </a>
             <nav class="admin-nav">
-                <a href="index.html" data-nav="dashboard">대시보드</a>
+                <a href="${contextPath}/spendolive/admin/main.do" data-nav="dashboard">대시보드</a>
                 <a href="${contextPath}/admin/member/list.do" data-nav="member">회원관리</a>
                 <a href="${contextPath}/admin/ott/list.do" data-nav="ott">OTT 관리</a>
-                <a href="${contextPath}/admin/settlement/list.do" data-nav="party">정산관리</a>
+                <a href="${contextPath}/admin/settlement/list.do" data-nav="settlement">정산관리</a>
                 <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>
                 <a href="${contextPath}/spendolive/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
                 <a href="${contextPath}/spendolive/admin/notice/list.do" data-nav="notice">공지사항 관리</a>
@@ -176,6 +174,10 @@
                             <ul class="so-submenu">
                                 <li>
                                     <a class="so-menu-link"
+                                    href="${contextPath}/member/openBankingIntegratedAuth.do">
+                                        통합 계좌 연동
+                                    </a>
+                                    <a class="so-menu-link"
                                     href="${contextPath}/member/openBankingAuth.do">
                                         계좌 연동
                                     </a>
@@ -223,7 +225,7 @@
         const clientKey = "test_ck_yZqmkKeP8gBgMeYDwNpprbQRxB9l";
         const customerKey = "${memberInfo.id}";
         const tossPayments = TossPayments(clientKey);
-
+       
         //@docs https://docs.tosspayments.com/sdk/v2/js#tosspaymentspayment
         //const payment = tossPayments.payment({ customerKey });
         // 비회원 결제
@@ -232,6 +234,9 @@
         //@docs https://docs.tosspayments.com/sdk/v2/js#paymentrequestpayment
         async function requestBillingAuth() {
             const contextPath = "${contextPath}";
+             if(customerKey === ""){
+            alert("로그인해 주세요");
+            }
             await payment.requestBillingAuth({
             method: "CARD", // 자동결제(빌링)는 카드만 지원합니다
             successUrl: window.location.origin + contextPath + "/payment/callback.do", 
@@ -240,4 +245,8 @@
             customerName: '${memberInfo.member_name}',
             });
         }
+        var msg = "${msg}";
+if(msg && msg !== "") {
+    alert(msg);
+}
     </script>

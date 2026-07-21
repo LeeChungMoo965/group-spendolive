@@ -13,10 +13,7 @@
                 radial-gradient(circle at 82% 20%, rgba(196,138,44,.11), transparent 38%);
 }
 
-.ott-main-section .container,
-.ott-sub-hero .container {
-    max-width: 1180px;
-}
+
 
 .ott-stat-grid {
     display: grid;
@@ -122,11 +119,6 @@
     color: #6b7568;
     font-size: 14px;
 }
-
-.ott-main-btn {
-    margin-top: 6px;
-}
-
 .ott-page-actions {
     display: flex;
     gap: 10px;
@@ -509,10 +501,6 @@
 
     .ott-room-card-footer {
         justify-content: stretch;
-    }
-
-    .ott-room-card-footer .btn {
-        width: 100%;
     }
 
     .chat-widget-panel {

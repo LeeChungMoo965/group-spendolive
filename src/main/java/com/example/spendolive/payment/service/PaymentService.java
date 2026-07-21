@@ -13,10 +13,14 @@ public interface PaymentService {
     public List<OttRoomDTO> selectTodaysettlement(String status) throws  Exception;
     public void issueAndSaveBillingKey(String customerKey, String authKey, String userId) throws Exception;
     public void executeAutomaticPayment(String userId, int total, int room_id, int fee, int base, int settlement_id, String host_id) throws Exception;
-    public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int roomId) throws Exception;
-    public OttSettlementDTO selectMySettlements(int roomId)  throws Exception;
+    public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int room_id) throws Exception;
+    public OttSettlementDTO selectMySettlements(int room_id)  throws Exception;
     public void registerSubMall(String userId, String bankCode, String accNum, String holderName,MemberVO memberVO) throws Exception;
-    public String updateExcrow(int roomId) throws Exception;
-    public String roomMemberByroomIdCount(int roomId, String userId) throws Exception;
+    public String updateExcrow(int room_id) throws Exception;
+    public String roomMemberByroomIdCount(int room_id, String userId) throws Exception;
     public List<OttRoomMemberDTO> selectTodaysettlementmember(String status) throws Exception;
-}
+    public boolean processWithdraw(SettlementPaymentVO paymentInfo, MemberVO memberInfo) throws Exception;// 금결원 출금이체 프로세스 (테스트 권환 문제로 보류)
+    public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) throws Exception;
+    public OttRoomDTO selectRoomByRoomId(int roomId) throws Exception;
+    
+  }

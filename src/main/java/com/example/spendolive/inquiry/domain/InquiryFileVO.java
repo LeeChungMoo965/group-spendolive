@@ -19,8 +19,8 @@ public class InquiryFileVO {
 
      /** 확장자로 이미지 파일 여부 판별 (inquiryList.jsp에서 썸네일 vs 파일 링크 분기용) */
      public boolean isImage() {
-        if (originName == null) return false;
-        String lower = originName.toLowerCase();
+        if (origin_name == null) return false;
+        String lower = origin_name.toLowerCase();
         return lower.endsWith(".png") || lower.endsWith(".jpg")
                 || lower.endsWith(".jpeg") || lower.endsWith(".gif");
     }

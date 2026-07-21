@@ -41,10 +41,10 @@ public class InquiryService {
      */
     @Transactional
     public void writeInquiry(InquiryVO inquiry, MultipartFile[] attachments) {
-        int inquiryId = inquiryRepository.insertInquiry(inquiry);
-        inquiry.setInquiryId(inquiryId);
+        int inquiry_id = inquiryRepository.insertInquiry(inquiry);
+        inquiry.setInquiry_id(inquiry_id);
 
-        List<InquiryFileVO> files = fileStorageService.storeFiles(inquiryId, attachments);
+        List<InquiryFileVO> files = fileStorageService.storeFiles(inquiry_id, attachments);
         for (InquiryFileVO file : files) {
             inquiryFileRepository.insertFile(file);
         }
@@ -54,7 +54,7 @@ public class InquiryService {
      * @param status null이면 전체, 아니면 WAIT/DONE/REVIEW 중 하나 (DB 저장값, 대문자)로 필터링
      */
     public List<InquiryVO> getMyInquiryList(String id, int page, String status) {
-        int totalCount = inquiryRepository.countByMemberId(id, status);
+        int totalCount = inquiryRepository.countBymember_id(id, status);
         if (totalCount == 0) {
             return Collections.emptyList();
         }
@@ -66,7 +66,7 @@ public class InquiryService {
 
         // 각 문의에 첨부파일 목록을 채워 넣는다 (목록 카드에서 썸네일 표시용)
         for (InquiryVO inquiry : list) {
-            inquiry.setFiles(inquiryFileRepository.findByInquiryId(inquiry.getInquiryId()));
+            inquiry.setFiles(inquiryFileRepository.findByInquiryId(inquiry.getInquiry_id()));
         }
         return list;
     }
@@ -79,10 +79,10 @@ public class InquiryService {
         return (int) Math.ceil((double) totalCount / PAGE_SIZE);
     }
 
-    public InquiryVO getInquiryDetail(int inquiryId) {
-        InquiryVO inquiry = inquiryRepository.findById(inquiryId);
+    public InquiryVO getInquiryDetail(int inquiry_id) {
+        InquiryVO inquiry = inquiryRepository.findById(inquiry_id);
         if (inquiry != null) {
-            inquiry.setFiles(inquiryFileRepository.findByInquiryId(inquiryId));
+            inquiry.setFiles(inquiryFileRepository.findByInquiryId(inquiry_id));
         }
         return inquiry;
     }
@@ -91,16 +91,19 @@ public class InquiryService {
      * 첨부파일 미리보기/다운로드 요청 시 접근 권한을 확인한다.
      * 관리자는 전체 열람 가능, 일반 회원은 본인 문의의 첨부파일만 열람 가능
      */
-    public InquiryFileVO getInquiryFile(int fileId, String memberId, boolean isAdmin) {
-        InquiryFileVO file = inquiryFileRepository.findById(fileId);
+    public InquiryFileVO getInquiryFile(int file_id, String memberId, boolean isAdmin) {
+        InquiryFileVO file = inquiryFileRepository.findById(file_id);
+
         if (file == null) {
             return null;
         }
         if (isAdmin) {
             return file;
         }
-        InquiryVO inquiry = inquiryRepository.findById(file.getInquiryId());
+
+        InquiryVO inquiry = inquiryRepository.findById(file.getInquiry_id());
         if (inquiry == null || !inquiry.getId().equals(memberId)) {
+
             return null;
         }
         return file;

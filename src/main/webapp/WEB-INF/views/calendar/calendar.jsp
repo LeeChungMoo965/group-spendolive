@@ -67,7 +67,7 @@
             </div>
             <!-- 3개 넘으면 calendar.js가 이 아래에 1 2 3 숫자 페이지네이션 자동 생성 -->
 
-            <button class="btn btn-outline full" onclick="location.href='${contextPath}/spendolive/expense.do'">
+            <button class="btn btn-primary full" onclick="location.href='${contextPath}/spendolive/expense.do'">
                 지출관리에서 보기
             </button>
         </aside>

@@ -14,7 +14,7 @@
    ========================================================= */
 
 /* ---------- Button System ---------- */
-.btn,
+/*
 .auth-btn,
 .settlement-send-btn {
   display: inline-flex;
@@ -41,7 +41,7 @@
   transform: translateY(-1px);
 }
 
-.btn-primary,
+
 .auth-btn-primary,
 .settlement-send-btn {
   background: var(--olive);
@@ -50,7 +50,7 @@
   box-shadow: 0 10px 20px rgba(122, 127, 54, .22);
 }
 
-.btn-primary:hover,
+
 .auth-btn-primary:hover,
 .settlement-send-btn:hover {
   background: var(--olive-dark);
@@ -121,7 +121,7 @@ button:disabled,
   transform: none;
   box-shadow: none;
 }
-
+*/
 /* ---------- Form System ---------- */
 .form-control,
 input,

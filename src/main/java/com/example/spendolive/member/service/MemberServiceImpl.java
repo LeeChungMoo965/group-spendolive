@@ -85,15 +85,9 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public String overlapped(String id) throws Exception {
-        throw new UnsupportedOperationException("Unimplemented method 'overlapped'");
-    }
-
-    @Override
     public String sendVerificationEmail(String toEmail) throws Exception {
 
         String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
-        // 윈도우 한글 이름으로 인해 구글이 EOF 뱉는 현상을 방어하기 위해 로컬호스트 강제 지정
 
         if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
             java.util.Properties props =
@@ -104,7 +98,7 @@ public class MemberServiceImpl implements MemberService {
 
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("chung100302@gmail.com");
+        message.setFrom("j.yeah110@gmail.com");
         message.setTo(toEmail);
         message.setSubject("[SpendOlive] 회원가입 인증번호 안내");
         message.setText(
@@ -261,7 +255,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @SuppressWarnings("unchecked")
     public void registerOpenBankingToken(
             String code,
@@ -270,7 +264,7 @@ public class MemberServiceImpl implements MemberService {
             ResponseEntity<Map> response,
             MemberVO memberVO
     ) throws Exception {
-
+//토큰 발급
         String tokenUrl = "https://testapi.openbanking.or.kr/oauth/2.0/token";
         RestTemplate restTemplate = new RestTemplate();
 
@@ -303,7 +297,7 @@ public class MemberServiceImpl implements MemberService {
 
         System.out.println("발급된 Access Token: " + accessToken);
         System.out.println("발급된 사용자 일련번호(user_seq_no): " + userSeqNo);
-
+//계좌 조회
         String accountUrl =
                 "https://testapi.openbanking.or.kr/v2.0/account/list?user_seq_no="
                         + userSeqNo
@@ -327,15 +321,15 @@ public class MemberServiceImpl implements MemberService {
 
         Map<String, Object> firstAccount = resList.get(0);
 
-        String fintechUseNum = (String) firstAccount.get("fintech_use_num");
+        String fintech_use_num = (String) firstAccount.get("fintech_use_num");
         String accountNum = (String) firstAccount.get("account_num_masked");
         String bankCode = (String) firstAccount.get("bank_code_std");
-        String accountHolderName = (String) firstAccount.get("account_holder_name");
+        String accountHolderName = (String) firstAccount.get("account_holder_nam");
 
-        System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
+        System.out.println("👉 진짜 24자리 번호 획득: " + fintech_use_num);
         System.out.println("👉 은행 코드 획득: " + bankCode);
         System.out.println("👉 계좌번호 획득: " + accountNum);
-
+//잔액 조회
         String tranDtime =
                 java.time.LocalDateTime.now()
                         .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -343,14 +337,14 @@ public class MemberServiceImpl implements MemberService {
         String balanceUrl =
                 "https://testapi.openbanking.or.kr/v2.0/account/balance/fintech_use_num"
                         + "?fintech_use_num="
-                        + fintechUseNum
+                        + fintech_use_num
                         + "&tran_dtime="
                         + tranDtime;
 
         HttpEntity<String> balanceEntity = new HttpEntity<>(headers);
         ResponseEntity<Map> balanceResponse =
                 restTemplate.exchange(balanceUrl, HttpMethod.GET, balanceEntity, Map.class);
-
+        
         int balance = 0;
 
         if (balanceResponse.getStatusCode() == HttpStatus.OK
@@ -366,7 +360,7 @@ public class MemberServiceImpl implements MemberService {
                 userId,
                 accessToken,
                 userSeqNo,
-                fintechUseNum,
+                fintech_use_num,
                 bankCode,
                 accountNum,
                 balance,
@@ -375,6 +369,7 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.updateMember_account_status(userId);
 
         // 토스 지급대행은 보안키 지원 문제로 현재 API 요청을 생략하는 구조
+        /*
         paymentService.registerSubMall(
                 userId,
                 bankCode,
@@ -382,8 +377,9 @@ public class MemberServiceImpl implements MemberService {
                 accountHolderName,
                 memberVO
         );
+         */
     }
-
+    
     @Override
     public String findIdByPhone(String phone) throws Exception {
         return memberRepository.findIdByPhone(phone);

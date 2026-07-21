@@ -1,8 +1,9 @@
 SpendOlive SQL 분리 실행 안내
 ==============================
 
-원본 파일
-- spendolive_schema_final_fixed_ott_system.sql
+현재 실행 기준
+- 이 폴더의 번호별 SQL이 최신 기준입니다.
+- 상위 폴더의 spendolive_schema_final*.sql은 과거 통합본이므로 새 DB 구성에 사용하지 않습니다.
 
 파일 구성
 1. 00_reset_all_objects.sql
@@ -18,37 +19,42 @@ SpendOlive SQL 분리 실행 안내
    - 지출관리/캘린더 화면에 필요합니다.
 
 4. 03_ott_schema.sql
-   - OTT 서비스, 공유방, 참여자, 채팅, 정산, 결제, 환불에 필요한 최소 테이블입니다.
+   - OTT 서비스, 공유방, 참여자, 채팅, 월별 정산 기본 테이블입니다.
    - 01번 실행 후 실행합니다.
    - 실제 OTT 신청/승인/정산/방삭제 요청 흐름은 알림을 생성하므로 04번도 함께 실행하는 것을 권장합니다.
-   - escrow/platform_revenue/payout 같은 PG 고도화용 테이블은 최소 구조에서 제거했습니다.
+   - 결제/환불 테이블은 다음 03-1_payment.sql에서 생성하므로 반드시 이어서 실행하세요.
 
-5. 04_notice_inquiry_alert_schema.sql
+5. 03-1_payment.sql
+   - settlement_payment_tb와 settlement_refund_tb를 현재 Java 결제 코드 컬럼으로 다시 구성합니다.
+   - escrow_payout_tb, platform_revenue_tb, seller_account_tb도 생성합니다.
+   - 반드시 03_ott_schema.sql 다음에 실행하세요.
+
+6. 04_notice_notification_inquiry_faq.sql
    - 공지사항, FAQ, 문의, 문의답변, 알림, 공지 즐겨찾기 테이블입니다.
-   - OTT 기능에서 alert_tb를 사용하므로 OTT 페이지를 테스트할 때도 실행하는 것이 좋습니다.
+   - OTT 기능에서 notification_tb를 사용하므로 OTT 페이지를 테스트할 때도 실행하는 것이 좋습니다.
 
-6. 05_admin_report_warning_schema.sql
+7. 05_admin_report_warning_schema.sql
    - 신고/경고 테이블입니다.
    - report_tb가 ott_room_tb를 참조하므로 03번 실행 후 실행하세요.
 
-7. 06_seed_member_sample.sql
+8. 06_seed_member_sample.sql
    - 로그인 테스트용 회원 데이터입니다.
 
-8. 07_seed_expense_categories_and_samples.sql
+9. 07_seed_expense_categories_and_samples.sql
    - 지출 카테고리와 테스트 지출 데이터입니다.
 
-9. 08_seed_ott_services.sql
+10. 08_seed_ott_services.sql
    - OTT 서비스 기본 데이터입니다.
    - OTT 페이지에서 서비스 목록을 확인하려면 실행하는 것이 좋습니다.
 
-10. 09_seed_alert_sample.sql
+11. 09_seed_alert_sample.sql
     - 테스트 알림 데이터입니다.
 
-11. 10_seed_all_default_data.sql
+12. 10_seed_all_default_data.sql
     - 기본 데이터를 한 번에 넣는 파일입니다.
     - 06~09번을 개별 실행하지 않고 전체 기본 데이터를 넣고 싶을 때 사용하세요.
 
-12. 11_reference_queries.sql
+13. 11_reference_queries.sql
     - 참고용 조회 SQL입니다. 필수 실행 파일이 아닙니다.
 
 추천 실행 순서
@@ -59,7 +65,8 @@ SpendOlive SQL 분리 실행 안내
 01_member_schema.sql
 02_expense_calendar_schema.sql
 03_ott_schema.sql
-04_notice_inquiry_alert_schema.sql
+03-1_payment.sql
+04_notice_notification_inquiry_faq.sql
 05_admin_report_warning_schema.sql
 10_seed_all_default_data.sql
 
@@ -67,7 +74,8 @@ OTT 페이지만 먼저 확인:
 00_reset_all_objects.sql  (기존 데이터 삭제 필요할 때만)
 01_member_schema.sql
 03_ott_schema.sql
-04_notice_inquiry_alert_schema.sql
+03-1_payment.sql
+04_notice_notification_inquiry_faq.sql
 06_seed_member_sample.sql
 08_seed_ott_services.sql
 
@@ -83,15 +91,3 @@ OTT 페이지만 먼저 확인:
 - 00번은 삭제용 파일입니다. 기존 데이터를 살릴 때는 실행하지 마세요.
 - 10번 전체 기본 데이터를 실행했다면 06~09번을 중복 실행하지 마세요.
 - 각 SQL 파일 상단에 실행 순서와 필요한 선행 파일을 적어두었습니다.
-
-[추가 안내 - OTT 피클플러스 방식 패치]
-12_patch_ott_pickle_rules.sql
-- 기존 DB를 삭제하지 않고 OTT별 최고 멤버십 고정 규칙만 추가/갱신할 때 사용합니다.
-- 새로 DB를 만드는 경우에는 03_ott_schema.sql, 08_seed_ott_services.sql에 이미 반영되어 있으므로 12번은 실행하지 않아도 됩니다.
-
-
-[추가 안내 - OTT 로그인 ID 컬럼명 정리 패치]
-14_patch_ott_login_id_column_names.sql
-- 기존 DB를 삭제하지 않고, 예전 OTT 테이블을 계속 사용할 때만 실행합니다.
-- ott_room_tb.host_member_id, ott_room_member_tb.member_id처럼 member_tb.member_id 숫자 PK와 헷갈리던 컬럼명을 host_login_id/member_login_id로 바꿉니다.
-- 새로 DB를 만드는 경우에는 03_ott_schema.sql에 이미 반영되어 있으므로 14번은 실행하지 않아도 됩니다.

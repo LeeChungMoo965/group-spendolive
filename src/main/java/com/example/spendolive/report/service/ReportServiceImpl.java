@@ -24,11 +24,11 @@ public class ReportServiceImpl implements ReportService{
     public void insertReport( String reported_member_id,String room_id,String chat_text, MemberVO memberInfo) throws Exception{
         ReportVO reportInfo =new ReportVO();
         String reporter = memberInfo.getId();
-        int roomId = Integer.parseInt(room_id);  
+        int parsed_room_id = Integer.parseInt(room_id);  
         reportInfo.setReport_reason(chat_text);
         reportInfo.setReported_member_id(reported_member_id);
         reportInfo.setReporter_id(reporter);
-        reportInfo.setRoom_id(roomId);
+        reportInfo.setRoom_id(parsed_room_id);
         reportRepository.insertReport(reportInfo);
     }
     @Override
@@ -49,7 +49,7 @@ public class ReportServiceImpl implements ReportService{
     @Override
     @Transactional
     public void insertWarning(String comment,String userId,String reportIdstr,String result) throws Exception{
-        int reportId = Integer.parseInt(reportIdstr);
+        int report_id = Integer.parseInt(reportIdstr);
         MemberVO user = memberRepository.selectMemberById(userId);
         int count = user.getWarning_count();
         if(result.equals("1")){
@@ -58,10 +58,10 @@ public class ReportServiceImpl implements ReportService{
         wVo.setMember_id(userId);
         wVo.setWarning_reason(comment);
         wVo.setStatus("Y");
-        wVo.setReport_id(reportId);
+        wVo.setReport_id(report_id);
         try{
         reportRepository.insertWarning(wVo);
-        reportRepository.updateComment(comment, reportId);
+        reportRepository.updateComment(comment, report_id);
         memberRepository.updateWarning(userId,count);
         }catch(Exception e){
             System.err.println("🚨 [시스템 에러]: " + e.getMessage());

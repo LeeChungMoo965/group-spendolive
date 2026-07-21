@@ -65,11 +65,11 @@
 
 <script>
 document.getElementById("faqForm").addEventListener("submit", function () {
-    var cb = document.getElementById("useYn");
+    var cb = document.getElementById("use_yn");
     cb.name = "";
     var h = document.createElement("input");
     h.type = "hidden";
-    h.name = "useYn";
+    h.name = "use_yn";
     h.value = cb.checked ? "Y" : "N";
     this.appendChild(h);
 });

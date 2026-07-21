@@ -40,10 +40,10 @@ public class FileStorageService {
      * 첨부파일들을 디스크에 저장하고, DB insert에 쓸 InquiryFileVO 목록을 만들어 반환한다.
      * DB insert 자체는 호출부(InquiryService)에서 트랜잭션 안에서 처리한다.
      *
-     * @param inquiryId  이미 생성된 문의 번호 (inquiry_tb PK)
+     * @param inquiry_id  이미 생성된 문의 번호 (inquiry_tb PK)
      * @param attachments 폼에서 넘어온 첨부파일 배열 (null/빈 파일 섞여 있어도 됨)
      */
-    public List<InquiryFileVO> storeFiles(int inquiryId, MultipartFile[] attachments) {
+    public List<InquiryFileVO> storeFiles(int inquiry_id, MultipartFile[] attachments) {
         List<InquiryFileVO> result = new ArrayList<>();
         if (attachments == null || attachments.length == 0) {
             return result;
@@ -68,23 +68,23 @@ public class FileStorageService {
         }
 
         try {
-            Path targetDir = Path.of(uploadDir, String.valueOf(inquiryId));
+            Path targetDir = Path.of(uploadDir, String.valueOf(inquiry_id));
             Files.createDirectories(targetDir);
 
             for (MultipartFile file : validFiles) {
-                String originName = file.getOriginalFilename();
-                String ext = extractExtension(originName);
-                String savedName = UUID.randomUUID() + "." + ext;
+                String origin_name = file.getOriginalFilename();
+                String ext = extractExtension(origin_name);
+                String saved_name = UUID.randomUUID() + "." + ext;
 
-                Path targetPath = targetDir.resolve(savedName);
+                Path targetPath = targetDir.resolve(saved_name);
                 file.transferTo(targetPath);
 
                 InquiryFileVO fileVO = new InquiryFileVO();
-                fileVO.setInquiryId(inquiryId);
-                fileVO.setOriginName(originName);
-                fileVO.setSavedName(savedName);
-                fileVO.setFilePath(targetPath.toString());
-                fileVO.setFileSize(file.getSize());
+                fileVO.setInquiry_id(inquiry_id);
+                fileVO.setOrigin_name(origin_name);
+                fileVO.setSaved_name(saved_name);
+                fileVO.setFile_path(targetPath.toString());
+                fileVO.setFile_size(file.getSize());
                 result.add(fileVO);
             }
         } catch (IOException e) {

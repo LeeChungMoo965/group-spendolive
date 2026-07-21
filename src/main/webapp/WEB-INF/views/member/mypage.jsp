@@ -3,8 +3,8 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<section class="page-hero mypage-hero">
-    <div class="container mypage-container">
+<section class="page-hero">
+    <div class="container">
         <p class="eyebrow">MY PAGE</p>
         <h1>마이페이지</h1>
         <p class="hero-text">프로필, 이번 달 지출 총액, 계좌연동, 신고/차단 관리, 나의 OTT 공유방을 한 화면에서 확인합니다.</p>
@@ -12,34 +12,34 @@
 </section>
 
 <section class="section compact mypage-page">
-    <div class="container mypage-container">
+    <div class="container">
         <c:if test="${param.profileUpdated == 'Y'}">
-            <div class="mypage-alert done">회원정보가 수정되었습니다.</div>
+            <div class="alert done">회원정보가 수정되었습니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'passwordMismatch'}">
-            <div class="mypage-alert warn">새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.</div>
+            <div class="alert warn">새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'currentPasswordMismatch'}">
-            <div class="mypage-alert warn">현재 비밀번호가 일치하지 않습니다.</div>
+            <div class="alert warn">현재 비밀번호가 일치하지 않습니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'passwordCheckRequired'}">
-            <div class="mypage-alert warn">비밀번호 변경 전 확인 버튼을 눌러주세요.</div>
+            <div class="alert warn">비밀번호 변경 전 확인 버튼을 눌러주세요.</div>
         </c:if>
         <c:if test="${param.profileError == 'emailNotVerified'}">
-            <div class="mypage-alert warn">이메일을 변경하려면 이메일 인증을 완료해야 합니다.</div>
+            <div class="alert warn">이메일을 변경하려면 이메일 인증을 완료해야 합니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'phoneNotVerified'}">
-            <div class="mypage-alert warn">전화번호를 변경하려면 전화번호 인증을 완료해야 합니다.</div>
+            <div class="alert warn">전화번호를 변경하려면 전화번호 인증을 완료해야 합니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'updateFailed'}">
-            <div class="mypage-alert warn">회원정보 수정 중 오류가 발생했습니다. 이메일/전화번호 중복 여부를 확인해 주세요.</div>
+            <div class="alert warn">회원정보 수정 중 오류가 발생했습니다. 이메일/전화번호 중복 여부를 확인해 주세요.</div>
         </c:if>
 
         <c:if test="${param.withdrawError == 'confirmRequired'}">
-            <div class="mypage-alert warn">회원탈퇴를 진행하려면 확인 문구를 정확히 입력해주세요.</div>
+            <div class="alert warn">회원탈퇴를 진행하려면 확인 문구를 정확히 입력해주세요.</div>
         </c:if>
         <c:if test="${param.withdrawError == 'failed'}">
-            <div class="mypage-alert warn">회원탈퇴 처리 중 오류가 발생했습니다. 다시 시도해 주세요.</div>
+            <div class="alert warn">회원탈퇴 처리 중 오류가 발생했습니다. 다시 시도해 주세요.</div>
         </c:if>
 
         <div class="mypage-top-grid">
@@ -51,7 +51,7 @@
                     <p class="mypage-muted">${memberInfo.nickname} · ${memberInfo.id}</p>
                     <p class="mypage-muted">가입일 ${memberInfo.created_at}</p>
                 </div>
-                <a href="#profile-edit" class="btn btn-outline full">회원정보 수정</a>
+                <a href="#profile-edit" class="btn btn-primary full">회원정보 수정</a>
             </article>
 
             <article class="card mypage-stat-card">
@@ -72,7 +72,7 @@
                             <span>사용자번호</span>
                             <strong>${openBankUserSeq}</strong>
                         </div>
-                        <a href="${contextPath}/member/openBankingAuth.do" class="btn btn-outline full">계좌 다시 연동하기</a>
+                        <a href="${contextPath}/member/openBankingAuth.do" class="btn btn-primary full">계좌 다시 연동하기</a>
                     </c:when>
                     <c:otherwise>
                         <p class="mypage-muted">현재 연결된 계좌가 없습니다.</p>
@@ -87,14 +87,14 @@
                 <div class="mypage-report-summary mypage-report-summary-vertical">
                     <div class="mypage-report-line">
                         <span>내 패널티</span>
-                        <strong>${warningCount}번째</strong>
+                        <strong>${warning_count}번째</strong>
                     </div>
                     <div class="mypage-report-line">
                         <span>내가 신고한 건수</span>
                         <strong>${myReportCount}건</strong>
                     </div>
                 </div>
-                <a href="#report-manage" class="btn btn-outline full">신고/차단 내역 보기</a>
+                <a href="#report-manage" class="btn btn-primary full">신고/차단 내역 보기</a>
             </article>
         </div>
 
@@ -143,11 +143,11 @@
                                 이메일
                                 <input type="email" name="email" id="mypageEmail" value="${memberInfo.email}" required>
                             </label>
-                            <button type="button" class="btn btn-outline" onclick="sendMyPageEmailCode()">이메일 인증</button>
+                            <button type="button" class="btn btn-primary full" onclick="sendMyPageEmailCode()">이메일 인증</button>
                         </div>
                         <div class="mypage-code-row">
                             <input type="text" id="mypageEmailCode" placeholder="이메일 인증번호 입력">
-                            <button type="button" class="btn btn-primary" onclick="verifyMyPageEmailCode()">확인</button>
+                            <button type="button" class="btn btn-primary full" onclick="verifyMyPageEmailCode()">확인</button>
                         </div>
                         <p class="mypage-help" id="emailVerifyMessage">이메일을 변경할 때만 인증이 필요합니다.</p>
                     </div>
@@ -158,11 +158,11 @@
                                 전화번호
                                 <input type="text" name="phone" id="mypagePhone" value="${memberInfo.phone}">
                             </label>
-                            <button type="button" class="btn btn-outline" onclick="sendMyPagePhoneCode()">전화번호 인증</button>
+                            <button type="button" class="btn btn-primary full" onclick="sendMyPagePhoneCode()">전화번호 인증</button>
                         </div>
                         <div class="mypage-code-row">
                             <input type="text" id="mypagePhoneCode" placeholder="문자 인증번호 입력">
-                            <button type="button" class="btn btn-primary" onclick="verifyMyPagePhoneCode()">확인</button>
+                            <button type="button" class="btn btn-primary full" onclick="verifyMyPagePhoneCode()">확인</button>
                         </div>
                         <p class="mypage-help" id="phoneVerifyMessage">전화번호를 변경할 때만 인증이 필요합니다.</p>
                     </div>
@@ -188,7 +188,7 @@
                                     새 비밀번호 확인
                                     <input type="password" name="passwordConfirm" id="passwordConfirm" placeholder="새 비밀번호 재입력">
                                 </label>
-                                <button type="button" class="btn btn-outline" onclick="checkMyPagePassword()">비밀번호 확인</button>
+                                <button type="button" class="btn btn-primary full" onclick="checkMyPagePassword()">비밀번호 확인</button>
                             </div>
                             <p class="mypage-help" id="passwordCheckMessage">비밀번호를 변경할 때는 현재 비밀번호와 새 비밀번호 확인이 필요합니다.</p>
                         </div>
@@ -197,7 +197,7 @@
 
                 <div class="mypage-form-actions">
                     <button type="submit" class="btn btn-primary">수정 완료</button>
-                    <a href="${contextPath}/spendolive/mypage.do" class="btn btn-outline">취소</a>
+                    <a href="${contextPath}/spendolive/mypage.do" class="btn btn-danger-outline">취소</a>
                 </div>
             </form>
         </article>
@@ -231,26 +231,28 @@
                                 <c:forEach var="report" items="${myReportList}">
                                     <tr>
                                         <td>
-                                            <strong>${report.reportedMemberNickname}</strong>
-                                            <small>${report.reportedMemberId}</small>
+
+                                            <strong>${report.reported_member_nickname}</strong>
+                                            <small>${report.reported_member_id}</small>
+
                                         </td>
-                                        <td class="mypage-reason">${report.reportReason}</td>
+                                        <td class="mypage-reason">${report.report_reason}</td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${report.reportStatus == 'WAIT'}"><span class="chip wait">접수</span></c:when>
-                                                <c:when test="${report.reportStatus == 'PROCESSING'}"><span class="chip request">처리중</span></c:when>
-                                                <c:when test="${report.reportStatus == 'COMPLETE'}"><span class="chip done">처리완료</span></c:when>
-                                                <c:when test="${report.reportStatus == 'REJECT'}"><span class="chip muted-chip">반려</span></c:when>
-                                                <c:otherwise><span class="chip muted-chip">${report.reportStatus}</span></c:otherwise>
+                                                <c:when test="${report.report_status == 'WAIT'}"><span class="chip wait">접수</span></c:when>
+                                                <c:when test="${report.report_status == 'PROCESSING'}"><span class="chip request">처리중</span></c:when>
+                                                <c:when test="${report.report_status == 'COMPLETE'}"><span class="chip done">처리완료</span></c:when>
+                                                <c:when test="${report.report_status == 'REJECT'}"><span class="chip muted-chip">반려</span></c:when>
+                                                <c:otherwise><span class="chip muted-chip">${report.report_status}</span></c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${report.blockedYn == 'Y'}"><span class="chip done">차단됨</span></c:when>
+                                                <c:when test="${report.blocked_yn == 'Y'}"><span class="chip done">차단됨</span></c:when>
                                                 <c:otherwise><span class="chip muted-chip">미차단</span></c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td>${report.createdAt}</td>
+                                        <td>${report.created_at}</td>
                                     </tr>
                                 </c:forEach>
                             </tbody>
@@ -266,7 +268,7 @@
                     <p class="eyebrow">FRIENDS ROOM</p>
                     <h2>가족 · 지인들과의 공유방</h2>
                 </div>
-                <a href="${contextPath}/spendolive/ott/friends.do" class="btn btn-outline">가족 · 지인 공유방 관리</a>
+                <a href="${contextPath}/spendolive/ott/friends.do" class="btn btn-primary">가족 · 지인 공유방 관리</a>
             </div>
 
             <c:choose>
@@ -278,12 +280,12 @@
                         <c:forEach var="room" items="${friendRoomList}">
                             <div class="mypage-room-card">
                                 <div>
-                                    <strong>${room.roomName}</strong>
-                                    <p>${room.serviceName} · ${room.planName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
-                                    <small>결제일 매월 ${room.billingDay}일 · 상태 ${room.status}</small>
+                                    <strong>${room.room_name}</strong>
+                                    <p>${room.service_name} · ${room.plan_name} · ${room.current_member_count}/${room.member_limit}명</p>
+                                    <small>결제일 매월 ${room.billing_day}일 · 상태 ${room.status}</small>
                                 </div>
                                 <div class="mypage-room-actions">
-                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary full">대화방</a>
                                 </div>
                             </div>
                         </c:forEach>
@@ -298,7 +300,7 @@
                     <p class="eyebrow">RECRUIT ROOM</p>
                     <h2>외부인들과의 공유방</h2>
                 </div>
-                <a href="${contextPath}/spendolive/ott/recruit.do" class="btn btn-outline">모든 모집글 관리</a>
+                <a href="${contextPath}/spendolive/ott/recruit.do" class="btn btn-primary">모든 모집글 관리</a>
             </div>
 
             <div class="mypage-room-two-col">
@@ -313,11 +315,11 @@
                                 <c:forEach var="room" items="${hostedRecruitRoomList}">
                                     <div class="mypage-room-card">
                                         <div>
-                                            <strong>${room.roomName}</strong>
-                                            <p>${room.serviceName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
+                                            <strong>${room.room_name}</strong>
+                                            <p>${room.service_name} · ${room.current_member_count}/${room.member_limit}명</p>
                                             <small>내가 만든 방 · ${room.status}</small>
                                         </div>
-                                        <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                        <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary">대화방</a>
                                     </div>
                                 </c:forEach>
                             </div>
@@ -336,17 +338,17 @@
                                 <c:forEach var="room" items="${joinedRecruitRoomList}">
                                     <div class="mypage-room-card">
                                         <div>
-                                            <strong>${room.roomName}</strong>
-                                            <p>${room.serviceName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
-                                            <small>방장 ${room.hostNickname}</small>
+                                            <strong>${room.room_name}</strong>
+                                            <p>${room.service_name} · ${room.current_member_count}/${room.member_limit}명</p>
+                                            <small>방장 ${room.host_nickname}</small>
                                             <c:choose>
-                                                <c:when test="${room.myApplicationStatus eq 'APPLIED'}">
+                                                <c:when test="${room.my_application_status eq 'APPLIED'}">
                                                     <span class="status-pill APPLIED">승인 대기중</span>
                                                 </c:when>
-                                                <c:when test="${room.myApplicationStatus eq 'REJECTED'}">
+                                                <c:when test="${room.my_application_status eq 'REJECTED'}">
                                                     <span class="status-pill REJECTED">거절됨</span>
                                                 </c:when>
-                                                <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
+                                                <c:when test="${room.my_application_status eq 'ACTIVE'}">
                                                     <span class="status-pill ACTIVE">참여중</span>
                                                 </c:when>
                                                 <c:otherwise>
@@ -354,8 +356,8 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
-                                        <c:if test="${room.myApplicationStatus eq 'ACTIVE' or empty room.myApplicationStatus}">
-                                            <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                        <c:if test="${room.my_application_status eq 'ACTIVE' or empty room.my_application_status}">
+                                            <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary">대화방</a>
                                         </c:if>
                                     </div>
                                 </c:forEach>
@@ -366,20 +368,20 @@
             </div>
         </article>
 
-        <div id="withdraw-section" class="mypage-withdraw-row">
-            <button type="button" class="btn mypage-danger-outline" onclick="openWithdrawModal()">회원탈퇴</button>
+        <div id="withdraw-section" class="withdraw-row">
+            <button type="button" class="btn btn-danger-outline" onclick="openWithdrawModal()">회원탈퇴</button>
         </div>
 
     </div>
 </section>
 
-<div class="mypage-withdraw-modal" id="withdrawModal" aria-hidden="true">
-    <div class="mypage-withdraw-modal-box">
-        <button type="button" class="mypage-withdraw-close" onclick="closeWithdrawModal()" aria-label="회원탈퇴 창 닫기">×</button>
+<div class="withdraw-modal" id="withdrawModal" aria-hidden="true">
+    <div class="withdraw-modal-box">
+        <button type="button" class="withdraw-close" onclick="closeWithdrawModal()" aria-label="회원탈퇴 창 닫기">×</button>
         <p class="eyebrow">ACCOUNT DELETE</p>
         <h2>회원탈퇴</h2>
         <p class="mypage-muted">회원탈퇴를 하면 현재 계정으로 다시 로그인할 수 없습니다. 오픈뱅킹 연결 정보도 함께 해제됩니다.</p>
-        <ul class="mypage-withdraw-list">
+        <ul class="withdraw-list">
             <li>회원 상태가 탈퇴 상태로 변경됩니다.</li>
             <li>로그인 세션이 즉시 종료됩니다.</li>
             <li>기존 지출/정산 이력은 서비스 기록 보존을 위해 바로 삭제하지 않습니다.</li>
@@ -390,9 +392,9 @@
                 <input type="text" name="withdrawConfirm" id="withdrawConfirm" placeholder="탈퇴합니다">
             </label>
             <p class="mypage-help warn">위 입력칸에 <strong>탈퇴합니다</strong>를 정확히 입력해야 탈퇴할 수 있습니다.</p>
-            <div class="mypage-withdraw-actions">
-                <button type="button" class="btn btn-outline" onclick="closeWithdrawModal()">취소</button>
-                <button type="button" class="btn mypage-danger-btn" onclick="submitWithdrawForm()">회원탈퇴 진행</button>
+            <div class="withdraw-actions">
+                <button type="button" class="btn btn-primary btn-mini" onclick="closeWithdrawModal()">취소</button>
+                <button type="button" class="btn btn-danger-outline" onclick="submitWithdrawForm()">회원탈퇴 진행</button>
             </div>
         </form>
     </div>
@@ -570,32 +572,9 @@ function verifyMyPagePhoneCode() {
 }
 
 
-function openWithdrawModal() {
-    const modal = document.getElementById('withdrawModal');
-    const confirmInput = document.getElementById('withdrawConfirm');
-    if (!modal) {
-        return;
-    }
 
-    modal.classList.add('show');
-    modal.setAttribute('aria-hidden', 'false');
-    if (confirmInput) {
-        confirmInput.value = '';
-        setTimeout(function () {
-            confirmInput.focus();
-        }, 80);
-    }
-}
 
-function closeWithdrawModal() {
-    const modal = document.getElementById('withdrawModal');
-    if (!modal) {
-        return;
-    }
 
-    modal.classList.remove('show');
-    modal.setAttribute('aria-hidden', 'true');
-}
 
 function submitWithdrawForm() {
     const confirmInput = document.getElementById('withdrawConfirm');

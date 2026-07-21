@@ -435,3 +435,13 @@ SpendOlive(이하 '서비스')는 개인정보 보호법, 정보통신망 이용
 </script>
 </body>
 </html>
+<script>
+var msg = "${msg}";
+    var message = "${message}";
+    if (msg && msg !== "") {
+        alert(msg);
+    }
+    if (message && message !== "") {
+        alert(message);
+    }
+</script>

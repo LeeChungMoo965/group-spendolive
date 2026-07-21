@@ -43,7 +43,7 @@
     <form action="${contextPath}/spendolive/admin/notice/${empty notice ? 'insert' : 'update'}.do" method="post" id="noticeForm">
 
         <c:if test="${not empty notice}">
-            <input type="hidden" name="noticeId" value="${notice.noticeId}">
+            <input type="hidden" name="notice_id" value="${notice.notice_id}">
         </c:if>
 
         <div class="form-group">
@@ -54,8 +54,8 @@
         <div class="form-group">
             <label>구분</label>
             <div class="pin-group">
-                <input type="checkbox" id="pinnedYn" value="Y" ${notice.pinnedYn == 'Y' ? 'checked' : ''}>
-                <label for="pinnedYn">중요 공지로 설정</label>
+                <input type="checkbox" id="pinned_yn" value="Y" ${notice.pinned_yn == 'Y' ? 'checked' : ''}>
+                <label for="pinned_yn">중요 공지로 설정</label>
             </div>
         </div>
 
@@ -73,11 +73,11 @@
 
 <script>
 document.getElementById("noticeForm").addEventListener("submit", function () {
-    var cb = document.getElementById("pinnedYn");
+    var cb = document.getElementById("pinned_yn");
     cb.name = "";
     var h = document.createElement("input");
     h.type = "hidden";
-    h.name = "pinnedYn";
+    h.name = "pinned_yn";
     h.value = cb.checked ? "Y" : "N";
     this.appendChild(h);
 });

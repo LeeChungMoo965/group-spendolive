@@ -77,7 +77,7 @@ public class AdminFaqController {
             ra.addFlashAttribute("errorMsg", "카테고리, 질문, 답변을 모두 입력해 주세요.");
             return new ModelAndView("redirect:/spendolive/admin/faq/write.do");
         }
-        if (!"Y".equals(useYn)) useYn = "N";
+        if (!"Y".equals(use_yn)) use_yn = "N";
 
         FaqVO faq = new FaqVO();
         faq.setCategory(category);
@@ -143,7 +143,7 @@ public class AdminFaqController {
             ra.addFlashAttribute("errorMsg", "카테고리, 질문, 답변을 모두 입력해 주세요.");
             return new ModelAndView("redirect:/spendolive/admin/faq/edit.do?faq_id=" + faq_id);
         }
-        if (!"Y".equals(useYn)) useYn = "N";
+        if (!"Y".equals(use_yn)) use_yn = "N";
 
         FaqVO faq = new FaqVO();
         faq.setFaqId(faq_id);

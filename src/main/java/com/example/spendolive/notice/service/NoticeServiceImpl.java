@@ -23,8 +23,8 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public NoticeDTO getNoticeDetail(int noticeId) {
-        return noticeRepository.findById(noticeId);
+    public NoticeDTO getNoticeDetail(int notice_id) {
+        return noticeRepository.findById(notice_id);
     }
 
     @Override
@@ -43,19 +43,19 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public void readNotice(int noticeId, String id) {
-        noticeRepository.insertNoticeRead(noticeId, id);
+    public void readNotice(int notice_id, String id) {
+        noticeRepository.insertNoticeRead(notice_id, id);
     }
 
 
     @Override
     public List<NoticeDTO> getUnreadNoticeList(String id) {
-    return noticeRepository.findUnreadByMemberId(id);
+    return noticeRepository.findUnreadBymember_id(id);
     }
 
     @Override
-    public void toggleNoticeStar(int noticeId, String id) {
-        noticeRepository.toggleNoticeStar(noticeId, id);
+    public void toggleNoticeStar(int notice_id, String id) {
+        noticeRepository.toggleNoticeStar(notice_id, id);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public void deleteNotice(int noticeId) {
-        noticeRepository.deleteNotice(noticeId);
+    public void deleteNotice(int notice_id) {
+        noticeRepository.deleteNotice(notice_id);
     }
 }

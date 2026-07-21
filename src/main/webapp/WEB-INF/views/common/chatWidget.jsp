@@ -27,14 +27,14 @@
                     <c:when test="${not empty chatRoomSummaryList}">
                         <div class="chat-room-list">
                             <c:forEach var="room" items="${chatRoomSummaryList}">
-                                <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="chat-room-item ${room.unreadCount gt 0 ? 'unread' : ''}">
+                                <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="chat-room-item ${room.unread_count gt 0 ? 'unread' : ''}">
                                     <div class="chat-room-avatar">🎬</div>
                                     <div>
-                                        <strong>${room.roomName}</strong>
-                                        <p>${room.lastMessage}</p>
+                                        <strong>${room.room_name}</strong>
+                                        <p>${room.last_message}</p>
                                     </div>
-                                    <c:if test="${room.unreadCount gt 0}">
-                                        <span class="chat-unread">${room.unreadCount}</span>
+                                    <c:if test="${room.unread_count gt 0}">
+                                        <span class="chat-unread">${room.unread_count}</span>
                                     </c:if>
                                 </a>
                             </c:forEach>

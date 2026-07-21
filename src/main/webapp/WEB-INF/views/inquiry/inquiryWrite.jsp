@@ -45,7 +45,7 @@
                 </div>
                 <div class="field">
                     <label>문의 유형 <span>필수</span></label>
-                    <select name="inquiryType" required>
+                    <select name="inquiry_type" required>
                         <option value="" disabled selected>유형 선택</option>
                         <option value="BUG">오류/버그 신고</option>
                         <option value="SUGGEST">기능 개선 제안</option>
@@ -109,8 +109,8 @@
             </div>
 
             <div class="form-actions">
-                <a class="btn btn-outline" style="flex:1;height:50px" href="${contextPath}/spendolive/faq/list.do">취소</a>
-                <button type="submit" class="btn btn-primary" style="flex:2;height:50px;font-size:15px">문의 제출하기</button>
+                <a class="btn btn-danger-outline" style="flex:1;height:50px" href="${contextPath}/spendolive/faq/list.do">취소</a>
+                <button type="submit" class="btn btn-primary" style="flex:2;height:50px;font-size:15px;">문의 제출하기</button>
             </div>
         </form>
     </div>

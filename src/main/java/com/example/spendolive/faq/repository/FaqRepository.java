@@ -96,13 +96,15 @@ public class FaqRepository {
 
     private FaqVO mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         FaqVO faq = new FaqVO();
-        faq.setFaqId(rs.getInt("faq_id"));
+        faq.setFaq_id(rs.getInt("faq_id"));
         faq.setCategory(rs.getString("category"));
         faq.setQuestion(rs.getString("question"));
         faq.setAnswer(rs.getString("answer"));
-        faq.setSortOrder(rs.getInt("sort_order"));
-        faq.setUseYn(rs.getString("use_yn"));
-        faq.setCreatedAt(rs.getString("created_at"));
+
+        faq.setSort_order(rs.getInt("sort_order"));
+        faq.setUse_yn(rs.getString("use_yn"));
+
+        faq.setCreated_at(rs.getString("created_at"));
         return faq;
     }
 

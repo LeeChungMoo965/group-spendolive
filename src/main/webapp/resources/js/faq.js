@@ -103,8 +103,8 @@ function filterInquiryStatus(btn, status) {
 }
 
 /* ---- inquiryList.jsp : 카드 클릭 시 상세 이동 ---- */
-function goInquiryDetail(contextPath, inquiryId) {
-    window.location.href = contextPath + '/spendolive/inquiry/detail.do?inquiryNo=' + encodeURIComponent(inquiryId);
+function goInquiryDetail(contextPath, inquiry_id) {
+    window.location.href = contextPath + '/spendolive/inquiry/detail.do?inquiryNo=' + encodeURIComponent(inquiry_id);
 }
 
 /* ---- inquiryWrite.jsp : 개인정보 수집·이용 상세 [자세히 보기] 토글 ---- */

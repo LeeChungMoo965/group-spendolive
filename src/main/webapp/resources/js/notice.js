@@ -95,7 +95,7 @@ function setBoardTab(mode) {
                 // 비로그인 안 읽은 공지: localStorage 기준으로 필터링
                 if (filter === "unread" && !loginYn) {
                     data = data.filter(notice =>
-                        localStorage.getItem("notice_read_" + notice.noticeId) !== "Y"
+                        localStorage.getItem("notice_read_" + notice.notice_id) !== "Y"
                     );
                 }
 
@@ -123,29 +123,29 @@ function drawNoticePage() {
         `;
     } else {
         pageData.forEach((notice, index) => {
-            const star = notice.starYn === "Y" ? "★" : "☆";
+            const star = notice.star_yn === "Y" ? "★" : "☆";
 
-            const pinnedBadge = notice.pinnedYn === "Y"
+            const pinnedBadge = notice.pinned_yn === "Y"
                 ? `<span class="chip notice-important">중요</span>`
                 : `<span class="chip notice-normal">일반</span>`;
 
             const localRead =
-                localStorage.getItem("notice_read_" + notice.noticeId) === "Y";
+                localStorage.getItem("notice_read_" + notice.notice_id) === "Y";
 
             const titleClass =
-                notice.readYn === "Y" || (!loginYn && localRead)
+                notice.read_yn === "Y" || (!loginYn && localRead)
                     ? "notice-read-title"
                     : "notice-unread-title";
 
             html += `
                 <tr>
-                <td>${notice.pinnedYn === "Y" ? "📌" : currentNoticeData.length - start - index }</td>
+                <td>${notice.pinned_yn === "Y" ? "📌" : currentNoticeData.length - start - index }</td>
                     <td>
                         ${
                             loginYn
                             ? `<button type="button"
                                        class="notice-list-star-btn"
-                                       onclick="toggleNoticeStar(event, ${notice.noticeId}, this)">
+                                       onclick="toggleNoticeStar(event, ${notice.notice_id}, this)">
                                     ${star}
                                </button>`
                             : ""
@@ -154,13 +154,17 @@ function drawNoticePage() {
                     <td>${pinnedBadge}</td>
                     <td>
                         <a class="notice-title-link ${titleClass}"
-                           href="/spendolive/notice/detail.do?noticeId=${notice.noticeId}"
-                           onclick="saveNoticeReadLocal(${notice.noticeId})">
+                           href="/spendolive/notice/detail.do?notice_id=${notice.notice_id}"
+                           onclick="saveNoticeReadLocal(${notice.notice_id})">
                             ${notice.title}
                         </a>
                     </td>
+<<<<<<< HEAD
                     <td>${notice.adminId}</td>
-                    <td>${notice.createdAt}</td>
+=======
+                    <td>${notice.admin_id}</td>
+>>>>>>> aitest
+                    <td>${notice.created_at}</td>
                 </tr>
             `;
         });
@@ -207,7 +211,7 @@ function loadNotificationList(filter = "all") {
         .then(response => response.json())
         .then(data => {
             if (filter === "unread") {
-                data = data.filter(n => n.readYn === "N");
+                data = data.filter(n => n.read_yn === "N");
             }
             currentNotifData = data;
             currentNotifPage = 1;
@@ -232,11 +236,11 @@ function drawNotifPage() {
                 </td></tr>`;
     } else {
         pageData.forEach((notification, index) => {
-            const star = notification.starYn === "Y" ? "★" : "☆";
-            const readBadge = notification.readYn === "N"
+            const star = notification.star_yn === "Y" ? "★" : "☆";
+            const readBadge = notification.read_yn === "N"
                 ? `<span class="chip notice-important">NEW</span>`
                 : `<span class="chip notice-normal">읽음</span>`;
-            const titleClass = notification.readYn === "Y"
+            const titleClass = notification.read_yn === "Y"
                 ? "notice-read-title"
                 : "notice-unread-title";
 
@@ -246,7 +250,7 @@ function drawNotifPage() {
                     <td>
                         <button type="button"
                                 class="notice-list-star-btn"
-                                onclick="toggleNotificationStar(event, ${notification.notificationId}, this)">
+                                onclick="toggleNotificationStar(event, ${notification.notification_id}, this)">
                             ${star}
                         </button>
                     </td>
@@ -254,12 +258,16 @@ function drawNotifPage() {
                     <td>
                         <a href="#"
                            class="notice-title-link ${titleClass}"
-                           onclick="readNotification(event, ${notification.notificationId}, '${notification.linkUrl || ""}')">
+                           onclick="readNotification(event, ${notification.notification_id}, '${notification.link_url || ""}')">
                             ${notification.title}
                         </a>
                     </td>
+<<<<<<< HEAD
                     <td>${notification.notificationType}</td>
-                    <td>${notification.createdAt}</td>
+=======
+                    <td>${notification.notification_type}</td>
+>>>>>>> aitest
+                    <td>${notification.created_at}</td>
                 </tr>`;
         });
     }
@@ -311,13 +319,13 @@ function moveNotifPage(page) {
 
                     data.forEach((notice, index) => {
 
-                        const star = notice.starYn === "Y" ? "★" : "☆";
+                        const star = notice.star_yn === "Y" ? "★" : "☆";
 
                         const pinnedBadge =
                             `<span class="chip notice-important">중요</span>`;
                     
                         const titleClass =
-                            notice.readYn === "Y" || (!loginYn && localStorage.getItem("notice_read_" + notice.noticeId) === "Y")
+                            notice.read_yn === "Y" || (!loginYn && localStorage.getItem("notice_read_" + notice.notice_id) === "Y")
                                 ? "notice-read-title"
                                 : "notice-unread-title";
                     
@@ -329,7 +337,7 @@ function moveNotifPage(page) {
                                         loginYn
                                         ? `<button type="button"
                                                    class="notice-list-star-btn"
-                                                   onclick="toggleNoticeStar(event, ${notice.noticeId}, this)">
+                                                   onclick="toggleNoticeStar(event, ${notice.notice_id}, this)">
                                                 ${star}
                                            </button>`
                                         : ""
@@ -339,14 +347,18 @@ function moveNotifPage(page) {
                     
                                 <td>
                                     <a class="notice-title-link ${titleClass}"
-                                       href="/spendolive/notice/detail.do?noticeId=${notice.noticeId}"
-                                       onclick="saveNoticeReadLocal(${notice.noticeId})">
+                                       href="/spendolive/notice/detail.do?notice_id=${notice.notice_id}"
+                                       onclick="saveNoticeReadLocal(${notice.notice_id})">
                                         ${notice.title}
                                     </a>
                                 </td>
                     
+<<<<<<< HEAD
                                 <td>${notice.adminId}</td>
-                                <td>${notice.createdAt}</td>
+=======
+                                <td>${notice.admin_id}</td>
+>>>>>>> aitest
+                                <td>${notice.created_at}</td>
                             </tr>
                         `;
                     });
@@ -359,31 +371,31 @@ function moveNotifPage(page) {
 
 
 
-function readNotification(event, notificationId, linkUrl) {
+function readNotification(event, notification_id, link_url) {
     event.preventDefault();
 
     fetch("/spendolive/notification/ajax/read.do", {
         method: "POST",
         credentials: 'same-origin',
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "notificationId=" + notificationId
+        body: "notification_id=" + notification_id
     })
     .then(response => response.json())
     .then(data => {
         if (data.result === "OK") {
             // 로컬 데이터 즉시 읽음 처리
-            const item = currentNotifData.find(n => n.notificationId === notificationId);
-            if (item) item.readYn = "Y";
+            const item = currentNotifData.find(n => n.notification_id === notification_id);
+            if (item) item.read_yn = "Y";
 
             // 헤더 배지 갱신
             if (typeof loadNotificationBadge === "function") loadNotificationBadge();
 
-            if (linkUrl && linkUrl !== "null" && linkUrl !== "") {
-                // linkUrl 있으면 해당 페이지로 이동 (공지 상세 등)
-                location.href = linkUrl;
+            if (link_url && link_url !== "null" && link_url !== "") {
+                // link_url 있으면 해당 페이지로 이동 (공지 상세 등)
+                location.href = link_url;
             } else {
-                // linkUrl 없으면 알림 상세 페이지로 이동
-                location.href = "/spendolive/notification/detail.do?notificationId=" + notificationId;
+                // link_url 없으면 알림 상세 페이지로 이동
+                location.href = "/spendolive/notification/detail.do?notification_id=" + notification_id;
             }
         } else if (data.result === "LOGIN_REQUIRED") {
             alert("로그인이 필요합니다.");
@@ -399,11 +411,11 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-function saveNoticeReadLocal(noticeId) {
-    localStorage.setItem("notice_read_" + noticeId, "Y");
+function saveNoticeReadLocal(notice_id) {
+    localStorage.setItem("notice_read_" + notice_id, "Y");
 }
 
-function toggleNoticeStar(event, noticeId, button) {
+function toggleNoticeStar(event, notice_id, button) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -417,7 +429,7 @@ function toggleNoticeStar(event, noticeId, button) {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: "noticeId=" + noticeId
+        body: "notice_id=" + notice_id
     })
     .then(response => response.json())
     .then(data => {
@@ -428,7 +440,7 @@ function toggleNoticeStar(event, noticeId, button) {
     });
 }
 
-function toggleNotificationStar(event, notificationId, button) {
+function toggleNotificationStar(event, notification_id, button) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -438,7 +450,7 @@ function toggleNotificationStar(event, notificationId, button) {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: "notificationId=" + notificationId
+        body: "notification_id=" + notification_id
     })
     .then(response => response.json())
     .then(data => {

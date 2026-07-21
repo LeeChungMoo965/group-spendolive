@@ -25,7 +25,7 @@ public class NotificationPageController {
     /* ─── 알림 상세 페이지 ────────────────────────────────── */
     @GetMapping("/detail.do")
     public ModelAndView notificationDetail(
-            @RequestParam(value = "notificationId", defaultValue = "0") int notificationId,
+            @RequestParam(value = "notification_id", defaultValue = "0") int notification_id,
             HttpSession session) {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
@@ -35,7 +35,7 @@ public class NotificationPageController {
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
-        if (notificationId <= 0) {
+        if (notification_id <= 0) {
             ModelAndView mav = new ModelAndView("common/layout");
             mav.addObject("body_page", "/WEB-INF/views/notification/notificationDetail.jsp");
             mav.addObject("errorMsg", "잘못된 알림 번호입니다.");
@@ -44,7 +44,7 @@ public class NotificationPageController {
 
         NotificationDTO notification = null;
         try {
-            notification = notificationService.getNotificationDetail(notificationId, memberInfo.getId());
+            notification = notificationService.getNotificationDetail(notification_id, memberInfo.getId());
         } catch (Exception e) {
             System.err.println("[NotificationPageController.detail] 조회 실패: " + e.getMessage());
         }
@@ -58,7 +58,7 @@ public class NotificationPageController {
 
         // 읽음 처리
         try {
-            notificationService.readNotification(notificationId, memberInfo.getId());
+            notificationService.readNotification(notification_id, memberInfo.getId());
         } catch (Exception e) {
             System.err.println("[NotificationPageController.detail] 읽음 처리 실패: " + e.getMessage());
         }

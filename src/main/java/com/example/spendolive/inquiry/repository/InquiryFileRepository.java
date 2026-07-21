@@ -57,13 +57,13 @@ public class InquiryFileRepository {
 
     private InquiryFileVO mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         InquiryFileVO file = new InquiryFileVO();
-        file.setFileId(rs.getInt("file_id"));
-        file.setInquiryId(rs.getInt("inquiry_id"));
-        file.setOriginName(rs.getString("origin_name"));
-        file.setSavedName(rs.getString("saved_name"));
-        file.setFilePath(rs.getString("file_path"));
-        file.setFileSize(rs.getLong("file_size"));
-        file.setRegDate(rs.getString("reg_date"));
+        file.setFile_id(rs.getInt("file_id"));
+        file.setInquiry_id(rs.getInt("inquiry_id"));
+        file.setOrigin_name(rs.getString("origin_name"));
+        file.setSaved_name(rs.getString("saved_name"));
+        file.setFile_path(rs.getString("file_path"));
+        file.setFile_size(rs.getLong("file_size"));
+        file.setReg_date(rs.getString("reg_date"));
         return file;
     }
 

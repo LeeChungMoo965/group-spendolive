@@ -39,9 +39,9 @@ public class ExpenseController {
                             Model model,
                             RedirectAttributes redirectAttributes,  
                             HttpSession session) {
-        Long memberId = getLoginMemberId(session);
+        Long member_id = getLoginMember_id(session);
 
-        if (memberId == null) {
+        if (member_id == null) {
             redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
             return "redirect:/member/loginForm.do?log=expense";
         }
@@ -54,13 +54,13 @@ public class ExpenseController {
         
 
         YearMonth selectedMonth = YearMonth.parse(yearMonth);
-    List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(memberId, yearMonth);
+    List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(member_id, yearMonth);
 
     // date가 지정된 경우, 테이블에는 그 날짜 지출만 필터링
     List<ExpenseDTO> tableExpenseList = monthExpenseList;
         if (date != null && !date.isBlank()) {
             tableExpenseList = monthExpenseList.stream()
-                    .filter(expense -> date.equals(formatDate(expense.getExpenseDate())))
+                    .filter(expense -> date.equals(formatDate(expense.getExpense_date())))
                     .toList();
         }
 
@@ -73,7 +73,7 @@ public class ExpenseController {
         // 상단 요약/하단 분석은 달 전체 기준으로 유지 (monthExpenseList 사용)
         model.addAttribute("expenseTypeSummary", makeExpenseTypeSummary(monthExpenseList));
         model.addAttribute("selectedMonthTotal", sumAmount(monthExpenseList));
-        model.addAttribute("monthChartList", makeMonthChartList(memberId, selectedMonth));
+        model.addAttribute("monthChartList", makeMonthChartList(member_id, selectedMonth));
         model.addAttribute("categorySummaryList", makeCategorySummaryList(monthExpenseList));
         model.addAttribute("rankingList", makeRankingList(monthExpenseList));
 
@@ -94,13 +94,13 @@ public class ExpenseController {
                              @RequestParam(value = "yearMonth", required = false) String yearMonth,
                              HttpSession session) {
 
-        Long memberId = getLoginMemberId(session);
+        Long member_id = getLoginMember_id(session);
 
-        if (memberId == null) {
+        if (member_id == null) {
             return "redirect:/member/loginForm.do";
         }
 
-        expenseDTO.setMemberId(memberId);
+        expenseDTO.setMember_id(member_id);
         applyRepeatSettings(expenseDTO);
 
         expenseService.addExpense(expenseDTO);
@@ -117,13 +117,13 @@ public class ExpenseController {
                                 @RequestParam(value = "yearMonth", required = false) String yearMonth,
                                 HttpSession session) {
 
-        Long memberId = getLoginMemberId(session);
+        Long member_id = getLoginMember_id(session);
 
-        if (memberId == null) {
+        if (member_id == null) {
             return "redirect:/member/loginForm.do";
         }
 
-        expenseDTO.setMemberId(memberId);
+        expenseDTO.setMember_id(member_id);
         applyRepeatSettings(expenseDTO);
 
         expenseService.modifyExpense(expenseDTO);
@@ -136,17 +136,17 @@ public class ExpenseController {
     }
 
     @PostMapping("/delete.do")
-    public String deleteExpense(@RequestParam("expenseId") Long expenseId,
+    public String deleteExpense(@RequestParam("expense_id") Long expense_id,
                                 @RequestParam(value = "yearMonth", required = false) String yearMonth,
                                 HttpSession session) {
 
-        Long memberId = getLoginMemberId(session);
+        Long member_id = getLoginMember_id(session);
 
-        if (memberId == null) {
+        if (member_id == null) {
             return "redirect:/member/loginForm.do";
         }
 
-        expenseService.removeExpense(expenseId, memberId);
+        expenseService.removeExpense(expense_id, member_id);
 
         if (yearMonth == null || yearMonth.isBlank()) {
             yearMonth = YearMonth.now().toString();
@@ -155,7 +155,7 @@ public class ExpenseController {
         return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
     }
 
-    private Long getLoginMemberId(HttpSession session) {
+    private Long getLoginMember_id(HttpSession session) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
 
         if (memberInfo == null) {
@@ -165,24 +165,24 @@ public class ExpenseController {
         return Long.valueOf(memberInfo.getMember_id());
     }
 
-    private boolean isRepeatTargetType(String expenseType) {
-        return "FIXED".equals(expenseType) || "OTT".equals(expenseType);
+    private boolean isRepeatTargetType(String expense_type) {
+        return "FIXED".equals(expense_type) || "OTT".equals(expense_type);
     }
 
     private void applyRepeatSettings(ExpenseDTO expenseDTO) {
-        if (isRepeatTargetType(expenseDTO.getExpenseType())) {
-            expenseDTO.setFixedYn("Y");
+        if (isRepeatTargetType(expenseDTO.getExpense_type())) {
+            expenseDTO.setFixed_yn("Y");
 
-            if (expenseDTO.getRepeatCycle() == null || expenseDTO.getRepeatCycle().isBlank()) {
-                expenseDTO.setRepeatYn("N");
-                expenseDTO.setRepeatCycle(null);
+            if (expenseDTO.getRepeat_cycle() == null || expenseDTO.getRepeat_cycle().isBlank()) {
+                expenseDTO.setRepeat_yn("N");
+                expenseDTO.setRepeat_cycle(null);
             } else {
-                expenseDTO.setRepeatYn("Y");
+                expenseDTO.setRepeat_yn("Y");
             }
         } else {
-            expenseDTO.setFixedYn("N");
-            expenseDTO.setRepeatYn("N");
-            expenseDTO.setRepeatCycle(null);
+            expenseDTO.setFixed_yn("N");
+            expenseDTO.setRepeat_yn("N");
+            expenseDTO.setRepeat_cycle(null);
         }
     }
 
@@ -205,25 +205,25 @@ public class ExpenseController {
         typeSummary.put("OTT", 0);
 
         for (ExpenseDTO expense : expenseList) {
-            String expenseType = expense.getExpenseType();
+            String expense_type = expense.getExpense_type();
 
-            if (expenseType == null || !typeSummary.containsKey(expenseType)) {
+            if (expense_type == null || !typeSummary.containsKey(expense_type)) {
                 continue;
             }
 
-            typeSummary.put(expenseType, typeSummary.get(expenseType) + safeAmount(expense));
+            typeSummary.put(expense_type, typeSummary.get(expense_type) + safeAmount(expense));
         }
 
         return typeSummary;
     }
 
-    private List<Map<String, Object>> makeMonthChartList(Long memberId, YearMonth selectedMonth) {
+    private List<Map<String, Object>> makeMonthChartList(Long member_id, YearMonth selectedMonth) {
         List<Map<String, Object>> monthChartList = new ArrayList<>();
         List<Integer> totalList = new ArrayList<>();
 
         for (int i = -2; i <= 0; i++) {
             YearMonth month = selectedMonth.plusMonths(i);
-            int total = sumAmount(expenseService.getExpenseList(memberId, month.toString()));
+            int total = sumAmount(expenseService.getExpenseList(member_id, month.toString()));
             totalList.add(total);
         }
 
@@ -251,18 +251,18 @@ public class ExpenseController {
 
     private List<Map<String, Object>> makeCategorySummaryList(List<ExpenseDTO> expenseList) {
         Map<String, Integer> categoryTotalMap = new LinkedHashMap<>();
-        int totalAmount = sumAmount(expenseList);
+        int total_amount = sumAmount(expenseList);
 
         for (ExpenseDTO expense : expenseList) {
-            String categoryName = expense.getCategoryName();
+            String category_name = expense.getCategory_name();
 
-            if (categoryName == null || categoryName.isBlank()) {
-                categoryName = "기타";
+            if (category_name == null || category_name.isBlank()) {
+                category_name = "기타";
             }
 
             categoryTotalMap.put(
-                    categoryName,
-                    categoryTotalMap.getOrDefault(categoryName, 0) + safeAmount(expense)
+                    category_name,
+                    categoryTotalMap.getOrDefault(category_name, 0) + safeAmount(expense)
             );
         }
 
@@ -271,12 +271,12 @@ public class ExpenseController {
         for (Map.Entry<String, Integer> entry : categoryTotalMap.entrySet()) {
             int percent = 0;
 
-            if (totalAmount > 0) {
-                percent = (int) Math.round((entry.getValue() * 100.0) / totalAmount);
+            if (total_amount > 0) {
+                percent = (int) Math.round((entry.getValue() * 100.0) / total_amount);
             }
 
             Map<String, Object> categoryData = new LinkedHashMap<>();
-            categoryData.put("categoryName", entry.getKey());
+            categoryData.put("category_name", entry.getKey());
             categoryData.put("total", entry.getValue());
             categoryData.put("percent", percent);
             categorySummaryList.add(categoryData);

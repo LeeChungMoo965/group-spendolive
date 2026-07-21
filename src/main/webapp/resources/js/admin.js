@@ -40,12 +40,13 @@
         });
     });
 })();
-function comment(reportId, reportedMemberId,count,reportReason) {
 
-    $('#form_report_id').val(reportId);
-    $('#form_reported_member_id').val(reportedMemberId);
+function comment(report_id, reported_member_id,count,report_reason) {
+
+    $('#form_report_id').val(report_id);
+    $('#form_reported_member_id').val(reported_member_id);
     $('#form_count').val(count);
-    $('#form_report_reason').val(reportReason);
+    $('#form_report_reason').val(report_reason);
 
     $('#commentArea').show();
  

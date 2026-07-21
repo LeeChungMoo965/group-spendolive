@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
 
 
-    <body data-page="report">
+    <body data-page="settlement">
     <div class="admin-shell">
 
    
@@ -31,7 +31,8 @@
                 <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead><tbody>
                         <c:forEach var="member" items="${paymentList}" varStatus="s">
                       
-    <tr><td>${s.count}</td><td>${member.roomId}</td><td>${member.memberId}</td><td><fmt:formatNumber value="${member.payAmount}" type="number" />원</td><td>${member.pay_day} + 연체일 ${member.pay_late_day} </td><td><span class="badge yellow">${member.settlement_status}</span></td>
+
+    <tr><td>${s.count}</td><td>${member.room_id}</td><td>${member.member_login_id}</td><td><fmt:formatNumber value="${member.pay_amount}" type="number" />원</td><td>${member.pay_day} + 연체일 ${member.pay_late_day} </td><td><span class="badge yellow">${member.settlement_status}</span></td>
     <td>
        
     <c:choose>
@@ -39,8 +40,10 @@
         <button class="mini-btn">정산 완료</button>
     </c:when>
      <c:otherwise>
-     <form action="${contextPath}/payment/paymenting.do" method="post"><input id="roomId" type="hidden" name="roomId" value="${room.roomId}">
-    <button class="mini-btn warning">정산금 받기</button></form>
+
+     <form action="${contextPath}/admin/settlement/paymenting.do" method="post"><input id="room_id" type="hidden" name="room_id" value="${member.room_id}"><input id="room_id" type="hidden" name="member_login_id" value="${member.member_login_id}">
+    <button class="mini-btn warning">정산금 받기</button></form> </td><td> <span><form action="${contextPath}/admin/settlement/paymentlate.do" method="post"><input id="roomId" type="hidden" name="room_id" value="${member.room_id}">
+    <input id="roomId" type="hidden" name="member_login_id" value="${member.member_login_id}"><input id="roomId" type="hidden" name="pay_late_day" value="${member.pay_late_day}"><button class="mini-btn">연기</button></form></span>
       </c:otherwise>
     </c:choose>
     </td></tr>

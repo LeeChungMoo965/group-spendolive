@@ -122,7 +122,7 @@ public class NotificationRepository {
         try {
             int rows = jdbcTemplate.update(UPDATE_READ_YN_SQL, notificationId, id);
             if (rows == 0) {
-                System.err.println("[NotificationRepository.updateReadYn] 대상 없음: notificationId=" + notificationId);
+                System.err.println("[NotificationRepository.updateReadYn] 대상 없음: notification_id=" + notification_id);
             }
         } catch (DataAccessException e) {
             System.err.println("[NotificationRepository.updateReadYn] DB 오류: " + e.getMessage());
@@ -148,7 +148,7 @@ public class NotificationRepository {
         try {
             int rows = jdbcTemplate.update(TOGGLE_STAR_SQL, notificationId, id);
             if (rows == 0) {
-                System.err.println("[NotificationRepository.toggleStar] 대상 없음: notificationId=" + notificationId);
+                System.err.println("[NotificationRepository.toggleStar] 대상 없음: notification_id=" + notification_id);
             }
         } catch (DataAccessException e) {
             System.err.println("[NotificationRepository.toggleStar] DB 오류: " + e.getMessage());

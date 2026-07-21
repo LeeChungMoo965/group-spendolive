@@ -7,8 +7,8 @@ import lombok.Setter;
 @Setter
 public class ExpenseCategoryDTO {
 
-    private Long categoryId;
-    private String categoryName;
-    private String expenseType;
-    private Integer sortOrder;
+    private Long category_id;
+    private String category_name;
+    private String expense_type;
+    private Integer sort_order;
 }
