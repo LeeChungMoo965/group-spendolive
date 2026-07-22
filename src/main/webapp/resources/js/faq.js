@@ -102,9 +102,16 @@ function filterInquiryStatus(btn, status) {
     });
 }
 
-/* ---- inquiryList.jsp : 카드 클릭 시 상세 이동 ---- */
-function goInquiryDetail(contextPath, inquiry_id) {
-    window.location.href = contextPath + '/spendolive/inquiry/detail.do?inquiryNo=' + encodeURIComponent(inquiry_id);
+/* ---- inquiryList.jsp : 카드 클릭 시 상세 팝업 ---- */
+function openInqDetailModal(inquiryId) {
+    const tpl = document.getElementById('inqDetailTpl' + inquiryId);
+    const body = document.getElementById('inqDetailBody');
+    if (!tpl || !body) return;
+    body.innerHTML = tpl.innerHTML;
+    document.getElementById('inqDetailModal').classList.add('show');
+}
+function closeInqDetailModal(e) {
+    document.getElementById('inqDetailModal').classList.remove('show');
 }
 
 /* ---- inquiryWrite.jsp : 개인정보 수집·이용 상세 [자세히 보기] 토글 ---- */

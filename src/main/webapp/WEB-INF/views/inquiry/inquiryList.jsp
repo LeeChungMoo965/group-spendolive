@@ -38,7 +38,7 @@
         <c:if test="${not empty inquiryList}">
             <div class="inq-list" id="inqList">
                 <c:forEach var="inq" items="${inquiryList}">
-                    <div class="inq-card" onclick="goInquiryDetail('${contextPath}','${inq.inquiry_id}')">
+                    <div class="inq-card" onclick="openInqDetailModal('${inq.inquiry_id}')">
                         <div class="inq-top">
                             <span class="inq-category">${inq.category}</span>
                             <div class="inq-meta">
@@ -54,12 +54,12 @@
                                     <c:choose>
                                         <c:when test="${file.image}">
                                             <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}"
-                                                 alt="${file.origin_name}" class="inq-thumb"
-                                                 onclick="event.stopPropagation(); openInqLightbox(this.src, '${file.origin_name}')">
+                                                alt="${file.origin_name}" class="inq-thumb"
+                                                onclick="event.stopPropagation(); openInqLightbox(this.src, '${file.origin_name}')">
                                         </c:when>
                                         <c:otherwise>
                                             <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}"
-                                               target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
+                                            target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
@@ -76,6 +76,54 @@
                             </c:choose>
                             <span class="inq-no">문의 #${inq.inquiry_id}</span>
                         </div>
+                    </div>
+
+                    <%-- 이 카드 클릭 시 위 정보를 모달에 그대로 복사해서 보여줄 숨김 템플릿 --%>
+                    <div class="inq-detail-tpl" id="inqDetailTpl${inq.inquiry_id}" style="display:none">
+                        <div class="inq-top">
+                            <span class="inq-category">${inq.categoryLabel} · ${inq.inquiryTypeLabel}</span>
+                            <div class="inq-meta">
+                                <span class="badge ${inq.statusCode}">${inq.statusLabel}</span>
+                                <span class="inq-date">${inq.reg_date}</span>
+                            </div>
+                        </div>
+                        <div class="inq-title" style="font-size:18px;margin-top:8px">${inq.title}</div>
+                        <div class="inq-detail-body">${inq.content}</div>
+
+                        <c:if test="${not empty inq.files}">
+                            <div class="inq-attachments">
+                                <c:forEach var="file" items="${inq.files}">
+                                    <c:choose>
+                                        <c:when test="${file.image}">
+                                            <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                                alt="${file.origin_name}" class="inq-thumb"
+                                                onclick="openInqLightbox(this.src, '${file.origin_name}')">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                            target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:forEach>
+                            </div>
+                        </c:if>
+
+                        <c:choose>
+                            <c:when test="${inq.hasReply}">
+                                <div class="inq-reply-box">
+                                    <div class="inq-reply-head">
+                                        <strong>관리자 답변</strong>
+                                        <span class="inq-date">${inq.reply_date}</span>
+                                    </div>
+                                    <div class="inq-detail-body">${inq.reply_content}</div>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="empty-box" style="margin-top:14px">
+                                    <p>아직 답변이 등록되지 않았습니다.</p>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </c:forEach>
             </div>
@@ -105,6 +153,13 @@
                 </c:choose>
             </div>
         </c:if>
+    </div>
+
+    <div class="modal" id="inqDetailModal" onclick="closeInqDetailModal(event)">
+        <div class="modal-box modal-inquiry" onclick="event.stopPropagation()">
+            <button type="button" class="modal-close" onclick="closeInqDetailModal(event)">✕</button>
+            <div id="inqDetailBody"></div>
+        </div>
     </div>
 
     <%-- 첨부 사진 확대보기 (01-foundation.css의 공통 .modal 시스템 재사용) --%>

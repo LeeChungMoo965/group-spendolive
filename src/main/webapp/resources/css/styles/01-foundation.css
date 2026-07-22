@@ -178,7 +178,7 @@ th {color:var(--muted);font-size:0.8125rem;}
 .auth-form-group {margin-bottom:1rem;}
 .auth-form-group label {display:block;margin-bottom:0.5rem;color:#3f4c25;font-weight:900;}
 .auth-input-row {display:flex;gap:0.5rem;}
-.auth-form-group input {width:100%;height:auto !important;padding:0 0.9375rem;border:1px solid var(--line);border-radius:0.875rem;outline:none;background:#fff;margin-top:0;}
+.auth-form-group input {width:100%;height:auto !important;padding:0.875rem 0.9375rem;border:1px solid var(--line);border-radius:0.875rem;outline:none;background:#fff;margin-top:0;} /*입력 폼 높이 추가*/
 .auth-form-group input:focus {border-color:var(--olive);box-shadow:0 0 0 4px rgba(122,127,54,.13);}
 .auth-btn {height:auto !important;padding:0.75rem 1rem;border:0;border-radius:0.875rem;font-weight:950;cursor:pointer;transition:.2s ease;white-space:nowrap;}
 .auth-btn:hover {transform:translateY(-0.0625rem);}
