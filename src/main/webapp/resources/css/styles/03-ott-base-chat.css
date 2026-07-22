@@ -48,7 +48,8 @@
 .status-row small {color: #7d8878;}
 .chat-floating-widget {position: fixed;right: 28px;bottom: 28px;z-index: 1000;}
 .chat-widget-check {display: none;}
-.chat-widget-button {width: 62px;height: 62px;border-radius: 24px;background: #355c32;color: #ffffff;display: flex;align-items: center;justify-content: center;font-size: 28px;box-shadow: 0 16px 38px rgba(31, 54, 29, 0.3);cursor: pointer;position: relative;}
+.chat-widget-button {width: 62px;height: 62px;border-radius: 24px;background: #355c32;color: #ffffff;display: flex;align-items: center;justify-content: center;font-size: 28px;box-shadow: 0 16px 38px rgba(31, 54, 29, 0.3);cursor: pointer;position: relative;transition: transform .15s ease;}
+.chat-widget-button:hover {transform: scale(1.06);}
 .chat-widget-button em {position: absolute;right: -5px;top: -7px;min-width: 23px;height: 23px;padding: 0 6px;border-radius: 999px;background: #ff5b45;color: #ffffff;font-size: 12px;font-style: normal;font-weight: 900;display: flex;align-items: center;justify-content: center;border: 2px solid #ffffff;}
 .chat-widget-panel {position: absolute;right: 0;bottom: 76px;width: 340px;max-height: 480px;overflow: auto;background: #ffffff;border: 1px solid #e0eadc;border-radius: 26px;box-shadow: 0 22px 60px rgba(34, 52, 31, 0.22);padding: 18px;opacity: 0;transform: translateY(12px) scale(0.96);pointer-events: none;transition: 0.2s ease;}
 .chat-widget-check:checked ~ .chat-widget-panel {opacity: 1;transform: translateY(0) scale(1);pointer-events: auto;}
