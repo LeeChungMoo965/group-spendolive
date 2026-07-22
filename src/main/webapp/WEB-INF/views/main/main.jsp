@@ -41,7 +41,7 @@
                         </a>
                     </div>
                     <div class="hero-stats">
-                        <div>
+                        <div class="dashboard" >
                             <strong>
                             <span id="mainTotalStat">1,284,000원</span>
                         </strong>
@@ -154,7 +154,7 @@
                     캘린더
                 </h3>
                 <p>
-                    월별 달력에서 날짜별 지출 금액과 카테고리를 편하게 확인합니다.
+                    월별 달력에서 날짜별 지출 금액과 카테고리, 지출관리를 편하게 확인합니다.
                 </p>
                 <a href="${contextPath}/spendolive/calendar.do" class="btn btn-primary full">
                     자세히 보기

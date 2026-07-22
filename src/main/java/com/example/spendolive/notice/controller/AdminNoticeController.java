@@ -18,7 +18,7 @@ import com.example.spendolive.notice.domain.NoticeDTO;
 import com.example.spendolive.notice.service.NoticeService;
 
 @Controller
-@RequestMapping("/spendolive/admin/notice")
+@RequestMapping("/admin/notice")
 public class AdminNoticeController {
 
     private final NoticeService noticeService;
@@ -38,7 +38,7 @@ public class AdminNoticeController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
 
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminNoticeList.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminNoticeList.jsp");
         try {
             mav.addObject("noticeList", noticeService.getNoticeList(null));
         } catch (Exception e) {
@@ -53,7 +53,7 @@ public class AdminNoticeController {
     public ModelAndView write(HttpSession session) {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminNoticeWrite.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminNoticeWrite.jsp");
         return mav;
     }
 
@@ -69,7 +69,7 @@ public class AdminNoticeController {
 
         if (title == null || title.isBlank() || content == null || content.isBlank()) {
             ra.addFlashAttribute("errorMsg", "제목과 내용을 모두 입력해 주세요.");
-            return new ModelAndView("redirect:/spendolive/admin/notice/write.do");
+            return new ModelAndView("redirect:/admin/notice/write.do");
         }
         if (!"Y".equals(pinned_yn)) pinned_yn = "N";
 
@@ -85,12 +85,12 @@ public class AdminNoticeController {
             ra.addFlashAttribute("msg", "공지사항이 등록되었습니다.");
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
-            return new ModelAndView("redirect:/spendolive/admin/notice/write.do");
+            return new ModelAndView("redirect:/admin/notice/write.do");
         } catch (DataAccessException e) {
             ra.addFlashAttribute("errorMsg", "등록 중 오류가 발생했습니다.");
-            return new ModelAndView("redirect:/spendolive/admin/notice/write.do");
+            return new ModelAndView("redirect:/admin/notice/write.do");
         }
-        return new ModelAndView("redirect:/spendolive/admin/notice/list.do");
+        return new ModelAndView("redirect:/admin/notice/list.do");
     }
 
     /* ─── 수정 폼 ───────────────────────────────────────────── */
@@ -102,7 +102,7 @@ public class AdminNoticeController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         if (notice_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 공지 번호입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/notice/list.do");
+            return new ModelAndView("redirect:/admin/notice/list.do");
         }
 
         NoticeDTO notice = null;
@@ -110,11 +110,11 @@ public class AdminNoticeController {
 
         if (notice == null) {
             ra.addFlashAttribute("errorMsg", "존재하지 않는 공지사항입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/notice/list.do");
+            return new ModelAndView("redirect:/admin/notice/list.do");
         }
 
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminNoticeWrite.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminNoticeWrite.jsp");
         mav.addObject("notice", notice);
         return mav;
     }
@@ -131,11 +131,11 @@ public class AdminNoticeController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         if (notice_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 공지 번호입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/notice/list.do");
+            return new ModelAndView("redirect:/admin/notice/list.do");
         }
         if (title == null || title.isBlank() || content == null || content.isBlank()) {
             ra.addFlashAttribute("errorMsg", "제목과 내용을 모두 입력해 주세요.");
-            return new ModelAndView("redirect:/spendolive/admin/notice/edit.do?notice_id=" + notice_id);
+            return new ModelAndView("redirect:/admin/notice/edit.do?notice_id=" + notice_id);
         }
         if (!"Y".equals(pinned_yn)) pinned_yn = "N";
 
@@ -150,9 +150,9 @@ public class AdminNoticeController {
             ra.addFlashAttribute("msg", "공지사항이 수정되었습니다.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "수정 중 오류가 발생했습니다.");
-            return new ModelAndView("redirect:/spendolive/admin/notice/edit.do?notice_id=" + notice_id);
+            return new ModelAndView("redirect:/admin/notice/edit.do?notice_id=" + notice_id);
         }
-        return new ModelAndView("redirect:/spendolive/admin/notice/list.do");
+        return new ModelAndView("redirect:/admin/notice/list.do");
     }
 
     /* ─── 삭제 처리 ─────────────────────────────────────────── */
@@ -164,7 +164,7 @@ public class AdminNoticeController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         if (notice_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 공지 번호입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/notice/list.do");
+            return new ModelAndView("redirect:/admin/notice/list.do");
         }
         try {
             noticeService.deleteNotice(notice_id);
@@ -172,6 +172,6 @@ public class AdminNoticeController {
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "삭제 중 오류가 발생했습니다.");
         }
-        return new ModelAndView("redirect:/spendolive/admin/notice/list.do");
+        return new ModelAndView("redirect:/admin/notice/list.do");
     }
 }

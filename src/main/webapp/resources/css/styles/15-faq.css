@@ -1,251 +1,63 @@
 /* ============================================================
    15. FAQ / 문의하기
-   대상: faqList.jsp, inquiryWrite.jsp, inquiryList.jsp
-   모든 클래스가 .faq-page로 네임스페이싱되어 있어서
-   다른 페이지의 동명 클래스와 충돌하지 않는다.
    ============================================================ */
 
-/* ---- 공통 레이아웃 (히어로 영역, 본문 폭) ---- */
-.faq-page .page-hero { padding: 32px 0 8px; }
-.faq-page .page-hero .wrap {
-    margin-left: max(20px, calc((100% - 1140px) / 2));
-    margin-right: auto;
-}
-.faq-page .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px 60px; }
-.faq-page .hero-sub { color: var(--muted); font-size: 16px; line-height: 1.7; margin-bottom: 28px; }
-
-/* ---- FAQ 목록 (아코디언) ---- */
-
+/* 공통 레이아웃 (히어로 영역, 본문 폭) */
+.faq-page .page-hero { padding: 32px 0 8px; }.faq-page .page-hero .wrap {margin-left: max(20px, calc((100% - 1140px) / 2));margin-right: auto;}.faq-page .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px 60px; }.faq-page .hero-sub { color: var(--muted); font-size: 16px; line-height: 1.7; margin-bottom: 28px; }
 /* 검색창 */
-.faq-page .search-barb { margin-top: 40px; }
-.faq-page .search-bar { display: flex; gap: 10px; max-width: 520px; }
-.faq-page .search-bar input { margin: 0; }
-.faq-page .search-bar button {
-    height: 48px; min-width: 64px; padding: 0 20px;
-    background: var(--olive); color: #fff; border: 0; border-radius: 14px;
-    font-weight: 900; font-size: 14px; cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center;
-    white-space: nowrap; word-break: keep-all; writing-mode: horizontal-tb; line-height: 1;
-    flex: 0 0 auto;
-}
-
-/* 카테고리 필터 알약 버튼(.cat-btn)들
-   → 아래 "내 문의 조회" 섹션의 .filter-btn과 스타일이 완전히 동일하다.
-      마크업만 다른 페이지 영역(FAQ 목록 / 내 문의함)에서 쓰이는 거라
-      클래스는 분리해뒀지만, 디자인 수정 시 이 둘을 같이 고쳐야 함에 유의 */
-.faq-page .cats { display: flex; gap: 10px; flex-wrap: wrap; margin: 32px 0 24px; }
-.faq-page .cat-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 40px; padding: 0 16px;
-    border: 1px solid #dbe7d4; border-radius: 999px;
-    background: #fff; color: #40523d;
-    font-size: 14px; font-weight: 850; cursor: pointer;
-    box-shadow: 0 8px 18px rgba(52, 74, 48, .05);
-    transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
-    white-space: nowrap;
-}
-.faq-page .cat-btn:hover,
-.faq-page .cat-btn.active {
-    background: var(--olive); border-color: var(--olive); color: #fff;
-    transform: translateY(-1px);
-}
-
+.faq-page .search-barb { margin-top: 40px; }.faq-page .search-bar { display: flex; gap: 10px; max-width: 520px; }.faq-page .search-bar input { margin: 0; }.faq-page .search-bar button {height: 48px; min-width: 64px; padding: 0 20px;background: var(--olive); color: #fff; border: 0; border-radius: 14px;font-weight: 900; font-size: 14px; cursor: pointer;display: inline-flex; align-items: center; justify-content: center;white-space: nowrap; word-break: keep-all; writing-mode: horizontal-tb; line-height: 1;flex: 0 0 auto;}
+/* 카테고리 필터 알약 버튼(.cat-btn)들 */
+.faq-page .cats { display: flex; gap: 10px; flex-wrap: wrap; margin: 32px 0 24px; }.faq-page .cat-btn {display: inline-flex; align-items: center; justify-content: center;min-height: 40px; padding: 0 16px;border: 1px solid #dbe7d4; border-radius: 999px;background: #fff; color: #40523d;font-size: 14px; font-weight: 850; cursor: pointer;box-shadow: 0 8px 18px rgba(52, 74, 48, .05);transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;white-space: nowrap;}.faq-page .cat-btn:hover,.faq-page .cat-btn.active {background: var(--olive); border-color: var(--olive); color: #fff;transform: translateY(-1px);}
 /* 카테고리 구간 라벨 ("계정·로그인" 같은 소제목) */
-.faq-page .section-label {
-    font-size: 12px; font-weight: 900; letter-spacing: .08em;
-    color: var(--olive); margin-bottom: 14px; margin-top: 36px;
-}
-
+.faq-page .section-label {font-size: 12px; font-weight: 900; letter-spacing: .08em;color: var(--olive); margin-bottom: 14px; margin-top: 36px;}
 /* 아코디언 카드 한 줄 (질문 클릭 시 .open이 붙으며 답변이 펼쳐짐) */
-.faq-page .faq-list { display: grid; gap: 10px; }
-.faq-page .faq-item {
-    background: #fff; border: 1px solid var(--line); border-radius: 18px;
-    overflow: hidden; transition: .2s;
-}
-.faq-page .faq-item.open { border-color: var(--sage); }
-
+.faq-page .faq-list { display: grid; gap: 10px; }.faq-page .faq-item {background: #fff; border: 1px solid var(--line); border-radius: 18px;overflow: hidden; transition: .2s;}.faq-page .faq-item.open { border-color: var(--sage); }
 /* 질문 줄 (클릭 영역) */
-.faq-page .faq-q {
-    display: flex; justify-content: space-between; align-items: center; gap: 12px;
-    padding: 18px 22px; cursor: pointer; font-weight: 900; font-size: 15px;
-}
-.faq-page .faq-q-left { display: flex; align-items: center; gap: 12px; }
+.faq-page .faq-q {display: flex; justify-content: space-between; align-items: center; gap: 12px;padding: 18px 22px; cursor: pointer; font-weight: 900; font-size: 15px;}.faq-page .faq-q-left { display: flex; align-items: center; gap: 12px; }
 /* "Q" 원형 배지 — 열려있을 때만 올리브색으로 채워짐 */
-.faq-page .q-badge {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: var(--olive-soft); color: var(--olive-dark);
-    font-size: 12px; font-weight: 900; display: grid; place-items: center; flex-shrink: 0;
-}
-.faq-page .faq-item.open .q-badge { background: var(--olive); color: #fff; }
+.faq-page .q-badge {width: 28px; height: 28px; border-radius: 50%;background: var(--olive-soft); color: var(--olive-dark);font-size: 12px; font-weight: 900; display: grid; place-items: center; flex-shrink: 0;}.faq-page .faq-item.open .q-badge { background: var(--olive); color: #fff; }
 /* 펼침/접힘 화살표 아이콘 — 열리면 180도 회전 */
-.faq-page .chevron { width: 20px; height: 20px; flex-shrink: 0; transition: transform .25s; color: var(--muted); }
-.faq-page .faq-item.open .chevron { transform: rotate(180deg); color: var(--olive); }
-
-/* 답변 영역 — max-height 트랜지션으로 아코디언 펼침 애니메이션 구현.
-   300px는 답변 텍스트가 충분히 길어도 잘리지 않도록 넉넉히 잡은 값 */
-.faq-page .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; }
-.faq-page .faq-item.open .faq-a { max-height: 300px; }
-.faq-page .faq-a-inner {
-    padding: 0 22px 20px; color: var(--muted); line-height: 1.8; font-size: 14px;
-    border-top: 1px solid var(--line); padding-top: 16px;
-}
-
+.faq-page .chevron { width: 20px; height: 20px; flex-shrink: 0; transition: transform .25s; color: var(--muted); }.faq-page .faq-item.open .chevron { transform: rotate(180deg); color: var(--olive); }
+/* 답변 영역 */
+.faq-page .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; }.faq-page .faq-item.open .faq-a { max-height: 300px; }.faq-page .faq-a-inner {padding: 0 22px 20px; color: var(--muted); line-height: 1.8; font-size: 14px;border-top: 1px solid var(--line); padding-top: 16px;}
 /* FAQ 목록 하단 "그래도 해결 안 되면 문의하기" 배너 */
-.faq-page .contact-banner {
-    margin-top: 40px; padding: 28px 32px;
-    background: linear-gradient(135deg, var(--olive-dark), var(--olive));
-    border-radius: var(--radius); color: #fff;
-    display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
-}
-.faq-page .contact-banner h3 { font-size: 20px; margin-bottom: 6px; }
-.faq-page .contact-banner p { opacity: .85; font-size: 14px; line-height: 1.6; }
-.faq-page .contact-btn {
-    padding: 12px 24px; background: rgba(255, 255, 255, .18);
-    border: 1.5px solid rgba(255, 255, 255, .4); border-radius: 14px;
-    color: #fff; font-weight: 900; font-size: 14px; cursor: pointer;
-    white-space: nowrap; text-decoration: none; display: inline-block;
-}
-.faq-page .contact-btn:hover { background: rgba(255, 255, 255, .28); }
-
-/* ---- 문의 작성 (inquiryWrite.jsp) ---- */
-
-.faq-page .form-card {
-    background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 32px 36px; margin-top: 28px;
-}
-.faq-page .form-card h2 {
-    font-size: 20px; letter-spacing: -.04em; margin-bottom: 24px;
-    padding-bottom: 16px; border-bottom: 1px solid var(--line);
-}
-.faq-page .field { margin-bottom: 20px; }
-.faq-page .field label { display: block; margin-bottom: 8px; }
-.faq-page .field label span { color: var(--sage); font-size: 12px; font-weight: 700; margin-left: 6px; }
+.faq-page .contact-banner {margin-top: 40px; padding: 28px 32px;background: linear-gradient(135deg, var(--olive-dark), var(--olive));border-radius: var(--radius); color: #fff;display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;}.faq-page .contact-banner h3 { font-size: 20px; margin-bottom: 6px; }.faq-page .contact-banner p { opacity: .85; font-size: 14px; line-height: 1.6; }.faq-page .contact-btn {padding: 12px 24px; background: rgba(255, 255, 255, .18);border: 1.5px solid rgba(255, 255, 255, .4); border-radius: 14px;color: #fff; font-weight: 900; font-size: 14px; cursor: pointer;white-space: nowrap; text-decoration: none; display: inline-block;}.faq-page .contact-btn:hover { background: rgba(255, 255, 255, .28); }
+/* 문의 작성 (inquiryWrite.jsp) */
+.faq-page .form-card {background: #fff; border: 1px solid var(--line); border-radius: var(--radius);padding: 32px 36px; margin-top: 28px;}.faq-page .form-card h2 {font-size: 20px; letter-spacing: -.04em; margin-bottom: 24px;padding-bottom: 16px; border-bottom: 1px solid var(--line);}.faq-page .field { margin-bottom: 20px; }.faq-page .field label { display: block; margin-bottom: 8px; }.faq-page .field label span { color: var(--sage); font-size: 12px; font-weight: 700; margin-left: 6px; }
 /* select 기본 화살표를 지우고, 사이트 색상(--muted)에 맞춘 SVG 화살표를 직접 그려넣음 */
-.faq-page .field select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c745f' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
-    cursor: pointer; appearance: none;
-}
-.faq-page .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.faq-page .hint { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.faq-page .field select {background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c745f' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;cursor: pointer; appearance: none;}.faq-page .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }.faq-page .hint { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 /* 내용 입력창 글자수 표시 (예: "128 / 1000") */
-.faq-page .char-count { display: flex; justify-content: flex-end; font-size: 12px; color: var(--muted); margin-top: 6px; }
-.faq-page .char-count span { color: var(--olive-dark); font-weight: 900; }
-
+.faq-page .char-count { display: flex; justify-content: flex-end; font-size: 12px; color: var(--muted); margin-top: 6px; }.faq-page .char-count span { color: var(--olive-dark); font-weight: 900; }
 /* 파일 업로드 드롭존 */
-.faq-page .upload-area {
-    border: 2px dashed var(--line); border-radius: 14px; padding: 28px;
-    text-align: center; cursor: pointer; background: var(--cream); transition: .2s; display: block;
-}
-.faq-page .upload-area:hover { border-color: var(--sage); background: var(--olive-soft); }
-.faq-page .upload-icon { font-size: 32px; margin-bottom: 8px; color: var(--sage); }
-.faq-page .upload-area p { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 0; }
-.faq-page .upload-area strong { color: var(--olive-dark); }
+.faq-page .upload-area {border: 2px dashed var(--line); border-radius: 14px; padding: 28px;text-align: center; cursor: pointer; background: var(--cream); transition: .2s; display: block;}.faq-page .upload-area:hover { border-color: var(--sage); background: var(--olive-soft); }.faq-page .upload-icon { font-size: 32px; margin-bottom: 8px; color: var(--sage); }.faq-page .upload-area p { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 0; }.faq-page .upload-area strong { color: var(--olive-dark); }
 /* 선택한 파일명 목록 (드롭존 아래 표시) */
 .faq-page .upload-filenames { margin-top: 10px; font-size: 12px; color: var(--olive-dark); line-height: 1.8; word-break: break-all; }
-
 /* 개인정보 수집 동의 안내 박스 */
-.faq-page .privacy-box { background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 20px 0; }
-.faq-page .privacy-box h4 { font-size: 13px; font-weight: 900; margin-bottom: 8px; color: var(--olive-dark); }
-.faq-page .privacy-box p { font-size: 12px; color: var(--muted); line-height: 1.7; }
-.faq-page .check-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; cursor: pointer; }
-.faq-page .check-row input { width: 16px; height: 16px; accent-color: var(--olive); cursor: pointer; margin: 0; }
-.faq-page .check-row span { font-size: 13px; color: var(--muted); }
-.faq-page .check-row a { color: var(--olive-dark); font-weight: 900; text-decoration: underline; }
+.faq-page .privacy-box { background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 20px 0; }.faq-page .privacy-box h4 { font-size: 13px; font-weight: 900; margin-bottom: 8px; color: var(--olive-dark); }.faq-page .privacy-box p { font-size: 12px; color: var(--muted); line-height: 1.7; }.faq-page .check-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; cursor: pointer; }.faq-page .check-row input { width: 16px; height: 16px; accent-color: var(--olive); cursor: pointer; margin: 0; }.faq-page .check-row span { font-size: 13px; color: var(--muted); }.faq-page .check-row a { color: var(--olive-dark); font-weight: 900; text-decoration: underline; }
 /* "자세히 보기" 눌러야 펼쳐지는 개인정보 수집 항목 표(기본 숨김) */
-.faq-page .privacy-detail { display: none; }
-.faq-page .privacy-detail.open { display: block; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
-.faq-page .privacy-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px; }
-.faq-page .privacy-table th { width: 110px; text-align: left; vertical-align: top; padding: 8px 10px 8px 0; color: var(--olive-dark); font-weight: 900; white-space: nowrap; }
-.faq-page .privacy-table td { padding: 8px 0; color: var(--muted); line-height: 1.6; }
-.faq-page .privacy-table tr:not(:last-child) th,
-.faq-page .privacy-table tr:not(:last-child) td { border-bottom: 1px solid var(--line); }
-.faq-page .privacy-refuse-note { font-size: 12px; color: var(--muted); line-height: 1.7; margin: 0; }
-
-.faq-page .form-actions { display: flex; gap: 12px; margin-top: 28px; }
-
+.faq-page .privacy-detail { display: none; }.faq-page .privacy-detail.open { display: block; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }.faq-page .privacy-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px; }.faq-page .privacy-table th { width: 110px; text-align: left; vertical-align: top; padding: 8px 10px 8px 0; color: var(--olive-dark); font-weight: 900; white-space: nowrap; }.faq-page .privacy-table td { padding: 8px 0; color: var(--muted); line-height: 1.6; }.faq-page .privacy-table tr:not(:last-child) th,.faq-page .privacy-table tr:not(:last-child) td { border-bottom: 1px solid var(--line); }.faq-page .privacy-refuse-note { font-size: 12px; color: var(--muted); line-height: 1.7; margin: 0; }.faq-page .form-actions { display: flex; gap: 12px; margin-top: 28px; }
 /* 작성 폼 상단의 "이렇게 쓰면 답변이 빨라져요" 팁 박스 */
-.faq-page .tips { background: var(--olive-soft); border: 1px solid #d2dba0; border-radius: 16px; padding: 18px 20px; margin-bottom: 24px; margin-top: 30px; }
-.faq-page .tips h4 { font-size: 13px; font-weight: 900; color: var(--olive-dark); margin-bottom: 8px; }
-.faq-page .tips ul { padding-left: 16px; color: var(--muted); font-size: 13px; line-height: 2; margin: 0; }
-
-/* ---- 내 문의 조회 (inquiryList.jsp) ---- */
-
-.faq-page .board-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; margin-top: 12px; flex-wrap: wrap; gap: 12px; }
-.faq-page .board-header h2 { font-size: 22px; letter-spacing: -.04em; }
-
-/* 상태 필터 버튼(.filter-btn) — .cat-btn과 스타일 동일 (위 주석 참고) */
-.faq-page .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-.faq-page .filter-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 40px; padding: 0 16px;
-    border: 1px solid #dbe7d4; border-radius: 999px;
-    background: #fff; color: #40523d;
-    font-size: 14px; font-weight: 850; cursor: pointer;
-    box-shadow: 0 8px 18px rgba(52, 74, 48, .05);
-    transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
-    white-space: nowrap; text-decoration: none;
-}
-.faq-page .filter-btn:hover,
-.faq-page .filter-btn.active {
-    background: var(--olive); border-color: var(--olive); color: #fff;
-    transform: translateY(-1px);
-}
-
+.faq-page .tips { background: var(--olive-soft); border: 1px solid #d2dba0; border-radius: 16px; padding: 18px 20px; margin-bottom: 24px; margin-top: 30px; }.faq-page .tips h4 { font-size: 13px; font-weight: 900; color: var(--olive-dark); margin-bottom: 8px; }.faq-page .tips ul { padding-left: 16px; color: var(--muted); font-size: 13px; line-height: 2; margin: 0; }
+/* 내 문의 조회 */
+.faq-page .board-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; margin-top: 12px; flex-wrap: wrap; gap: 12px; }.faq-page .board-header h2 { font-size: 22px; letter-spacing: -.04em; }
+/* 상태 필터 버튼(.filter-btn) — .cat-btn과 스타일 동일 (위 주석 참고) */.faq-page .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }.faq-page .filter-btn {display: inline-flex; align-items: center; justify-content: center;min-height: 40px; padding: 0 16px;border: 1px solid #dbe7d4; border-radius: 999px;background: #fff; color: #40523d;font-size: 14px; font-weight: 850; cursor: pointer;box-shadow: 0 8px 18px rgba(52, 74, 48, .05);transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;white-space: nowrap; text-decoration: none;}.faq-page .filter-btn:hover,.faq-page .filter-btn.active {background: var(--olive); border-color: var(--olive); color: #fff;transform: translateY(-1px);}
 /* 문의 카드 목록 */
-.faq-page .inq-list { display: grid; gap: 10px; }
-.faq-page .inq-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; cursor: pointer; transition: .2s; }
-.faq-page .inq-card:hover { border-color: var(--sage); }
-.faq-page .inq-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-.faq-page .inq-category { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 900; background: var(--olive-soft); color: var(--olive-dark); }
-.faq-page .inq-meta { display: flex; align-items: center; gap: 10px; }
-
-/* 문의 상태 배지 (WAIT/DONE/REVIEW).
-   색상값이 01-foundation.css의 .wait/.done과 우연히 같지만,
-   여기 마크업은 .badge.wait 형태로 쓰고 있어서 클래스는 그대로 둠 */
-.faq-page .badge { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 900; }
-.faq-page .badge.wait { background: #fff1d6; color: #9a5f13; }     /* 답변 대기 */
-.faq-page .badge.done { background: #e8f2d1; color: var(--olive-dark); }  /* 답변 완료 */
-.faq-page .badge.review { background: #f0eefd; color: #4a3d9e; }   /* 검토 중 */
-
-.faq-page .inq-date { color: var(--muted); font-size: 12px; }
-.faq-page .inq-title { font-size: 15px; font-weight: 900; margin-bottom: 6px; line-height: 1.4; }
+.faq-page .inq-list { display: grid; gap: 10px; }.faq-page .inq-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; cursor: pointer; transition: .2s; }.faq-page .inq-card:hover { border-color: var(--sage); }.faq-page .inq-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }.faq-page .inq-category { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 900; background: var(--olive-soft); color: var(--olive-dark); }.faq-page .inq-meta { display: flex; align-items: center; gap: 10px; }
+/* 문의 상태 배지 (WAIT/DONE/REVIEW).*/
+.faq-page .badge { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 900; }.faq-page .badge.wait { background: #fff1d6; color: #9a5f13; }     /* 답변 대기 */.faq-page .badge.done { background: #e8f2d1; color: var(--olive-dark); }  /* 답변 완료 */.faq-page .badge.review { background: #f0eefd; color: #4a3d9e; }   /* 검토 중 */.faq-page .inq-date { color: var(--muted); font-size: 12px; }.faq-page .inq-title { font-size: 15px; font-weight: 900; margin-bottom: 6px; line-height: 1.4; }
 /* 문의 내용 미리보기 — 2줄 넘어가면 말줄임(...) 처리 */
-.faq-page .inq-preview { color: var(--muted); font-size: 13px; line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.faq-page .inq-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
-.faq-page .inq-reply { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.faq-page .inq-preview { color: var(--muted); font-size: 13px; line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }.faq-page .inq-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }.faq-page .inq-reply { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 /* 답변 여부를 점 색깔로 표시 (답변 있음=sage, 없음=line색) */
-.faq-page .reply-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sage); }
-.faq-page .reply-dot.none { background: var(--line); }
-.faq-page .inq-no { color: var(--muted); font-size: 12px; }
-
+.faq-page .reply-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sage); }.faq-page .reply-dot.none { background: var(--line); }.faq-page .inq-no { color: var(--muted); font-size: 12px; }
 /* 문의 내역이 없을 때 */
-.faq-page .empty-box .icon-big { font-size: 48px; margin-bottom: 12px; }
-.faq-page .empty-box p { font-size: 15px; margin-bottom: 18px; }
-
+.faq-page .empty-box .icon-big { font-size: 48px; margin-bottom: 12px; }.faq-page .empty-box p { font-size: 15px; margin-bottom: 18px; }
 /* 페이지네이션 */
-.faq-page .pagination { display: flex; justify-content: center; gap: 6px; margin-top: 28px; }
-.faq-page .pg-btn {
-    width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--line);
-    background: #fff; color: var(--muted); font-weight: 900; cursor: pointer; font-size: 13px;
-    text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
-}
-.faq-page .pg-btn.active { background: var(--olive); color: #fff; border-color: var(--olive); }
-
+.faq-page .pagination { display: flex; justify-content: center; gap: 6px; margin-top: 28px; }.faq-page .pg-btn {width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--line);background: #fff; color: var(--muted); font-weight: 900; cursor: pointer; font-size: 13px;text-decoration: none; display: inline-flex; align-items: center; justify-content: center;}.faq-page .pg-btn.active { background: var(--olive); color: #fff; border-color: var(--olive); }
 /* ---- 문의 카드 첨부파일(사진/파일) ---- */
-.faq-page .inq-attachments { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.faq-page .inq-attachments { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
 /* 이미지 파일 → 정사각 썸네일로 표시 */
-.faq-page .inq-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); cursor: pointer; transition: .2s; }
-.faq-page .inq-thumb:hover { border-color: var(--sage); transform: translateY(-1px); }
+.faq-page .inq-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); cursor: pointer; transition: .2s; }.faq-page .inq-thumb:hover { border-color: var(--sage); transform: translateY(-1px); }
 /* 이미지가 아닌 파일(PDF 등) → 다운로드 링크 버튼 형태로 표시 */
-.faq-page .inq-file-link { display: inline-flex; align-items: center; height: 64px; padding: 0 14px; border-radius: 12px; background: var(--cream); border: 1px solid var(--line); color: var(--olive-dark); font-size: 12px; font-weight: 850; text-decoration: none; }
-.faq-page .inq-file-link:hover { border-color: var(--sage); background: var(--olive-soft); }
-
-/* ---- 첨부 사진 확대보기 (공통 .modal 위에 얹는 사진 전용 변형) ----
-   01-foundation.css의 기본 .modal/.modal-box는 흰 카드형이라
-   사진 뷰어에는 안 맞아서, 이 페이지에서만 배경/그림자를 없애고
-   이미지 자체가 카드처럼 보이도록 재정의함 */
-.faq-page .modal-photo { position: relative; width: auto; max-width: 92vw; padding: 0; background: transparent; box-shadow: none; border-radius: 16px; }
-.faq-page .modal-photo img { display: block; max-width: 92vw; max-height: 88vh; border-radius: 16px; box-shadow: 0 26px 80px rgba(0, 0, 0, .4); }
-.faq-page .modal-photo .modal-close { top: -46px; right: 0; background: rgba(255, 255, 255, .18); color: #fff; }
-.faq-page .modal-photo .modal-close:hover { background: rgba(255, 255, 255, .3); }
+.faq-page .inq-file-link { display: inline-flex; align-items: center; height: 64px; padding: 0 14px; border-radius: 12px; background: var(--cream); border: 1px solid var(--line); color: var(--olive-dark); font-size: 12px; font-weight: 850; text-decoration: none; }.faq-page .inq-file-link:hover { border-color: var(--sage); background: var(--olive-soft); }
+/* 첨부 사진 확대보기 */
+.faq-page .modal-photo { position: relative; width: auto; max-width: 92vw; padding: 0; background: transparent; box-shadow: none; border-radius: 16px; }.faq-page .modal-photo img { display: block; max-width: 92vw; max-height: 88vh; border-radius: 16px; box-shadow: 0 26px 80px rgba(0, 0, 0, .4); }.faq-page .modal-photo .modal-close { top: -46px; right: 0; background: rgba(255, 255, 255, .18); color: #fff; }.faq-page .modal-photo .modal-close:hover { background: rgba(255, 255, 255, .3); }

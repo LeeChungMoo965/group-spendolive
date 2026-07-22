@@ -8,12 +8,10 @@
   
     function open() {
       panel.classList.add('show');
-      toggleBtn.classList.add('hide');
       input.focus();
     }
     function close() {
       panel.classList.remove('show');
-      toggleBtn.classList.remove('hide');
     }
   
     function addMessage(text, sender, fallback) {

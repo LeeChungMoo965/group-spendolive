@@ -234,8 +234,9 @@ public class ExpenseController {
             int total = totalList.get(i + 2);
             int barPercent = 0;
 
-            if (maxTotal > 0) {
-                barPercent = Math.max(8, (int) Math.round((total * 100.0) / maxTotal));
+            if (maxTotal > 0 && total > 0) {
+                barPercent = Math.max(8,
+                        (int) Math.round((total * 100.0) / maxTotal));
             }
 
             Map<String, Object> monthData = new LinkedHashMap<>();

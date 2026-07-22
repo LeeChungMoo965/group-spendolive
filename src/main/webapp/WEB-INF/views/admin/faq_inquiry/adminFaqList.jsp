@@ -4,7 +4,7 @@
 
 <%-- admin.css는 common/header.jsp가 role=='ADMIN'일 때 이미 자동으로 로드해줌 → 여기서 또 링크할 필요 없음 --%>
 
-<div class="admin-main">
+<div class="admin-main admin-board-page">
 
     <div class="hero">
         <div>
@@ -21,8 +21,9 @@
         <div class="flash-err">⚠ ${errorMsg}</div>
     </c:if>
 
+    <div id="adminBoardArea">
     <div class="admin-board-tabs">
-        <a href="${contextPath}/spendolive/admin/inquiry/list.do" class="admin-board-tab">문의사항</a>
+        <a href="${contextPath}/admin/inquiry/list.do" class="admin-board-tab">문의사항</a>
         <a href="${contextPath}/spendolive/admin/faq/list.do" class="admin-board-tab active">자주 묻는 질문</a>
     </div>
 
@@ -100,4 +101,7 @@
             </div>
         </c:forEach>
     </div>
+    </div>
 </div>
+
+<script src="${contextPath}/resources/js/admin.js"></script>

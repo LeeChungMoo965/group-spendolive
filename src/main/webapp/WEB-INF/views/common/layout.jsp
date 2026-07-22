@@ -10,12 +10,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SpendOlive | 지출관리 플랫폼</title>
     <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 
 </head>
 
 <body>
-    <div id="modern-wrapper">
+    <div id="modern-wrapper" >
         <header id="modern-header">
             <jsp:include page="/WEB-INF/views/common/header.jsp" />
         </header>

@@ -482,7 +482,6 @@ public class OttRepositoryImpl implements OttRepository {
                        )
                   )
                 ORDER BY r.room_id DESC
-                FETCH FIRST 8 ROWS ONLY
                 """;
 
     private static final String SELECT_MY_ROOMS_BY_MODE_SQL = """

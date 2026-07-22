@@ -392,7 +392,8 @@ public class OttServiceImpl implements OttService {
         }
 
         if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
-            ottRepository.updateRoomStatus(room_id, "ACTIVE");
+            String status_first = "FIRST";
+            ottRepository.updateRoomStatus(room_id, status_first);
             return;
         }
 

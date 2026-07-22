@@ -1,160 +1,25 @@
 /* =========================================================
    14. 챗봇 (FAQ 자동응답 위젯)
-   대상: 모든 페이지 공통 레이아웃에 떠있는 우하단 챗봇 버튼 + 패널
-   chatbot.js가 열고 닫는 상태(.show/.hide)를 이 클래스들로 제어함
    ========================================================= */
 
-/* 우하단에 고정된 동그란 챗봇 토글 버튼.
-   z-index:80으로 다른 콘텐츠 위에 항상 떠 있음 */
-   .chatbot-toggle {
-    position: fixed;
-    right: 28px;
-    bottom: 100px;   /* 원래 28px이었는데, 다른 플로팅 버튼과 안 겹치게 위로 올림 */
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--olive-dark), var(--olive));
-    color: #fff;
-    border: 0;
-    box-shadow: 0 10px 24px rgba(85, 89, 31, .35);
-    cursor: pointer;
-    font-size: 24px;
-    display: grid;
-    place-items: center;
-    z-index: 80;
-    transition: transform .15s ease;
-}
-.chatbot-toggle:hover {
-    transform: scale(1.06);
-}
-/* 챗봇 패널이 열려있을 때 토글 버튼 자체는 숨김 (닫기는 패널 안 X 버튼으로) */
-.chatbot-toggle.hide {
-    display: none;
-}
-
-/* 챗봇 대화창 패널. 기본은 display:none, JS가 .show 클래스를 붙이면 나타남 */
-.chatbot-panel {
-    position: fixed;
-    right: 28px;
-    bottom: 100px;
-    width: 340px;
-    max-height: 480px;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 80;
-}
-.chatbot-panel.show {
-    display: flex;
-}
-
-/* 패널 상단 헤더 (봇 이름 + 설명 + 닫기 버튼) */
-.chatbot-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 18px;
-    color: #fff;
-    background: linear-gradient(135deg, var(--olive-dark), var(--olive));
-}
-.chatbot-header strong {
-    font-size: 15px;
-}
-.chatbot-header span {
-    font-size: 12px;
-    opacity: .85;
-    display: block;
-    margin-top: 2px;
-}
-.chatbot-close {
-    background: transparent;
-    border: 0;
-    color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-    line-height: 1;
-}
-
+/* 우하단에 고정된 챗봇 토글 버튼. */
+.chatbot-toggle {position: fixed;right: 28px;bottom: 100px;width: 62px;height: 62px;border-radius: 24px;background: rgba(203, 175, 255, 0.925);color: #fff;border: 0;box-shadow: 0 16px 38px rgba(31, 54, 29, 0.3);cursor: pointer;font-size: 28px;display: flex;align-items: center;justify-content: center;z-index: 80;transition: transform .15s ease;}.chatbot-toggle:hover {transform: scale(1.06);}
+/* 챗봇 대화창 패널  */
+.chatbot-panel {position: fixed;right: 28px;bottom: 176px;width: 380px;max-height: 480px;overflow: auto;background: #f5f8f4;border: 1px solid #e0eadc;border-radius: 26px;box-shadow: 0 22px 60px rgba(34, 52, 31, 0.22);padding: 18px;display: none;flex-direction: column;z-index: 80;}.chatbot-panel.show {display: flex;}
+/* 패널 상단 헤더 */
+.chatbot-header {display: flex;justify-content: space-between;gap: 12px;align-items: flex-start;margin-bottom: 14px;}.chatbot-header .eyebrow {margin: 0;font-size: 12px;letter-spacing: .05em;color: #8a917f;font-weight: 700;text-transform: uppercase;}.chatbot-header strong {display: block;margin: 2px 0 0;font-size: 19px;color: #22301f;font-weight: 800;}.chatbot-header span {font-size: 13px;color: #6c7768;display: block;margin-top: 4px;}.chatbot-close {width: 32px;height: 32px;border-radius: 50%;display: inline-flex;align-items: center;justify-content: center;background: #f0f5ef;border: 0;cursor: pointer;font-size: 22px;color: #455f41;line-height: 1;flex-shrink: 0;}
 /* 대화 메시지가 쌓이는 스크롤 영역 */
-.chatbot-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: var(--cream);
-}
-
-/* 메시지 말풍선 공통 스타일.
-   .bot / .user 클래스로 좌/우 정렬 + 색상만 다르게 줌 */
-.chatbot-msg {
-    max-width: 80%;
-    padding: 10px 13px;
-    border-radius: 14px;
-    font-size: 13px;
-    line-height: 1.55;
-}
-.chatbot-msg.bot {
-    align-self: flex-start;
-    background: #fff;
-    border: 1px solid var(--line);
-    color: var(--text);
-    border-bottom-left-radius: 4px;   /* 꼬리 느낌 — 자기 쪽 모서리만 각지게 */
-}
-.chatbot-msg.user {
-    align-self: flex-end;
-    background: var(--olive);
-    color: #fff;
-    border-bottom-right-radius: 4px;
-}
+.chatbot-body {flex: 1;overflow-y: auto;display: flex;flex-direction: column;gap: 10px;background: #f8fbf7;}
+/* 메시지 말풍선  */
+.chatbot-msg {max-width: 80%;padding: 12px 14px;border-radius: 18px;font-size: 13px;line-height: 1.55;}.chatbot-msg.bot {align-self: flex-start;background: #ffffff;border: 1px solid #e4eee1;color: #2f482c;border-bottom-left-radius: 6px;}.chatbot-msg.user {align-self: flex-end;background: #355c32;color: #fff;border-bottom-right-radius: 6px;}
 /* FAQ 매칭에 실패해서 "1:1 문의 남겨주세요" 안내가 나갈 때(fallback)는
    일반 봇 말풍선과 구분되도록 앰버 톤으로 강조 */
-.chatbot-msg.bot.fallback {
-    border-color: #e8d9c0;
-    background: #fff8ec;
-    color: #8a5b13;
-}
+.chatbot-msg.bot.fallback {border-color: #f0dcb8;background: #fff8ec;color: #8a5b13;}
 /* "답변 입력 중..." 로딩 표시용 말풍선 */
-.chatbot-msg.typing {
-    align-self: flex-start;
-    color: var(--muted);
-    font-style: italic;
-}
-
+.chatbot-msg.typing {align-self: flex-start;color: #87917f;font-style: italic;}
 /* 하단 질문 입력창 + 전송 버튼 */
-.chatbot-footer {
-    display: flex;
-    gap: 8px;
-    padding: 12px;
-    border-top: 1px solid var(--line);
-    background: #fff;
-}
-.chatbot-footer input {
-    flex: 1;
-    margin: 0;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    font-size: 13px;
-}
-.chatbot-footer input:focus {
-    border-color: var(--olive);
-    box-shadow: 0 0 0 3px rgba(122, 127, 54, .13);
-}
-.chatbot-footer button {
-    border: 0;
-    border-radius: 12px;
-    padding: 0 16px;
-    background: var(--olive);
-    color: #fff;
-    font-weight: 800;
-    cursor: pointer;
-}
-.chatbot-footer button:hover {
-    background: var(--olive-dark);
+.chatbot-footer {display: flex;gap: 8px;padding-top: 12px;margin-top: 12px;border-top: 1px solid #e4eee1;}.chatbot-footer input {flex: 1;margin: 0;height: 44px;padding: 0 12px;border: 1px solid #d8e4d6;border-radius: 14px;background: #fff;color: #2f3d2c;font-size: 13px;}.chatbot-footer input:focus {border-color: #355c32;box-shadow: 0 0 0 3px rgba(53, 92, 50, .13);outline: none;}.chatbot-footer button {border: 0;border-radius: 14px;padding: 0 16px;background: #355c32;color: #fff;font-weight: 800;cursor: pointer;}.chatbot-footer button:hover {background: #2f482c;}
+
+@media (max-width: 900px) {
+    .chatbot-panel {right: -10px;width: min(340px, calc(100vw - 32px));}
 }
