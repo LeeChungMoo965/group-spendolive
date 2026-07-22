@@ -17,6 +17,7 @@ import com.example.spendolive.member.service.MemberService;
 import com.example.spendolive.ott.domain.OttRoomDTO;
 import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
+import com.example.spendolive.payment.domain.SettlementPaymentVO;
 import com.example.spendolive.payment.service.PaymentService;
 import com.example.spendolive.report.domain.ReportVO;
 import com.example.spendolive.report.service.ReportService;
@@ -56,13 +57,28 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         
         try {
             List<OttRoomMemberDTO> paymentList = paymentService.selectTodaysettlementmember(status);
-
             session.setAttribute("paymentList", paymentList);
             return layout("/WEB-INF/views/admin/settlement/payment.jsp");
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
             return layout("/WEB-INF/views/admin/settlement/payment.jsp");
+        }
+    }
+    @Override
+    @GetMapping("/paymentdetaillist.do")
+    public ModelAndView paymentdetaillistUpSettlement(@RequestParam(value = "status", required = false) String status,HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+        session = request.getSession();
+        if(status==null){status = "READY";}
+        
+        try {
+            List<SettlementPaymentVO> paymentdetailList = paymentService.selectpaymentAll();
+            session.setAttribute("paymentdetailList", paymentdetailList);
+            return layout("/WEB-INF/views/admin/settlement/paymentdetail.jsp");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
+            return layout("/WEB-INF/views/admin/settlement/paymentdetail.jsp");
         }
     }
     @Override
@@ -94,7 +110,7 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
             HttpServletRequest request, HttpServletResponse response,
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
-        response.setContentType("text/html; charset=UTF-8");
+
         int room_id = Integer.parseInt(room_idStr);
         OttSettlementDTO settlementInfo = (OttSettlementDTO) paymentService.selectMySettlements(room_id);
         int total_amount =  settlementInfo.getTotal_price();
@@ -123,7 +139,6 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
             HttpServletRequest request, HttpServletResponse response,
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
 
-        response.setContentType("text/html; charset=UTF-8");
         int room_id = Integer.parseInt(room_idStr);
         int pay_late_day = Integer.parseInt(pay_late_dayStr);
 
@@ -136,6 +151,26 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "정산 연기 실패 되었습니다 다시 시도 해주세요");
             return "redirect:/admin/settlement/paymentlist.do";
+        }
+    }
+    @Override
+    @PostMapping("/cancelpaymenting.do")
+    public String calcelpayment(
+            SettlementPaymentVO payment,
+            HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+
+            String paymentkey= payment.getPaymentKey();
+        try {
+            
+            paymentService.updatePaymentstatusRefund(payment);
+            String msg = paymentService.cancelpayment(paymentkey);
+            redirectAttributes.addFlashAttribute("msg", msg);
+            return "redirect:/admin/settlement/paymentdetaillist.do" ;
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("msg", "결제취소에 실패 되었습니다 다시 시도 해주세요");
+            return "redirect:/admin/settlement/paymentdetaillist.do";
         }
     }
 }
