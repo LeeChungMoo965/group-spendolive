@@ -22,5 +22,9 @@ public interface PaymentService {
     public boolean processWithdraw(SettlementPaymentVO paymentInfo, MemberVO memberInfo) throws Exception;// 금결원 출금이체 프로세스 (테스트 권환 문제로 보류)
     public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) throws Exception;
     public OttRoomDTO selectRoomByRoomId(int roomId) throws Exception;
+    public String cancelpayment(String paymentKey) throws Exception;
+    public List<SettlementPaymentVO> selectpaymentAll() throws Exception;
+    public void updatePaymentstatusRefund(SettlementPaymentVO payment) throws Exception;
+}
     
-  }
+

@@ -12,7 +12,7 @@
    
     <main class="admin-main">
     
-    <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>정산관리</h1><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do'">전체</button>
+    <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>정산관리</h1><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do'">전체</button><button onclick="location.href='${contextPath}/admin/settlement/paymentdetaillist.do'">전체2</button>
     <p>금일 이용료 보관액 방장 정산</p></div></section>
     <br>
     <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Settlement List</div>
