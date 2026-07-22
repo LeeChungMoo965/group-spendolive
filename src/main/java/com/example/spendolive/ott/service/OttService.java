@@ -78,9 +78,6 @@ public interface OttService {
     // 외부 모집방과 결제 연결용 READY 정산을 함께 생성
     void createRecruitRoom(OttRoomDTO roomDTO, String loginId);
 
-    // 결제 전 신청 데이터를 저장하는 기존 호환용 메서드
-    void applyRecruitRoom(Long room_id, String loginId);
-
     // 선택한 OTT에서 가장 오래된 참가 가능 모집방 조회
     Long findQuickJoinRecruitRoomId(Long ott_service_id, String loginId);
 

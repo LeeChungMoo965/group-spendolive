@@ -208,31 +208,6 @@ public class OttServiceImpl implements OttService {
         createReadySettlement(room_id, loginId);
     }
 
-    // 승인 시스템 제거 후 모집 마감 여부만 확인하는 호환 처리
-    @Override
-    public void applyRecruitRoom(Long room_id, String loginId) {
-        if (room_id == null || !isValidLogin(loginId)) {
-            return;
-        }
-
-        OttRoomDTO room = ottRepository.selectRoom(room_id);
-        if (room == null || loginId.equals(room.getHost_login_id())) {
-            return;
-        }
-        if (!"RECRUIT".equals(room.getRoom_mode())) {
-            return;
-        }
-        if (!("RECRUITING".equals(room.getStatus()) || "REPLACE_RECRUITING".equals(room.getStatus()))) {
-            return;
-        }
-
-        // 승인 시스템은 제거되었으므로 신청 데이터는 만들지 않는다.
-        // 이미 정원이 찬 방이면 모집 상태만 마감 상태로 정리한다.
-        if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
-            ottRepository.updateRoomStatus(room_id, "ACTIVE");
-        }
-    }
-
     // 빠른 참가가 가능한 가장 오래된 외부인 모집방 조회
     @Override
     public Long findQuickJoinRecruitRoomId(Long ott_service_id, String loginId) {
@@ -392,8 +367,6 @@ public class OttServiceImpl implements OttService {
         }
 
         if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
-            String status_first = "FIRST";
-            ottRepository.updateRoomStatus(room_id, status_first);
             return;
         }
 
@@ -425,7 +398,7 @@ public class OttServiceImpl implements OttService {
         }
 
         if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
-            ottRepository.updateRoomStatus(room_id, "ACTIVE");
+            ottRepository.updateRoomStatus(room_id,  "FIRST");
         }
 /*
         String member_name = ottRepository.selectMemberDisplayName(loginId);
