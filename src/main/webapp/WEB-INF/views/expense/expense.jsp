@@ -26,6 +26,39 @@
                     <strong>${selectedYearMonth.substring(5, 7)}월 요약</strong>
                 </div>
 
+                <%-- 선택한 달의 예산을 등록하거나 수정한다. --%>
+                <form action="${contextPath}/spendolive/expense/budget/save.do"
+                      method="post"
+                      class="monthly-budget-form">
+                    <input type="hidden" name="budget_month" value="${selectedYearMonth}">
+
+                    <label for="monthlyBudgetAmount">
+                        ${selectedYearMonth.substring(5, 7)}월 예산
+                    </label>
+
+                    <div class="monthly-budget-input-row">
+                        <div class="monthly-budget-input-wrap">
+                            <input type="number"
+                                   id="monthlyBudgetAmount"
+                                   name="budget_amount"
+                                   value="${monthlyBudget > 0 ? monthlyBudget : ''}"
+                                   min="0"
+                                   step="1000"
+                                   placeholder="예산 금액 입력"
+                                   required>
+                            <span>원</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            저장
+                        </button>
+                    </div>
+
+                    <c:if test="${param.budgetSaved == 'Y'}">
+                        <p class="monthly-budget-message">선택한 달의 예산이 저장되었습니다.</p>
+                    </c:if>
+                </form>
+
                 <div class="category-list expense-type-summary-list">
                     <div>
                         <span class="dot fixed"></span>

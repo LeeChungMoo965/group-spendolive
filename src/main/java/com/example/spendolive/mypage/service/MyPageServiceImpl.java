@@ -1,10 +1,12 @@
 package com.example.spendolive.mypage.service;
 
+import java.time.YearMonth;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.spendolive.Expense.service.ExpenseService;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberCardVO;
@@ -21,15 +23,18 @@ public class MyPageServiceImpl implements MyPageService {
     private final MyPageRepository myPageRepository;
     private final MyPageReportRepository myPageReportRepository;
     private final OttService ottService;
+    private final ExpenseService expenseService;
 
     public MyPageServiceImpl(MemberService memberService,
                              MyPageRepository myPageRepository,
                              MyPageReportRepository myPageReportRepository,
-                             OttService ottService) {
+                             OttService ottService,
+                             ExpenseService expenseService) {
         this.memberService = memberService;
         this.myPageRepository = myPageRepository;
         this.myPageReportRepository = myPageReportRepository;
         this.ottService = ottService;
+        this.expenseService = expenseService;
     }
 
     @Override
@@ -41,33 +46,48 @@ public class MyPageServiceImpl implements MyPageService {
            [마이페이지 계좌·카드 연결 추가 시작]
            담당자가 만든 계좌·카드 목록 조회 메서드를 호출한다.
            조회 결과가 null 또는 빈 목록이어도 마이페이지가 500 오류 없이 열리게 처리한다.
-           첫 번째 계좌는 상단 계좌관리 카드의 현재 계좌로만 사용한다.
+           첫 번째 계좌는 오픈뱅킹 연결 여부 확인용으로만 사용한다.
            ========================================================= */
         List<MemberAccountVO> accountInfoList = memberService.getAccountById(loginId);
         List<MemberCardVO> cardInfoList = memberService.getCardById(loginId);
 
         accountInfoList = accountInfoList == null ? List.of() : accountInfoList;
         cardInfoList = cardInfoList == null ? List.of() : cardInfoList;
-        MemberAccountVO accountInfo = accountInfoList.isEmpty() ? null : accountInfoList.get(0);
+        MemberAccountVO linkedAccountInfo = accountInfoList.isEmpty() ? null : accountInfoList.get(0);
         /* [마이페이지 계좌·카드 연결 추가 끝] */
         MyPageDTO myPage = new MyPageDTO();
     
         myPage.setMemberInfo(memberInfo);
         myPage.setProfileInitial(makeProfileInitial(memberInfo));
-        myPage.setThisMonthExpenseTotal(
-                memberInfo == null
-                        ? 0
-                        : myPageRepository.selectThisMonthExpenseTotal(
-                                memberInfo.getMember_id()
-                        )
-        );
+        int thisMonthExpenseTotal = memberInfo == null
+                ? 0
+                : myPageRepository.selectThisMonthExpenseTotal(
+                        memberInfo.getMember_id()
+                );
+
+        // 현재 달 예산을 조회해 지출 대비 사용률을 계산한다.
+        int thisMonthBudget = memberInfo == null
+                ? 0
+                : expenseService.getMonthlyBudget(
+                        Long.valueOf(memberInfo.getMember_id()),
+                        YearMonth.now().toString()
+                );
+
+        int thisMonthBudgetPercent = thisMonthBudget <= 0
+                ? 0
+                : (int) Math.round(thisMonthExpenseTotal * 100.0 / thisMonthBudget);
+
+        // 계산 결과를 마이페이지 DTO에 저장한다.
+        myPage.setThisMonthExpenseTotal(thisMonthExpenseTotal);
+        myPage.setThisMonthBudget(thisMonthBudget);
+        myPage.setThisMonthBudgetPercent(thisMonthBudgetPercent);
     
-        myPage.setAccountConnected(isAccountConnected(accountInfo));
+        myPage.setAccountConnected(isAccountConnected(linkedAccountInfo));
     
         myPage.setOpenBankUserSeq(
-                accountInfo == null
+                linkedAccountInfo == null
                         ? null
-                        : accountInfo.getOpen_bank_user_seq()
+                        : linkedAccountInfo.getOpen_bank_user_seq()
         );
         /* [마이페이지 계좌·카드 연결 추가] JSP로 전달할 전체 목록을 DTO에 저장한다. */
         myPage.setAccountList(accountInfoList);

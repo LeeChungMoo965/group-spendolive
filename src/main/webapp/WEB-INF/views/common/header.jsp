@@ -22,8 +22,8 @@
                 <a href="${contextPath}/admin/ott/list.do" data-nav="ott">OTT 관리</a>
                 <a href="${contextPath}/admin/settlement/list.do" data-nav="settlement">정산관리</a>
                 <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>
-                <a href="${contextPath}/spendolive/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
-                <a href="${contextPath}/spendolive/admin/notice/list.do" data-nav="notice">공지사항 관리</a>
+                <a href="${contextPath}/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
+                <a href="${contextPath}/admin/notice/list.do" data-nav="notice">공지사항 관리</a>
                 
             </nav>
             <div class="admin-actions">

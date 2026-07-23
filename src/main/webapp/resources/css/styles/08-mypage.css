@@ -55,7 +55,7 @@
 /* 마이페이지 회원정보 수정: 일렬 정렬 + 이메일/전화번호 인증 + 비밀번호 확인 */
 
 .mypage-profile-edit {padding: 1.875rem 2.125rem;}
-.mypage-form-section {display: grid;gap: 1rem;padding: 1.25rem;border: 1px solid var(--line);border-radius: 1.25rem;background: #fffdf8;}
+.mypage-form-section {display: grid;gap: 1rem;padding: 1.25rem;border: 1px solid var(--line);border-radius: 1.25rem;background: #fff7e2;}
 .mypage-form-section-head {display: flex;justify-content: space-between;align-items: baseline;gap: 0.875rem;padding-bottom: 0.75rem;border-bottom: 1px dashed #d9dfc9;}
 .mypage-form-section-head h3 {margin: 0;color: var(--olive-dark);font-size: 1.125rem;letter-spacing: -.03em;}
 .mypage-form-section-head p {margin: 0;color: var(--muted);font-size: 0.8125rem;font-weight: 850;line-height: 1.5;text-align: right;}
@@ -131,3 +131,10 @@
   .mypage-asset-title-form input {width: 100%;}
 }
 /* [마이페이지 계좌·카드 연결 CSS 추가 끝] */
+
+/* 마이페이지 이번 달 지출·예산 요약 */
+.mypage-monthly-expense-amount {display:block;color:var(--olive-dark);font-size:1.75rem;line-height:1.25;}
+.mypage-budget-summary {display:grid;gap:0.5rem;margin:1rem 0;padding:0.875rem;border:1px solid var(--line);border-radius:0.875rem;background:var(--cream);}
+.mypage-budget-summary > div {display:flex;align-items:center;justify-content:space-between;gap:0.75rem;}
+.mypage-budget-summary span {color:var(--muted);font-size:0.8125rem;font-weight:850;}
+.mypage-budget-summary strong {color:var(--olive-dark);font-size:0.9375rem;white-space:nowrap;}

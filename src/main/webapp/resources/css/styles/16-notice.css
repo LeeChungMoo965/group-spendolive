@@ -1,147 +1,38 @@
 /* ============================================================
    16. 공지사항
-   대상: noticeCenter.jsp(목록+탭), noticeDetail.jsp(상세),
-        adminNoticeList.jsp/adminNoticeWrite.jsp(관리자)
-   ============================================================ */
+   ========================== */
 
 /* 공지 제목 링크 */
-.notice-title-link { font-weight: 900; color: var(--text); }
-.notice-title-link:hover { color: var(--olive-dark); }
-
+.notice-title-link { font-weight: 900; color: var(--text); }.notice-title-link:hover { color: var(--olive-dark); }
 /* 중요/일반 공지 뱃지 (목록에서 제목 앞에 붙는 태그) */
-.notice-important { background: #fff1d6; color: #9a5f13; }   /* 상단 고정 공지 */
-.notice-normal { background: var(--olive-soft); color: var(--olive-dark); }   /* 일반 공지 */
-
+.notice-important { background: #fff1d6; color: #9a5f13; }   /* 상단 고정 공지 */.notice-normal { background: var(--olive-soft); color: var(--olive-dark); }   /* 일반 공지 */
 /* 공지/알림센터 상단 히어로 여백 — 다른 페이지보다 낮게 */
-.page-hero { padding: 2.8125rem 0 2.1875rem; }
-.section.compact { padding: 0.875rem 0; }
-.notice-list-section { padding-top: 0.625rem !important; padding-bottom: 1.875rem !important; }
-.notice-row-title { margin-bottom: 0.875rem; }
-
-/* ============================================================
-   공지/알림 탭 (noticeCenter.jsp 상단 "공지사항" / "알림" 탭)
-   탭 버튼이 카드 우상단에 얹혀있는 형태라 position:absolute로 띄움
-   ============================================================ */
-
-.notice-board-wrap { position: relative; margin-top: 4.875rem; }
-
-.notice-board-tabs {
-    position: absolute; top: -3.375rem; right: 0; z-index: 10;
-    display: flex; width: 23.75rem; height: 3.4375rem; overflow: hidden;
-    background: #fff; border: 1px solid var(--line); border-bottom: none;
-    border-radius: 1.125rem 1.125rem 0 0;
-}
-/* 탭 바 밑줄과 카드 상단 테두리가 만나는 부분의 이음매를 지우는 역할
-   (탭 바로 아래 흰 선을 1px 겹쳐 깔아서 경계선이 안 보이게 함) */
-.notice-board-tabs::after {
-    content: "";
-    position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
-    background: #fff; pointer-events: none;
-}
-.notice-board-tab {
-    position: relative; z-index: 1; flex: 1; height: 3.4375rem; border: none;
-    background: #eef1db; color: var(--olive-dark); font-weight: 900;
-    cursor: pointer; transition: 0.2s;
-}
-.notice-board-tab:hover { background: #dde5b5; }
-.notice-board-tab.active {
-    background: var(--olive); color: #fff;
-    box-shadow: 0 0.125rem 0 var(--olive);   /* 활성 탭이 카드와 이어진 것처럼 보이게 */
-}
-.notice-board-card { position: relative; z-index: 1; min-height: 48.75rem; padding-top: 2.125rem; border-top-right-radius: 0; }
-
-/* ============================================================
-   목록 테이블
-   ============================================================ */
-
-.notice-list-section .table-wrap { min-height: 38.75rem; }   /* 목록 개수가 적어도 카드 높이가 안 줄어들게 */
-.notice-list-section table { width: 100%; table-layout: fixed; border-collapse: collapse; }
-.notice-list-section th,
-.notice-list-section td { border-bottom: 1px solid var(--line); }
+.page-hero { padding: 45px 0 35px; }.section.compact { padding: 14px 0; }.notice-list-section { padding-top: 10px !important; padding-bottom: 30px !important; }.notice-row-title { margin-bottom: 14px; }
+/* 공지/알림 탭 (noticeCenter.jsp 상단 "공지사항" / "알림" 탭) */
+.notice-board-wrap { position: relative; margin-top: 78px; }.notice-board-tabs {position: absolute; top: -54px; right: 0; z-index: 10;display: flex; width: 380px; height: 55px; overflow: hidden;background: #fff; border: 1px solid var(--line); border-bottom: none;border-radius: 18px 18px 0 0;}
+/* 탭 바 밑줄과 카드 상단 테두리가 만나는 부분의 이음매를 지우는 역할*/
+.notice-board-tabs::after {content: "";position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;background: #fff; pointer-events: none;}.notice-board-tab {position: relative; z-index: 1; flex: 1; height: 55px; border: none;background: #eef1db; color: var(--olive-dark); font-weight: 900;cursor: pointer; transition: 0.2s;}.notice-board-tab:hover { background: #dde5b5; }.notice-board-tab.active {background: var(--olive); color: #fff;box-shadow: 0 2px 0 var(--olive);   /* 활성 탭이 카드와 이어진 것처럼 보이게 */}.notice-board-card { position: relative; z-index: 1; min-height: 780px; padding-top: 34px; border-top-right-radius: 0; }
+/* 목록 테이블*/
+.notice-list-section .table-wrap { min-height: 620px; }   /* 목록 개수가 적어도 카드 높이가 안 줄어들게 */.notice-list-section table { width: 100%; table-layout: fixed; border-collapse: collapse; }.notice-list-section th,.notice-list-section td { border-bottom: 1px solid var(--line); }
 /* 4번째 컬럼(제목)만 왼쪽 정렬, 나머지(번호/별/구분)는 가운데 정렬 */
-.notice-list-section td:nth-child(4),
-.notice-list-section th:nth-child(4) { text-align: left; }
-
+.notice-list-section td:nth-child(4),.notice-list-section th:nth-child(4) { text-align: left; }
 /* 컬럼별 너비 지정 — table-layout:fixed라서 각 열 폭을 명시해야 함 */
-.notice-list-section th:nth-child(1),
-.notice-list-section td:nth-child(1) { width: 3.4375rem; text-align: center; }   /* 번호 */
-.notice-list-section th:nth-child(2),
-.notice-list-section td:nth-child(2) { width: 2.25rem; text-align: center; padding-left: 0; padding-right: 0; }   /* 찜(별) */
-.notice-list-section th:nth-child(3),
-.notice-list-section td:nth-child(3) { width: 5.625rem; text-align: center; }   /* 구분(중요/일반) */
-.notice-list-section th:nth-child(4),
-.notice-list-section td:nth-child(4) { padding-left: 1rem; }   /* 제목 */
-
+.notice-list-section th:nth-child(1),.notice-list-section td:nth-child(1) { width: 55px; text-align: center; }   /* <-번호 */.notice-list-section th:nth-child(2),.notice-list-section td:nth-child(2) { width: 36px; text-align: center; padding-left: 0; padding-right: 0; }   /* <-찜(별) */.notice-list-section th:nth-child(3),.notice-list-section td:nth-child(3) { width: 90px; text-align: center; }/* <-구분(중요/일반) */.notice-list-section th:nth-child(4),.notice-list-section td:nth-child(4) { padding-left: 16px; }   /* <-제목 */
 /* 목록이 비어있을 때 */
-.notice-empty { padding: 3.75rem 0 !important; text-align: center; color: var(--muted); }
-.notice-empty .empty-icon { font-size: 2.125rem; margin-bottom: 0.625rem; }
-.notice-empty p { margin: 0 0 0.375rem; font-weight: 900; color: var(--text); }
-.notice-empty span { font-size: 0.8125rem; }
-
-/* ============================================================
-   필터 버튼 (전체 / 안읽음 등)
-   ============================================================ */
-
-.notification-filter { display: flex; gap: 0.625rem; margin-top: 1rem; }
-.notification-filter-btn {
-    border: 1px solid #dfe5c8; background: #eef1db; color: var(--olive-dark);
-    padding: 0.5rem 1rem; border-radius: 1.25rem; cursor: pointer;
-    font-size: 0.875rem; font-weight: 800; transition: 0.2s;
-}
-.notification-filter-btn:hover { background: #dde5b5; }
-.notification-filter-btn.active { background: var(--olive); color: #fff; border-color: var(--olive); }
-
-/* ============================================================
-   찜(별) / 읽음 상태 표시
-   ============================================================ */
-
+.notice-empty { padding: 60px 0 !important; text-align: center; color: var(--muted); }.notice-empty .empty-icon { font-size: 34px; margin-bottom: 10px; }.notice-empty p { margin: 0 0 6px; font-weight: 900; color: var(--text); }.notice-empty span { font-size: 13px; }
+/*필터 버튼 (전체 / 안읽음 등) */
+.notification-filter { display: flex; gap: 10px; margin-top: 16px; }.notification-filter-btn {border: 1px solid #dfe5c8; background: #eef1db; color: var(--olive-dark);padding: 8px 16px; border-radius: 20px; cursor: pointer;font-size: 14px; font-weight: 800; transition: 0.2s;}.notification-filter-btn:hover { background: #dde5b5; }.notification-filter-btn.active { background: var(--olive); color: #fff; border-color: var(--olive); }
 /* 목록 테이블의 별 아이콘 버튼 (찜 토글) */
-.notice-list-star-btn {
-    width: 100%; border: none; background: transparent;
-    color: #f3aa22; font-size: 1.125rem; cursor: pointer;
-    display: flex; justify-content: center; align-items: center;
-}
+.notice-list-star-btn {width: 100%; border: none; background: transparent;color: #f3aa22; font-size: 18px; cursor: pointer;display: flex; justify-content: center; align-items: center;}
 /* 읽은 공지는 회색으로, 안읽은 공지는 진한 텍스트색으로 대비 */
-.notice-read-title { color: #999; font-weight: 900; }
-.notice-unread-title { color: var(--text); font-weight: 900; }
-
-/* ============================================================
-   공지 상세 (noticeDetail.jsp)
-   ============================================================ */
-
-.notice-detail-card { padding: 2.5rem; margin-top: 1.5rem; }
-.notice-detail-top { display: flex; justify-content: space-between; align-items: center; }
-.notice-detail-title { margin: 0 0 1.125rem; font-size: 2.125rem; font-weight: 900; letter-spacing: -0.04em; }
+.notice-read-title { color: #999; font-weight: 900; }.notice-unread-title { color: var(--text); font-weight: 900; }
+/* 공지 상세 (noticeDetail.jsp)*/
+.notice-detail-card { padding: 40px; margin-top: 24px; }.notice-detail-top { display: flex; justify-content: space-between; align-items: center; }.notice-detail-title { margin: 0 0 18px; font-size: 34px; font-weight: 900; letter-spacing: -0.04em; }
 /* 작성자/등록일 등 메타 정보 줄 */
-.notice-detail-info {
-    display: flex; gap: 1.125rem; padding-bottom: 1.375rem; margin-bottom: 1.75rem;
-    border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 800;
-}
-.notice-detail-content { min-height: 16.25rem; line-height: 1.9; white-space: pre-line; }
-.notice-detail-actions { margin-top: 1.875rem; text-align: right; display: flex; justify-content: center; }
-
-/* 상세 페이지 찜 버튼 — 목록의 별 버튼과 별개로,
-   상세에서는 정사각 버튼 형태(활성 시 배경까지 채워짐) */
-.notice-star-btn {
-    border: none; background: #f2f5df; color: #8a8f33;
-    width: 2.375rem; height: 2.375rem; border-radius: 0.75rem; font-size: 1.5rem; cursor: pointer;
-    margin-right: 0.5rem; display: flex; align-items: center; justify-content: center;
-}
-.notice-star-btn.active { background: #8a8f33; color: #fff6b0; }
-
+.notice-detail-info {display: flex; gap: 18px; padding-bottom: 22px; margin-bottom: 28px;border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 800;}.notice-detail-content { min-height: 260px; line-height: 1.9; white-space: pre-line; }.notice-detail-actions { margin-top: 30px; text-align: right; display: flex; justify-content: center; }
+/* 상세 페이지 찜 버튼 — 목록의 별 버튼과 별개로,상세에서는 정사각 버튼 형태(활성 시 배경까지 채워짐) */
+.notice-star-btn {border: none; background: #f2f5df; color: #8a8f33;width: 38px; height: 38px; border-radius: 12px; font-size: 24px; cursor: pointer;margin-right: 8px; display: flex; align-items: center; justify-content: center;}.notice-star-btn.active { background: #8a8f33; color: #fff6b0; }
 /* 목록 페이지네이션 (숫자 원형 버튼) */
-.notice-pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; }
-.notice-page-btn {
-    width: 2.125rem; height: 2.125rem; border: 1px solid #dfe5c8; background: #eef1db;
-    color: var(--olive-dark); border-radius: 50%; font-weight: 900; cursor: pointer;
-}
-.notice-page-btn.active { background: var(--olive); color: #fff; border-color: var(--olive); }
-
-/* 관리자 공지 작성/수정 폼의 textarea
-   (foundation의 기본 textarea 스타일과 별개로, 좀 더 낮은 높이의
-   한 줄짜리 입력창 느낌으로 커스텀한 버전) */
-.form-textarea {
-    border: 1px solid #dfe4cb; background: #fffdf6; border-radius: 0.875rem;
-    min-height: 2.75rem; padding: 0 0.875rem; color: var(--text); font-weight: 700;
-    outline: none; width: 80%;
-}
+.notice-pagination { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }.notice-page-btn {width: 34px; height: 34px; border: 1px solid #dfe5c8; background: #eef1db;color: var(--olive-dark); border-radius: 50%; font-weight: 900; cursor: pointer;}.notice-page-btn.active { background: var(--olive); color: #fff; border-color: var(--olive); }
+/* 관리자 공지 작성/수정 폼의 textarea */
+.form-textarea {border: 1px solid #dfe4cb; background: #fffdf6; border-radius: 14px;min-height: 44px; padding: 0 14px; color: var(--text); font-weight: 700;outline: none; width: 80%;}
