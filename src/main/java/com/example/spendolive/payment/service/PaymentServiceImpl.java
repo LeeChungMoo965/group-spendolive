@@ -291,11 +291,12 @@ public class PaymentServiceImpl implements PaymentService{
                     paymentRepository.insertEscrow(escrowInfo);
                     paymentRepository.insertPlatfoem_Revenue(revenueInfo);
                     paymentRepository.updatSettlementroommemberStatus(room_id, userId);
-                    
+                    throw new RuntimeException("결제가 완료되지 않은 상태입니다: " + status);
                 }catch(Exception e){
                     //취소 api 요청
-                    //헤더는 위에 것 그대로 사용 
                     cancelpayment(paymentKey);
+                    //헤더는 위에 것 그대로 사용 
+                    throw new RuntimeException("결제가 완료되지 않은 상태입니다: " + status);
                 }
 
             } else {
