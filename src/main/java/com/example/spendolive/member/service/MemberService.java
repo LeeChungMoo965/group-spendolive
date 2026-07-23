@@ -25,6 +25,9 @@ public interface MemberService {
     /* 마이페이지 계좌 목록에서 계좌 제목을 수정한다. */
     void updateAccountName(String id, int accountIdx, String accountName) throws Exception;
 
+    // 마이페이지에서 선택한 계좌를 주계좌로 변경한다.
+    void updatePrimaryAccount(String id, int accountIdx) throws Exception;
+
     void addMember(MemberVO memberVO) throws Exception;
 
     String sendVerificationEmail(String toEmail) throws Exception;

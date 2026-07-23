@@ -48,6 +48,13 @@
         <c:if test="${param.assetError == 'accountNameUpdateFailed'}">
             <div class="alert warn">계좌 제목 수정 중 오류가 발생했습니다.</div>
         </c:if>
+        <%-- 주계좌 변경 결과 메시지 --%>
+        <c:if test="${param.primaryAccountUpdated == 'Y'}">
+            <div class="alert done">주계좌가 변경되었습니다.</div>
+        </c:if>
+        <c:if test="${param.assetError == 'primaryAccountUpdateFailed'}">
+            <div class="alert warn">주계좌 변경 중 오류가 발생했습니다.</div>
+        </c:if>
 
         <c:if test="${param.withdrawError == 'confirmRequired'}">
             <div class="alert warn">회원탈퇴를 진행하려면 확인 문구를 정확히 입력해주세요.</div>
@@ -73,15 +80,42 @@
             <article class="card mypage-stat-card">
                 <p class="eyebrow">MONTHLY EXPENSE</p>
                 <h3>이번 달 지출 총액</h3>
-                <strong><fmt:formatNumber value="${thisMonthExpenseTotal}" pattern="#,##0" />원</strong>
-                <p class="mypage-muted">이번 달 등록된 지출 내역 합계입니다.</p>
+                <strong class="mypage-monthly-expense-amount">
+                    <fmt:formatNumber value="${thisMonthExpenseTotal}" pattern="#,##0" />원
+                </strong>
+
+                <%-- 이번 달 예산과 지출 대비 사용률을 표시한다. --%>
+                <div class="mypage-budget-summary">
+                    <div>
+                        <span>이번 달 예산</span>
+                        <c:choose>
+                            <c:when test="${thisMonthBudget > 0}">
+                                <strong>
+                                    <fmt:formatNumber value="${thisMonthBudget}" pattern="#,##0" />원
+                                </strong>
+                            </c:when>
+                            <c:otherwise>
+                                <strong>미설정</strong>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+
+                    <c:if test="${thisMonthBudget > 0}">
+                        <div>
+                            <span>예산 사용률</span>
+                            <strong>${thisMonthBudgetPercent}%</strong>
+                        </div>
+                    </c:if>
+                </div>
+
+                <p class="mypage-muted">이번 달 등록된 지출 내역과 설정 예산입니다.</p>
                 <a href="${contextPath}/spendolive/expense/list.do" class="btn btn-primary full">지출관리로 이동</a>
             </article>
 
             <%-- =====================================================
-                 [마이페이지 계좌·카드 연결 추가]
-                 첫 번째 등록 계좌를 상단 계좌관리 카드에 표시한다.
-                 계좌가 없어도 빈 안내가 표시되고 페이지는 정상적으로 열린다.
+                 [마이페이지 주계좌 표시 추가]
+                 STATUS가 YES인 계좌만 상단 계좌관리 카드에 표시한다.
+                 연결 계좌는 있지만 주계좌가 없으면 목록에서 선택하도록 안내한다.
                  ===================================================== --%>
             <article class="card mypage-bank-card">
                 <p class="eyebrow">OPEN BANKING</p>
@@ -89,19 +123,28 @@
                 <c:choose>
                     <c:when test="${not empty currentAccount}">
                         <c:set var="currentBankName" value="${bankNameMap[currentAccount.bank_code]}" />
-                        <p class="mypage-muted">현재 계좌번호</p>
+                        <p class="mypage-muted">현재 주계좌</p>
                         <div class="mypage-account-box">
-                            <span><c:out value="${empty currentAccount.account_name ? '계좌' : currentAccount.account_name}" /></span>
+                            <span><c:out value="${empty currentAccount.account_name ? '주계좌' : currentAccount.account_name}" /></span>
                             <strong>
                                 <c:out value="${empty currentBankName ? currentAccount.bank_code : currentBankName}" />
                                 · <c:out value="${currentAccount.account_number}" />
                             </strong>
+                            <span>잔여금</span>
+                            <strong><fmt:formatNumber value="${currentAccount.balance}" pattern="#,##0" />원</strong>
+                        </div>
+                    </c:when>
+                    <c:when test="${not empty accountList}">
+                        <p class="mypage-muted">연결된 계좌 중 주계좌를 선택해주세요.</p>
+                        <div class="mypage-account-box">
+                            <span>현재 주계좌</span>
+                            <strong>설정된 주계좌가 없습니다.</strong>
                         </div>
                     </c:when>
                     <c:otherwise>
                         <p class="mypage-muted">현재 연결된 계좌가 없습니다.</p>
                         <div class="mypage-account-box">
-                            <span>현재 계좌번호</span>
+                            <span>현재 주계좌</span>
                             <strong>계좌 정보가 없습니다.</strong>
                         </div>
                     </c:otherwise>
@@ -339,7 +382,22 @@
                                 <span>남은 금액</span>
                                 <strong><fmt:formatNumber value="${account.balance}" pattern="#,##0" />원</strong>
                             </div>
-                            <button type="button" class="btn btn-outline btn-mini" data-account-idx="${account.account_idx}">거래내역</button>
+                            <%-- 기존 버튼 스타일을 활용해 주계좌 선택과 거래내역 버튼을 함께 표시한다. --%>
+                            <div class="mypage-room-actions">
+                                <c:choose>
+                                    <c:when test="${account.status eq 'YES'}">
+                                        <span class="chip done">주계좌</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form action="${contextPath}/spendolive/mypage/account/primary/update.do" method="post">
+                                            <input type="hidden" name="accountIdx" value="${account.account_idx}">
+                                            <button type="submit" class="btn btn-primary btn-mini"
+                                                    onclick="return confirm('이 계좌를 주계좌로 설정할까요?');">주계좌로 설정</button>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
+                                <button type="button" class="btn btn-outline btn-mini" data-account-idx="${account.account_idx}">거래내역</button>
+                            </div>
                         </div>
                     </c:forEach>
                 </div>

@@ -6,16 +6,15 @@
     <main>
         <%--
             메인 대시보드 데이터
-            - 로그인 상태이면 Controller가 DB에서 계산한 이번 달 지출금액이 들어온다.
-            - 비로그인 상태이면 data-login=false로 내려오고, JS가 랜덤 금액을 만들어 보여준다.
-            - 총지출은 JS에서 항상 고정 + 변동 + OTT 합계로 계산한다.
+            - 로그인 상태이면 선택한 달의 지출과 예산을 사용한다.
+            - 비로그인 상태이면 JS에서 랜덤 금액을 보여준다.
         --%>
         <div id="mainDashboardData"
              data-login="${mainLoggedIn}"
              data-fixed="${mainFixedTotal}"
              data-variable="${mainVariableTotal}"
              data-ott="${mainOttTotal}"
-             data-budget="1700000">
+             data-budget="${mainBudget}">
         </div>
 
         <section class="hero">
@@ -46,7 +45,7 @@
                             <span id="mainTotalStat">1,284,000원</span>
                         </strong>
                         <span>
-                            이번 달 총 지출
+                            ${mainSelectedMonthLabel} 총 지출
                         </span>
                     </div>
                     <div>
@@ -69,13 +68,31 @@
     </div>
     <div class="dashboard-preview">
         <div class="preview-header">
-            <span>
-                이번 달 요약
-            </span>
-            <strong>
-            <span id="dashboardTotalAmount">₩1,284,000</span>
-        </strong>
-    </div>
+            <div class="main-preview-title">
+                <span>
+                    ${mainSelectedMonthLabel} 요약
+                </span>
+                <strong>
+                    <span id="dashboardTotalAmount">₩1,284,000</span>
+                </strong>
+            </div>
+
+            <%-- 메인 그래프에 표시할 연월을 선택한다. --%>
+            <c:if test="${mainLoggedIn}">
+                <form action="${contextPath}/spendolive/main.do"
+                      method="get"
+                      class="main-month-select-form">
+                    <label for="mainYearMonth">조회 월</label>
+                    <div>
+                        <input type="month"
+                               id="mainYearMonth"
+                               name="yearMonth"
+                               value="${mainSelectedYearMonth}">
+                        <button type="submit" class="btn btn-primary">조회</button>
+                    </div>
+                </form>
+            </c:if>
+        </div>
     <div class="spend-ring" id="spendRing">
         <div class="ring-center">
             <span>

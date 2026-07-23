@@ -21,8 +21,9 @@ public class MemberRepositoryImpl implements MemberRepository{
     private JdbcTemplate jdbcTemplate;
 //insert
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
-    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,ACCOUNT_HOLDER_NAM) "
-    +" values(?,?,?,?,?,?,?,?) ";
+    // 새로 연동한 계좌는 사용자가 직접 선택하기 전까지 주계좌가 아니므로 STATUS를 NO로 저장한다.
+    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token, open_bank_user_seq, balance, ACCOUNT_HOLDER_NAM, STATUS) "
+    + "values(?,?,?,?,?,?,?,?,'NO') ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
     private final String inserttrandetail = "INSERT INTO member_tran_tb(id,Inout_type ,tran_amt,tran_date, account_idx) values(?,?,?,?,?)";
@@ -71,8 +72,10 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "WHERE id = ? "
   + "AND status = 'ACTIVE'";
 
+  // 주계좌가 설정된 경우 목록에서 먼저 보이도록 정렬한다.
   private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE,FROM_DATE,FROM_TIME,TO_DATE,TO_TIME,ACCOUNT_NAME,STATUS "
-                                                +"from member_account_tb where id=? ";
+                                                + "from member_account_tb where id=? "
+                                                + "order by case when status='YES' then 0 else 1 end, account_idx ";
     private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
                                                 +"from member_card_tb where id=? ";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
@@ -88,6 +91,22 @@ public class MemberRepositoryImpl implements MemberRepository{
        로그인 회원의 특정 계좌 제목(account_name)만 수정하는 SQL이다.
        ========================================================= */
     private final String updateAccountName="update member_account_tb set account_name=? where id=? and account_idx=? ";
+
+    // 선택한 계좌만 YES로 변경하고 같은 회원의 다른 계좌는 모두 NO로 변경하는 SQL이다.
+    private final String updatePrimaryAccount = """
+            UPDATE member_account_tb
+            SET status = CASE
+                             WHEN account_idx = ? THEN 'YES'
+                             ELSE 'NO'
+                         END
+            WHERE id = ?
+              AND EXISTS (
+                  SELECT 1
+                  FROM member_account_tb target_account
+                  WHERE target_account.id = ?
+                    AND target_account.account_idx = ?
+              )
+            """;
     
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
@@ -418,6 +437,18 @@ public class MemberRepositoryImpl implements MemberRepository{
     @Override
     public int updateAccountName(String userId, int accountIdx, String accountName) {
         return jdbcTemplate.update(updateAccountName, accountName, userId, accountIdx);
+    }
+
+    // 로그인 회원이 선택한 계좌를 주계좌로 설정한다.
+    @Override
+    public int updatePrimaryAccount(String userId, int accountIdx) {
+        return jdbcTemplate.update(
+                updatePrimaryAccount,
+                accountIdx,
+                userId,
+                userId,
+                accountIdx
+        );
     }
 
     @Override

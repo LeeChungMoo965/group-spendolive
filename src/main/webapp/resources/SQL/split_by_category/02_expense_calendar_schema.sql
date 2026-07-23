@@ -116,3 +116,4 @@ COMMENT ON COLUMN monthly_budget_tb.budget_month IS '예산 적용 연월(YYYY-M
 COMMENT ON COLUMN monthly_budget_tb.budget_amount IS '해당 월의 예산 금액';
 COMMENT ON COLUMN monthly_budget_tb.created_at IS '예산 최초 등록일';
 COMMENT ON COLUMN monthly_budget_tb.updated_at IS '예산 마지막 수정일';
+

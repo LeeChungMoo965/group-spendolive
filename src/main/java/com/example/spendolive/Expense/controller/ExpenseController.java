@@ -69,6 +69,8 @@ public class ExpenseController {
         model.addAttribute("monthList", makeMonthList(yearMonth));
         model.addAttribute("expenseList", tableExpenseList);
         model.addAttribute("categoryList", expenseService.getCategoryList());
+        // 선택한 달의 예산을 지출관리 화면에 전달한다.
+        model.addAttribute("monthlyBudget", expenseService.getMonthlyBudget(member_id, yearMonth));
 
         // 상단 요약/하단 분석은 달 전체 기준으로 유지 (monthExpenseList 사용)
         model.addAttribute("expenseTypeSummary", makeExpenseTypeSummary(monthExpenseList));
@@ -89,6 +91,36 @@ public class ExpenseController {
     }
 
     
+
+    // 지출관리 화면에서 입력한 월 예산을 저장한다.
+    @PostMapping("/budget/save.do")
+    public String saveMonthlyBudget(@RequestParam("budget_month") String budget_month,
+                                    @RequestParam("budget_amount") int budget_amount,
+                                    HttpSession session) {
+
+        Long member_id = getLoginMember_id(session);
+
+        if (member_id == null) {
+            return "redirect:/member/loginForm.do";
+        }
+
+        String targetMonth = budget_month;
+
+        try {
+            targetMonth = YearMonth.parse(budget_month).toString();
+        } catch (Exception e) {
+            targetMonth = YearMonth.now().toString();
+        }
+
+        // 음수 예산은 0원으로 보정한다.
+        int safeBudgetAmount = Math.max(budget_amount, 0);
+        expenseService.saveMonthlyBudget(member_id, targetMonth, safeBudgetAmount);
+
+        return "redirect:/spendolive/expense/list.do?yearMonth="
+                + targetMonth
+                + "&budgetSaved=Y";
+    }
+
     @PostMapping("/add.do")
     public String addExpense(@ModelAttribute ExpenseDTO expenseDTO,
                              @RequestParam(value = "yearMonth", required = false) String yearMonth,
@@ -235,8 +267,7 @@ public class ExpenseController {
             int barPercent = 0;
 
             if (maxTotal > 0 && total > 0) {
-                barPercent = Math.max(8,
-                        (int) Math.round((total * 100.0) / maxTotal));
+                barPercent = Math.max(8, (int) Math.round((total * 100.0) / maxTotal));
             }
 
             Map<String, Object> monthData = new LinkedHashMap<>();

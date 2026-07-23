@@ -22,4 +22,10 @@ public interface ExpenseService {
     List<ExpenseCategoryDTO> getCategoryList();
 
     List<ExpenseCategoryDTO> getCategoryListByType(String expense_type);
+
+    // 선택 월 예산 조회
+    int getMonthlyBudget(Long member_id, String budget_month);
+
+    // 선택 월 예산 저장
+    void saveMonthlyBudget(Long member_id, String budget_month, int budget_amount);
 }

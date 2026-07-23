@@ -271,6 +271,16 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalArgumentException("수정할 계좌를 찾을 수 없습니다.");
         }
     }
+
+    // 선택한 계좌를 주계좌로 바꾸며 다른 계좌의 주계좌 상태도 함께 해제한다.
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePrimaryAccount(String id, int accountIdx) throws Exception {
+        int updatedCount = memberRepository.updatePrimaryAccount(id, accountIdx);
+        if (updatedCount == 0) {
+            throw new IllegalArgumentException("주계좌로 설정할 계좌를 찾을 수 없습니다.");
+        }
+    }
     /* [마이페이지 계좌·카드 연결 추가 끝] */
 
     @Override
@@ -392,10 +402,11 @@ public class MemberServiceImpl implements MemberService {
                 balance,
                 accountHolderName
         );
+        System.out.println("👉 계좌번호 획득1: " + accountNum);
             }
         
         memberRepository.updateMember_account_status(userId);
-
+        System.out.println("👉 계좌번호 획득:2 ");
         // 토스 지급대행은 보안키 지원 문제로 현재 API 요청을 생략하는 구조
         /*
         paymentService.registerSubMall(

@@ -32,6 +32,9 @@ public interface MemberRepository {
        userId 조건을 함께 사용해 다른 회원의 계좌가 수정되지 않도록 한다.
        ========================================================= */
     public int updateAccountName(String userId, int accountIdx, String accountName)throws DataAccessException;
+
+    // 선택한 계좌만 주계좌(YES)로 바꾸고 같은 회원의 나머지 계좌는 NO로 변경한다.
+    public int updatePrimaryAccount(String userId, int accountIdx)throws DataAccessException;
 	public void updateWarning(String userId, int count)throws DataAccessException;
 	public List<MemberVO> selectMemberAll() throws DataAccessException;
 

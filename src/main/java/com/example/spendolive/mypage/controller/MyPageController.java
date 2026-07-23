@@ -80,6 +80,10 @@ public class MyPageController {
         mav.addObject("memberInfo", memberInfo);
         mav.addObject("profileInitial", myPage.getProfileInitial());
         mav.addObject("thisMonthExpenseTotal", myPage.getThisMonthExpenseTotal());
+
+        // 이번 달 예산과 사용률을 마이페이지 JSP에 전달한다.
+        mav.addObject("thisMonthBudget", myPage.getThisMonthBudget());
+        mav.addObject("thisMonthBudgetPercent", myPage.getThisMonthBudgetPercent());
         mav.addObject("accountConnected", myPage.isAccountConnected());
         mav.addObject("openBankUserSeq", myPage.getOpenBankUserSeq());
         /* =========================================================
@@ -88,7 +92,8 @@ public class MyPageController {
            ========================================================= */
         mav.addObject("accountList", myPage.getAccountList());
         mav.addObject("cardList", myPage.getCardList());
-        mav.addObject("currentAccount", firstAccount(myPage));
+        // STATUS가 YES인 주계좌만 상단 계좌관리 카드에 전달한다.
+        mav.addObject("currentAccount", findPrimaryAccount(myPage));
         mav.addObject("bankNameMap", BANK_NAME_MAP);
         mav.addObject("warning_count", myPage.getWarning_count());
         mav.addObject("myReportCount", myPage.getMyReportCount());
@@ -200,6 +205,28 @@ public class MyPageController {
         return mav;
     }
     /* [마이페이지 계좌·카드 연결 추가 끝] */
+
+    // 마이페이지 계좌 목록에서 선택한 계좌를 주계좌로 변경한다.
+    @PostMapping("/mypage/account/primary/update.do")
+    public ModelAndView updatePrimaryAccount(@RequestParam("accountIdx") int accountIdx,
+                                             HttpSession session) {
+        ModelAndView mav = new ModelAndView();
+        MemberVO loginMember = (MemberVO) session.getAttribute("memberInfo");
+
+        if (loginMember == null || loginMember.getId() == null || loginMember.getId().isBlank()) {
+            mav.setViewName("redirect:/member/loginForm.do");
+            return mav;
+        }
+
+        try {
+            memberService.updatePrimaryAccount(loginMember.getId(), accountIdx);
+            mav.setViewName("redirect:/spendolive/mypage.do?primaryAccountUpdated=Y#asset-manage");
+        } catch (Exception e) {
+            mav.setViewName("redirect:/spendolive/mypage.do?assetError=primaryAccountUpdateFailed#asset-manage");
+        }
+
+        return mav;
+    }
 
     @PostMapping("/mypage/withdraw.do")
     public ModelAndView withdrawMember(@RequestParam(value = "withdrawConfirm", required = false) String withdrawConfirm,
@@ -320,14 +347,20 @@ public class MyPageController {
     }
 
     /* =========================================================
-       [마이페이지 계좌·카드 연결 추가]
-       계좌가 없어도 오류가 발생하지 않도록 첫 계좌를 안전하게 꺼낸다.
+       [마이페이지 주계좌 조회 추가]
+       계좌 목록 중 STATUS가 YES인 계좌만 상단 계좌관리 카드에 표시한다.
+       주계좌를 아직 선택하지 않았다면 null을 반환한다.
        ========================================================= */
-    private MemberAccountVO firstAccount(MyPageDTO myPage) {
-        if (myPage == null || myPage.getAccountList() == null || myPage.getAccountList().isEmpty()) {
+    private MemberAccountVO findPrimaryAccount(MyPageDTO myPage) {
+        if (myPage == null || myPage.getAccountList() == null) {
             return null;
         }
-        return myPage.getAccountList().get(0);
+
+        return myPage.getAccountList()
+                .stream()
+                .filter(account -> "YES".equals(account.getStatus()))
+                .findFirst()
+                .orElse(null);
     }
 
     private ModelAndView layout(String bodyPage) {
