@@ -137,7 +137,7 @@
 
                         <form action="${contextPath}/spendolive/ott/recruit.do" method="get" class="recruit-search-form">
                             <input type="hidden" name="tab" value="all">
-
+                        <div class="auth-form-group">
                             <label>
                                 <span>OTT 종류</span>
                                 <select name="ott_service_id">
@@ -149,7 +149,7 @@
                                     </c:forEach>
                                 </select>
                             </label>
-
+                            </div>
                             <label class="recruit-search-keyword">
                                 <span>방 제목</span>
                                 <input type="text" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}" placeholder="예) 모집합니다">

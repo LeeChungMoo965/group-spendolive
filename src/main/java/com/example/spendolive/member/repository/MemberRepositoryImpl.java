@@ -22,8 +22,8 @@ public class MemberRepositoryImpl implements MemberRepository{
 //insert
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     // 새로 연동한 계좌는 사용자가 직접 선택하기 전까지 주계좌가 아니므로 STATUS를 NO로 저장한다.
-    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token, open_bank_user_seq, balance, ACCOUNT_HOLDER_NAM, STATUS) "
-    + "values(?,?,?,?,?,?,?,?,'NO') ";
+    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,ACCOUNT_HOLDER_NAM) "
+    +" values(?,?,?,?,?,?,?,?) ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
     private final String inserttrandetail = "INSERT INTO member_tran_tb(id,Inout_type ,tran_amt,tran_date, account_idx) values(?,?,?,?,?)";

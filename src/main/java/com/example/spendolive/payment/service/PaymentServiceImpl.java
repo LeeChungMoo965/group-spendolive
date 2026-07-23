@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -294,25 +295,7 @@ public class PaymentServiceImpl implements PaymentService{
                 }catch(Exception e){
                     //취소 api 요청
                     //헤더는 위에 것 그대로 사용 
-                    String cancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
-                    //바디 설정
-                    Map<String, Object> cancelBody = new HashMap<>();
-                    cancelBody.put("cancelReason", "서버 오류로 인한 취소");//취소 이유
-                    String cancelJson = jsonMapper.writeValueAsString(cancelBody);
-                    HttpEntity<String> cancelEntity = new HttpEntity<>(cancelJson, headers);
-                    try{
-                        ResponseEntity<String> cancelResponse = restTemplate.postForEntity(cancelUrl, cancelEntity, String.class);
-                        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                            // 추후 취소 내역 테이블 생성후 처리
-                            mapper = new tools.jackson.databind.ObjectMapper();
-                            Map<String, Object> resBodys = mapper.readValue(cancelResponse.getBody(), Map.class);
-                            String canceledAtStr = (String) resBodys.get("approvedAt");
-                        }
-                    }catch(Exception a){
-                        throw new RuntimeException("결제 취소 중 오류 발생 다시 시도 하겠습니다: " + status);
-
-                    }
-                    throw new RuntimeException("결제 완료 후 데이터 저장 중 오류 발생   결제를 취소하겠습니다: " + status);
+                    cancelpayment(paymentKey);
                 }
 
             } else {
@@ -326,6 +309,45 @@ public class PaymentServiceImpl implements PaymentService{
         throw new RuntimeException("자동결제 시스템 오류로 승인이 실패했습니다: " + e.getMessage());
     }
 }
+    @Override
+    public String cancelpayment(String paymentKey) throws Exception{
+        String cancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
+        RestTemplate restTemplate = new RestTemplate();
+        String myRealSecretKey = secretKey; 
+        String rawKey = myRealSecretKey.trim() + ":";
+        String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
+        Map<String, Object> cancelBody = new HashMap<>();
+        cancelBody.put("cancelReason", "서버 오류로 인한 취소");//취소 이유
+        tools.jackson.databind.ObjectMapper jsonMapper = new tools.jackson.databind.ObjectMapper();
+        String cancelJson = jsonMapper.writeValueAsString(cancelBody);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + encodedSecretKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> cancelEntity = new HttpEntity<>(cancelJson, headers);
+
+ 
+        try{
+          
+            ResponseEntity<String> cancelResponse = restTemplate.postForEntity(cancelUrl, cancelEntity, String.class);
+            if (cancelResponse.getStatusCode() == HttpStatus.OK && cancelResponse.getBody() != null) {
+                tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
+                Map<String, Object> resBody = mapper.readValue(cancelResponse.getBody(), Map.class);
+                String canceledAtStr = (String) resBody.get("approvedAt");
+                System.out.println("결제 취소 성공 확인 paymentKey: " + paymentKey + " | 승인시간: " + canceledAtStr);
+                
+            }
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            // 토스가 반환한 진짜 에러 메시지(4xx, 5xx)를 콘솔에 출력!
+            System.err.println("=== 토스 API 실패 응답 코드: " + e.getStatusCode());
+            System.err.println("=== 토스 API 실패 원인 내용: " + e.getResponseBodyAsString());
+            return e.getResponseBodyAsString();
+        } catch (Exception a) {
+            System.err.println("결제 취소 기타 실패: " + a.getMessage());
+            a.printStackTrace();
+            return "결제 취소 기타 실패";
+        }
+        return "결제 취소 성공";
+    }
     @Override
     public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int room_id) throws Exception {
         return paymentRepository.settlement_paymentByroomId(userId, room_id);
@@ -445,6 +467,12 @@ public class PaymentServiceImpl implements PaymentService{
     }
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public List<SettlementPaymentVO> selectpaymentAll() throws Exception { 
+        return paymentRepository.selectsettlement_paymentAll();
+       
+    }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public List<OttRoomMemberDTO> selectTodaysettlementmember(String status) throws Exception {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfMonth();
@@ -501,6 +529,26 @@ public class PaymentServiceImpl implements PaymentService{
         String roomidStr = String.valueOf(roomId);
         Long roomid = Long.parseLong(roomidStr);
         return ottRepository.selectRoom(roomid);
+    }
+    @Override
+    public void updatePaymentstatusRefund(SettlementPaymentVO payment) throws Exception {
+        int payment_id = payment.getPayment_id();
+        int refund_amount = payment.getTotal_amount();
+        String id = payment.getId();
+        int settlement_id = payment.getSettlement_id();
+        LocalDateTime created_at = LocalDateTime.now();
+       
+        paymentRepository.updatePaymentstatusRefund(payment_id);
+
+        SettlementRefundVO refund = new SettlementRefundVO();
+        refund.setMember_login_id(id);
+        refund.setCompleted_at(created_at);
+        refund.setPayment_id(payment_id);
+        refund.setRefund_amount(refund_amount);
+        refund.setRefund_reason("PAYMENT_CANCEL");
+        refund.setRefund_status("COMPLETED");
+        refund.setSettlement_id(settlement_id);
+        paymentRepository.insertRefund(refund);
     }
 }    
 

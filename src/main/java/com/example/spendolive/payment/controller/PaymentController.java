@@ -23,4 +23,5 @@ public interface PaymentController {
             HttpServletRequest request, HttpServletResponse response,
             HttpSession session, RedirectAttributes redirectAttributes) throws Exception;
     public String tossCallback(RedirectAttributes redirectAttributes)throws Exception;
+
 }

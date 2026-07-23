@@ -1,0 +1,72 @@
+    <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
+    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+    <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+    <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+    <c:set var="contextPath" value="${pageContext.request.contextPath}" />
+
+
+
+    <body data-page="settlement">
+    <div class="admin-shell">
+
+   
+    <main class="admin-main">
+    
+    <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>정산관리</h1>
+    <p>금일 이용료 보관액 방장 정산</p></div></section>
+    <br>
+    <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">payment List</div>
+    <h2>금일 정산 리스트(총 ${paymentdetailList.size()}건)</h2></div>
+    <div class="filter-pills"><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do'">전체</button><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do?status=READY'" >대기</button><button onclick="location.href='${contextPath}/admin/settlement/paymentlist.do?status=DONE'">완료</button></div>
+    </div><div class="table-wrap">
+      
+    <c:choose>
+                <c:when test="${empty paymentdetailList}">
+                <div class="panel-title" style="padding: 20px; text-align: center;">
+                    <div class="section-kicker">정산 건이 없습니다</div>
+                </div>
+            </c:when>
+                <c:otherwise>
+                <table class="admin-table">
+                <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead><tbody>
+                        <c:forEach var="payment" items="${paymentdetailList}" varStatus="s">
+                      
+
+    <tr><td>${s.count}</td><td>${payment.id}</td><td>${payment.card_number}</td><td><fmt:formatNumber value="${payment.total_amount}" type="number" />원</td><td>${payment.orderId}</td><td><span class="badge yellow">${payment.payment_status}</span></td>
+    <td>
+       
+    <c:choose>
+    <c:when test="${payment.payment_status == 'DONE'}">
+        <button class="mini-btn">환불 완료</button>
+    </c:when>
+     <c:otherwise>
+
+     <form action="${contextPath}/admin/settlement/cancelpaymenting.do" method="post">
+     <input id="paymentKey" type="hidden" name="paymentKey" value="${payment.paymentKey}">
+     <input id="payment_id" type="hidden" name="payment_id" value="${payment.payment_id}">
+    <input id="id" type="hidden" name="id" value="${payment.id}">
+    <input id="settlement_id" type="hidden" name="settlement_id" value="${payment.settlement_id}">
+    <input id="total_amount" type="hidden" name="total_amount" value="${payment.total_amount}">
+    <button class="mini-btn warning">환불하기</button></form>
+    
+      </c:otherwise>
+    </c:choose>
+    </td></tr>
+                        </c:forEach>
+                        </tbody></table>
+                </c:otherwise>
+        </c:choose>
+        </tbody></table></div></section>
+
+
+    </div>
+    </body>
+    </html>
+    <script>
+        // 컨트롤러가 보낸 일회성 메시지(msg)가 있다면 alert을 띄운다
+        var msg = "${msg}";
+        if(msg && msg !== "") {
+            alert(msg);
+        }
+    </script>
+    <script src="${contextPath}/resources/js/admin.js"></script>

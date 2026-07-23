@@ -12,7 +12,7 @@ public class SettlementPaymentVO {
     private int base_amount;        // 순수 분담금 (넷플릭스 1/N 가격)
     private Double fee_rate;         // 수수료율 (ex: 3.00)
     private int fee_amount;         // 수수료 금액 (플랫폼 수익)
-    private int total_amount;       // 최종 토스 결제 금액 (분담금 + 수수료)
+    private int total_amount;       // 최종 결제 금액 (분담금 + 수수료)
     private String payment_status;   // 상태 (UNPAID, PAID, CONFIRMED, REFUNDED 등)
     private String paymentKey;
     private String orderId;
