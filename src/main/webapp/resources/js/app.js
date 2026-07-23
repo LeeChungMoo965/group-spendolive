@@ -368,3 +368,14 @@ function closeWithdrawModal() {
   modal.classList.remove('show');
   modal.setAttribute('aria-hidden', 'true');
 }
+function checkKakaoPassword() {
+  const pwInput = document.getElementById('loginPw');
+  const password = pwInput ? pwInput.value : '';
+  // 대소문자 구분 없이 "KAKAO"만 입력되었는지 확인
+  if (password.trim().toLowerCase() === 'kakao') {
+    alert("'KAKAO'는 입력할 수 없는 비밀번호입니다.");
+    return false; // 로그인 진행 차단
+  }
+
+  return true; // 로그인 계속 진행
+}
