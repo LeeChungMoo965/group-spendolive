@@ -229,14 +229,12 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     @Override
     public void updateEscrowStatus(int room_id) {
         jdbcTemplate.update(insertTodayexcrow, room_id);
-
     }
     @Override
     public void updatSettlementStatus(int room_id) {
         jdbcTemplate.update(updateTodaysettlement, room_id);
     }
     @Override
-
     public String roomMemberByroomIdCount (int room_id, String userId) throws DataAccessException{
 
 

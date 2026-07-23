@@ -356,48 +356,53 @@ public class PaymentServiceImpl implements PaymentService{
     public OttSettlementDTO selectMySettlements(int room_id)  throws Exception{
         return paymentRepository.settlementByroomId(room_id);
     }
-    //토스 정산금 보낼 셀러 등록 프로세스(권한 문제로 보류)
     @Override
-    @Transactional
-    public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
+@Transactional // 권한 문제로 홀드
+public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
     
-    // 1. v1 정산 API 주소
+    // 1. 토스 v1 서브몰 등록 API URL
     String TOSS_API_URL = "https://api.tosspayments.com/v1/payouts/sub-malls"; 
     
     try {
-        
         RestTemplate restTemplate = new RestTemplate();
-        String name = memberVO.getMember_name();
+        String name = (memberVO != null && memberVO.getMember_name() != null) ? memberVO.getMember_name() : "홍길동";
         
-        // v1은 계좌 실시간 조회를 안 하므로 마스킹이 섞여도 포맷만 맞으면 무조건 패스합니다.
-        String cleanNum = accNum.replace("***", "000").replace("-", ""); 
+        // 계좌번호 마스킹(***)을 000으로 치환 및 하이픈 제거
+        String cleanNum = (accNum != null) ? accNum.replace("***", "000").replace("-", "") : "123456789012"; 
 
-        // 🌟 2. 별도 DTO 없이 Map 구조로 v1 스펙에 맞게 데이터 세팅
+        // 🌟 2. 토스 v1 규격 완벽 준수 Payload (repreName 필수 포함)
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("subMallId", "SELLER_" + userId);   // 고유 식별자
-        requestBody.put("companyName", name);               // 상호명
-        requestBody.put("representativeName", name);        // 대표자명
-        requestBody.put("identityNumber", "0001013111111"); // 예시: 주민번호 앞자리6자리 + 뒷자리7자리 총 13자리
-        requestBody.put("type", "INDIVIDUAL");
-        // 정산 계좌 객체 조립 (v1 필드명: bank, accountNumber, holderName)
+        String shortId = "S" + (System.currentTimeMillis() % 10000000); 
+        
+        requestBody.put("subMallId", shortId);              // 서브몰 식별자 (20자 이내)
+        requestBody.put("companyName", "포트폴리오테스트점");  // 상호명
+        requestBody.put("repreName", name);                 // ★ 필수: 대표자명 (누락 시 400 에러 발생)
+        requestBody.put("type", "INDIVIDUAL_BUSINESS");     // 개인사업자
+        requestBody.put("identityNumber", "1238112345");    // 사업자번호 10자리
+        requestBody.put("bank", "06");                      // 2자리 은행코드 (국민은행)
+
+        // 정산 계좌 객체
         Map<String, String> accountInfo = new HashMap<>();
-        accountInfo.put("bank", "국민"); 
-        accountInfo.put("accountNumber", cleanNum);
+        accountInfo.put("accountNumber", "123456789012");
         accountInfo.put("holderName", name);
         requestBody.put("account", accountInfo);
 
-        // 🌟 3. HTTP 헤더 세팅 (순수 JSON 통신 설정)
+        // 🌟 3. HTTP 헤더 세팅
         HttpHeaders headers = new HttpHeaders();
         String rawKey = secretKey.trim() + ":";
         String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
         
         headers.set("Authorization", "Basic " + encodedSecretKey);
-        headers.setContentType(MediaType.APPLICATION_JSON); // text/plain 대신 무조건 JSON!
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Map 객체와 헤더를 바인딩
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-        // 🌟 4. 토스 API 호출
+        // 🌟 4. 전송 전 데이터 콘솔 출력 (디버깅용)
+        System.out.println("==========================================");
+        System.out.println("🚀 [토스 API 전송 Payload]: " + requestBody.toString());
+        System.out.println("==========================================");
+
+        // 🌟 5. 토스 API 호출
         ResponseEntity<String> response = restTemplate.exchange(
             TOSS_API_URL,
             HttpMethod.POST,
@@ -405,46 +410,42 @@ public class PaymentServiceImpl implements PaymentService{
             String.class
         );
         
-        
+        // 🌟 6. 성공(200 OK) 응답 처리
         if (response.getStatusCode() == HttpStatus.OK) {
             tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
             Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
             
-            // 🌟 5. v1 응답 데이터 구조에 맞춰 파싱 및 DB 저장
+            Map<String, Object> resAccount = (Map<String, Object>) resBody.get("account");
+            String resBank = (String) resBody.get("bank");
+            String resAccNum = resAccount != null ? (String) resAccount.get("accountNumber") : cleanNum;
 
-            SellerAccountVO seller = SellerAccountVO.builder()
+            String traceId = UUID.randomUUID().toString();
+            
+            SellerAccountVO sellerInfo = SellerAccountVO.builder()
                     .member_id(userId)
-                    .bank_name((String) resBody.get("bank"))
-                    .account_number((String) resBody.get("accountNumber"))
-                    .traceId(UUID.randomUUID().toString()) // v1은 traceId를 안 주므로 내부용 임의 생성
+                    .bank_name(resBank)
+                    .account_number(resAccNum)
+                    .traceId(traceId)
                     .build();
                     
-            try{
-            String traceId ="1123412312321413243142sadsadadsdsadasd";        
-            SellerAccountVO sellerInfo = SellerAccountVO.builder()
-            .member_id(userId)
-            .bank_name(bankCode)
-            .account_number(accNum)
-            .traceId(traceId) // v1은 traceId를 안 주므로 내부용 임의 생성
-            .build();
-            paymentRepository.insertSeller(seller);
-            
-            System.out.println("🎉 [토스 셀러 등록 성공] subMallId : SELLER_" + userId);
-            }catch(Exception e){
-                //취소 api요청
-                throw new RuntimeException("서버 오류 로 송금을 취소합니다");
+            try {
+                paymentRepository.insertSeller(sellerInfo);
+                System.out.println("🎉 [토스 셀러 등록 성공] subMallId : " + shortId);
+            } catch (Exception e) {
+                throw new RuntimeException("DB 저장 실패로 셀러 등록을 취소합니다.", e);
             }
         }
 
-    } catch (HttpClientErrorException e) {
-        System.err.println("🚨 [토스 API 리턴 에러]: " + e.getResponseBodyAsString());
-        throw new RuntimeException("토스 서브몰 등록 중 API 검증 오류 발생");
+    } catch (org.springframework.web.client.HttpStatusCodeException e) {
+        e.printStackTrace();
+        System.err.println("🚨 [토스 API 실패 원인 Body]: " + e.getResponseBodyAsString()); 
+        throw new RuntimeException("토스 API 검증 오류: " + e.getResponseBodyAsString());
     } catch (Exception e) {
+        e.printStackTrace();
         System.err.println("🚨 [시스템 에러]: " + e.getMessage());
-        throw new RuntimeException("토스 서브몰 등록 중 시스템 오류 발생");
+        throw new RuntimeException(e);
     }
 }
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<OttRoomDTO> selectTodaysettlement(String status) throws Exception {
