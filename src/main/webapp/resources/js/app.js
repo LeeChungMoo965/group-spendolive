@@ -1,4 +1,3 @@
-/* SpendOlive Complete Fixed JS */
 let currentMonth = 6;
 
 function openModal(id){const el=document.getElementById(id);if(el)el.classList.add("show")}

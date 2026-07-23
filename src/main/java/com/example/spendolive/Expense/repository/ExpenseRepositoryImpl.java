@@ -163,6 +163,49 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
             ORDER BY sort_order ASC, category_id ASC
             """;
 
+    // 회원과 연월을 기준으로 월 예산을 조회한다.
+    private final String selectMonthlyBudgetSql = """
+            SELECT NVL(MAX(budget_amount), 0)
+            FROM monthly_budget_tb
+            WHERE member_id = ?
+              AND budget_month = ?
+            """;
+
+    // 같은 달의 예산이 있으면 수정하고 없으면 새로 등록한다.
+    private final String saveMonthlyBudgetSql = """
+            MERGE INTO monthly_budget_tb budget
+            USING (
+                SELECT
+                    ? AS member_id,
+                    ? AS budget_month,
+                    ? AS budget_amount
+                FROM dual
+            ) input
+            ON (
+                budget.member_id = input.member_id
+                AND budget.budget_month = input.budget_month
+            )
+            WHEN MATCHED THEN
+                UPDATE SET
+                    budget.budget_amount = input.budget_amount,
+                    budget.updated_at = SYSDATE
+            WHEN NOT MATCHED THEN
+                INSERT (
+                    member_id,
+                    budget_month,
+                    budget_amount,
+                    created_at,
+                    updated_at
+                )
+                VALUES (
+                    input.member_id,
+                    input.budget_month,
+                    input.budget_amount,
+                    SYSDATE,
+                    SYSDATE
+                )
+            """;
+
     @Override
     public List<ExpenseDTO> selectExpenseList(Long member_id, String yearMonth) {
         YearMonth targetMonth = YearMonth.parse(yearMonth);
@@ -259,6 +302,30 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
     @Override
     public List<ExpenseCategoryDTO> selectCategoryListByType(String expense_type) {
         return jdbcTemplate.query(selectCategoryListByTypeSql, categoryRowMapper(), expense_type);
+    }
+
+    // 조회 결과가 없으면 예산 0원으로 반환한다.
+    @Override
+    public int selectMonthlyBudget(Long member_id, String budget_month) {
+        Integer budgetAmount = jdbcTemplate.queryForObject(
+                selectMonthlyBudgetSql,
+                Integer.class,
+                member_id,
+                budget_month
+        );
+
+        return budgetAmount == null ? 0 : budgetAmount;
+    }
+
+    // 예산 저장 시 수정일은 SQL에서 현재 날짜로 갱신한다.
+    @Override
+    public void saveMonthlyBudget(Long member_id, String budget_month, int budget_amount) {
+        jdbcTemplate.update(
+                saveMonthlyBudgetSql,
+                member_id,
+                budget_month,
+                budget_amount
+        );
     }
 
     private List<ExpenseDTO> makeRepeatedExpenses(List<ExpenseDTO> repeatBaseList, YearMonth targetMonth) {

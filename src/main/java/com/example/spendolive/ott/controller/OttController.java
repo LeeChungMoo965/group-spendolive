@@ -86,16 +86,20 @@ public class OttController {
 
     // 가족·지인 공유방 생성 - 생성자를 방장 멤버로 등록
     @PostMapping("/ott/friends/create.do")
-    public String createFriendRoom(@ModelAttribute OttRoomDTO roomDTO, HttpSession session) {
+    public String createFriendRoom(@ModelAttribute OttRoomDTO roomDTO,HttpSession session,RedirectAttributes redirectAttributes) {
         String loginId = getLoginId(session);
         
         if (loginId == null) {
             
             return "redirect:/member/loginForm.do";
         }
-        
-        
         ottService.createFriendRoom(roomDTO, loginId);
+
+        // 방 생성 완료 알림
+        redirectAttributes.addFlashAttribute(
+            "msg",
+            "가족·지인 공유방을 개설했습니다."
+        );
         return "redirect:/spendolive/ott/friends.do?result=created";
     }
 
@@ -151,10 +155,16 @@ public class OttController {
 
         if (account_status  == null) {
 
-            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요!");
             return "redirect:/spendolive/main.do";
         }
         ottService.createRecruitRoom(roomDTO, loginId);
+
+        // 방 생성 완료 알림
+        redirectAttributes.addFlashAttribute(
+            "msg",
+            "외부 모집방을 개설했습니다."
+        );
         return "redirect:/spendolive/ott/recruit.do?tab=all&result=created";
     }
 

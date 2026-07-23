@@ -21,5 +21,4 @@
   </div>
 </div>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/chatbot.css">
 <script src="${pageContext.request.contextPath}/resources/js/chatbot.js"></script>

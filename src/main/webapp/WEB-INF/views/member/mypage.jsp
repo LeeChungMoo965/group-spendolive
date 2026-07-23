@@ -48,6 +48,13 @@
         <c:if test="${param.assetError == 'accountNameUpdateFailed'}">
             <div class="alert warn">계좌 제목 수정 중 오류가 발생했습니다.</div>
         </c:if>
+        <%-- 주계좌 변경 결과 메시지 --%>
+        <c:if test="${param.primaryAccountUpdated == 'Y'}">
+            <div class="alert done">주계좌가 변경되었습니다.</div>
+        </c:if>
+        <c:if test="${param.assetError == 'primaryAccountUpdateFailed'}">
+            <div class="alert warn">주계좌 변경 중 오류가 발생했습니다.</div>
+        </c:if>
 
         <c:if test="${param.withdrawError == 'confirmRequired'}">
             <div class="alert warn">회원탈퇴를 진행하려면 확인 문구를 정확히 입력해주세요.</div>
@@ -73,15 +80,42 @@
             <article class="card mypage-stat-card">
                 <p class="eyebrow">MONTHLY EXPENSE</p>
                 <h3>이번 달 지출 총액</h3>
-                <strong><fmt:formatNumber value="${thisMonthExpenseTotal}" pattern="#,##0" />원</strong>
-                <p class="mypage-muted">이번 달 등록된 지출 내역 합계입니다.</p>
+                <strong class="mypage-monthly-expense-amount">
+                    <fmt:formatNumber value="${thisMonthExpenseTotal}" pattern="#,##0" />원
+                </strong>
+
+                <%-- 이번 달 예산과 지출 대비 사용률을 표시한다. --%>
+                <div class="mypage-budget-summary">
+                    <div>
+                        <span>이번 달 예산</span>
+                        <c:choose>
+                            <c:when test="${thisMonthBudget > 0}">
+                                <strong>
+                                    <fmt:formatNumber value="${thisMonthBudget}" pattern="#,##0" />원
+                                </strong>
+                            </c:when>
+                            <c:otherwise>
+                                <strong>미설정</strong>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+
+                    <c:if test="${thisMonthBudget > 0}">
+                        <div>
+                            <span>예산 사용률</span>
+                            <strong>${thisMonthBudgetPercent}%</strong>
+                        </div>
+                    </c:if>
+                </div>
+
+                <p class="mypage-muted">이번 달 등록된 지출 내역과 설정 예산입니다.</p>
                 <a href="${contextPath}/spendolive/expense/list.do" class="btn btn-primary full">지출관리로 이동</a>
             </article>
 
             <%-- =====================================================
-                 [마이페이지 계좌·카드 연결 추가]
-                 첫 번째 등록 계좌를 상단 계좌관리 카드에 표시한다.
-                 계좌가 없어도 빈 안내가 표시되고 페이지는 정상적으로 열린다.
+                 [마이페이지 주계좌 표시 추가]
+                 STATUS가 YES인 계좌만 상단 계좌관리 카드에 표시한다.
+                 연결 계좌는 있지만 주계좌가 없으면 목록에서 선택하도록 안내한다.
                  ===================================================== --%>
             <article class="card mypage-bank-card">
                 <p class="eyebrow">OPEN BANKING</p>
@@ -89,19 +123,28 @@
                 <c:choose>
                     <c:when test="${not empty currentAccount}">
                         <c:set var="currentBankName" value="${bankNameMap[currentAccount.bank_code]}" />
-                        <p class="mypage-muted">현재 계좌번호</p>
+                        <p class="mypage-muted">현재 주계좌</p>
                         <div class="mypage-account-box">
-                            <span><c:out value="${empty currentAccount.account_name ? '계좌' : currentAccount.account_name}" /></span>
+                            <span><c:out value="${empty currentAccount.account_name ? '주계좌' : currentAccount.account_name}" /></span>
                             <strong>
                                 <c:out value="${empty currentBankName ? currentAccount.bank_code : currentBankName}" />
                                 · <c:out value="${currentAccount.account_number}" />
                             </strong>
+                            <span>잔여금</span>
+                            <strong><fmt:formatNumber value="${currentAccount.balance}" pattern="#,##0" />원</strong>
+                        </div>
+                    </c:when>
+                    <c:when test="${not empty accountList}">
+                        <p class="mypage-muted">연결된 계좌 중 주계좌를 선택해주세요.</p>
+                        <div class="mypage-account-box">
+                            <span>현재 주계좌</span>
+                            <strong>설정된 주계좌가 없습니다.</strong>
                         </div>
                     </c:when>
                     <c:otherwise>
                         <p class="mypage-muted">현재 연결된 계좌가 없습니다.</p>
                         <div class="mypage-account-box">
-                            <span>현재 계좌번호</span>
+                            <span>현재 주계좌</span>
                             <strong>계좌 정보가 없습니다.</strong>
                         </div>
                     </c:otherwise>
@@ -297,7 +340,7 @@
              [마이페이지 계좌·카드 연결 추가 시작]
              담당자가 만든 조회 결과를 계좌와 카드로 나누어 출력한다.
              한 페이지에 각각 4칸을 보여주며 부족한 칸은 JavaScript가 빈 칸으로 채운다.
-             계좌의 수정 버튼은 ACCOUNT_NAME을 변경하고 거래내역 버튼은 현재 UI만 준비한다.
+             계좌의 수정 버튼은 ACCOUNT_NAME을 변경하고 거래내역 버튼은 Ajax로 상세 내역을 조회한다.
              ===================================================== --%>
         <article id="asset-manage" class="card mypage-panel mypage-toggle-panel is-hidden">
             <div class="mypage-panel-head">
@@ -339,9 +382,69 @@
                                 <span>남은 금액</span>
                                 <strong><fmt:formatNumber value="${account.balance}" pattern="#,##0" />원</strong>
                             </div>
-                            <button type="button" class="btn btn-outline btn-mini" data-account-idx="${account.account_idx}">거래내역</button>
+                            <%-- 기존 버튼 스타일을 활용해 주계좌 선택과 거래내역 버튼을 함께 표시한다. --%>
+                            <div class="mypage-room-actions">
+                                <c:choose>
+                                    <c:when test="${account.status eq 'YES'}">
+                                        <span class="chip done">주계좌</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form action="${contextPath}/spendolive/mypage/account/primary/update.do" method="post">
+                                            <input type="hidden" name="accountIdx" value="${account.account_idx}">
+                                            <button type="submit" class="btn btn-primary btn-mini"
+                                                    onclick="return confirm('이 계좌를 주계좌로 설정할까요?');">주계좌로 설정</button>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
+                                <button type="button"
+                                        class="btn btn-outline btn-mini transaction-history-btn"
+                                        data-account-idx="${account.account_idx}"
+                                        data-account-name="${fn:escapeXml(empty account.account_name ? '계좌' : account.account_name)}"
+                                        data-bank-name="${fn:escapeXml(empty accountBankName ? account.bank_code : accountBankName)}"
+                                        data-account-number="${fn:escapeXml(account.account_number)}"
+                                        data-current-balance="${account.balance}">거래내역</button>
+                            </div>
                         </div>
                     </c:forEach>
+                </div>
+
+                <%-- 선택한 계좌의 거래내역과 거래 직후 잔액을 표시한다. --%>
+                <div id="accountTransactionPanel" class="mypage-form-section is-hidden" hidden>
+                    <div class="mypage-form-section-head">
+                        <div>
+                            <h3 id="accountTransactionTitle">계좌 거래내역</h3>
+                            <p id="accountTransactionAccountInfo">계좌를 선택해주세요.</p>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-mini" onclick="closeAccountTransactions()">닫기</button>
+                    </div>
+
+                    <div class="mypage-account-box">
+                        <span>현재 잔액</span>
+                        <strong id="accountTransactionCurrentBalance">0원</strong>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="mypage-table">
+                            <thead>
+                                <tr>
+                                    <th>거래일시</th>
+                                    <th>구분</th>
+                                    <th>거래금액</th>
+                                    <th>거래 후 잔액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountTransactionBody">
+                                <tr>
+                                    <td colspan="4">거래내역 버튼을 눌러주세요.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mypage-account-box">
+                        <span>계좌 등록 당시 잔액</span>
+                        <strong id="accountTransactionInitialBalance">0원</strong>
+                    </div>
                 </div>
             </section>
 
@@ -617,11 +720,167 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeAssetPager('accountAssetList');
     initializeAssetPager('cardAssetList');
 
+    // 거래내역 버튼마다 선택한 계좌 번호를 Ajax 조회 함수로 전달한다.
+    document.querySelectorAll('.transaction-history-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            loadAccountTransactions(button);
+        });
+    });
+
     const targetId = window.location.hash.replace('#', '');
     if (['profile-edit', 'report-manage', 'asset-manage'].includes(targetId)) {
         showMyPagePanel(targetId);
     }
 });
+
+/* 선택한 계좌의 거래내역을 Ajax로 조회한다. */
+function loadAccountTransactions(button) {
+    const accountIdx = button.dataset.accountIdx;
+    const panel = document.getElementById('accountTransactionPanel');
+    const tbody = document.getElementById('accountTransactionBody');
+    const currentBalance = Number(button.dataset.currentBalance || 0);
+
+    document.getElementById('accountTransactionTitle').textContent =
+        (button.dataset.accountName || '계좌') + ' 거래내역';
+    document.getElementById('accountTransactionAccountInfo').textContent =
+        (button.dataset.bankName || '') + ' 계좌번호 - ' + (button.dataset.accountNumber || '-');
+    document.getElementById('accountTransactionCurrentBalance').textContent =
+        formatWon(currentBalance);
+    document.getElementById('accountTransactionInitialBalance').textContent = '-';
+
+    tbody.innerHTML = '<tr><td colspan="4">거래내역을 불러오는 중입니다.</td></tr>';
+    // mypage-form-section의 display:grid가 hidden 표시를 덮어쓰지 않도록 숨김 클래스도 함께 제거한다.
+    panel.classList.remove('is-hidden');
+    panel.hidden = false;
+
+    fetch(
+        '${contextPath}/spendolive/mypage/account/transactions.do?accountIdx='
+        + encodeURIComponent(accountIdx),
+        {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+        }
+    )
+        .then(function (response) {
+            if (response.status === 401) {
+                throw new Error('로그인이 필요합니다.');
+            }
+            if (!response.ok) {
+                throw new Error('거래내역 조회에 실패했습니다.');
+            }
+            return response.json();
+        })
+        .then(function (transactionList) {
+            renderAccountTransactions(transactionList, currentBalance);
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        })
+        .catch(function (error) {
+            tbody.innerHTML = '';
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = error.message;
+            row.appendChild(cell);
+            tbody.appendChild(row);
+        });
+}
+
+/* 최신 거래가 위로 오도록 전달된 거래내역과 거래 직후 잔액을 표에 출력한다. */
+function renderAccountTransactions(transactionList, currentBalance) {
+    const tbody = document.getElementById('accountTransactionBody');
+    const initialBalanceTarget = document.getElementById('accountTransactionInitialBalance');
+    const transactions = Array.isArray(transactionList) ? transactionList : [];
+
+    tbody.innerHTML = '';
+
+    if (transactions.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 4;
+        cell.textContent = '등록된 거래내역이 없습니다.';
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        initialBalanceTarget.textContent = formatWon(currentBalance);
+        return;
+    }
+
+    transactions.forEach(function (transaction) {
+        const row = document.createElement('tr');
+        const signedAmount = getSignedTransactionAmount(transaction);
+
+        appendTransactionCell(row, formatTransactionDate(transaction.tran_date));
+        appendTransactionCell(row, transaction.inout_type || '-');
+        appendTransactionCell(row, formatSignedWon(signedAmount));
+
+        if (transaction.balance_after === null || transaction.balance_after === undefined) {
+            appendTransactionCell(row, '기록 없음');
+        } else {
+            appendTransactionCell(row, formatWon(Number(transaction.balance_after)));
+        }
+
+        tbody.appendChild(row);
+    });
+
+    // 가장 오래된 거래의 직후 잔액에서 그 거래 금액을 되돌려 계좌 등록 당시 잔액을 계산한다.
+    const oldestTransaction = transactions[transactions.length - 1];
+    if (oldestTransaction.balance_after === null || oldestTransaction.balance_after === undefined) {
+        initialBalanceTarget.textContent = '기록 없음';
+    } else {
+        const initialBalance =
+            Number(oldestTransaction.balance_after) - getSignedTransactionAmount(oldestTransaction);
+        initialBalanceTarget.textContent = formatWon(initialBalance);
+    }
+}
+
+/* 사용자 입력값을 HTML 문자열로 합치지 않고 textContent로 안전하게 출력한다. */
+function appendTransactionCell(row, value) {
+    const cell = document.createElement('td');
+    cell.textContent = value;
+    row.appendChild(cell);
+}
+
+/* 출금은 음수, 입금은 양수로 맞춰 화면 표시와 최초 잔액 계산에 사용한다. */
+function getSignedTransactionAmount(transaction) {
+    const amount = Math.abs(Number(transaction.tran_amt || 0));
+    return transaction.inout_type === '출금' ? amount * -1 : amount;
+}
+
+function formatWon(value) {
+    return Number(value || 0).toLocaleString('ko-KR') + '원';
+}
+
+function formatSignedWon(value) {
+    const amount = Number(value || 0);
+    const sign = amount > 0 ? '+' : amount < 0 ? '-' : '';
+    return sign + Math.abs(amount).toLocaleString('ko-KR') + '원';
+}
+
+/* DB의 yyyyMMddHHmmss 거래일시를 화면용 형식으로 변환한다. */
+function formatTransactionDate(value) {
+    const date = String(value || '');
+    if (date.length !== 14) {
+        return date || '-';
+    }
+
+    return date.substring(0, 4) + '-'
+        + date.substring(4, 6) + '-'
+        + date.substring(6, 8) + ' '
+        + date.substring(8, 10) + ':'
+        + date.substring(10, 12) + ':'
+        + date.substring(12, 14);
+}
+
+function closeAccountTransactions() {
+    const panel = document.getElementById('accountTransactionPanel');
+    if (!panel) {
+        return;
+    }
+
+    // mypage-form-section의 display:grid보다 우선하는 공통 숨김 클래스로 거래내역 영역을 닫는다.
+    panel.classList.add('is-hidden');
+    panel.hidden = true;
+}
 /* [마이페이지 계좌·카드 연결 JavaScript 추가 끝] */
 
 (function () {

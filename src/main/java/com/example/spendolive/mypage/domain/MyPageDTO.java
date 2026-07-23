@@ -18,6 +18,10 @@ public class MyPageDTO {
     private String profileInitial;
     private int thisMonthExpenseTotal;
 
+    // 마이페이지에 표시할 이번 달 예산과 사용률
+    private int thisMonthBudget;
+    private int thisMonthBudgetPercent;
+
     private boolean accountConnected;
     private String openBankUserSeq;
 
