@@ -75,8 +75,6 @@ var isEmailVerified = false;
 
 // 기존 스크립트와 주소 충돌을 피하기 위해 .do를 뺀 주소 추출 변수
 const eContextPath = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2)) === "/member" ? "" : window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
-
-// 1. 실제 구글 SMTP로 메일을 쏘는
 function sendEmail() {
     var email = $("#email").val();
     if(!email || email.trim() === "") {
@@ -378,3 +376,131 @@ function checkKakaoPassword() {
 
   return true; // 로그인 계속 진행
 }
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ==========================================
+  // 1. 폰트 패널 열기 / 닫기 기능
+  // ==========================================
+  const fontBtn = document.getElementById('fontToggle');
+  const panel = document.getElementById('fontPanel');
+  const closeBtn = document.getElementById('fontClose');
+  const input = document.getElementById('fontInput');
+
+  function openPanel() {
+      if (panel) panel.classList.add('show');
+      if (fontBtn) fontBtn.classList.add('hide');
+      if (input) input.focus();
+  }
+
+  function closePanel() {
+      if (panel) panel.classList.remove('show');
+      if (fontBtn) fontBtn.classList.remove('hide');
+  }
+
+  if (fontBtn) fontBtn.addEventListener('click', openPanel);
+  if (closeBtn) closeBtn.addEventListener('click', closePanel);
+
+
+  // ==========================================
+  // 2. 글자 크기 및 폰트 설정 기능
+  // ==========================================
+  const htmlTag = document.documentElement;
+  const btnUp = document.getElementById('btn-font-up');
+  const btnDown = document.getElementById('btn-font-down');
+  const fontSelect = document.getElementById('fontSelect');
+
+  const CONFIG = {
+      default: 16,
+      step: 3,
+      min: 10,
+      max: 30
+  };
+
+  // [요청하신 Jua 폰트 추가]
+  const FONT_MAP = {
+      'system': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+      'jua': '"Jua", sans-serif', // <-- Jua 폰트 반영
+      'sans-serif': "'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', sans-serif",
+      'serif': "'Noto Serif KR', 'Batang', '바탕', serif",
+      'monospace': "'D2Coding', 'Courier New', monospace"
+  };
+
+  const savedSize = localStorage.getItem('userFontSize');
+  const savedFont = localStorage.getItem('userFontFamily') || 'system';
+
+  let currentSize = savedSize ? parseInt(savedSize, 10) : CONFIG.default;
+
+  // --- A. 글자 크기 적용 ---
+  function applyFontSize(size) {
+      htmlTag.style.fontSize = size + 'px';
+      localStorage.setItem('userFontSize', size);
+      updateButtonStatus(size);
+  }
+
+  // --- B. 폰트 종류 적용 ---
+  function applyFontFamily(fontKey) {
+    const selectedFont = FONT_MAP[fontKey] || FONT_MAP['system'];
+    
+    // <html> 태그와 <body> 태그 모두에 폰트를 인라인으로 강제 적용
+    htmlTag.style.setProperty('font-family', selectedFont, 'important');
+    if (document.body) {
+        document.body.style.setProperty('font-family', selectedFont, 'important');
+    }
+
+    localStorage.setItem('userFontFamily', fontKey);
+
+    if (fontSelect) {
+        fontSelect.value = fontKey;
+    }
+}
+
+  function updateButtonStatus(size) {
+      if (btnUp) {
+          btnUp.disabled = (size >= CONFIG.max);
+          btnUp.style.opacity = (size >= CONFIG.max) ? '0.5' : '1';
+          btnUp.style.cursor = (size >= CONFIG.max) ? 'not-allowed' : 'pointer';
+      }
+      if (btnDown) {
+          btnDown.disabled = (size <= CONFIG.min);
+          btnDown.style.opacity = (size <= CONFIG.min) ? '0.5' : '1';
+          btnDown.style.cursor = (size <= CONFIG.min) ? 'not-allowed' : 'pointer';
+      }
+  }
+
+  // --- C. 초기 실행 ---
+  applyFontSize(currentSize);
+  applyFontFamily(savedFont);
+
+  // --- D. 이벤트 리스너 ---
+  if (btnUp) {
+      btnUp.addEventListener('click', function(e) {
+          e.preventDefault();
+          let nextSize = currentSize + CONFIG.step;
+          if (nextSize > CONFIG.max) nextSize = CONFIG.max;
+
+          if (nextSize !== currentSize) {
+              currentSize = nextSize;
+              applyFontSize(currentSize);
+          }
+      });
+  }
+
+  if (btnDown) {
+      btnDown.addEventListener('click', function(e) {
+          e.preventDefault();
+          let nextSize = currentSize - CONFIG.step;
+          if (nextSize < CONFIG.min) nextSize = CONFIG.min;
+
+          if (nextSize !== currentSize) {
+              currentSize = nextSize;
+              applyFontSize(currentSize);
+          }
+      });
+  }
+
+  if (fontSelect) {
+      fontSelect.addEventListener('change', function(e) {
+          applyFontFamily(e.target.value);
+      });
+  }
+});

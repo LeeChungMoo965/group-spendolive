@@ -356,12 +356,9 @@ public class MemberControllerImpl implements MemberController{
     try {
         // 비즈니스 로직 처리를 위해 서비스 호출
         memberService.registerOpenBankingToken(code, userId, responseHeaders, resEntity,memberVO);
-        
         redirectAttributes.addFlashAttribute("msg", "계좌인증을 완료했습니다. 로그인을 다시 해주세요."); 
         return new ModelAndView("redirect:/member/logout.do");
         // 연동 성공 후 완료 페이지나 메인 화면으로 이동
-    
-        
     } catch (Exception e) {
         redirectAttributes.addFlashAttribute("msg", "계좌 인증에 실패하였습니다. 다시 시도해 주세요."); 
         return new ModelAndView("redirect:/spendolive/main.do");

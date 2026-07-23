@@ -4,7 +4,9 @@
    ========================================================= */
 
 /* SpendOlive Complete Fixed CSS */
-
+*, *::before, *::after, button, input, select, textarea {
+  font-family: inherit !important;
+}
 :root {font-size:16px;--bg:#f7f7ef;--paper:#fffdf5;--card:#fff;--text:#26301e;--muted:#6c745f;--line:#dfe5d4;--olive:#7b7f36;--olive-dark:#55591f;--olive-soft:#eef3dc;--olives:#f8fadb;--sage:#a4b677;--cream:#fbfaf1;--amber:#c48a2c;--brown:#9a714f;--red:#c0564a;--shadow:0 0.875rem 2rem rgba(70,78,38,.12);--radius:1.375rem;}
 * {box-sizing:border-box;}
 html {scroll-behavior:smooth;}
