@@ -22,11 +22,12 @@ public class MemberRepositoryImpl implements MemberRepository{
 //insert
     private final String signup = "INSERT INTO member_tb(id, email, password, member_name, nickname, phone,login_type ,verify_type) values(?,?,?,?,?,?,?,?)";
     // 새로 연동한 계좌는 사용자가 직접 선택하기 전까지 주계좌가 아니므로 STATUS를 NO로 저장한다.
-    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token , open_bank_user_seq, balance,ACCOUNT_HOLDER_NAM) "
-    +" values(?,?,?,?,?,?,?,?) ";
+    private final String updatePinNO = "INSERT INTO member_account_tb(id, bank_code, account_number, fintech_use_num, open_bank_token, open_bank_user_seq, balance, ACCOUNT_HOLDER_NAM, STATUS) "
+    + "values(?,?,?,?,?,?,?,?,'NO') ";
     private final String updateBillingKey = "INSERT INTO member_card_tb(id, card_number, card_company, billing_key) "
     +" values(?,?,?,?) ";
-    private final String inserttrandetail = "INSERT INTO member_tran_tb(id,Inout_type ,tran_amt,tran_date, account_idx) values(?,?,?,?,?)";
+    // 거래 금액과 함께 거래 직후 잔액을 저장한다.
+    private final String inserttrandetail = "INSERT INTO member_tran_tb(id, inout_type, tran_amt, tran_date, account_idx, balance_after) values(?,?,?,?,?,?)";
 
 //select 
 
@@ -79,6 +80,22 @@ public class MemberRepositoryImpl implements MemberRepository{
     private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
                                                 +"from member_card_tb where id=? ";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
+
+    // 다른 회원의 계좌가 조회되지 않도록 회원 아이디와 계좌 번호를 함께 검사한다.
+    private final String selectTransactionsByAccount = """
+            SELECT member_tran_idx,
+                   account_idx,
+                   id,
+                   tran_amt,
+                   inout_type,
+                   tran_date,
+                   balance_after,
+                   TO_CHAR(reg_date, 'YYYY-MM-DD HH24:MI:SS') AS reg_date
+            FROM member_tran_tb
+            WHERE id = ?
+              AND account_idx = ?
+            ORDER BY tran_date DESC, member_tran_idx DESC
+            """;
 //update 
     private final String updatemember_account_Status = "UPDATE member_tb SET account_status = 'YES' WHERE id = ?";
     private final String updatemember_card_Status = "UPDATE member_tb SET card_status = 'YES' WHERE id = ?";
@@ -461,10 +478,39 @@ public class MemberRepositoryImpl implements MemberRepository{
     }
     @Override
     public void inserttrandetail(MemberTranVO tran){
-        jdbcTemplate.update(inserttrandetail, tran.getId(),tran.getInout_type() ,tran.getTran_amt(),tran.getTran_date(),tran.getAccount_idx());
+        jdbcTemplate.update(
+                inserttrandetail,
+                tran.getId(),
+                tran.getInout_type(),
+                tran.getTran_amt(),
+                tran.getTran_date(),
+                tran.getAccount_idx(),
+                tran.getBalance_after()
+        );
     }
     @Override
     public void updatebalance(int tran_amt, int idx){
         jdbcTemplate.update(updatebalance, tran_amt,idx);
+    }
+
+    @Override
+    public List<MemberTranVO> selectTransactionsByAccount(String userId, int accountIdx) {
+        return jdbcTemplate.query(
+                selectTransactionsByAccount,
+                (rs, rowNum) -> {
+                    MemberTranVO transaction = new MemberTranVO();
+                    transaction.setMember_tran_idx(rs.getInt("member_tran_idx"));
+                    transaction.setAccount_idx(rs.getInt("account_idx"));
+                    transaction.setId(rs.getString("id"));
+                    transaction.setTran_amt(rs.getInt("tran_amt"));
+                    transaction.setInout_type(rs.getString("inout_type"));
+                    transaction.setTran_date(rs.getString("tran_date"));
+                    transaction.setBalance_after(rs.getObject("balance_after", Long.class));
+                    transaction.setReg_date(rs.getString("reg_date"));
+                    return transaction;
+                },
+                userId,
+                accountIdx
+        );
     }
 }

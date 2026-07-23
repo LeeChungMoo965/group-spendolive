@@ -49,8 +49,8 @@ public class MemberServiceImpl implements MemberService {
     @Autowired
     private MemberRepository memberRepository;
 
-    @Autowired
-    private PaymentService paymentService;
+
+//    private PaymentService paymentService;
 
     @Autowired
     private JavaMailSender mailSender;
@@ -281,6 +281,12 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalArgumentException("주계좌로 설정할 계좌를 찾을 수 없습니다.");
         }
     }
+
+    // 회원 아이디와 계좌 번호를 함께 사용해 본인 계좌 거래내역만 조회한다.
+    @Override
+    public List<MemberTranVO> getTransactionsByAccount(String id, int accountIdx) throws Exception {
+        return memberRepository.selectTransactionsByAccount(id, accountIdx);
+    }
     /* [마이페이지 계좌·카드 연결 추가 끝] */
 
     @Override
@@ -346,16 +352,18 @@ public class MemberServiceImpl implements MemberService {
             throw new RuntimeException("등록 계좌 조회에 실패했습니다.");
         }
 
-        Map<String, Object> account = 
-        ((List<Map<String, Object>>) response.getBody().get("res_list")).get(0);
+        List<Map<String, Object>> resList =
+                (List<Map<String, Object>>) response.getBody().get("res_list");
 
-        if (account == null || account.isEmpty()) {
+        if (resList == null || resList.isEmpty()) {
             throw new RuntimeException("등록된 계좌 정보가 없습니다.");
         }
 
        
       
 //잔액 조회
+       
+        for(Map<String, Object> account : resList){
             String fintech_use_num = (String) account.get("fintech_use_num");
             String accountNum = (String) account.get("account_num_masked");
             String bankCode = (String) account.get("bank_code_std");
@@ -363,7 +371,6 @@ public class MemberServiceImpl implements MemberService {
             String tranDtime =
             java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-
             String uniqueNine = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 9).toUpperCase();
             String bankTranId = useCode + "U" + uniqueNine;
             String balanceUrl =
@@ -401,20 +408,20 @@ public class MemberServiceImpl implements MemberService {
                 balance,
                 accountHolderName
         );
-
+            }
+        
         memberRepository.updateMember_account_status(userId);
 
         // 토스 지급대행은 보안키 지원 문제로 현재 API 요청을 생략하는 구조
-
-        // 권한 문제로 홀드
-        /* paymentService.registerSubMall(
+        /*
+        paymentService.registerSubMall(
                 userId,
                 bankCode,
                 accountNum,
                 accountHolderName,
                 memberVO
-        ); */
-
+        );
+         */
     }
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -474,16 +481,25 @@ public class MemberServiceImpl implements MemberService {
         String tranDtime =
             java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // 출금은 음수, 입금은 양수로 통일해 현재 잔액과 거래 후 잔액을 계산한다.
+        int signedAmount = tran_amt[amt_number];
         if(inout_type[type_nember].equals("출금")){
-            tran_amt[amt_number] = tran_amt[amt_number] * -1; 
+            signedAmount = signedAmount * -1;
         }
+
+        int balanceAfter = accountVO.getBalance() + signedAmount;
+
         tran.setId(id);
         tran.setInout_type(inout_type[type_nember]);
         tran.setAccount_idx(idx);
-        tran.setTran_amt(tran_amt[amt_number]);
+        tran.setTran_amt(signedAmount);
         tran.setTran_date(tranDtime);
+        tran.setBalance_after(Long.valueOf(balanceAfter));
+
+        // 거래 당시 잔액을 거래 테이블에 저장한 뒤 계좌의 현재 잔액을 갱신한다.
         memberRepository.inserttrandetail(tran);
-        memberRepository.updatebalance(tran_amt[amt_number], idx);
+        memberRepository.updatebalance(signedAmount, idx);
+        accountVO.setBalance(balanceAfter);
         }catch (Exception e) {
             System.out.println("오류" + e);
 

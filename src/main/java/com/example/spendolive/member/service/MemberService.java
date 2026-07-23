@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberCardVO;
+import com.example.spendolive.member.domain.MemberTranVO;
 import com.example.spendolive.member.domain.MemberVO;
 
 public interface MemberService {
@@ -27,6 +28,9 @@ public interface MemberService {
 
     // 마이페이지에서 선택한 계좌를 주계좌로 변경한다.
     void updatePrimaryAccount(String id, int accountIdx) throws Exception;
+
+    // 마이페이지에서 선택한 계좌의 거래내역을 최신순으로 조회한다.
+    List<MemberTranVO> getTransactionsByAccount(String id, int accountIdx) throws Exception;
 
     void addMember(MemberVO memberVO) throws Exception;
 

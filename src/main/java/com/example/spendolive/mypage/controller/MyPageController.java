@@ -1,10 +1,14 @@
 package com.example.spendolive.mypage.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spendolive.member.domain.MemberAccountVO;
+import com.example.spendolive.member.domain.MemberTranVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.mypage.domain.MyPageDTO;
 import com.example.spendolive.member.service.MemberService;
@@ -226,6 +231,35 @@ public class MyPageController {
         }
 
         return mav;
+    }
+
+    /* =========================================================
+       [계좌 거래내역 Ajax 조회]
+       선택한 계좌의 거래내역과 거래 직후 잔액을 최신순으로 반환한다.
+       Repository에서 회원 아이디와 계좌 번호를 함께 검사한다.
+       ========================================================= */
+    @GetMapping("/mypage/account/transactions.do")
+    @ResponseBody
+    public ResponseEntity<?> getAccountTransactions(@RequestParam("accountIdx") int accountIdx,
+                                                     HttpSession session) {
+        MemberVO loginMember = (MemberVO) session.getAttribute("memberInfo");
+
+        if (loginMember == null || loginMember.getId() == null || loginMember.getId().isBlank()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "로그인이 필요합니다."));
+        }
+
+        try {
+            List<MemberTranVO> transactionList =
+                    memberService.getTransactionsByAccount(loginMember.getId(), accountIdx);
+            return ResponseEntity.ok(transactionList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "거래내역 조회에 실패했습니다."));
+        }
     }
 
     @PostMapping("/mypage/withdraw.do")

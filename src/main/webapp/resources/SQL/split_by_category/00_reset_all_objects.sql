@@ -33,7 +33,6 @@ BEGIN
             'OTT_ROOM_MEMBER_TB',
             'OTT_ROOM_TB',
             'OTT_SERVICE_TB',
-            'MONTHLY_BUDGET_TB',
             'EXPENSE_TB',
             'EXPENSE_CATEGORY_TB',
             'MEMBER_CARD_TB',
@@ -51,7 +50,6 @@ BEGIN
             'SEQ_MEMBER',
             'SEQ_EXPENSE_CATEGORY',
             'SEQ_EXPENSE',
-            'SEQ_MONTHLY_BUDGET',
             'SEQ_OTT_SERVICE',
             'SEQ_OTT_ROOM',
             'SEQ_OTT_ROOM_MEMBER',
@@ -176,7 +174,8 @@ CREATE TABLE MEMBER_tran_TB (
     ACCOUNT_IDX            NUMBER NOT NULL,                          
     tran_date       VARCHAR2(30) NOT NULL,                           
     inout_type      VARCHAR2(10) NOT NULL,                       
-    tran_amt              NUMBER ,                           
+    tran_amt              NUMBER,
+    BALANCE_AFTER         NUMBER, -- 해당 거래가 끝난 직후의 계좌 잔액
     REG_DATE             DATE DEFAULT SYSDATE,              
     
     CONSTRAINT FK_MEMBER_tran_member_id FOREIGN KEY (ID) 
