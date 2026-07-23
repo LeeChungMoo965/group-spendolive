@@ -3,6 +3,9 @@
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
 <div class="chat-floating-widget">
+   
+    <!-- 현재 크기를 확인하고 싶다면 아래 주석을 해제하세요 -->
+    <!-- <span id="current-font-size" style="margin-left: 10px; font-size: 14px; color: #666;">16px</span> -->
     <input type="checkbox" id="chatWidgetToggle" class="chat-widget-check">
 
     <label for="chatWidgetToggle" class="chat-widget-button" aria-label="공유방 대화 목록 열기">

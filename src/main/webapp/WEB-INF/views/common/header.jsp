@@ -200,8 +200,7 @@
     </c:otherwise>
     </c:choose>
     <script src="https://js.tosspayments.com/v2/standard"></script>
-    <script src="${contextPath}/resources/js/app.js"></script>
-    <script src="${contextPath}/resources/js/bellIcon.js"></script>
+ 
     <script>
     (function() {
         var btn = document.getElementById('soMenuBtn');

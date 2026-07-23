@@ -70,7 +70,7 @@ CREATE TABLE MEMBER_ACCOUNT_TB (
     ACCOUNT_NUMBER       VARCHAR2(30) NOT NULL,                           -- 마스킹된 계좌번호 (ex: 110-***-1234)
     FINTECH_USE_NUM      VARCHAR2(50) NOT NULL,                           -- 금결원 핵심 키 (핀테크이용번호 💥)
     BALANCE              NUMBER DEFAULT 0,                                -- 계좌 잔액 (실시간 동기화용 💰)
-    OPEN_BANK_TOKEN      VARCHAR2(255) NOT NULL,                          -- 금결원 사용자 토큰
+    OPEN_BANK_TOKEN      VARCHAR2(300) NOT NULL,                          -- 금결원 사용자 토큰
     OPEN_BANK_USER_SEQ   VARCHAR2(50) NOT NULL,                           -- 금결원 사용자 일련번호
     ACCOUNT_HOLDER_NAM   VARCHAR2(50),
     REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자

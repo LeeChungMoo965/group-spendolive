@@ -3,6 +3,7 @@
 <button id="chatbotToggle" class="chatbot-toggle">💬</button>
 
 <div id="chatbotPanel" class="chatbot-panel">
+
   <div class="chatbot-header">
     <div>
       <strong>SpendOlive 챗봇</strong>
