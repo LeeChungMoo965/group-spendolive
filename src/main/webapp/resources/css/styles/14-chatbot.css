@@ -1,7 +1,5 @@
 /* =========================================================
    14. 챗봇 (FAQ 자동응답 위젯)
-   대상: 모든 페이지 공통 레이아웃에 떠있는 우하단 챗봇 버튼 + 패널
-   chatbot.js가 열고 닫는 상태(.show/.hide)를 이 클래스들로 제어함
    ========================================================= */
 
 /* 우하단에 고정된 동그란 챗봇 토글 버튼.
@@ -142,81 +140,17 @@
 }
 
 /* 대화 메시지가 쌓이는 스크롤 영역 */
-.chatbot-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0.875rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-    background: var(--cream);
-}
-
-/* 메시지 말풍선 공통 스타일.
-   .bot / .user 클래스로 좌/우 정렬 + 색상만 다르게 줌 */
-.chatbot-msg {
-    max-width: 80%;
-    padding: 0.625rem 0.8125rem;
-    border-radius: 0.875rem;
-    font-size: 0.8125rem;
-    line-height: 1.55;
-}
-.chatbot-msg.bot {
-    align-self: flex-start;
-    background: #fff;
-    border: 1px solid var(--line);
-    color: var(--text);
-    border-bottom-left-radius: 0.25rem;   /* 꼬리 느낌 — 자기 쪽 모서리만 각지게 */
-}
-.chatbot-msg.user {
-    align-self: flex-end;
-    background: var(--olive);
-    color: #fff;
-    border-bottom-right-radius: 0.25rem;
-}
+.chatbot-body {flex: 1;overflow-y: auto;display: flex;flex-direction: column;gap: 10px;background: #f8fbf7;}
+/* 메시지 말풍선  */
+.chatbot-msg {max-width: 80%;padding: 12px 14px;border-radius: 18px;font-size: 13px;line-height: 1.55;}.chatbot-msg.bot {align-self: flex-start;background: #ffffff;border: 1px solid #e4eee1;color: #2f482c;border-bottom-left-radius: 6px;}.chatbot-msg.user {align-self: flex-end;background: #355c32;color: #fff;border-bottom-right-radius: 6px;}
 /* FAQ 매칭에 실패해서 "1:1 문의 남겨주세요" 안내가 나갈 때(fallback)는
    일반 봇 말풍선과 구분되도록 앰버 톤으로 강조 */
-.chatbot-msg.bot.fallback {
-    border-color: #e8d9c0;
-    background: #fff8ec;
-    color: #8a5b13;
-}
+.chatbot-msg.bot.fallback {border-color: #f0dcb8;background: #fff8ec;color: #8a5b13;}
 /* "답변 입력 중..." 로딩 표시용 말풍선 */
-.chatbot-msg.typing {
-    align-self: flex-start;
-    color: var(--muted);
-    font-style: italic;
-}
-
+.chatbot-msg.typing {align-self: flex-start;color: #87917f;font-style: italic;}
 /* 하단 질문 입력창 + 전송 버튼 */
-.chatbot-footer {
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    border-top: 1px solid var(--line);
-    background: #fff;
-}
-.chatbot-footer input {
-    flex: 1;
-    margin: 0;
-    padding: 0.625rem 0.75rem;
-    border: 1px solid var(--line);
-    border-radius: 0.75rem;
-    font-size: 0.8125rem;
-}
-.chatbot-footer input:focus {
-    border-color: var(--olive);
-    box-shadow: 0 0 0 0.1875rem rgba(122, 127, 54, .13);
-}
-.chatbot-footer button {
-    border: 0;
-    border-radius: 0.75rem;
-    padding: 0 1rem;
-    background: var(--olive);
-    color: #fff;
-    font-weight: 800;
-    cursor: pointer;
-}
-.chatbot-footer button:hover {
-    background: var(--olive-dark);
+.chatbot-footer {display: flex;gap: 8px;padding-top: 12px;margin-top: 12px;border-top: 1px solid #e4eee1;}.chatbot-footer input {flex: 1;margin: 0;height: 44px;padding: 0 12px;border: 1px solid #d8e4d6;border-radius: 14px;background: #fff;color: #2f3d2c;font-size: 13px;}.chatbot-footer input:focus {border-color: #355c32;box-shadow: 0 0 0 3px rgba(53, 92, 50, .13);outline: none;}.chatbot-footer button {border: 0;border-radius: 14px;padding: 0 16px;background: #355c32;color: #fff;font-weight: 800;cursor: pointer;}.chatbot-footer button:hover {background: #2f482c;}
+
+@media (max-width: 900px) {
+    .chatbot-panel {right: -10px;width: min(340px, calc(100vw - 32px));}
 }

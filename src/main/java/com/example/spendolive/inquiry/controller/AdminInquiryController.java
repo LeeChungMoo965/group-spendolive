@@ -18,7 +18,7 @@ import com.example.spendolive.inquiry.service.InquiryService;
 import com.example.spendolive.member.domain.MemberVO;
 
 @Controller
-@RequestMapping("/spendolive/admin/inquiry")
+@RequestMapping("/admin/inquiry")
 public class AdminInquiryController {
 
     private final InquiryService inquiryService;
@@ -53,7 +53,7 @@ public class AdminInquiryController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
 
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminInquiryList.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminInquiryList.jsp");
 
         String normalizedStatus = normalizeStatusFilter(status);
         try {
@@ -89,7 +89,7 @@ public class AdminInquiryController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         if (inquiryNo <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 문의 번호입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/list.do");
+            return new ModelAndView("redirect:/admin/inquiry/list.do");
         }
 
         InquiryVO inquiry = null;
@@ -101,11 +101,11 @@ public class AdminInquiryController {
 
         if (inquiry == null) {
             ra.addFlashAttribute("errorMsg", "존재하지 않는 문의입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/list.do");
+            return new ModelAndView("redirect:/admin/inquiry/list.do");
         }
 
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminInquiryDetail.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminInquiryDetail.jsp");
         mav.addObject("inquiry", inquiry);
         return mav;
     }
@@ -121,11 +121,11 @@ public class AdminInquiryController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         if (inquiry_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 문의 번호입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/list.do");
+            return new ModelAndView("redirect:/admin/inquiry/list.do");
         }
         if (reply_content == null || reply_content.isBlank()) {
             ra.addFlashAttribute("errorMsg", "답변 내용을 입력해 주세요.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/detail.do?inquiryNo=" + inquiry_id);
+            return new ModelAndView("redirect:/admin/inquiry/detail.do?inquiryNo=" + inquiry_id);
         }
         // 관리자가 고를 수 있는 상태는 DONE(답변완료) / REVIEW(검토중) 둘 중 하나로 제한
         if (!"DONE".equals(status) && !"REVIEW".equals(status)) {
@@ -139,6 +139,6 @@ public class AdminInquiryController {
             System.err.println("[AdminInquiryController.reply] 답변 등록 실패: " + e.getMessage());
             ra.addFlashAttribute("errorMsg", "답변 등록 중 오류가 발생했습니다.");
         }
-        return new ModelAndView("redirect:/spendolive/admin/inquiry/detail.do?inquiryNo=" + inquiry_id);
+        return new ModelAndView("redirect:/admin/inquiry/detail.do?inquiryNo=" + inquiry_id);
     }
 }
