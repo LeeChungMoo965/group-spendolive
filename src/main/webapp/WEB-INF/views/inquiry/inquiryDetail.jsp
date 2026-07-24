@@ -74,15 +74,4 @@
     </div>
 </div>
 
-<script>
-    function openInqLightbox(src, name) {
-        var img = document.getElementById('inqLightboxImg');
-        img.src = src;
-        img.alt = name || '';
-        document.getElementById('inqLightbox').classList.add('show');
-    }
-    function closeInqLightbox(e) {
-        document.getElementById('inqLightbox').classList.remove('show');
-    }
-</script>
 <script src="${contextPath}/resources/js/faq.js"></script>

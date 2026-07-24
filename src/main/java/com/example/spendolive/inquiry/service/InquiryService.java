@@ -17,8 +17,11 @@ import com.example.spendolive.notification.service.NotificationService;
 @Service
 public class InquiryService {
 
-    private static final int PAGE_SIZE = 5;
-    private static final int PAGINATION_THRESHOLD = 10; // 이 개수 이하면 페이지네이션 없이 전부 표시
+    private static final int PAGE_SIZE = 5; // 사용자(내 문의 조회) 목록 전용 페이지당 개수 — 관리자 목록과 공유하지 않음
+
+    // 관리자 문의 목록 전용: 20개 이하면 페이지네이션 없이 전부 표시, 넘으면 20개씩 페이지 분리
+    private static final int ADMIN_PAGE_SIZE = 20;
+    private static final int ADMIN_PAGINATION_THRESHOLD = 20;
 
     private final InquiryRepository inquiryRepository;
     private final InquiryFileRepository inquiryFileRepository;
@@ -48,6 +51,16 @@ public class InquiryService {
         for (InquiryFileVO file : files) {
             inquiryFileRepository.insertFile(file);
         }
+
+        // [홈페이지 전체 알림 기능 설정] 문의 접수 완료 알림.
+        // 딱 맞는 전용 타입이 없어서 NotificationType.PERSONAL(일반 개인 알림)을 재사용함.
+        // 제목=문의 자체 제목, 본문=안내문구만 (공지 알림 표시 패턴과 통일)
+        notificationService.createNotification(
+                inquiry.getId(),
+                NotificationType.PERSONAL,
+                inquiry.getTitle(),
+                "문의가 접수되었습니다. 답변까지 영업일 기준 1~2일 소요됩니다.",
+                "/spendolive/inquiry/list.do");
     }
 
     /**
@@ -119,20 +132,30 @@ public class InquiryService {
         if (totalCount == 0) {
             return Collections.emptyList();
         }
-        if (totalCount <= PAGINATION_THRESHOLD) {
-            return inquiryRepository.findAllForAdmin(status, 0, totalCount);
+
+        List<InquiryVO> list;
+        if (totalCount <= ADMIN_PAGINATION_THRESHOLD) {
+            list = inquiryRepository.findAllForAdmin(status, 0, totalCount);
+        } else {
+            int safePage = Math.max(page, 1);
+            int offset = (safePage - 1) * ADMIN_PAGE_SIZE;
+            list = inquiryRepository.findAllForAdmin(status, offset, ADMIN_PAGE_SIZE);
         }
-        int safePage = Math.max(page, 1);
-        int offset = (safePage - 1) * PAGE_SIZE;
-        return inquiryRepository.findAllForAdmin(status, offset, PAGE_SIZE);
+
+        // 관리자 목록에서 클릭 시 팝업으로 바로 상세(첨부파일 포함)를 보여주기 위해
+        // 사용자 목록(getMyInquiryList)과 동일하게 각 문의에 첨부파일을 채워 넣는다
+        for (InquiryVO inquiry : list) {
+            inquiry.setFiles(inquiryFileRepository.findByInquiryId(inquiry.getInquiry_id()));
+        }
+        return list;
     }
 
     public int getAdminInquiryTotalPages(String status) {
         int totalCount = inquiryRepository.countAllForAdmin(status);
-        if (totalCount <= PAGINATION_THRESHOLD) {
+        if (totalCount <= ADMIN_PAGINATION_THRESHOLD) {
             return 1;
         }
-        return (int) Math.ceil((double) totalCount / PAGE_SIZE);
+        return (int) Math.ceil((double) totalCount / ADMIN_PAGE_SIZE);
     }
 
     /** 화면에 표시할 "몇 번째 문의인지" 계산용 (inquiry_id는 삭제된 데이터 때문에 듬성듬성 빌 수 있어서 따로 계산) */
@@ -141,7 +164,7 @@ public class InquiryService {
     }
 
     public int getAdminPageSize() {
-        return PAGE_SIZE;
+        return ADMIN_PAGE_SIZE;
     }
 
     /** 답변 등록/수정 + 상태 변경(보통 DONE, 검토만 하고 싶으면 REVIEW로도 가능) + 문의 작성자에게 답변 완료 알림 발송 */
@@ -150,11 +173,12 @@ public class InquiryService {
 
         InquiryVO inquiry = inquiryRepository.findById(inquiryId);
         if (inquiry != null && inquiry.getId() != null && !inquiry.getId().isBlank()) {
+            // 제목=문의 자체 제목, 본문=안내문구만 (공지 알림 표시 패턴과 통일)
             notificationService.createNotification(
                     inquiry.getId(),
                     NotificationType.INQUIRY_REPLY,
-                    "문의하신 내용에 답변이 등록되었습니다",
-                    "\"" + inquiry.getTitle() + "\" 문의에 관리자 답변이 등록되었습니다.",
+                    inquiry.getTitle(),
+                    "문의하신 내용에 관리자 답변이 등록되었습니다.",
                     "/spendolive/inquiry/list.do"
             );
         }

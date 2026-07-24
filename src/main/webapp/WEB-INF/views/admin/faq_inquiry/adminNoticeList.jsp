@@ -25,7 +25,7 @@
         <div class="panel-header">
             <div class="panel-title">
                 <p class="section-kicker">NOTICE LIST</p>
-                <h2>공지사항 목록 (총 ${noticeList.size()}건)</h2>
+                <h2>공지사항 목록 (총 ${totalCount}건)</h2>
             </div>
             <a href="${contextPath}/admin/notice/write.do" class="btn primary">+ 새 공지 작성</a>
         </div>
@@ -50,7 +50,7 @@
                         <c:otherwise>
                             <c:forEach var="notice" items="${noticeList}" varStatus="s">
                                 <tr>
-                                    <td style="text-align:center;">${s.count}</td>
+                                    <td style="text-align:center;">${notice.notice_id}</td>
                                     <td style="text-align:center;">
                                         <c:choose>
                                             <c:when test="${notice.pinned_yn == 'Y'}"><span class="badge green">중요</span></c:when>
@@ -79,5 +79,33 @@
                 </tbody>
             </table>
         </div>
+
+        <c:if test="${totalPages > 1}">
+            <%-- 관리자 문의 목록과 동일한 윈도우 방식 페이지네이션.
+                 20개 넘을 때만 나타나고, 1번/마지막 번호는 항상 고정 노출 --%>
+            <c:set var="pgStart" value="${currentPage - 2 < 1 ? 1 : currentPage - 2}" />
+            <c:set var="pgEnd" value="${currentPage + 2 > totalPages ? totalPages : currentPage + 2}" />
+
+            <div class="admin-pagination">
+                <c:if test="${pgStart > 1}">
+                    <a class="admin-pg-btn" href="${contextPath}/admin/notice/list.do?page=1">1</a>
+                    <c:if test="${pgStart > 2}">
+                        <span class="admin-pg-ellipsis">…</span>
+                    </c:if>
+                </c:if>
+
+                <c:forEach begin="${pgStart}" end="${pgEnd}" var="p">
+                    <a class="admin-pg-btn ${p == currentPage ? 'active' : ''}"
+                       href="${contextPath}/admin/notice/list.do?page=${p}">${p}</a>
+                </c:forEach>
+
+                <c:if test="${pgEnd < totalPages}">
+                    <c:if test="${pgEnd < totalPages - 1}">
+                        <span class="admin-pg-ellipsis">…</span>
+                    </c:if>
+                    <a class="admin-pg-btn" href="${contextPath}/admin/notice/list.do?page=${totalPages}">${totalPages}</a>
+                </c:if>
+            </div>
+        </c:if>
     </div>
 </div>

@@ -108,19 +108,7 @@ th {color:var(--muted);font-size:0.8125rem;}
 .ranking-list li {height:auto !important;counter-increment:rank;display:grid;grid-template-columns:1.619rem 1fr auto;align-items:center;gap:0.625rem;padding:0.8125rem;border-radius:0.875rem;background:var(--cream);}
 .ranking-list li::before {content:counter(rank);width:1.3333rem;height:1.3333rem;display:grid;place-items:center;border-radius:50%;background:var(--olive);color:#fff;font-weight:900;}
 
-/* Calendar */
-.calendar-page-layout {display:grid;grid-template-columns:1fr 14.7619rem;gap:1.125rem;align-items:start;}
-.calendar-controls {display:flex;gap:0.5rem;flex-wrap:wrap;}
-.calendar {height:auto !important;overflow:hidden;}
-.calendar-header {display:flex;justify-content:space-between;align-items:center;gap:1.25rem;padding:1.375rem 1.5rem;color:#fff;background:linear-gradient(135deg,var(--olive-dark),var(--olive));font-size:1.5rem;font-weight:950;}
-.detail-link {height:auto !important;padding:0.5625rem 0.875rem;border:1px solid rgba(255,255,255,.55);border-radius:999px;color:#fff;background:transparent;font-weight:850;cursor:pointer;}
-.side-panel {height:auto !important;padding:1.5rem;}
-.side-panel h3 {margin:0 0 1rem;}
-.side-event {height:auto !important;padding:0.875rem;border-radius:0.9375rem;background:var(--cream);border:1px solid var(--line);margin-bottom:0.625rem;}
-.side-event strong {display:block;margin-bottom:0.25rem;}
-.side-event span {color:var(--muted);font-size:0.8125rem;}
-.fc-daygrid-day-number {cursor: pointer;transition: font-weight 0.1s;}
-.fc-daygrid-day-number:hover {font-weight: 900;color: var(--olive-dark);}
+
 
 /* OTT */
 .ott-two-grid {display:grid;grid-template-columns:1fr 1fr;gap:1.125rem;}
@@ -256,3 +244,12 @@ th {color:var(--muted);font-size:0.8125rem;}
   .withdraw-row {justify-content: stretch;}
   .withdraw-actions {display: grid;}
 } 
+
+/* =========================================================
+   공용 AJAX 로딩 오버레이 (app.js의 showLoading()/hideLoading()이 제어)
+========================================================= */
+.global-loading-overlay {position: fixed;inset: 0;z-index: 2000;display: flex;align-items: center;justify-content: center;background: rgba(251, 250, 241, .65);opacity: 0;visibility: hidden;pointer-events: none;transition: opacity .15s ease, visibility .15s ease;}
+.global-loading-overlay.show {opacity: 1;visibility: visible;pointer-events: auto;}
+.global-loading-spinner {width: 2.75rem;height: 2.75rem;border-radius: 50%;border: 0.25rem solid var(--olive-soft);border-top-color: var(--olive);animation: global-loading-spin .7s linear infinite;}
+@keyframes global-loading-spin {to {transform: rotate(360deg);}}
+@media (prefers-reduced-motion: reduce) {.global-loading-spinner {animation: none;}}

@@ -1,4 +1,62 @@
 /* SpendOlive Complete Fixed JS */
+/* =========================================================
+   공용 AJAX 로딩 표시
+   ========================================================= */
+   let __loadingOverlayEl = null;
+   let __loadingRequestCount = 0;
+   
+   function ensureLoadingOverlay() {
+       if (__loadingOverlayEl) return __loadingOverlayEl;
+       const el = document.createElement('div');
+       el.id = 'globalLoadingOverlay';
+       el.className = 'global-loading-overlay';
+       el.innerHTML = '<div class="global-loading-spinner"></div>';
+       document.body.appendChild(el);
+       __loadingOverlayEl = el;
+       return el;
+   }
+   
+   function showLoading() {
+       __loadingRequestCount++;
+       ensureLoadingOverlay().classList.add('show');
+   }
+   
+   function hideLoading() {
+       __loadingRequestCount = Math.max(0, __loadingRequestCount - 1);
+       if (__loadingRequestCount === 0 && __loadingOverlayEl) {
+           __loadingOverlayEl.classList.remove('show');
+       }
+   }
+   
+   /* =========================================================
+      전역 fetch 자동 로딩 표시
+      - 특정 요청에서만 이 자동 로딩을 끄고 싶으면(예: 이미 자체
+        로딩 표시가 있는 챗봇 등) 두 번째 인자에 skipGlobalLoading:true를 넘기면 됨:
+          fetch(url, { skipGlobalLoading: true })
+      ========================================================= */
+   (function () {
+       const nativeFetch = window.fetch;
+   
+       window.fetch = function (input, init) {
+           const skip = init && init.skipGlobalLoading;
+   
+           // skipGlobalLoading은 우리가 만든 옵션이라 진짜 fetch에 넘기면 안 되므로
+           // 원본 init을 건드리지 않도록 복사해서 그 속성만 제거
+           let cleanInit = init;
+           if (init && 'skipGlobalLoading' in init) {
+               cleanInit = { ...init };
+               delete cleanInit.skipGlobalLoading;
+           }
+   
+           if (!skip) showLoading();
+   
+           return nativeFetch(input, cleanInit).finally(() => {
+               if (!skip) hideLoading();
+           });
+       };
+   })();
+
+
 let currentMonth = 6;
 
 function openModal(id){const el=document.getElementById(id);if(el)el.classList.add("show")}

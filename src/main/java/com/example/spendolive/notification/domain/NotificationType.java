@@ -56,6 +56,11 @@ public final class NotificationType {
     /** 내 문의에 답변 완료 */
     public static final String INQUIRY_REPLY = "INQUIRY_REPLY";
 
+    /** 딱 맞는 전용 타입이 없는 일반 개인 알림용 (예: 문의 접수 완료 안내).
+        DB CHECK 제약(12_patch_notification_type_expand.sql)엔 이미 'PERSONAL'이 허용되어
+        있었는데 자바 상수가 없어서 새로 추가함. */
+    public static final String PERSONAL = "PERSONAL";
+
     /** (캘린더) 지출 결제일 임박 */
     public static final String EXPENSE_DUE = "EXPENSE_DUE";
 }

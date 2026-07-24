@@ -73,7 +73,7 @@
                                     <td style="text-align:center;">${inq.category}</td>
                                     <td style="text-align:center;">${inq.inquiry_type}</td>
                                     <td>
-                                        <a href="${contextPath}/admin/inquiry/detail.do?inquiryNo=${inq.inquiry_id}">${inq.title}</a>
+                                        <a href="javascript:void(0)" onclick="openAdminInquiryModal(${inq.inquiry_id})">${inq.title}</a>
                                     </td>
                                     <td style="text-align:center;">
                                         <c:choose>
@@ -98,13 +98,113 @@
         </div>
 
         <c:if test="${totalPages > 1}">
+            <%-- 현재 페이지 기준 앞뒤 2개씩만 보여주는 윈도우 방식 --%>
+            <c:set var="pgStart" value="${currentPage - 2 < 1 ? 1 : currentPage - 2}" />
+            <c:set var="pgEnd" value="${currentPage + 2 > totalPages ? totalPages : currentPage + 2}" />
+
             <div class="admin-pagination">
-                <c:forEach begin="1" end="${totalPages}" var="p">
+                <c:if test="${pgStart > 1}">
+                    <a class="admin-pg-btn" href="${contextPath}/admin/inquiry/list.do?status=${currentStatus}&page=1">1</a>
+                    <c:if test="${pgStart > 2}">
+                        <span class="admin-pg-ellipsis">…</span>
+                    </c:if>
+                </c:if>
+
+                <c:forEach begin="${pgStart}" end="${pgEnd}" var="p">
                     <a class="admin-pg-btn ${p == currentPage ? 'active' : ''}"
                        href="${contextPath}/admin/inquiry/list.do?status=${currentStatus}&page=${p}">${p}</a>
                 </c:forEach>
+
+                <c:if test="${pgEnd < totalPages}">
+                    <c:if test="${pgEnd < totalPages - 1}">
+                        <span class="admin-pg-ellipsis">…</span>
+                    </c:if>
+                    <a class="admin-pg-btn" href="${contextPath}/admin/inquiry/list.do?status=${currentStatus}&page=${totalPages}">${totalPages}</a>
+                </c:if>
             </div>
         </c:if>
+    </div>
+
+    <%-- 문의별 상세+답변폼 숨김 템플릿 --%>
+    <c:forEach var="inq" items="${inquiryList}">
+        <div class="admin-inq-detail-tpl" id="adminInqDetailTpl${inq.inquiry_id}" style="display:none">
+            <p class="section-kicker">문의 #${inq.inquiry_id}</p>
+            <h2 style="margin:4px 0 10px;">${inq.title}</h2>
+            <p style="color:var(--muted);margin-bottom:16px;">
+                ${inq.category} · ${inq.inquiry_type} · 작성자
+                <c:choose>
+                    <c:when test="${not empty inq.writer_nickname}">${inq.writer_nickname} (${inq.id})</c:when>
+                    <c:otherwise>${inq.id}</c:otherwise>
+                </c:choose>
+                · ${inq.reg_date}
+                &nbsp;
+                <c:choose>
+                    <c:when test="${inq.statusCode == 'done'}"><span class="badge green">답변완료</span></c:when>
+                    <c:when test="${inq.statusCode == 'review'}"><span class="badge blue">검토중</span></c:when>
+                    <c:otherwise><span class="badge yellow">답변대기</span></c:otherwise>
+                </c:choose>
+            </p>
+
+            <div class="form-group">
+                <label>문의 내용</label>
+                <div style="white-space:pre-wrap;padding:14px;border:1px solid #eef0e1;border-radius:12px;background:#fffef8;">${inq.content}</div>
+            </div>
+
+            <c:if test="${not empty inq.files}">
+                <div class="form-group">
+                    <label>첨부파일</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                        <c:forEach var="file" items="${inq.files}">
+                            <c:choose>
+                                <c:when test="${file.image}">
+                                    <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}" target="_blank">
+                                        <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}" alt="${file.origin_name}"
+                                             style="width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid #eef0e1;">
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}" target="_blank" class="mini-btn">📎 ${file.origin_name}</a>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:forEach>
+                    </div>
+                </div>
+            </c:if>
+
+            <%-- 답변 등록/수정 폼. listStatus/listPage는 등록 후 지금 보고 있던
+                 필터·페이지 그대로 목록(팝업이 있는 화면)으로 돌아오기 위한 값 --%>
+            <form action="${contextPath}/admin/inquiry/reply.do" method="post">
+                <input type="hidden" name="inquiry_id" value="${inq.inquiry_id}">
+                <input type="hidden" name="listStatus" value="${currentStatus}">
+                <input type="hidden" name="listPage" value="${currentPage}">
+
+                <div class="form-row" style="display:grid;grid-template-columns:1fr 160px;gap:14px;">
+                    <div class="form-group">
+                        <label for="reply_content_${inq.inquiry_id}">답변 내용</label>
+                        <textarea id="reply_content_${inq.inquiry_id}" name="reply_content" class="form-textarea"
+                                  placeholder="답변 내용을 입력하세요" required>${inq.reply_content}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="status_${inq.inquiry_id}">처리 상태</label>
+                        <select id="status_${inq.inquiry_id}" name="status" class="select-input" style="width:100%;">
+                            <option value="DONE"   ${inq.status == 'REVIEW' ? '' : 'selected'}>답변 완료</option>
+                            <option value="REVIEW" ${inq.status == 'REVIEW' ? 'selected' : ''}>검토 중</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="toolbar" style="justify-content:flex-end;margin-top:20px;">
+                    <button type="submit" class="btn primary">${empty inq.reply_content ? '답변 등록' : '답변 수정'}</button>
+                </div>
+            </form>
+        </div>
+    </c:forEach>
+
+    <div class="modal" id="adminInqDetailModal" onclick="closeAdminInquiryModal(event)">
+        <div class="modal-box modal-admin-inquiry" onclick="event.stopPropagation()">
+            <button type="button" class="modal-close" onclick="closeAdminInquiryModal(event)">✕</button>
+            <div id="adminInqDetailBody"></div>
+        </div>
     </div>
     </div>
 </div>

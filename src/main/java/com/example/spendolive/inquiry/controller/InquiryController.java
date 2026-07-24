@@ -43,9 +43,10 @@ public class InquiryController {
     public ModelAndView inquiryList(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "status", defaultValue = "all") String status,
-            HttpSession session) {
+            HttpSession session, RedirectAttributes ra) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
@@ -88,9 +89,10 @@ public class InquiryController {
 
     /* ─── 문의 작성 폼 ────────────────────────────────────── */
     @GetMapping("/write.do")
-    public ModelAndView inquiryWriteForm(HttpSession session) {
+    public ModelAndView inquiryWriteForm(HttpSession session, RedirectAttributes ra) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
@@ -111,6 +113,7 @@ public class InquiryController {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
@@ -119,7 +122,7 @@ public class InquiryController {
                 || title == null || title.isBlank()
                 || content == null || content.isBlank()) {
             ra.addFlashAttribute("errorMsg", "카테고리, 유형, 제목, 내용을 모두 입력해 주세요.");
-            return new ModelAndView("redirect:/inquiry/write.do");
+            return new ModelAndView("redirect:/spendolive/inquiry/write.do");
         }
 
         InquiryVO inquiry = new InquiryVO();
@@ -135,19 +138,19 @@ public class InquiryController {
         } catch (IllegalArgumentException e) {
             // 첨부파일 검증 실패 (용량/확장자/개수 초과 등)
             ra.addFlashAttribute("errorMsg", e.getMessage());
-            return new ModelAndView("redirect:/inquiry/write.do");
+            return new ModelAndView("redirect:/spendolive/inquiry/write.do");
         } catch (DataAccessException e) {
             System.err.println("[InquiryController.inquiryWrite] 등록 실패: " + e.getMessage());
             ra.addFlashAttribute("errorMsg", "문의 접수 중 오류가 발생했습니다. 다시 시도해 주세요.");
-            return new ModelAndView("redirect:/inquiry/write.do");
+            return new ModelAndView("redirect:/spendolive/inquiry/write.do");
         } catch (RuntimeException e) {
             // 파일 디스크 저장 실패 등
             System.err.println("[InquiryController.inquiryWrite] 첨부파일 저장 실패: " + e.getMessage());
             ra.addFlashAttribute("errorMsg", "첨부파일 저장 중 오류가 발생했습니다. 다시 시도해 주세요.");
-            return new ModelAndView("redirect:/inquiry/write.do");
+            return new ModelAndView("redirect:/spendolive/inquiry/write.do");
         }
 
-        return new ModelAndView("redirect:/inquiry/list.do");
+        return new ModelAndView("redirect:/spendolive/inquiry/list.do");
     }
 
     /* ─── 문의 상세 ───────────────────────────────────────── */
@@ -158,6 +161,7 @@ public class InquiryController {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
@@ -171,7 +175,7 @@ public class InquiryController {
         // 존재하지 않거나 본인 문의가 아니면 목록으로
         if (inquiry == null || !inquiry.getId().equals(memberInfo.getId())) {
             ra.addFlashAttribute("errorMsg", "존재하지 않거나 접근할 수 없는 문의입니다.");
-            return new ModelAndView("redirect:/inquiry/list.do");
+            return new ModelAndView("redirect:/spendolive/inquiry/list.do");
         }
 
         // TODO: 상세 페이지 JSP(inquiryDetail.jsp)는 아직 없음. 만들어지면 아래 두 줄 활성화.

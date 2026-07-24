@@ -7,7 +7,7 @@
 /* 중요/일반 공지 뱃지 (목록에서 제목 앞에 붙는 태그) */
 .notice-important { background: #fff1d6; color: #9a5f13; }   /* 상단 고정 공지 */.notice-normal { background: var(--olive-soft); color: var(--olive-dark); }   /* 일반 공지 */
 /* 공지/알림센터 상단 히어로 여백 — 다른 페이지보다 낮게 */
-.page-hero { padding: 45px 0 35px; }.section.compact { padding: 14px 0; }.notice-list-section { padding-top: 10px !important; padding-bottom: 30px !important; }.notice-row-title { margin-bottom: 14px; }
+.section.compact { padding: 14px 0; }.notice-list-section { padding-top: 10px !important; padding-bottom: 30px !important; }.notice-row-title { margin-bottom: 14px; }
 /* 공지/알림 탭 (noticeCenter.jsp 상단 "공지사항" / "알림" 탭) */
 .notice-board-wrap { position: relative; margin-top: 78px; }.notice-board-tabs {position: absolute; top: -54px; right: 0; z-index: 10;display: flex; width: 380px; height: 55px; overflow: hidden;background: #fff; border: 1px solid var(--line); border-bottom: none;border-radius: 18px 18px 0 0;}
 /* 탭 바 밑줄과 카드 상단 테두리가 만나는 부분의 이음매를 지우는 역할*/
@@ -31,7 +31,9 @@
 /* 작성자/등록일 등 메타 정보 줄 */
 .notice-detail-info {display: flex; gap: 18px; padding-bottom: 22px; margin-bottom: 28px;border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 800;}.notice-detail-content { min-height: 260px; line-height: 1.9; white-space: pre-line; }.notice-detail-actions { margin-top: 30px; text-align: right; display: flex; justify-content: center; }
 /* 상세 페이지 찜 버튼 — 목록의 별 버튼과 별개로,상세에서는 정사각 버튼 형태(활성 시 배경까지 채워짐) */
-.notice-star-btn {border: none; background: #f2f5df; color: #8a8f33;width: 38px; height: 38px; border-radius: 12px; font-size: 24px; cursor: pointer;margin-right: 8px; display: flex; align-items: center; justify-content: center;}.notice-star-btn.active { background: #8a8f33; color: #fff6b0; }
+/* 상세 페이지 찜 버튼 — 알림센터 목록의 찜 버튼(.notice-list-star-btn)과 동일하게
+   배경 없이 별 문자 색상만으로 표시 (예전엔 배경 있는 둥근 사각형 버튼이었음) */
+.notice-star-btn {border: none; background: transparent; color: var(--muted);width: 38px; height: 38px; border-radius: 50%; font-size: 26px; cursor: pointer;margin-right: 8px; display: flex; align-items: center; justify-content: center; transition: color .15s ease;}.notice-star-btn:hover { color: #f3aa22; }.notice-star-btn.active { background: transparent; color: #f3aa22; }
 /* 목록 페이지네이션 (숫자 원형 버튼) */
 .notice-pagination { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }.notice-page-btn {width: 34px; height: 34px; border: 1px solid #dfe5c8; background: #eef1db;color: var(--olive-dark); border-radius: 50%; font-weight: 900; cursor: pointer;}.notice-page-btn.active { background: var(--olive); color: #fff; border-color: var(--olive); }
 /* 관리자 공지 작성/수정 폼의 textarea */
