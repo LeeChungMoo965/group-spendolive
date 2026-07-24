@@ -116,16 +116,22 @@ public class AdminInquiryController {
             @RequestParam(value = "inquiry_id", defaultValue = "0") int inquiry_id,
             @RequestParam(value = "reply_content", required = false) String reply_content,
             @RequestParam(value = "status", defaultValue = "DONE") String status,
+            // 목록이 팝업(모달) 방식으로 바뀌면서, 답변 등록 후에는 상세 페이지가 아니라
+            // 원래 보고 있던 목록(필터/페이지 유지)으로 돌아가야 하므로 폼에서 같이 넘겨받음
+            @RequestParam(value = "listStatus", defaultValue = "all") String listStatus,
+            @RequestParam(value = "listPage", defaultValue = "1") int listPage,
             HttpSession session, RedirectAttributes ra) {
+
+        String backToList = "redirect:/admin/inquiry/list.do?status=" + listStatus + "&page=" + listPage;
 
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         if (inquiry_id <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 문의 번호입니다.");
-            return new ModelAndView("redirect:/admin/inquiry/list.do");
+            return new ModelAndView(backToList);
         }
         if (reply_content == null || reply_content.isBlank()) {
             ra.addFlashAttribute("errorMsg", "답변 내용을 입력해 주세요.");
-            return new ModelAndView("redirect:/admin/inquiry/detail.do?inquiryNo=" + inquiry_id);
+            return new ModelAndView(backToList);
         }
         // 관리자가 고를 수 있는 상태는 DONE(답변완료) / REVIEW(검토중) 둘 중 하나로 제한
         if (!"DONE".equals(status) && !"REVIEW".equals(status)) {
@@ -139,6 +145,6 @@ public class AdminInquiryController {
             System.err.println("[AdminInquiryController.reply] 답변 등록 실패: " + e.getMessage());
             ra.addFlashAttribute("errorMsg", "답변 등록 중 오류가 발생했습니다.");
         }
-        return new ModelAndView("redirect:/admin/inquiry/detail.do?inquiryNo=" + inquiry_id);
+        return new ModelAndView(backToList);
     }
 }

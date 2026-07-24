@@ -57,7 +57,6 @@
                         <tr>
                             <th style="width:60px;text-align:center;">번호</th>
                             <th>질문</th>
-                            <th style="width:70px;text-align:center;">순서</th>
                             <th style="width:80px;text-align:center;">노출</th>
                             <th style="width:150px;text-align:center;">관리</th>
                         </tr>
@@ -69,7 +68,6 @@
                                 <td>
                                     <a href="${contextPath}/spendolive/admin/faq/edit.do?faq_id=${faq.faq_id}">${faq.question}</a>
                                 </td>
-                                <td style="text-align:center;">${faq.sort_order}</td>
                                 <td style="text-align:center;">
                                     <c:choose>
                                         <c:when test="${faq.use_yn == 'Y'}"><span class="badge green">노출</span></c:when>

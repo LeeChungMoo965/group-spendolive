@@ -34,15 +34,26 @@ public class AdminNoticeController {
 
     /* ─── 목록 ─────────────────────────────────────────────── */
     @GetMapping("/list.do")
-    public ModelAndView list(HttpSession session, RedirectAttributes ra) {
+    public ModelAndView list(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            HttpSession session, RedirectAttributes ra) {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
 
         ModelAndView mav = new ModelAndView("common/layout");
         mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminNoticeList.jsp");
         try {
-            mav.addObject("noticeList", noticeService.getNoticeList(null));
+            int totalPages = noticeService.getNoticeAdminTotalPages();
+            int currentPage = Math.min(Math.max(page, 1), totalPages);
+
+            mav.addObject("noticeList", noticeService.getNoticeListForAdmin(currentPage));
+            mav.addObject("currentPage", currentPage);
+            mav.addObject("totalPages", totalPages);
+            mav.addObject("totalCount", noticeService.getNoticeCount()); // 페이지네이션 도입 후 "총 N건" 표시용 (noticeList.size()는 이제 현재 페이지분만 담음)
         } catch (Exception e) {
             mav.addObject("noticeList", List.of());
+            mav.addObject("currentPage", 1);
+            mav.addObject("totalPages", 1);
+            mav.addObject("totalCount", 0);
             mav.addObject("errorMsg", "공지 목록을 불러오는 중 오류가 발생했습니다.");
         }
         return mav;
