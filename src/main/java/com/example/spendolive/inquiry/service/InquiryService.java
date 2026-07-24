@@ -50,6 +50,15 @@ public class InquiryService {
         List<InquiryFileVO> files = fileStorageService.storeFiles(inquiry_id, attachments);
         for (InquiryFileVO file : files) {
             inquiryFileRepository.insertFile(file);
+
+            // 추가: 문의 접수 완료 알림 (본인에게)
+                notificationService.createNotification(
+                    inquiry.getId(),
+                    NotificationType.PERSONAL,
+                    "문의가 접수되었습니다",
+                    "\"" + inquiry.getTitle() + "\" 문의가 접수되었습니다. 답변까지 영업일 기준 1~2일 소요됩니다.",
+                    "/spendolive/inquiry/list.do"
+            );
         }
 
         // [홈페이지 전체 알림 기능 설정] 문의 접수 완료 알림.

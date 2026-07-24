@@ -30,13 +30,19 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     private final String insertSeller = "INSERT INTO seller_account_tb ("
     +"member_id, bank_name, account_number, traceId) "
     +" VALUES(?,?,?,?) ";
-
+    private final String insertRefund = "INSERT INTO settlement_refund_tb ("
+    +"SETTLEMENT_ID, payment_id,member_login_id, REFUND_AMOUNT, refund_reason, refund_status, completed_at) "
+    +" VALUES(?,?,?,?,?,?,?) ";
 //select
     private final String settlement_paymentByroomId = "select "
     +"sp.payment_id, sp.settlement_id, sp.id, sp.base_amount, sp.fee_rate, sp.fee_amount, sp.total_amount, sp.payment_status, sp.card_number," 
     +"sp.card_company, sp.paid_at, sp.confirmed_at, sp.expired_at, sp.cancelled_at, sp.paymentKey, sp.orderId, sp.memo "
     +" from settlement_payment_tb sp JOIN settlement_tb st ON sp.settlement_id = st.settlement_id "
     +"where st.room_id =? AND sp.id = ?";
+    private final String settlement_paymentAll = "select "
+    +"payment_id, settlement_id, id, base_amount, fee_rate, fee_amount, total_amount, payment_status, card_number," 
+    +"card_company, paid_at, confirmed_at, expired_at, cancelled_at, paymentKey, orderId, memo "
+    +" from settlement_payment_tb ";
     private final String settlementByroomId = "select "
     +"st.settlement_id, st.room_id, st.total_price, r.member_limit, r.HOST_LOGIN_ID "
     +"from settlement_tb st "
@@ -48,7 +54,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + "TO_CHAR(r.CLOSED_AT, 'YYYY-MM-DD') AS CLOSED_AT, "
     + "TO_CHAR(r.created_at, 'YYYY-MM-DD') AS created_at, "
     + "s.SETTLEMENT_STATUS "         
-    + "from ott_room_tb r INNER JOIN settlement_tb s ON r.ROOM_ID = s.ROOM_ID where r.BILLING_DAY >=? AND r.BILLING_DAY <=? AND r.status= 'ACTIVE' "
+    + "from ott_room_tb r INNER JOIN settlement_tb s ON r.ROOM_ID = s.ROOM_ID where r.BILLING_DAY >=? AND r.BILLING_DAY <=? AND r.status IN ('ACTIVE', 'FIRST') "
     + "AND s.settlement_status =? ";
     private final String selectRoomMember = "select decode(count(*),1, 'true', 0, 'false') as id "
     +"from ott_room_member_tb "         
@@ -68,6 +74,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     + " IN (SELECT room_id FROM ott_room_tb WHERE BILLING_DAY >=? AND BILLING_DAY <=?) ";
     private final String updateTodaysettlementroommemberstatus = "UPDATE ott_room_member_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? and member_login_id =? ";
     private final String updateTodaysettlementroommemberlate = "UPDATE ott_room_member_tb set pay_late_day =? + 1 where ROOM_ID =? and member_login_id =? ";
+    private final String updatePaymentstatusRefund = "UPDATE settlement_payment_tb set PAYMENT_STATUS =? where payment_id =? ";
     public PaymentRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -100,6 +107,36 @@ public class PaymentRepositoryImpl implements PaymentRepository{
          
             return settlementPaymentVO;
             }, room_id,userId);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
+    }
+    @Override
+    public List<SettlementPaymentVO> selectsettlement_paymentAll() throws DataAccessException {
+        try {
+            return jdbcTemplate.query(settlement_paymentAll, (rs, rowNum) -> {
+            SettlementPaymentVO settlementPaymentVO = new SettlementPaymentVO();
+            settlementPaymentVO.setBase_amount(rs.getInt("base_amount"));
+            settlementPaymentVO.setPaid_at(rs.getObject("paid_at", LocalDateTime.class));
+            settlementPaymentVO.setConfirmed_at(rs.getObject("confirmed_at", LocalDateTime.class));
+            settlementPaymentVO.setExpired_at(rs.getObject("expired_at", LocalDateTime.class));
+            settlementPaymentVO.setCancelled_at(rs.getObject("cancelled_at", LocalDateTime.class));
+            settlementPaymentVO.setCard_company(rs.getString("card_company"));
+            settlementPaymentVO.setCard_number(rs.getString("card_number"));
+            settlementPaymentVO.setFee_amount(rs.getInt("fee_amount"));
+            settlementPaymentVO.setFee_rate(rs.getDouble("fee_rate"));
+            settlementPaymentVO.setId(rs.getString("id"));
+            settlementPaymentVO.setMemo(rs.getString("memo"));
+            settlementPaymentVO.setOrderId(rs.getString("orderId"));
+            settlementPaymentVO.setPaymentKey(rs.getString("paymentKey"));
+            settlementPaymentVO.setPayment_id(rs.getInt("payment_id"));
+            settlementPaymentVO.setPayment_status(rs.getString("payment_status"));
+            settlementPaymentVO.setSettlement_id(rs.getInt("settlement_id"));
+            settlementPaymentVO.setTotal_amount(rs.getInt("total_amount"));
+         
+            return settlementPaymentVO;
+            });
         }catch (org.springframework.dao.EmptyResultDataAccessException e) {
             // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
             return null; 
@@ -192,14 +229,12 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     @Override
     public void updateEscrowStatus(int room_id) {
         jdbcTemplate.update(insertTodayexcrow, room_id);
-
     }
     @Override
     public void updatSettlementStatus(int room_id) {
         jdbcTemplate.update(updateTodaysettlement, room_id);
     }
     @Override
-
     public String roomMemberByroomIdCount (int room_id, String userId) throws DataAccessException{
 
 
@@ -237,5 +272,13 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         @Override
         public void updatSettlementStatusYET(int day) {
             jdbcTemplate.update(updateCheckTodaysettlement, day);
+        }
+        @Override
+        public void updatePaymentstatusRefund(int payment_id) {
+            jdbcTemplate.update(updatePaymentstatusRefund, "REFUNDED", payment_id);
+        }
+        @Override
+        public void insertRefund(SettlementRefundVO refund) {
+            jdbcTemplate.update(insertRefund, refund.getSettlement_id(),refund.getPayment_id(), refund.getMember_login_id() , refund.getRefund_amount() ,refund.getRefund_reason(),refund.getRefund_status(), refund.getCompleted_at());
         }
 }

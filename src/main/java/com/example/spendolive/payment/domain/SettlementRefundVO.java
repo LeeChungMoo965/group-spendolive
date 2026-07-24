@@ -16,7 +16,6 @@ public class SettlementRefundVO {
     private int refund_id;              // 환불 내역 고유 ID (PK, 시퀀스 자동 생성)
     private int payment_id;             // 원본 입금 내역 고유 ID (FK)
     private int settlement_id;          // 월별 정산 고유 ID (FK)
-    private int room_id;                // OTT 매칭방 고유 ID (FK)
     private String member_login_id;                  // 환불받을 회원 아이디 (FK, member_tb)
     private int refund_amount;          // 최종 환불 예정 금액
     

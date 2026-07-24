@@ -20,4 +20,10 @@ public interface ExpenseRepository {
     List<ExpenseCategoryDTO> selectCategoryList();
 
     List<ExpenseCategoryDTO> selectCategoryListByType(String expense_type);
+
+    // 회원의 선택 월 예산 조회
+    int selectMonthlyBudget(Long member_id, String budget_month);
+
+    // 선택 월 예산 등록 또는 수정
+    void saveMonthlyBudget(Long member_id, String budget_month, int budget_amount);
 }

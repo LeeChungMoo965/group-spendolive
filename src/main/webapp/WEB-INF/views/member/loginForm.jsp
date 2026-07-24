@@ -11,6 +11,9 @@
     </title>
     <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <style>
     /* =========================================================
        [추가 UI] 로그인/아이디 찾기/비밀번호 찾기 폼 전환용 CSS
@@ -93,7 +96,7 @@
             </div>
             <div class="auth-divider">또는 일반 로그인</div>
 
-            <form action="${contextPath}/member/login.do" method="post">
+            <form action="${contextPath}/member/login.do" method="post"onsubmit="return checkKakaoPassword()">
                 <div class="auth-form-group">
                     <label for="loginId">아이디 또는 이메일</label>
                     <input id="loginId" type="text" name="id" placeholder="아이디 또는 이메일을 입력하세요" required>
@@ -115,7 +118,7 @@
                         <a href="#" onclick="showAuthPanel('findPw'); return false;">비밀번호 찾기</a>
                     </div>
                 </div>
-                <button class="auth-btn auth-btn-primary" type="submit">로그인</button>
+                <button id="login" class="auth-btn auth-btn-primary" type="submit">로그인</button>
             </form>
             <div class="auth-link-row">
                 <span>아직 회원이 아니신가요?</span>
@@ -201,9 +204,14 @@
             <p id="findPwResult" class="auth-result-text"></p>
             <button type="button" class="auth-btn auth-btn-primary auth-back-login" onclick="showAuthPanel('login')">로그인으로 돌아가기</button>
         </div>
+             <jsp:include page="/WEB-INF/views/common/font.jsp" />
     </section>
 </main>
 </div>
+<script src="${contextPath}/resources/js/chatbot.js"></script>
+
+   <script src="${contextPath}/resources/js/app.js"></script>
+    <script src="${contextPath}/resources/js/bellIcon.js"></script>
 <script>
     var contextPath = "${contextPath}";
 

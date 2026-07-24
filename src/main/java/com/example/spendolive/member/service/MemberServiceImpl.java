@@ -271,6 +271,22 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalArgumentException("수정할 계좌를 찾을 수 없습니다.");
         }
     }
+
+    // 선택한 계좌를 주계좌로 바꾸며 다른 계좌의 주계좌 상태도 함께 해제한다.
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePrimaryAccount(String id, int accountIdx) throws Exception {
+        int updatedCount = memberRepository.updatePrimaryAccount(id, accountIdx);
+        if (updatedCount == 0) {
+            throw new IllegalArgumentException("주계좌로 설정할 계좌를 찾을 수 없습니다.");
+        }
+    }
+
+    // 회원 아이디와 계좌 번호를 함께 사용해 본인 계좌 거래내역만 조회한다.
+    @Override
+    public List<MemberTranVO> getTransactionsByAccount(String id, int accountIdx) throws Exception {
+        return memberRepository.selectTransactionsByAccount(id, accountIdx);
+    }
     /* [마이페이지 계좌·카드 연결 추가 끝] */
 
     @Override
@@ -465,16 +481,25 @@ public class MemberServiceImpl implements MemberService {
         String tranDtime =
             java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // 출금은 음수, 입금은 양수로 통일해 현재 잔액과 거래 후 잔액을 계산한다.
+        int signedAmount = tran_amt[amt_number];
         if(inout_type[type_nember].equals("출금")){
-            tran_amt[amt_number] = tran_amt[amt_number] * -1; 
+            signedAmount = signedAmount * -1;
         }
+
+        int balanceAfter = accountVO.getBalance() + signedAmount;
+
         tran.setId(id);
         tran.setInout_type(inout_type[type_nember]);
         tran.setAccount_idx(idx);
-        tran.setTran_amt(tran_amt[amt_number]);
+        tran.setTran_amt(signedAmount);
         tran.setTran_date(tranDtime);
+        tran.setBalance_after(Long.valueOf(balanceAfter));
+
+        // 거래 당시 잔액을 거래 테이블에 저장한 뒤 계좌의 현재 잔액을 갱신한다.
         memberRepository.inserttrandetail(tran);
-        memberRepository.updatebalance(tran_amt[amt_number], idx);
+        memberRepository.updatebalance(signedAmount, idx);
+        accountVO.setBalance(balanceAfter);
         }catch (Exception e) {
             System.out.println("오류" + e);
 

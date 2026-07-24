@@ -139,12 +139,12 @@
                                                        class="invite-url-input"
                                                        readonly
                                                        value="${pageContext.request.scheme}://${pageContext.request.serverName}:${pageContext.request.serverPort}${contextPath}/spendolive/ott/friends/invite.do?code=${room.invite_code}">
-                                                <button type="button" class="btn btn-primary btn-mini">URL 복사</button>
+                                                <button type="button" class="btn btn-primary btn-mini invite-copy-btn">URL 복사</button>
                                             </div>
 
                                             <div class="invite-share-actions">
-                                                <button type="button" class="btn btn-primary btn-mini">QR 코드 보기</button>
-                                                <button type="button" class="btn btn-primary btn-mini">카카오톡 공유</button>
+                                                <button type="button" class="btn btn-primary btn-mini invite-qr-btn">QR 코드 보기</button>
+                                                <button type="button" class="btn btn-primary btn-mini invite-kakao-btn">카카오톡 공유</button>
                                             </div>
 
                                             <div class="invite-qr-box">
@@ -335,14 +335,6 @@
     </div>
 </section>
 
-<script>
-    // 처리 결과 알림
-    var msg = "${msg}";
-    if (msg && msg !== "") {
-        alert(msg);
-    }
-</script>
-
 <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
 <script>
 // 가족방 초대 공유 - URL 복사, QR, 카카오톡 공유 처리
@@ -439,7 +431,7 @@
         var kakaoBtn = box.querySelector('.invite-kakao-btn');
         var qrBox = box.querySelector('.invite-qr-box');
         var qrImg = qrBox ? qrBox.querySelector('img') : null;
-        var room_name = box.dataset.room_name || 'SpendOlive 가족방';
+        var room_name = box.dataset.roomName || 'SpendOlive 가족방';
 
         if (copyBtn && input) {
             copyBtn.addEventListener('click', function () {
@@ -451,9 +443,11 @@
 
         if (qrBtn && input && qrBox && qrImg) {
             qrBtn.addEventListener('click', function () {
-                if (!qrImg.src) {
-                    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(input.value);
-                }
+            if (!qrImg.getAttribute('src')) {
+                qrImg.src =
+                    'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='
+                    + encodeURIComponent(input.value);
+            }
                 qrBox.classList.toggle('show');
             });
         }

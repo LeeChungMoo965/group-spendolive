@@ -3,6 +3,7 @@
 <button id="chatbotToggle" class="chatbot-toggle">🙋🏻‍♀️</button>
 
 <div id="chatbotPanel" class="chatbot-panel">
+
   <div class="chatbot-header">
     <div>
         <p class="eyebrow">SPENDOLIVE BOT</p>
@@ -20,5 +21,4 @@
   </div>
 </div>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/chatbot.css">
 <script src="${pageContext.request.contextPath}/resources/js/chatbot.js"></script>

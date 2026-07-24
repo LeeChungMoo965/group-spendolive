@@ -217,31 +217,6 @@ public class OttServiceImpl implements OttService {
         createReadySettlement(room_id, loginId);
     }
 
-    // 승인 시스템 제거 후 모집 마감 여부만 확인하는 호환 처리
-    @Override
-    public void applyRecruitRoom(Long room_id, String loginId) {
-        if (room_id == null || !isValidLogin(loginId)) {
-            return;
-        }
-
-        OttRoomDTO room = ottRepository.selectRoom(room_id);
-        if (room == null || loginId.equals(room.getHost_login_id())) {
-            return;
-        }
-        if (!"RECRUIT".equals(room.getRoom_mode())) {
-            return;
-        }
-        if (!("RECRUITING".equals(room.getStatus()) || "REPLACE_RECRUITING".equals(room.getStatus()))) {
-            return;
-        }
-
-        // 승인 시스템은 제거되었으므로 신청 데이터는 만들지 않는다.
-        // 이미 정원이 찬 방이면 모집 상태만 마감 상태로 정리한다.
-        if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
-            ottRepository.updateRoomStatus(room_id, "ACTIVE");
-        }
-    }
-
     // 빠른 참가가 가능한 가장 오래된 외부인 모집방 조회
     @Override
     public Long findQuickJoinRecruitRoomId(Long ott_service_id, String loginId) {
@@ -411,7 +386,6 @@ public class OttServiceImpl implements OttService {
         }
 
         if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
-            ottRepository.updateRoomStatus(room_id, "ACTIVE");
             return;
         }
 
@@ -530,7 +504,15 @@ public class OttServiceImpl implements OttService {
                 room.getRoom_name() + " 공유방이 " + close_effective_date + "에 종료될 예정입니다. " + notice,
                 "/spendolive/ott/chat/room.do?room_id=" + room_id,
                 hostId);
-    }
+
+
+                // 추가: 방장 본인에게도 알림 (이용자 나가기 신청 때와 동일한 문구)
+        ottRepository.insertOttNotification(
+            hostId,
+            "공유방 나가기 신청 완료",
+            room.getRoom_name() + " 공유방에서 다음 결제 전까지 방을 나가게 됩니다. (" + close_effective_date + ")",
+            "/spendolive/ott/chat/room.do?room_id=" + room_id);
+            }
 
     // 결제 상태와 날짜 규칙을 확인하여 방 나가기 예약
     @Override
@@ -578,8 +560,18 @@ public class OttServiceImpl implements OttService {
                 loginId + "님이 " + room.getRoom_name() + " 방에서 "
                         + leave_scheduled_date + " 나가기 예약을 했습니다.",
                 "/spendolive/ott/chat/room.do?room_id=" + room_id);
-        return "나가기 예약이 완료되었습니다. " + leave_scheduled_date + "에 자동으로 방에서 나가집니다.";
-    }
+
+        // 추가: 신청한 본인에게도 알림
+        ottRepository.insertOttNotification(
+                loginId,
+                "공유방 나가기 신청 완료",
+                room.getRoom_name() + " 공유방에서 다음 결제 전까지 방을 나가게 됩니다. (" + leave_scheduled_date + ")",
+                "/spendolive/ott/chat/room.do?room_id=" + room_id);
+
+
+
+                return "나가기 예약이 완료되었습니다. " + leave_scheduled_date + "에 자동으로 방에서 나가집니다.";
+            }
 
     // 미처리 방 나가기 예약 취소
     @Override

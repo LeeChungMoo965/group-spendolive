@@ -27,4 +27,7 @@ public interface PaymentRepository {
     public void updatSettlementroommemberStatus(int roomId,String userId)throws Exception;
     public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day)throws Exception;
     public void updatSettlementStatusYET(int day)throws Exception;
+    public List<SettlementPaymentVO> selectsettlement_paymentAll() throws DataAccessException;
+    public void updatePaymentstatusRefund(int payment_id) throws DataAccessException;
+    public void insertRefund(SettlementRefundVO refund) throws DataAccessException;
 }

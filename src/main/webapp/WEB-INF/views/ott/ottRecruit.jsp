@@ -137,7 +137,7 @@
 
                         <form action="${contextPath}/spendolive/ott/recruit.do" method="get" class="recruit-search-form">
                             <input type="hidden" name="tab" value="all">
-<div class="auth-form-group">
+                        <div class="auth-form-group">
                             <label>
                                 <span>OTT 종류</span>
                                 <select name="ott_service_id">
@@ -149,9 +149,8 @@
                                     </c:forEach>
                                 </select>
                             </label>
-  </div>
-                        <div class="auth-form-group">
-                            <label >
+                            </div>
+                            <label class="recruit-search-keyword">
                                 <span>방 제목</span>
                                 <input type="text" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}" placeholder="예) 모집합니다">
                             </label>
@@ -395,52 +394,6 @@
                         </div>
 
                         <div class="settlement-stack">
-                            <%-- 방장 정산 생성 --%>
-                            <section class="settlement-wide-block settlement-request-block">
-                                <div class="settlement-sub-header">
-                                    <div>
-                                        <h3>정산 요청 보내기</h3>
-                                        <p>결제 가능 시작일은 전월 결제일, 마감일은 다음 결제일 7일 전으로 자동 계산됩니다.</p>
-                                    </div>
-                                    <span>다음 이용분 선결제</span>
-                                </div>
-
-                                <c:choose>
-                                    <c:when test="${not empty hostedRoomList}">
-                                        <div class="settlement-request-list settlement-wide-list">
-                                            <c:forEach var="room" items="${hostedRoomList}">
-                                                <c:if test="${room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
-                                                    <form action="${contextPath}/spendolive/ott/settlement/request.do" method="post" class="settlement-request-row wide-settlement-row">
-                                                        <input type="hidden" name="room_id" value="${room.room_id}">
-                                                        <input type="hidden" name="returnPage" value="recruit">
-
-                                                        <div class="settlement-room-title">
-                                                            <strong>${room.room_name}</strong>
-                                                            <small>${room.service_name} · ${room.plan_name} · 참여 ${room.current_member_count}/${room.member_limit}명 · 1인 결제 <fmt:formatNumber value="${room.per_person_amount}" pattern="#,##0" />원</small>
-                                                        </div>
-
-                                                        <label class="settlement-field">
-                                                            <span>정산월</span>
-                                                            <input type="month" name="settlement_month" value="${selectedSettlementMonth}">
-                                                        </label>
-
-                                                        <div class="settlement-auto-guide">
-                                                            <b>자동 계산</b>
-                                                            <small>결제 가능 시작일 = 전월 결제일 / 마감일 = 이용 시작일 7일 전</small>
-                                                        </div>
-
-                                                        <button type="submit" class="btn btn-primary">정산 요청 보내기</button>
-                                                    </form>
-                                                </c:if>
-                                            </c:forEach>
-                                        </div>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <div class="empty-box">정산 요청을 보낼 수 있는 내 모집글이 없습니다.</div>
-                                    </c:otherwise>
-                                </c:choose>
-                            </section>
-
                             <%-- 개인 및 팀원 결제 상태 --%>
                             <section class="settlement-wide-block settlement-status-block">
                                 <div class="settlement-sub-header">
@@ -573,11 +526,3 @@
         </div>
     </div>
 </section>
-
-<script>
-    // 처리 결과 알림
-    var msg = "${msg}";
-    if (msg && msg !== "") {
-        alert(msg);
-    }
-</script>

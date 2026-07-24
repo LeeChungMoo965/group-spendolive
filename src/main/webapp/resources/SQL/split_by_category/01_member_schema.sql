@@ -70,7 +70,7 @@ CREATE TABLE MEMBER_ACCOUNT_TB (
     ACCOUNT_NUMBER       VARCHAR2(30) NOT NULL,                           -- 마스킹된 계좌번호 (ex: 110-***-1234)
     FINTECH_USE_NUM      VARCHAR2(50) NOT NULL,                           -- 금결원 핵심 키 (핀테크이용번호 💥)
     BALANCE              NUMBER DEFAULT 0,                                -- 계좌 잔액 (실시간 동기화용 💰)
-    OPEN_BANK_TOKEN      VARCHAR2(255) NOT NULL,                          -- 금결원 사용자 토큰
+    OPEN_BANK_TOKEN      VARCHAR2(300) NOT NULL,                          -- 금결원 사용자 토큰
     OPEN_BANK_USER_SEQ   VARCHAR2(50) NOT NULL,                           -- 금결원 사용자 일련번호
     ACCOUNT_HOLDER_NAM   VARCHAR2(50),
     REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
@@ -97,6 +97,9 @@ ALTER TABLE member_account_tb ADD (
      status         VARCHAR2(20) DEFAULT 'NO' NOT NULL,
     CONSTRAINT ck_member_account_status CHECK (status IN ('YES', 'NO'))
 );
+ALTER TABLE MEMBER_ACCOUNT_TB
+MODIFY OPEN_BANK_TOKEN VARCHAR2(1000);
+
 
 CREATE TABLE MEMBER_CARD_TB (
     CARD_IDX        NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
@@ -122,7 +125,8 @@ CREATE TABLE MEMBER_tran_TB (
     ACCOUNT_IDX            NUMBER NOT NULL,                          
     tran_date       VARCHAR2(30) NOT NULL,                           
     inout_type      VARCHAR2(10) NOT NULL,                       
-    tran_amt              NUMBER ,                           
+    tran_amt              NUMBER,
+    BALANCE_AFTER         NUMBER, -- 해당 거래가 끝난 직후의 계좌 잔액
     REG_DATE             DATE DEFAULT SYSDATE,              
     
     CONSTRAINT FK_MEMBER_tran_member_id FOREIGN KEY (ID) 
@@ -131,3 +135,9 @@ CREATE TABLE MEMBER_tran_TB (
     CONSTRAINT FK_MEMBER_tran_account_idx FOREIGN KEY (account_idx) 
     REFERENCES MEMBER_ACCOUNT_TB(account_idx) ON DELETE CASCADE
 );
+
+ALTER TABLE MEMBER_TRAN_TB
+ADD BALANCE_AFTER NUMBER;
+
+COMMENT ON COLUMN MEMBER_TRAN_TB.BALANCE_AFTER
+IS '해당 거래가 끝난 직후의 계좌 잔액';
