@@ -83,3 +83,166 @@
    .ott-plan-preview-grid,.recruit-info-grid {grid-template-columns: 1fr;}
    .ott-tab-menu a {width: 100%;}
  }
+/* =========================================================
+   Ajax 자동결제 상세 화면과 진행 상태 팝업
+   ========================================================= */
+.payment-detail-page .payment-summary-card {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.payment-summary-head {
+  margin-bottom: 1.25rem;
+}
+
+.payment-summary-head h2 {
+  margin: 0.75rem 0 0.375rem;
+  color: #26351f;
+}
+
+.payment-summary-head p {
+  margin: 0;
+  color: #6f7b66;
+  line-height: 1.6;
+}
+
+.payment-amount-table th:last-child,
+.payment-amount-table td:last-child {
+  text-align: right;
+}
+
+.payment-total-row td {
+  border-top: 0.125rem solid #dfe9d2;
+  background: #fbfdf6;
+  color: #26351f;
+  font-size: 1.0625rem;
+}
+
+.payment-auto-guide {
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid #e2edc9;
+  border-radius: 0.875rem;
+  background: #f7faee;
+  color: #5f6f49;
+  text-align: center;
+}
+
+.payment-auto-guide strong {
+  color: #4d6328;
+}
+
+.payment-action-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+
+.payment-action-row .btn {
+  min-width: 7.5rem;
+}
+
+/* 결제 중에는 화면 전체를 덮어서 중복 클릭과 다른 화면 조작을 막습니다. */
+.payment-status-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(20, 29, 18, 0.48);
+  backdrop-filter: blur(0.125rem);
+}
+
+.payment-status-overlay[hidden] {
+  display: none;
+}
+
+.payment-status-box {
+  width: min(100%, 23rem);
+  padding: 2rem 1.5rem 1.5rem;
+  border-radius: 1.25rem;
+  background: #ffffff;
+  box-shadow: 0 1.5rem 4rem rgba(21, 40, 18, 0.24);
+  text-align: center;
+}
+
+.payment-status-box h3 {
+  margin: 0 0 0.625rem;
+  color: #26351f;
+  font-size: 1.125rem;
+}
+
+.payment-status-box p {
+  margin: 0;
+  color: #6f7b66;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+.payment-status-spinner {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0 auto 1.125rem;
+  border: 0.25rem solid #e6eddc;
+  border-top-color: #6d7f2e;
+  border-radius: 50%;
+  animation: payment-status-spin 0.8s linear infinite;
+}
+
+.payment-status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0 auto 1.125rem;
+  border-radius: 50%;
+  background: #eef5df;
+  color: #5f7628;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.payment-status-overlay[data-state="error"] .payment-status-icon {
+  background: #fff0eb;
+  color: #c0392b;
+}
+
+.payment-status-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.payment-status-actions[hidden] {
+  display: none;
+}
+
+@keyframes payment-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media(max-width: 36rem) {
+  .payment-action-row,
+  .payment-status-actions {
+    flex-direction: column;
+  }
+
+  .payment-action-row .btn,
+  .payment-status-actions .btn {
+    width: 100%;
+  }
+}
+
+.payment-status-spinner[hidden],
+.payment-status-icon[hidden],
+.payment-status-actions button[hidden] {
+  display: none;
+}

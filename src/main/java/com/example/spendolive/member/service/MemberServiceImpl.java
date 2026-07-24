@@ -31,6 +31,7 @@ import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberTranVO;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.exception.MemberProcessException;
 import com.example.spendolive.member.repository.MemberRepository;
 import com.example.spendolive.payment.service.PaymentService;
 import com.google.gson.JsonElement;
@@ -150,7 +151,14 @@ public class MemberServiceImpl implements MemberService {
     }
     @Override
     public boolean checkId(String id) {
-        return memberRepository.checkId(id);
+        try{
+        if (memberRepository.checkId(id)) {
+            return true;
+            }
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
+        return false;
     }
 
     @Override
