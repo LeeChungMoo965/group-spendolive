@@ -19,7 +19,7 @@ public interface MemberController {
 	public ModelAndView login(@RequestParam Map<String, String> loginMap,HttpServletRequest request, HttpServletResponse response) throws Exception;
 	public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) throws Exception;
 	public ModelAndView loginForm(@RequestParam String log, HttpServletRequest request, HttpServletResponse response) throws Exception;
-	public ModelAndView  addMember(@ModelAttribute("member") MemberVO member,
+	public ResponseEntity<MemberAjaxResponse>  addMember(@ModelAttribute("member") MemberVO member,
             HttpServletRequest request, HttpServletResponse response,RedirectAttributes redirectAttributes) throws Exception;
 	public ModelAndView memberForm(HttpServletRequest request, HttpServletResponse response) throws Exception;
 	public ResponseEntity<MemberAjaxResponse> sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception;

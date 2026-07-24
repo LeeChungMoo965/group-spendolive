@@ -130,22 +130,33 @@ public class MemberControllerImpl implements MemberController{
     // 코드리뷰.2
     @Override
     @RequestMapping(value="/addmember.do" ,method = RequestMethod.POST)
-    public ModelAndView addMember(@ModelAttribute("memberVO") MemberVO member, HttpServletRequest request, HttpServletResponse response ,RedirectAttributes redirectAttributes)
+    @ResponseBody
+    public ResponseEntity<MemberAjaxResponse> addMember(@ModelAttribute("memberVO") MemberVO member, HttpServletRequest request, HttpServletResponse response ,RedirectAttributes redirectAttributes)
             throws Exception {
-        response.setContentType("text/html; charset=UTF-8");
         request.setCharacterEncoding("utf-8");
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add("Content-Type", "text/html; charset=utf-8");
         HttpSession session = request.getSession();
         session.removeAttribute("id");
         session.removeAttribute("member_name");
         try {
             memberService.addMember(member);
-            redirectAttributes.addFlashAttribute("msg", "회원가입에 성공하였습니다 ! ");
-            return new ModelAndView("redirect:/member/loginForm.do");
+            return ResponseEntity.ok(new MemberAjaxResponse(
+                true,
+                "SIGNUP_COMPLETED",
+                "횐원가입에 성공하였습니다..",
+                "SUCCESS",
+                "",
+                "/member/loginForm.do"));
         }catch(Exception e) {
-            redirectAttributes.addFlashAttribute("msg", "회원가입에 실패하였습니다 ! ");
-            return new ModelAndView("redirect:/member/singup.do");
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MemberAjaxResponse(
+                            false,
+                            "SIGNUP_FAILED",
+                            "회원가입에 실패하였습니다. 정보를 확인 해 주세요",
+                            "FAILED",
+                            "",
+                            "redirect:/member/signup.do"));
         }
         
     }
@@ -200,6 +211,7 @@ public class MemberControllerImpl implements MemberController{
             
             // 사용자가 나중에 입력한 값과 비교할 수 있도록 세션에 인증코드 저장
             HttpSession session = request.getSession();
+            session.removeAttribute("verificationCode");
             session.setAttribute("verificationCode", verificationCode);
             
             return ResponseEntity.ok(new MemberAjaxResponse(
@@ -251,7 +263,7 @@ public class MemberControllerImpl implements MemberController{
         @RequestMapping(value="/sendSms.do", method = RequestMethod.POST)
         @ResponseBody
         public  ResponseEntity<MemberAjaxResponse> sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
-
+           
             try {
                 try{
                 if(memberService.checkPhone(phone)){
@@ -279,6 +291,7 @@ public class MemberControllerImpl implements MemberController{
                 
                 // 사용자가 나중에 입력한 값과 비교할 수 있도록 세션에 인증코드 저장
                 HttpSession session = request.getSession();
+                session.removeAttribute("smsCode");
                 session.setAttribute("smsCode", verificationCode);
                 
                 return ResponseEntity.ok(new MemberAjaxResponse(
