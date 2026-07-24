@@ -138,37 +138,33 @@ public class MemberControllerImpl implements MemberController{
     // 코드리뷰.2
     @Override
     @RequestMapping(value="/addmember.do" ,method = RequestMethod.POST)
-    public ModelAndView addMember(@ModelAttribute("memberVO") MemberVO member, HttpServletRequest request, HttpServletResponse response ,RedirectAttributes redirectAttributes)
+    @ResponseBody
+    public ResponseEntity<MemberAjaxResponse> addMember(@ModelAttribute("memberVO") MemberVO member, HttpServletRequest request, HttpServletResponse response ,RedirectAttributes redirectAttributes)
             throws Exception {
-        response.setContentType("text/html; charset=UTF-8");
         request.setCharacterEncoding("utf-8");
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add("Content-Type", "text/html; charset=utf-8");
         HttpSession session = request.getSession();
         session.removeAttribute("id");
         session.removeAttribute("member_name");
         try {
             memberService.addMember(member);
-
-            // [알림] 회원가입 축하 알림. 알림 발송이 실패해도
-            // 회원가입 자체는 이미 완료된 것이므로 별도 try-catch로 감싸서
-            // 여기서 예외가 나도 회원가입 흐름(redirect)에는 영향 없게 함
-            try {
-                notificationService.createNotification(
-                        member.getId(),
-                        NotificationType.SIGNUP,
-                        "회원가입을 축하합니다!",
-                        "SpendOlive 가입을 환영합니다. 지출관리, 캘린더, OTT 공유방 기능을 이용해보세요.",
-                        "/spendolive/main.do");
-            } catch (Exception notiEx) {
-                System.err.println("[MemberControllerImpl.addMember] 가입 축하 알림 발송 실패: " + notiEx.getMessage());
-            }
-
-            redirectAttributes.addFlashAttribute("msg", "회원가입에 성공하였습니다 ! ");
-            return new ModelAndView("redirect:/member/loginForm.do");
+            return ResponseEntity.ok(new MemberAjaxResponse(
+                true,
+                "SIGNUP_COMPLETED",
+                "횐원가입에 성공하였습니다..",
+                "SUCCESS",
+                "",
+                "/member/loginForm.do"));
         }catch(Exception e) {
-            redirectAttributes.addFlashAttribute("msg", "회원가입에 실패하였습니다 ! ");
-            return new ModelAndView("redirect:/member/singup.do");
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MemberAjaxResponse(
+                            false,
+                            "SIGNUP_FAILED",
+                            "회원가입에 실패하였습니다. 정보를 확인 해 주세요",
+                            "FAILED",
+                            "",
+                            "redirect:/member/signup.do"));
         }
         
     }
@@ -223,6 +219,7 @@ public class MemberControllerImpl implements MemberController{
             
             // 사용자가 나중에 입력한 값과 비교할 수 있도록 세션에 인증코드 저장
             HttpSession session = request.getSession();
+            session.removeAttribute("verificationCode");
             session.setAttribute("verificationCode", verificationCode);
             
             return ResponseEntity.ok(new MemberAjaxResponse(
@@ -274,7 +271,7 @@ public class MemberControllerImpl implements MemberController{
         @RequestMapping(value="/sendSms.do", method = RequestMethod.POST)
         @ResponseBody
         public  ResponseEntity<MemberAjaxResponse> sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
-
+           
             try {
                 try{
                 if(memberService.checkPhone(phone)){
@@ -302,6 +299,7 @@ public class MemberControllerImpl implements MemberController{
                 
                 // 사용자가 나중에 입력한 값과 비교할 수 있도록 세션에 인증코드 저장
                 HttpSession session = request.getSession();
+                session.removeAttribute("smsCode");
                 session.setAttribute("smsCode", verificationCode);
                 
                 return ResponseEntity.ok(new MemberAjaxResponse(

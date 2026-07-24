@@ -595,7 +595,7 @@ SpendOlive(이하 '서비스')는 개인정보 보호법, 정보통신망 이용
            </c:otherwise>
         </c:choose>
             <br>
-            <button class="auth-btn auth-btn-primary" type="submit">
+            <button id="signupButton"class="auth-btn auth-btn-primary" type="submit">
                 회원가입
             </button>
         </form>
@@ -607,6 +607,44 @@ SpendOlive(이하 '서비스')는 개인정보 보호법, 정보통신망 이용
                 로그인
             </a>
         </div>
+             <div id="signupStatusOverlay"
+                    class="payment-status-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="emailStatusTitle"
+                    aria-describedby="emailStatusMessage"
+                    hidden>
+                    <div class="payment-status-box">
+                    
+                    <div id="signupStatusSpinner"
+                            class="payment-status-spinner"
+                            aria-hidden="true"></div>
+
+                        <div id="signupStatusIcon"
+                            class="payment-status-icon"
+                            aria-hidden="true"
+                            hidden></div>
+                            <h3 id="signupStatusTitle">회원가입중 입니다.</h3>
+                        <p id="signupStatusMessage">
+                            창을 닫거나 새로고침하지 말아주세요.
+                        </p>
+                    <div id="signupStatusActions"
+                            class="payment-status-actions"
+                            hidden>
+                            <button type="button"
+                                    id="signupStatusCloseButton"
+                                    class="btn btn-outline">
+                                확인
+                            </button>
+                            <button type="button"
+                                    id="signupStatusActionButton"
+                                    class="btn btn-primary"
+                                    hidden>
+                                이동하기
+                            </button>
+                        </div>
+                </div>
+            </div>
     </section>
 
 </main>

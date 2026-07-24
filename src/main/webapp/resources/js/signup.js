@@ -162,3 +162,46 @@ function showMemberModal(prefix, type, titleText, messageText) {
         }
     });
 })();
+(function () {
+    const signupForm = document.querySelector('form');
+    const signupButton = document.getElementById('signupButton');
+    if (!signupButton||!signupForm) return;
+    
+    // 2. 아이디 중복확인 버튼 클릭 이벤트
+    signupButton.addEventListener('click', async function (e) {
+        const formData = new FormData(signupForm);
+        const payload = new URLSearchParams(formData);
+        e.preventDefault();
+        try {
+            showMemberModal('signup','processing', '회원가입 중 입니다.', '잠시만 기다려주세요.');
+            const response = await fetch('/member/addmember.do', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'Accept': 'application/json'
+                },
+                body: payload
+            });
+
+            const result = await response.json();
+
+            // 백엔드가 보내주는 code 값으로 확인 (CHECK_COMPLETED = 사용 가능)
+            if (result.code === 'SIGNUP_COMPLETED') {
+                showMemberModal('signup','success', '회원가입 완료 !', result.message || '회원가입이 완료되었습니다.로그인 페이지로 이동하겠습니다.');
+                signupmoveAfterSuccess(result);
+            } else {
+                showMemberModal('signup','error', '회원가입 실패', result.message || '회원가입 중 오류가 발생하였습니다. 잠시 후 다시 시도해주세요.');
+            }
+
+        } catch (error) {
+            console.error("회원가입 에러 상세 내용:", error);
+        showMemberModal('signup','error', '시스템 오류', '회원가입 중 오류가 발생했습니다.');
+        }
+    });
+    function signupmoveAfterSuccess(result) {
+  
+        window.setTimeout(function () {
+            window.location.href = result.redirectUrl;
+        }, 1200);
+    }
+})();

@@ -288,7 +288,7 @@ if (!isPhoneVerified) {
   alert('전화번호 인증을 완료해 주세요.');
   return false;
 }
-if (!isIdVerified) {
+if (isIdVerified) {
   alert('아이디 중복확인을 완료해 주세요.');
   return false;
 }
