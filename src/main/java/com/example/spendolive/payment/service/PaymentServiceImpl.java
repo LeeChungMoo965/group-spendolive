@@ -5,12 +5,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -32,6 +33,7 @@ import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.repository.OttRepository;
 import com.example.spendolive.payment.domain.*;
+import com.example.spendolive.payment.exception.PaymentProcessException;
 import com.example.spendolive.payment.repository.PaymentRepository;
 @Service
 public class PaymentServiceImpl implements PaymentService{
@@ -41,6 +43,7 @@ public class PaymentServiceImpl implements PaymentService{
     private MemberRepository memberRepository;
     @Autowired
     private OttRepository ottRepository;
+
     @Value("${openbanking.useorg-code}")
     private String useorgCode;
 
@@ -54,6 +57,12 @@ public class PaymentServiceImpl implements PaymentService{
     private String cntrAccountHolder;
     @Value("${toss.secret-key}")
     private String secretKey;
+
+    // 프로젝트에서 사용하는 플랫폼 수수료율입니다.
+    private static final int PLATFORM_FEE_RATE = 3;
+
+    // 같은 서버에서 동일 회원이 동일 방 결제를 동시에 요청하는 것을 차단합니다.
+    private final Set<String> processingPayments = ConcurrentHashMap.newKeySet();
     
 
     @Override
@@ -183,134 +192,344 @@ public class PaymentServiceImpl implements PaymentService{
             throw new RuntimeException("토스 통신 실패: " + e.getMessage());
         }
     }
-    // 결제 프로세스
+    /**
+     * 결제 화면과 실제 승인 요청에서 공통으로 사용할 최신 금액을 계산합니다.
+     */
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void executeAutomaticPayment(String userId, int amount, int room_id, int fee, int base, int settlement_id, String host_id) throws Exception {
-    RestTemplate restTemplate = new RestTemplate();
-    
+    public PaymentAmountDTO getPaymentAmount(int roomId) throws Exception {
+        if (roomId <= 0) {
+            throw new PaymentProcessException(
+                    "INVALID_PAYMENT_INFO",
+                    "결제할 방 정보가 올바르지 않습니다.");
+        }
 
-    restTemplate.getMessageConverters().add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
-    
-    List<MemberCardVO> cardVoList = memberRepository.selectCardById(userId);
-    String billingKey = "";
-    if (cardVoList == null) {
-        throw new RuntimeException("등록된 결제 카드가 없습니다.");
+        OttSettlementDTO settlementInfo = paymentRepository.settlementByroomId(roomId);
+        OttRoomDTO roomInfo = selectRoomByRoomId(roomId);
+
+        if (settlementInfo == null || roomInfo == null) {
+            throw new PaymentProcessException(
+                    "INVALID_PAYMENT_INFO",
+                    "해당 방의 결제 정보를 찾을 수 없습니다.");
+        }
+
+        if ("CLOSE_REQUESTED".equals(roomInfo.getStatus())
+                || "CLOSED".equals(roomInfo.getStatus())) {
+            throw new PaymentProcessException(
+                    "PAYMENT_NOT_ALLOWED",
+                    "종료되었거나 종료 예정인 방은 결제할 수 없습니다.");
+        }
+
+        int memberLimit = settlementInfo.getMember_limit();
+        Integer totalPrice = settlementInfo.getTotal_price();
+
+        if (memberLimit <= 0 || totalPrice == null || totalPrice <= 0) {
+            throw new PaymentProcessException(
+                    "INVALID_PAYMENT_INFO",
+                    "결제 금액 또는 모집 인원 정보가 올바르지 않습니다.");
+        }
+
+        // 나눗셈으로 소수점이 생기면 부족 결제를 막기 위해 원 단위로 올림합니다.
+        int baseAmount = (int) Math.ceil(totalPrice / (double) memberLimit);
+        int feeAmount = (int) Math.round(baseAmount * (PLATFORM_FEE_RATE / 100.0));
+        int totalAmount = baseAmount + feeAmount;
+
+        int billingDay = roomInfo.getBilling_day() == null
+                ? 1
+                : roomInfo.getBilling_day();
+        int automaticPaymentDay = billingDay - 10;
+        if (automaticPaymentDay <= 0) {
+            automaticPaymentDay += 30;
+        }
+
+        return new PaymentAmountDTO(
+                roomId,
+                settlementInfo.getSettlement_id().intValue(),
+                roomInfo.getRoom_name(),
+                settlementInfo.getHost_login_id(),
+                memberLimit,
+                baseAmount,
+                PLATFORM_FEE_RATE,
+                feeAmount,
+                totalAmount,
+                automaticPaymentDay);
     }
-    for(MemberCardVO card : cardVoList){
-        if(card.getStatus().equals("YES")){
-            billingKey = card.getBilling_key();
+
+    /**
+     * 중복 결제와 방 상태를 확인한 뒤 Toss 자동결제를 실행합니다.
+     */
+    @Override
+    public PaymentAmountDTO executeRoomPayment(String userId, int roomId) throws Exception {
+        if (userId == null || userId.isBlank()) {
+            throw new PaymentProcessException(
+                    "LOGIN_REQUIRED",
+                    "로그인이 필요합니다.");
+        }
+
+        String processingKey = createProcessingKey(userId, roomId);
+        if (!processingPayments.add(processingKey)) {
+            throw new PaymentProcessException(
+                    "PAYMENT_PROCESSING",
+                    "이미 결제를 처리하고 있습니다. 잠시만 기다려주세요.");
+        }
+
+        try {
+            String currentPaymentStatus =
+                    paymentRepository.selectPaymentStatusByRoomAndMember(userId, roomId);
+
+            if (isPaidStatus(currentPaymentStatus)) {
+                throw new PaymentProcessException(
+                        "ALREADY_PAID",
+                        "이미 결제가 완료된 방입니다. 참여한 방으로 이동합니다.");
+            }
+
+            if ("CANCELLED".equals(currentPaymentStatus)
+                    || "EXPIRED".equals(currentPaymentStatus)
+                    || "REFUNDED".equals(currentPaymentStatus)) {
+                throw new PaymentProcessException(
+                        "PAYMENT_NOT_ALLOWED",
+                        "현재 결제 상태에서는 다시 결제할 수 없습니다.");
+            }
+
+            PaymentAmountDTO paymentAmount = getPaymentAmount(roomId);
+
+            if (userId.equals(paymentAmount.getHostLoginId())) {
+                throw new PaymentProcessException(
+                        "HOST_CANNOT_PAY",
+                        "방장은 자신이 만든 방에 참여 결제를 할 수 없습니다.");
+            }
+
+            if (ottRepository.countActiveRoomMembers((long) roomId)
+                    >= paymentAmount.getMemberLimit()) {
+                throw new PaymentProcessException(
+                        "ROOM_FULL",
+                        "모집 인원이 마감되어 결제할 수 없습니다.");
+            }
+
+            executeAutomaticPayment(
+                    userId,
+                    paymentAmount.getTotalAmount(),
+                    roomId,
+                    paymentAmount.getFeeAmount(),
+                    paymentAmount.getBaseAmount(),
+                    paymentAmount.getSettlementId(),
+                    paymentAmount.getHostLoginId());
+
+            return paymentAmount;
+
+        } finally {
+            processingPayments.remove(processingKey);
         }
     }
-    
-    String url = "https://api.tosspayments.com/v1/billing/" + billingKey;
 
-    String myRealSecretKey = secretKey; 
-    String rawKey = myRealSecretKey.trim() + ":";
-    String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
+    /** Ajax 응답이 끊겼을 때 DB와 서버 처리 상태를 다시 확인합니다. */
+    @Override
+    public String getRoomPaymentStatus(String userId, int roomId) throws Exception {
+        if (userId == null || userId.isBlank() || roomId <= 0) {
+            return "UNPAID";
+        }
 
-    // 헤더 설정
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", "Basic " + encodedSecretKey);
-    headers.setContentType(MediaType.APPLICATION_JSON);
+        if (processingPayments.contains(createProcessingKey(userId, roomId))) {
+            return "PROCESSING";
+        }
 
-    // 주문번호(orderId) 생성
-    String orderId = "SPENDOLIVE_" + java.util.UUID.randomUUID().toString().substring(0, 12).toUpperCase();
-    // 바디 설정
-    Map<String, Object> body = new HashMap<>();
-    body.put("customerKey", userId); 
-    body.put("amount", amount);                // 결제 금액
-    body.put("orderId", orderId);              // 주문 번호
-    body.put("orderName", "spendOlive OTT 정산");          // 주문명
-    tools.jackson.databind.ObjectMapper jsonMapper = new tools.jackson.databind.ObjectMapper();
-    String jsonBody = jsonMapper.writeValueAsString(body);
-    HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+        String paymentStatus =
+                paymentRepository.selectPaymentStatusByRoomAndMember(userId, roomId);
+        return paymentStatus == null ? "UNPAID" : paymentStatus;
+    }
 
-    try {
-        
-        // 토스 서버로 결제 승인 요청 (POST)
-        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+    // 결제 프로세스 검토 완료
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void executeAutomaticPayment(
+            String userId,
+            int amount,
+            int roomId,
+            int fee,
+            int base,
+            int settlementId,
+            String hostId) throws Exception {
 
-        //200코드 응답
-        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-            tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters().add(
+                0,
+                new org.springframework.http.converter.StringHttpMessageConverter(
+                        java.nio.charset.StandardCharsets.UTF_8));
+
+        List<MemberCardVO> cardVoList = memberRepository.selectCardById(userId);
+        String billingKey = null;
+        if (cardVoList != null) {
+            for (MemberCardVO card : cardVoList) {
+                if (card == null
+                        || card.getBilling_key() == null
+                        || card.getBilling_key().isBlank()) {
+                    continue;
+                }
+
+                // 주 결제 카드가 지정되어 있으면 가장 먼저 사용합니다.
+                if ("YES".equals(card.getStatus())) {
+                    billingKey = card.getBilling_key();
+                    break;
+                }
+            }
+        }
+
+        if (billingKey == null || billingKey.isBlank()) {
+            throw new PaymentProcessException(
+                    "CARD_REQUIRED",
+                    "등록된 주 결제 카드가 없습니다. 카드를 먼저 등록해주세요.");
+        }
+
+        String url = "https://api.tosspayments.com/v1/billing/" + billingKey;
+        String rawKey = secretKey.trim() + ":";
+        String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + encodedSecretKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String orderId = "SPENDOLIVE_"
+                + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("customerKey", userId);
+        body.put("amount", amount);
+        body.put("orderId", orderId);
+        body.put("orderName", "SpendOlive OTT 정산");
+
+        tools.jackson.databind.ObjectMapper jsonMapper =
+                new tools.jackson.databind.ObjectMapper();
+        String jsonBody = jsonMapper.writeValueAsString(body);
+        HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+        try {
+            ResponseEntity<String> response =
+                    restTemplate.postForEntity(url, entity, String.class);
+
+            if (response.getStatusCode() != HttpStatus.OK
+                    || response.getBody() == null) {
+                throw new PaymentProcessException(
+                        "PAYMENT_FAILED",
+                        "Toss 결제 승인 응답을 받지 못했습니다.");
+            }
+
+            tools.jackson.databind.ObjectMapper mapper =
+                    new tools.jackson.databind.ObjectMapper();
             Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
             Map<String, Object> cardInfo = (Map<String, Object>) resBody.get("card");
-            // 토스 응답에서 결제 고유 번호(paymentKey) 
+
             String paymentKey = (String) resBody.get("paymentKey");
-            String status = (String) resBody.get("status"); 
-            String orderid = (String) resBody.get("orderId");
-            int totalamount = (int) resBody.get("totalAmount");
+            String status = (String) resBody.get("status");
+            String responseOrderId = (String) resBody.get("orderId");
+            int totalAmount = ((Number) resBody.get("totalAmount")).intValue();
             String approvedAtStr = (String) resBody.get("approvedAt");
-            LocalDateTime approved_at = OffsetDateTime.parse(approvedAtStr).toLocalDateTime();
-            String cardnumber = (String) cardInfo.get("number");
-            String cardcompany = (String) cardInfo.get("issuerCode");
-            
+            LocalDateTime approvedAt =
+                    OffsetDateTime.parse(approvedAtStr).toLocalDateTime();
+
+            String cardNumber = cardInfo == null
+                    ? null
+                    : (String) cardInfo.get("number");
+            String cardCompany = cardInfo == null
+                    ? null
+                    : (String) cardInfo.get("issuerCode");
+
+            if (!"DONE".equals(status)) {
+                throw new PaymentProcessException(
+                        "PAYMENT_FAILED",
+                        "결제가 완료되지 않은 상태입니다: " + status);
+            }
+
+            if (totalAmount != amount) {
+                cancelApprovedPayment(
+                        paymentKey);
+                throw new PaymentProcessException(
+                        "PAYMENT_AMOUNT_MISMATCH",
+                        "승인 금액이 달라 결제를 즉시 취소했습니다.");
+            }
+
             SettlementPaymentVO paymentInfo = new SettlementPaymentVO();
-            
             paymentInfo.setId(userId);
-            paymentInfo.setOrderId(orderid);
+            paymentInfo.setOrderId(responseOrderId);
             paymentInfo.setPaymentKey(paymentKey);
-            paymentInfo.setTotal_amount(totalamount);
-            paymentInfo.setCard_number(cardnumber);
-            paymentInfo.setCard_company(cardcompany);
-            paymentInfo.setPaid_at(approved_at);
+            paymentInfo.setTotal_amount(totalAmount);
+            paymentInfo.setCard_number(cardNumber);
+            paymentInfo.setCard_company(cardCompany);
+            paymentInfo.setPaid_at(approvedAt);
             paymentInfo.setPayment_status("PAID");
             paymentInfo.setBase_amount(base);
             paymentInfo.setFee_amount(fee);
-            paymentInfo.setFee_rate(3D);
-            paymentInfo.setMemo("OTT 사용료");   
-            paymentInfo.setSettlement_id(settlement_id);
+            paymentInfo.setFee_rate((double) PLATFORM_FEE_RATE);
+            paymentInfo.setMemo("OTT 사용료");
+            paymentInfo.setSettlement_id(settlementId);
+
             EscrowPayoutVO escrowInfo = new EscrowPayoutVO();
-
             escrowInfo.setAmount(base);
-            escrowInfo.setCreated_at(approved_at);
-            escrowInfo.setHost_id(host_id);
+            escrowInfo.setCreated_at(approvedAt);
+            escrowInfo.setHost_id(hostId);
             escrowInfo.setPayer_id(userId);
-            escrowInfo.setRoom_id(room_id);
-            escrowInfo.setSettlement_id(settlement_id);
+            escrowInfo.setRoom_id(roomId);
+            escrowInfo.setSettlement_id(settlementId);
             escrowInfo.setStatus("HELD");
-            
+
             PlatformRevenueVO revenueInfo = new PlatformRevenueVO();
-            revenueInfo.setBase_amount(base * 4);
-            revenueInfo.setCreated_at(approved_at);
+            revenueInfo.setBase_amount(base);
+            revenueInfo.setCreated_at(approvedAt);
             revenueInfo.setFee_amount(fee);
-            revenueInfo.setFee_rate(3D);
+            revenueInfo.setFee_rate((double) PLATFORM_FEE_RATE);
             revenueInfo.setPayer_id(userId);
-            revenueInfo.setRoom_id(room_id);
-            revenueInfo.setSettlement_id(settlement_id);
+            revenueInfo.setRoom_id(roomId);
+            revenueInfo.setSettlement_id(settlementId);
             revenueInfo.setStatus("EARNED");
+
+            try {
+                // Toss 승인 후 DB 저장에 실패하면 아래에서 즉시 승인 취소를 요청합니다.
+                paymentRepository.updatePaymentStatus(paymentInfo);
+                paymentRepository.insertEscrow(escrowInfo);
+                paymentRepository.insertPlatfoem_Revenue(revenueInfo);
+                paymentRepository.updatSettlementroommemberStatus(roomId, userId);
+                throw new RuntimeException("결제가 완료되지 않은 상태입니다: " + status);
+            } catch (Exception databaseException) {
+                boolean cancelled = cancelApprovedPayment(
+                        paymentKey
+                        );
+
+                String message = cancelled
+                        ? "결제 정보 저장에 실패해 Toss 승인을 취소했습니다."
+                        : "결제 정보 저장과 Toss 승인 취소에 실패했습니다. 관리자 확인이 필요합니다.";
+
+                throw new PaymentProcessException(
+                        "PAYMENT_SAVE_FAILED",
+                        message,
+                        databaseException);
+            }
+
             
 
-            System.out.println("결제 성공 확인 paymentKey: " + paymentKey + " | 상태: " + status);
+        } catch (PaymentProcessException e) {
+            throw e;
 
-            if ("DONE".equals(status)) {
-                try{
-                    if(totalamount != amount){throw new RuntimeException("결제 금액 미부합 ");}
-                    paymentRepository.updatePaymentStatus(paymentInfo);
-                    paymentRepository.insertEscrow(escrowInfo);
-                    paymentRepository.insertPlatfoem_Revenue(revenueInfo);
-                    paymentRepository.updatSettlementroommemberStatus(room_id, userId);
-                    
-                }catch(Exception e){
-                    //취소 api 요청
-                    //헤더는 위에 것 그대로 사용 
-                    cancelpayment(paymentKey);
-                }
+        } catch (HttpClientErrorException e) {
+            System.err.println("Toss 결제 거절 응답: " + e.getResponseBodyAsString());
+            throw new PaymentProcessException(
+                    "PAYMENT_FAILED",
+                    "카드 승인에 실패했습니다. 카드 상태와 한도를 확인해주세요.",
+                    e);
 
-            } else {
-                throw new RuntimeException("결제가 완료되지 않은 상태입니다: " + status);
-            }
+        } catch (Exception e) {
+            System.err.println("자동결제 승인 실패: " + e.getMessage());
+            throw new PaymentProcessException(
+                    "PAYMENT_FAILED",
+                    "자동결제 시스템 오류로 승인이 실패했습니다.",
+                    e);
         }
-    } catch (Exception e) {
-        // 타임아웃, 한도초과, 잔액부족, 카드정지 등 외부 에러
-        System.out.println("자동결제 승인 실패 에러  : " + e.getMessage());
-        System.out.println(userId + amount + orderId);
-        throw new RuntimeException("자동결제 시스템 오류로 승인이 실패했습니다: " + e.getMessage());
     }
-}
     @Override
-    public String cancelpayment(String paymentKey) throws Exception{
+    @Transactional(rollbackFor = Exception.class)
+    public List<SettlementPaymentVO> selectpaymentAll() throws Exception { 
+        return paymentRepository.selectsettlement_paymentAll();
+       
+    }
+    @Override
+    public boolean cancelApprovedPayment(String paymentKey) throws Exception{
         String cancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
         RestTemplate restTemplate = new RestTemplate();
         String myRealSecretKey = secretKey; 
@@ -336,18 +555,24 @@ public class PaymentServiceImpl implements PaymentService{
                 System.out.println("결제 취소 성공 확인 paymentKey: " + paymentKey + " | 승인시간: " + canceledAtStr);
                 
             }
-        } catch (org.springframework.web.client.HttpStatusCodeException e) {
-            // 토스가 반환한 진짜 에러 메시지(4xx, 5xx)를 콘솔에 출력!
-            System.err.println("=== 토스 API 실패 응답 코드: " + e.getStatusCode());
-            System.err.println("=== 토스 API 실패 원인 내용: " + e.getResponseBodyAsString());
-            return e.getResponseBodyAsString();
-        } catch (Exception a) {
-            System.err.println("결제 취소 기타 실패: " + a.getMessage());
-            a.printStackTrace();
-            return "결제 취소 기타 실패";
+            return cancelResponse.getStatusCode() == HttpStatus.OK;
+        } catch (Exception cancelException) {
+            System.err.println("Toss 결제 취소 실패: " + cancelException.getMessage());
+            return false;
         }
-        return "결제 취소 성공";
     }
+    /** Toss 승인은 끝났지만 DB 저장이 실패했을 때 결제를 즉시 취소합니다.  검토 완료*/
+   
+    // 서버 내 OTT방 결제 진행중인지 확인 변수 생성 안에 값이 있다면 진행중인 것
+    private String createProcessingKey(String userId, int roomId) {
+        return userId + "#" + roomId;
+    }
+    // 결제가 완료 된 상태를 검증 하기 위한 유효성 평가 메서드 중복 결제를 막기 위한 메서드
+    private boolean isPaidStatus(String paymentStatus) {
+        return "PAID".equals(paymentStatus)
+                || "CONFIRMED".equals(paymentStatus);
+    }
+    
     @Override
     public SettlementPaymentVO getSettlement_PaymentByRoomId(String userId, int room_id) throws Exception {
         return paymentRepository.settlement_paymentByroomId(userId, room_id);
@@ -356,53 +581,48 @@ public class PaymentServiceImpl implements PaymentService{
     public OttSettlementDTO selectMySettlements(int room_id)  throws Exception{
         return paymentRepository.settlementByroomId(room_id);
     }
+    //토스 정산금 보낼 셀러 등록 프로세스(권한 문제로 보류)
     @Override
-@Transactional // 권한 문제로 홀드
-public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
+    @Transactional
+    public void registerSubMall(String userId, String bankCode, String accNum, String holderName, MemberVO memberVO) {
     
-    // 1. 토스 v1 서브몰 등록 API URL
+    // 1. v1 정산 API 주소
     String TOSS_API_URL = "https://api.tosspayments.com/v1/payouts/sub-malls"; 
     
     try {
+        
         RestTemplate restTemplate = new RestTemplate();
-        String name = (memberVO != null && memberVO.getMember_name() != null) ? memberVO.getMember_name() : "홍길동";
+        String name = memberVO.getMember_name();
         
-        // 계좌번호 마스킹(***)을 000으로 치환 및 하이픈 제거
-        String cleanNum = (accNum != null) ? accNum.replace("***", "000").replace("-", "") : "123456789012"; 
+        // v1은 계좌 실시간 조회를 안 하므로 마스킹이 섞여도 포맷만 맞으면 무조건 패스합니다.
+        String cleanNum = accNum.replace("***", "000").replace("-", ""); 
 
-        // 🌟 2. 토스 v1 규격 완벽 준수 Payload (repreName 필수 포함)
+        // 🌟 2. 별도 DTO 없이 Map 구조로 v1 스펙에 맞게 데이터 세팅
         Map<String, Object> requestBody = new HashMap<>();
-        String shortId = "S" + (System.currentTimeMillis() % 10000000); 
-        
-        requestBody.put("subMallId", shortId);              // 서브몰 식별자 (20자 이내)
-        requestBody.put("companyName", "포트폴리오테스트점");  // 상호명
-        requestBody.put("repreName", name);                 // ★ 필수: 대표자명 (누락 시 400 에러 발생)
-        requestBody.put("type", "INDIVIDUAL_BUSINESS");     // 개인사업자
-        requestBody.put("identityNumber", "1238112345");    // 사업자번호 10자리
-        requestBody.put("bank", "06");                      // 2자리 은행코드 (국민은행)
-
-        // 정산 계좌 객체
+        requestBody.put("subMallId", "SELLER_" + userId);   // 고유 식별자
+        requestBody.put("companyName", name);               // 상호명
+        requestBody.put("representativeName", name);        // 대표자명
+        requestBody.put("identityNumber", "0001013111111"); // 예시: 주민번호 앞자리6자리 + 뒷자리7자리 총 13자리
+        requestBody.put("type", "INDIVIDUAL");
+        // 정산 계좌 객체 조립 (v1 필드명: bank, accountNumber, holderName)
         Map<String, String> accountInfo = new HashMap<>();
-        accountInfo.put("accountNumber", "123456789012");
+        accountInfo.put("bank", "국민"); 
+        accountInfo.put("accountNumber", cleanNum);
         accountInfo.put("holderName", name);
         requestBody.put("account", accountInfo);
 
-        // 🌟 3. HTTP 헤더 세팅
+        // 🌟 3. HTTP 헤더 세팅 (순수 JSON 통신 설정)
         HttpHeaders headers = new HttpHeaders();
         String rawKey = secretKey.trim() + ":";
         String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
         
         headers.set("Authorization", "Basic " + encodedSecretKey);
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.APPLICATION_JSON); // text/plain 대신 무조건 JSON!
 
+        // Map 객체와 헤더를 바인딩
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-        // 🌟 4. 전송 전 데이터 콘솔 출력 (디버깅용)
-        System.out.println("==========================================");
-        System.out.println("🚀 [토스 API 전송 Payload]: " + requestBody.toString());
-        System.out.println("==========================================");
-
-        // 🌟 5. 토스 API 호출
+        // 🌟 4. 토스 API 호출
         ResponseEntity<String> response = restTemplate.exchange(
             TOSS_API_URL,
             HttpMethod.POST,
@@ -410,42 +630,46 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
             String.class
         );
         
-        // 🌟 6. 성공(200 OK) 응답 처리
+        
         if (response.getStatusCode() == HttpStatus.OK) {
             tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
             Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
             
-            Map<String, Object> resAccount = (Map<String, Object>) resBody.get("account");
-            String resBank = (String) resBody.get("bank");
-            String resAccNum = resAccount != null ? (String) resAccount.get("accountNumber") : cleanNum;
+            // 🌟 5. v1 응답 데이터 구조에 맞춰 파싱 및 DB 저장
 
-            String traceId = UUID.randomUUID().toString();
-            
-            SellerAccountVO sellerInfo = SellerAccountVO.builder()
+            SellerAccountVO seller = SellerAccountVO.builder()
                     .member_id(userId)
-                    .bank_name(resBank)
-                    .account_number(resAccNum)
-                    .traceId(traceId)
+                    .bank_name((String) resBody.get("bank"))
+                    .account_number((String) resBody.get("accountNumber"))
+                    .traceId(UUID.randomUUID().toString()) // v1은 traceId를 안 주므로 내부용 임의 생성
                     .build();
                     
-            try {
-                paymentRepository.insertSeller(sellerInfo);
-                System.out.println("🎉 [토스 셀러 등록 성공] subMallId : " + shortId);
-            } catch (Exception e) {
-                throw new RuntimeException("DB 저장 실패로 셀러 등록을 취소합니다.", e);
+            try{
+            String traceId ="1123412312321413243142sadsadadsdsadasd";        
+            SellerAccountVO sellerInfo = SellerAccountVO.builder()
+            .member_id(userId)
+            .bank_name(bankCode)
+            .account_number(accNum)
+            .traceId(traceId) // v1은 traceId를 안 주므로 내부용 임의 생성
+            .build();
+            paymentRepository.insertSeller(seller);
+            
+            System.out.println("🎉 [토스 셀러 등록 성공] subMallId : SELLER_" + userId);
+            }catch(Exception e){
+                //취소 api요청
+                throw new RuntimeException("서버 오류 로 송금을 취소합니다");
             }
         }
 
-    } catch (org.springframework.web.client.HttpStatusCodeException e) {
-        e.printStackTrace();
-        System.err.println("🚨 [토스 API 실패 원인 Body]: " + e.getResponseBodyAsString()); 
-        throw new RuntimeException("토스 API 검증 오류: " + e.getResponseBodyAsString());
+    } catch (HttpClientErrorException e) {
+        System.err.println("🚨 [토스 API 리턴 에러]: " + e.getResponseBodyAsString());
+        throw new RuntimeException("토스 서브몰 등록 중 API 검증 오류 발생");
     } catch (Exception e) {
-        e.printStackTrace();
         System.err.println("🚨 [시스템 에러]: " + e.getMessage());
-        throw new RuntimeException(e);
+        throw new RuntimeException("토스 서브몰 등록 중 시스템 오류 발생");
     }
 }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<OttRoomDTO> selectTodaysettlement(String status) throws Exception {
@@ -464,12 +688,6 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
  
             
         return paymentRepository.selectTodaysettlement(day,endday,status);
-       
-    }
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public List<SettlementPaymentVO> selectpaymentAll() throws Exception { 
-        return paymentRepository.selectsettlement_paymentAll();
        
     }
     @Override
@@ -517,10 +735,6 @@ public void registerSubMall(String userId, String bankCode, String accNum, Strin
         return "송금을 정상적으로 완료 하였습니다.";
     }
     
-    @Override
-    public String roomMemberByroomIdCount(int room_id, String userId) throws Exception {
-        return paymentRepository.roomMemberByroomIdCount(room_id, userId);
-    }
     @Override
     public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) throws Exception {
         paymentRepository.updateTodaysettlementroommemberlate(roomId, userId,late_day);

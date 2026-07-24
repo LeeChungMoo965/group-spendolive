@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -25,7 +26,9 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberAccountVO;
+import com.example.spendolive.member.domain.MemberAjaxResponse;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.exception.MemberProcessException;
 import com.example.spendolive.member.service.MemberService;
 // [알림] 회원가입 축하 알림 발송을 위해 추가.
 
@@ -190,9 +193,31 @@ public class MemberControllerImpl implements MemberController{
     // 코드리뷰.2-1
     @Override
     @ResponseBody
-    @RequestMapping(value="/sendEmail", method = RequestMethod.POST)
-    public String sendEmail(@RequestParam("email") String email, HttpServletRequest request) {
+    @RequestMapping(value="/sendEmail.do", method = RequestMethod.POST)
+    public ResponseEntity<MemberAjaxResponse> sendEmail(@RequestParam("email") String email, HttpServletRequest request) throws Exception {
+        
         try {
+            try{
+            if(memberService.checkEmail(email)){
+            }else return ResponseEntity.ok(new MemberAjaxResponse(
+                false,
+                "EMAIL_EXIST",
+                "EMAIL이 이미 존재 합니다.",
+                "EXIST",
+                email,
+                null));
+            }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MemberAjaxResponse(
+                            false,
+                            "CHECK_FAILED",
+                            "오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                            "FAILED",
+                            email,
+                            null));
+            }
             // 메일 발송 후 생성된 6자리 코드 반환받기
             String verificationCode = memberService.sendVerificationEmail(email);
             
@@ -200,9 +225,25 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             session.setAttribute("verificationCode", verificationCode);
             
-            return "SUCCESS"; // 프론트 Ajax의 success로 신호 전달
+            return ResponseEntity.ok(new MemberAjaxResponse(
+                            true,
+                            "SEND_COMPLETED",
+                            "인증번호 전송 완료되었습니다.",
+                            "SUCCESS",
+                            email,
+                            null));
+            
         } catch (Exception e) {
-            return "ERROR";
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MemberAjaxResponse(
+                            false,
+                            "SEND_FAILED",
+                            "인증번호 발생 중 오류가 발생하였습니다. 잠시 후 다시 시도해주세요.",
+                            "FAILED",
+                            email,
+                            null));
         }
         
     }
@@ -219,7 +260,7 @@ public class MemberControllerImpl implements MemberController{
         
         // 사용자가 화면에 입력한 값과 진짜 값이 일치하는지 판별 (true / false 반환)
         if (originalCode != null && originalCode.equals(inputCode)) {
-            session.removeAttribute("emailCode"); // 인증 성공 시 세션 청소
+            session.removeAttribute("verificationCode"); // 인증 성공 시 세션 청소
             return true;
         }
         
@@ -230,15 +271,60 @@ public class MemberControllerImpl implements MemberController{
     // 코드리뷰.2-3
             // 1. 휴대폰 인증번호 발송 요청 처리
         @Override
-        @RequestMapping(value="/sendSms", method = RequestMethod.POST)
+        @RequestMapping(value="/sendSms.do", method = RequestMethod.POST)
         @ResponseBody
-        public String sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
+        public  ResponseEntity<MemberAjaxResponse> sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
+
+            try {
+                try{
+                if(memberService.checkPhone(phone)){
+                }else return ResponseEntity.ok(new MemberAjaxResponse(
+                    false,
+                    "EMAIL_EXIST",
+                    "EMAIL이 이미 존재 합니다.",
+                    "EXIST",
+                    phone,
+                    null));
+                }catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new MemberAjaxResponse(
+                                false,
+                                "CHECK_FAILED",
+                                "오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                                "FAILED",
+                                phone,
+                                null));
+                }
+                // 메일 발송 후 생성된 6자리 코드 반환받기
+                String verificationCode = memberService.sendSmsVerification(phone.replace("-", ""));//인증번호 생성
+                
+                // 사용자가 나중에 입력한 값과 비교할 수 있도록 세션에 인증코드 저장
+                HttpSession session = request.getSession();
+                session.setAttribute("smsCode", verificationCode);
+                
+                return ResponseEntity.ok(new MemberAjaxResponse(
+                                true,
+                                "SEND_COMPLETED",
+                                "인증번호 전송 완료되었습니다.",
+                                "SUCCESS",
+                                phone,
+                                null));
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new MemberAjaxResponse(
+                                false,
+                                "SEND_FAILED",
+                                "인증번호 발생 중 오류가 발생하였습니다. 잠시 후 다시 시도해주세요.",
+                                "FAILED",
+                                phone,
+                                null));
+            }
             
-            String verificationCode = memberService.sendSmsVerification(phone.replace("-", ""));//인증번호 생성
-            HttpSession session = request.getSession();
-            session.setAttribute("smsCode", verificationCode);
-            
-            return "success"; // 프론트 Ajax의 success로 신호 전달
         }
     
     
@@ -264,10 +350,38 @@ public class MemberControllerImpl implements MemberController{
         
         //아이디 중복확인
         @Override
-        @RequestMapping(value="/checkId", method = RequestMethod.POST)
+        @RequestMapping(value="/checkId.do", method = RequestMethod.POST)
         @ResponseBody
-        public boolean checkId(@RequestParam("id") String id) throws Exception {
-            return memberService.checkId(id);
+        public ResponseEntity<MemberAjaxResponse> checkId(@RequestParam("id") String id) throws Exception {
+            
+            try {
+                    if(memberService.checkId(id)){
+                        return ResponseEntity.ok(new MemberAjaxResponse(
+                            true,
+                            "CHECK_COMPLETED",
+                            "중복화인이 완료되었습니다.",
+                            "SUCCESS",
+                            id,
+                            null));
+                    }return ResponseEntity.ok(new MemberAjaxResponse(
+                            false,
+                            "ID_EXIST",
+                            "ID가 이미 존재 합니다.",
+                            "EXIST",
+                            id,
+                            null));
+            }catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new MemberAjaxResponse(
+                                false,
+                                "CHECK_FAILED",
+                                "중복확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                                "FAILED",
+                                id,
+                                null));
+            }
         }
         @Override
         @RequestMapping(value="/checkEmail", method = RequestMethod.POST)
