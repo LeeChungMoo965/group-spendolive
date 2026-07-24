@@ -3,11 +3,6 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<%--
-  참고: 상태 필터(전체/답변대기/답변완료/검토중)는 서버에 status 파라미터로 다시 요청해서
-        전체 문의 중 해당 상태만 걸러 1페이지부터 보여준다 (InquiryController.normalizeStatusFilter 참고).
-        페이지네이션: 문의(필터 적용 후 기준)가 10개 이하면 전부 한 페이지, 넘으면 5개씩.
---%>
 
 <div class="faq-page">
     <div class="page-hero">
@@ -38,7 +33,7 @@
         <c:if test="${not empty inquiryList}">
             <div class="inq-list" id="inqList">
                 <c:forEach var="inq" items="${inquiryList}">
-                    <div class="inq-card" onclick="goInquiryDetail('${contextPath}','${inq.inquiry_id}')">
+                    <div class="inq-card" onclick="openInqDetailModal('${inq.inquiry_id}')">
                         <div class="inq-top">
                             <span class="inq-category">${inq.category}</span>
                             <div class="inq-meta">
@@ -54,12 +49,12 @@
                                     <c:choose>
                                         <c:when test="${file.image}">
                                             <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}"
-                                                 alt="${file.origin_name}" class="inq-thumb"
-                                                 onclick="event.stopPropagation(); openInqLightbox(this.src, '${file.origin_name}')">
+                                                alt="${file.origin_name}" class="inq-thumb"
+                                                onclick="event.stopPropagation(); openInqLightbox(this.src, '${file.origin_name}')">
                                         </c:when>
                                         <c:otherwise>
                                             <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}"
-                                               target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
+                                            target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
@@ -77,15 +72,92 @@
                             <span class="inq-no">문의 #${inq.inquiry_id}</span>
                         </div>
                     </div>
+
+                    <%-- 이 카드 클릭 시 위 정보를 모달에 그대로 복사해서 보여줄 숨김 템플릿 --%>
+                    <div class="inq-detail-tpl" id="inqDetailTpl${inq.inquiry_id}" style="display:none">
+                        <div class="inq-detail-header">
+                            <div class="inq-top">
+                                <span class="inq-category">${inq.categoryLabel} · ${inq.inquiryTypeLabel}</span>
+                                <div class="inq-meta">
+                                    <span class="badge ${inq.statusCode}">${inq.statusLabel}</span>
+                                    <span class="inq-date">${inq.reg_date}</span>
+                                </div>
+                            </div>
+                            <div class="inq-title" style="font-size:18px;margin-top:8px">${inq.title}</div>
+                        </div>
+
+                        <div class="inq-detail-section">
+                            <span class="inq-detail-label">문의 내용</span>
+                            <div class="inq-detail-body">${inq.content}</div>
+                        </div>
+
+                        <c:if test="${not empty inq.files}">
+                            <div class="inq-detail-section">
+                                <span class="inq-detail-label">첨부파일</span>
+                                <div class="inq-attachments">
+                                    <c:forEach var="file" items="${inq.files}">
+                                        <c:choose>
+                                            <c:when test="${file.image}">
+                                                <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                                    alt="${file.origin_name}" class="inq-thumb"
+                                                    onclick="openInqLightbox(this.src, '${file.origin_name}')">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                                target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+                                </div>
+                            </div>
+                        </c:if>
+
+                        <div class="inq-detail-section">
+                            <c:choose>
+                                <c:when test="${inq.hasReply}">
+                                    <div class="inq-reply-box">
+                                        <div class="inq-reply-head">
+                                            <strong>관리자 답변</strong>
+                                            <span class="inq-date">${inq.reply_date}</span>
+                                        </div>
+                                        <div class="inq-reply-text">${inq.reply_content}</div>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="empty-box" style="margin-top:0">
+                                        <p>아직 답변이 등록되지 않았습니다.</p>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                    </div>
                 </c:forEach>
             </div>
 
             <c:if test="${totalPages > 1}">
+                <%-- 현재 페이지 기준 앞뒤 2개씩만 보여주는 윈도우 방식 --%>
+                <c:set var="pgStart" value="${currentPage - 2 < 1 ? 1 : currentPage - 2}" />
+                <c:set var="pgEnd" value="${currentPage + 2 > totalPages ? totalPages : currentPage + 2}" />
+
                 <div class="pagination">
-                    <c:forEach begin="1" end="${totalPages}" var="p">
+                    <c:if test="${pgStart > 1}">
+                        <a class="pg-btn" href="${contextPath}/spendolive/inquiry/list.do?status=${currentStatus}&page=1">1</a>
+                        <c:if test="${pgStart > 2}">
+                            <span class="pg-ellipsis">…</span>
+                        </c:if>
+                    </c:if>
+
+                    <c:forEach begin="${pgStart}" end="${pgEnd}" var="p">
                         <a class="pg-btn ${p == currentPage ? 'active' : ''}"
                            href="${contextPath}/spendolive/inquiry/list.do?status=${currentStatus}&page=${p}">${p}</a>
                     </c:forEach>
+
+                    <c:if test="${pgEnd < totalPages}">
+                        <c:if test="${pgEnd < totalPages - 1}">
+                            <span class="pg-ellipsis">…</span>
+                        </c:if>
+                        <a class="pg-btn" href="${contextPath}/spendolive/inquiry/list.do?status=${currentStatus}&page=${totalPages}">${totalPages}</a>
+                    </c:if>
                 </div>
             </c:if>
         </c:if>
@@ -107,6 +179,13 @@
         </c:if>
     </div>
 
+    <div class="modal" id="inqDetailModal" onclick="closeInqDetailModal(event)">
+        <div class="modal-box modal-inquiry" onclick="event.stopPropagation()">
+            <button type="button" class="modal-close" onclick="closeInqDetailModal(event)">✕</button>
+            <div id="inqDetailBody"></div>
+        </div>
+    </div>
+
     <%-- 첨부 사진 확대보기 (01-foundation.css의 공통 .modal 시스템 재사용) --%>
     <div class="modal" id="inqLightbox" onclick="closeInqLightbox(event)">
         <div class="modal-box modal-photo" onclick="event.stopPropagation()">
@@ -116,26 +195,5 @@
     </div>
 </div>
 
-<script>
-    // 문의 제출 후 리다이렉트로 넘어온 1회성 메시지 (main.jsp와 동일한 패턴)
-    var msg = "${msg}";
-    if (msg && msg !== "") {
-        alert(msg);
-    }
-
-    // 첨부 사진 확대보기
-    function openInqLightbox(src, name) {
-        var img = document.getElementById('inqLightboxImg');
-        img.src = src;
-        img.alt = name || '';
-        document.getElementById('inqLightbox').classList.add('show');
-    }
-    function closeInqLightbox(e) {
-        document.getElementById('inqLightbox').classList.remove('show');
-    }
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeInqLightbox();
-    });
-</script>
 <script src="${contextPath}/resources/js/faq.js"></script>
 

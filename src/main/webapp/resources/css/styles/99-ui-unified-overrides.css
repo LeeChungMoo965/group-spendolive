@@ -478,3 +478,8 @@ td {
 .so-submenu .so-menu-link:hover {
   transform: translateX(-0.125rem);
 }
+
+/*hero 모음*/
+.page-hero {padding: 45px 0 35px;} /* 기본값 */
+.calendar-page .page-hero {padding: 32px 0 8px;}
+.faq-page .page-hero {padding: 32px 0 8px;}

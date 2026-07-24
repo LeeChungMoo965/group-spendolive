@@ -62,14 +62,7 @@
     </div>
 </div>
 
+<script src="${contextPath}/resources/js/admin.js"></script>
 <script>
-document.getElementById("faqForm").addEventListener("submit", function () {
-    var cb = document.getElementById("use_yn");
-    cb.name = "";
-    var h = document.createElement("input");
-    h.type = "hidden";
-    h.name = "use_yn";
-    h.value = cb.checked ? "Y" : "N";
-    this.appendChild(h);
-});
+    bindCheckboxAsHidden('faqForm', 'use_yn', 'use_yn');
 </script>

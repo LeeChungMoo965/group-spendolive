@@ -38,12 +38,11 @@
             </button>
             </div>
 
-            <%-- DB 오류 등 서버 오류 메시지 --%>
+            <%-- DB 오류 등 서버 오류 메시지 - 화면에 계속 남는 빨간 박스 대신 alert 팝업으로 한 번만 띄움 --%>
             <c:if test="${not empty errorMsg}">
-                <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;
-                            padding:12px 18px;border-radius:8px;margin-bottom:16px;">
-                    ⚠ ${errorMsg}
-                </div>
+                <script>
+                    alert("${errorMsg}");
+                </script>
             </c:if>
 
             <div class="card table-card notice-board-card">

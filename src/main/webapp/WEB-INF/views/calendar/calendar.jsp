@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<main>
+<main class="calendar-page">
     <section class="page-hero">
         <div class="container">
             <p class="eyebrow">
@@ -27,18 +27,6 @@
                         월별 지출 캘린더
                     </h2>
                 </div>
-                <div class="calendar-controls">
-                    <button class="btn btn-light" onclick="changeMonth(-1)">
-                        ‹ 이전달
-                    </button>
-                    <button class="btn btn-primary" onclick="location.href='${contextPath}/spendolive/expense.do#expense-form'">
-                        + 지출등록
-                    </button>
-                    <button class="btn btn-light" onclick="changeMonth(1)">
-                        다음달 ›
-                    </button>
-
-                </div>
             </div>
             <div class="calendar-page-layout">
 
@@ -51,6 +39,18 @@
     </div>
 
     <div class="side-column">
+        <div class="calendar-controls">
+            <button class="btn btn-light" onclick="changeMonth(-1)">
+                ‹ 이전달
+            </button>
+            <button class="btn btn-primary" onclick="location.href='${contextPath}/spendolive/expense.do#expense-form'">
+                + 지출등록
+            </button>
+            <button class="btn btn-light" onclick="changeMonth(1)">
+                다음달 ›
+            </button>
+        </div>
+
         <aside class="card side-panel">
             <h3>오늘 할 일</h3>
             <div id="todayTodoList">

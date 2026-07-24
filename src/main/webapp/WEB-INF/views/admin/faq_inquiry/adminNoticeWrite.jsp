@@ -49,14 +49,7 @@
     </form>
 </div>
 
+<script src="${contextPath}/resources/js/admin.js"></script>
 <script>
-document.getElementById("noticeForm").addEventListener("submit", function () {
-    var cb = document.getElementById("pinned_yn");
-    cb.name = "";
-    var h = document.createElement("input");
-    h.type = "hidden";
-    h.name = "pinned_yn";
-    h.value = cb.checked ? "Y" : "N";
-    this.appendChild(h);
-});
+    bindCheckboxAsHidden('noticeForm', 'pinned_yn', 'pinned_yn');
 </script>

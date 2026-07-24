@@ -107,7 +107,7 @@
             </div>
 
             <div class="form-actions">
-                <a class="btn btn-danger-outline" style="flex:1;height:50px" href="${contextPath}/spendolive/faq/list.do">취소</a>
+                <a class="btn btn-danger-outline" style="flex:1;height:50px" href="${contextPath}/spendolive/inquiry/list.do">취소</a>
                 <button type="submit" class="btn btn-primary" style="flex:2;height:50px;font-size:15px;">문의 제출하기</button>
             </div>
         </form>
