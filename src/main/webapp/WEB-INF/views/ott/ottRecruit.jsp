@@ -478,8 +478,9 @@
 
                         <%-- OTT 고정 요금 미리보기 --%>
                         <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form ott-fixed-plan-form" data-room-mode="RECRUIT">
+                           <div class="auth-form-group">
                             <label>
-                                OTT 종류
+                                OTT 종류    </label>
                                 <select name="ott_service_id" class="ott-service-select" required>
                                     <option value="">선택</option>
                                     <c:forEach var="service" items="${serviceList}">
@@ -498,18 +499,16 @@
                                         </option>
                                     </c:forEach>
                                 </select>
-                            </label>
-
-                            <label>
-                                모집글 제목
+                        </div>
+                            <div class="auth-form-group">
+                                <label>모집글 제목</label>
                                 <input type="text" name="room_name" placeholder="비워두면 OTT - 최고 멤버십 - 모집으로 저장됩니다.">
-                            </label>
-
-                            <label>
-                                결제일
+                             </div>
+        
+                            <div class="auth-form-group">
+                                <label>결제일</label>
                                 <input type="number" name="billing_day" min="1" max="31" value="1" required>
-                            </label>
-
+                            </div>
                             <input type="hidden" name="plan_name" class="ott-plan-input">
                             <input type="hidden" name="total_price" class="ott-total-price-input">
                             <input type="hidden" name="member_limit" class="ott-member-limit-input">
