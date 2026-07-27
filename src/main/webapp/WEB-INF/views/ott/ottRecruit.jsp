@@ -467,7 +467,7 @@
 
                 <%-- 모집글 작성 탭 --%>
                 <c:otherwise>
-                    <article class="card ott-tab-panel">
+                    <article class="card ott-tab-panel recruit-list-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">WRITE POST</p>
@@ -477,7 +477,7 @@
                         </div>
 
                         <%-- OTT 고정 요금 미리보기 --%>
-                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form ott-fixed-plan-form" data-room-mode="RECRUIT">
+                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="recruit-search-form" data-room-mode="RECRUIT">
                             <label>
                                 OTT 종류
                                 <select name="ott_service_id" class="ott-service-select" required>
