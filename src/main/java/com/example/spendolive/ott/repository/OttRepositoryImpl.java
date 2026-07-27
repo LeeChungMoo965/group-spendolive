@@ -22,7 +22,7 @@ public class OttRepositoryImpl implements OttRepository {
 
     // INSERT문 ================================================================
     private static final String INSERT_ACTIVE_ROOM_MEMBER_SQL = "INSERT INTO ott_room_member_tb (room_member_id, room_id, member_login_id, member_role, share_amount, fee_rate, fee_amount, pay_amount, status, pay_day) "
-    +" SELECT ?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE', ? from ott_room_tb where room_id =? AND (SELECT COUNT(*) FROM ott_room_member_tb WHERE room_id =? ) < member_limit;";
+    +" SELECT ?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE', ? from ott_room_tb where room_id =? AND (SELECT COUNT(*) FROM ott_room_member_tb WHERE room_id =? ) < member_limit";
 
     private static final String INSERT_CHAT_MESSAGE_SQL = "INSERT INTO ott_chat_message_tb (message_id, room_id, sender_id, message_content) VALUES (?, ?, ?, ?)";
 
