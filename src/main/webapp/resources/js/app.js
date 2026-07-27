@@ -91,38 +91,6 @@ function setAuthMessage(id,message,type){
   el.className="auth-result-text "+type;
 }
 var isIdVerified = false; 
-
-function checkId(){
-  const id=document.getElementById("userId")?.value.trim()||"";
-  if(!id){setAuthMessage("idResult","아이디를 입력해주세요.","warn");return}
-  if(id.length<4){setAuthMessage("idResult","아이디는 4자 이상 입력해주세요.","warn").css('color', '#FF3B30');return}
-  $.ajax({
-    url: eContextPath + "/member/checkId", // 컨트롤러 매핑 주소
-    type: 'POST',
-    data: { id: id },
-    success: function(isSuccess) {
-      if (isSuccess) {
-          $('#idResult').text('✓ 사용 가능한 아이디 입니다.').css('color', '#4CAF50');
-          isIdVerified = true; 
-      } else {
-          $('#idResult').text('✗ 존재하는 아이디 입니다.').css('color', '#FF3B30');
-          isIdVerified = false; 
-      }
-  },
-  error: function() {
-      alert('중복확인 중 오류가 발생했습니다.');
-  }
-});
- 
- 
-  
-}
-
-
-
-
-
-
 document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll(".modal").forEach((modal)=>{
     modal.addEventListener("click",(event)=>{
