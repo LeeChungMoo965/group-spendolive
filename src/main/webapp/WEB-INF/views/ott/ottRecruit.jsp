@@ -41,7 +41,7 @@
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="${tab eq 'all' ? 'active' : ''}">모든 모집글</a>
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=write" class="${tab eq 'write' ? 'active' : ''}">모집글 작성</a>
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=manage" class="${tab eq 'manage' or tab eq 'apply' ? 'active' : ''}">참여방 관리</a>
-            <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산 관리</a>
+            <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산 및 알림</a>
         </div>
 
         <div class="ott-tab-content">
@@ -149,14 +149,13 @@
                                     </c:forEach>
                                 </select>
                             </label>
-                            
                             </div>
-                            <div class="auth-form-group">
                             <label class="recruit-search-keyword">
                                 <span>방 제목</span>
                                 <input type="text" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}" placeholder="예) 모집합니다">
                             </label>
-                         </div>
+                        </div>
+                         
                           <div class="auth-form-group">
                                 <button type="submit" class="btn btn-primary">검색</button>
                                 <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="btn btn-danger-outline">초기화</a>
@@ -389,7 +388,7 @@
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">SETTLEMENT & ALERT</p>
-                                <h2>정산 상태</h2>
+                                <h2>정산 및 알림</h2>
                             </div>
                             <span>참여자별 정산 상태 확인</span>
                         </div>
@@ -467,7 +466,7 @@
 
                 <%-- 모집글 작성 탭 --%>
                 <c:otherwise>
-                    <article class="card ott-tab-panel recruit-list-panel">
+                    <article class="card ott-tab-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">WRITE POST</p>
@@ -477,7 +476,8 @@
                         </div>
 
                         <%-- OTT 고정 요금 미리보기 --%>
-                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="recruit-search-form" data-room-mode="RECRUIT">
+                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form ott-fixed-plan-form" data-room-mode="RECRUIT">
+                           <div class="auth-form-group">
                             <label>
                                 OTT 종류    </label>
                                 <select name="ott_service_id" class="ott-service-select" required>

@@ -118,7 +118,7 @@
                         <a href="#" onclick="showAuthPanel('findPw'); return false;">비밀번호 찾기</a>
                     </div>
                 </div>
-                <button id="login" class="auth-btn auth-btn-primary" type="submit">로그인</button>
+                <button id="loginButton" class="auth-btn auth-btn-primary" type="submit">로그인</button>
             </form>
             <div class="auth-link-row">
                 <span>아직 회원이 아니신가요?</span>
@@ -206,10 +206,49 @@
         </div>
              <jsp:include page="/WEB-INF/views/common/font.jsp" />
     </section>
+     <div id="loginStatusOverlay"
+                    class="payment-status-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="loginStatusTitle"
+                    aria-describedby="loginStatusMessage"
+                    hidden>
+                    <div class="payment-status-box">
+                    
+                    <div id="loginStatusSpinner"
+                            class="payment-status-spinner"
+                            aria-hidden="true"></div>
+
+                        <div id="loginStatusIcon"
+                            class="payment-status-icon"
+                            aria-hidden="true"
+                            hidden></div>
+                            <h3 id="loginStatusTitle">로그인중 입니다.</h3>
+                        <p id="loginStatusMessage">
+                            창을 닫거나 새로고침하지 말아주세요.
+                        </p>
+                    <div id="loginStatusActions"
+                            class="payment-status-actions"
+                            hidden>
+                            <button type="button"
+                                    id="loginStatusCloseButton"
+                                    class="btn btn-outline">
+                                확인
+                            </button>
+                            <button type="button"
+                                    id="loginStatusActionButton"
+                                    class="btn btn-primary"
+                                    hidden>
+                                이동하기
+                            </button>
+                        </div>
+                </div>
+            </div>
 </main>
 </div>
 <script src="${contextPath}/resources/js/chatbot.js"></script>
-
+<script src="${contextPath}/resources/js/app.js"></script>
+<script src="${contextPath}/resources/js/signup.js"></script>
    <script src="${contextPath}/resources/js/app.js"></script>
     <script src="${contextPath}/resources/js/bellIcon.js"></script>
 <script>
