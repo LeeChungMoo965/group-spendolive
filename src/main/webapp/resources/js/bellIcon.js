@@ -77,7 +77,9 @@ function loadNotifDropdownList() {
 
     list.innerHTML = '<div class="notif-dropdown-empty">불러오는 중...</div>';
 
-    fetch("/spendolive/notification/ajax/list.do", { credentials: 'same-origin' })
+    // 벨 드롭다운은 "안읽은 알림만" 보여준다. 읽으면 다음 조회부터 자연히 사라짐.
+    // 전체 내역(읽은 것 포함)은 알림센터 페이지에서 확인.
+    fetch("/spendolive/notification/ajax/unread_list.do", { credentials: 'same-origin' })
         .then(response => {
             if (!response.ok) throw new Error("HTTP " + response.status);
             return response.json();
@@ -88,7 +90,7 @@ function loadNotifDropdownList() {
                 return;
             }
             list.innerHTML = data.map(n => `
-                <a href="javascript:void(0)" class="notif-dropdown-item ${n.read_yn === 'N' ? 'unread' : ''}"
+                <a href="javascript:void(0)" class="notif-dropdown-item unread"
                    onclick="readNotificationFromBell(${n.notification_id}, '${(n.link_url || '').replace(/'/g, "\\'")}')">
                     <strong>${n.title}</strong>
                     <span>${n.message}</span>

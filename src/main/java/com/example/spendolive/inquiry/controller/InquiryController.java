@@ -27,15 +27,18 @@ import com.example.spendolive.inquiry.domain.InquiryFileVO;
 import com.example.spendolive.inquiry.domain.InquiryVO;
 import com.example.spendolive.inquiry.service.InquiryService;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.notification.service.NotificationService;
 
 @Controller
 @RequestMapping("/spendolive/inquiry")
 public class InquiryController {
 
     private final InquiryService inquiryService;
+    private final NotificationService notificationService;
 
-    public InquiryController(InquiryService inquiryService) {
+    public InquiryController(InquiryService inquiryService, NotificationService notificationService) {
         this.inquiryService = inquiryService;
+        this.notificationService = notificationService;
     }
 
     /* ─── 내 문의 조회 ────────────────────────────────────── */
@@ -49,6 +52,10 @@ public class InquiryController {
             ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
+
+        // 벨 알림 클릭이 아니라 메뉴 등으로 이 페이지에 직접 들어와도,
+        // INQUIRY_REPLY 알림이 가리키는 페이지를 실제로 확인한 것이므로 읽음 처리
+        notificationService.markAsReadByLinkUrl(memberInfo.getId(), "/spendolive/inquiry/list.do");
 
         ModelAndView mav = new ModelAndView("common/layout");
         mav.addObject("body_page", "/WEB-INF/views/inquiry/inquiryList.jsp");

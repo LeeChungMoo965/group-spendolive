@@ -7,11 +7,11 @@
    메인 대시보드 실제 슬롯머신 숫자 릴 효과
    ========================================================= */
    #mainTotalStat,#mainOttSettlementStat,#dashboardTotalAmount,#budgetPercentText,#fixedExpenseAmount,#variableExpenseAmount,#ottExpenseAmount {font-variant-numeric: tabular-nums;}
-   .slot-number {display: inline-flex;align-items: baseline;white-space: nowrap;line-height: 1;}
-   .slot-digit-box {display: inline-block;position: relative;width: .62em;height: 1em;overflow: hidden;vertical-align: baseline;line-height: 1;border-radius: 0.25rem;}
-   .slot-digit-reel {display: flex;flex-direction: column;transform: translateY(0);transition-property: transform;transition-timing-function: cubic-bezier(.16, .84, .22, 1);will-change: transform;}
-   .slot-digit-item {display: block;height: 1em;line-height: 1;text-align: center;}
-   .slot-static-char {display: inline-block;line-height: 1;}
+   .slot-number {display:inline-flex;align-items:baseline;white-space:nowrap;line-height:1;}
+   .slot-digit-box {display:inline-block;position:relative;width:.62em;height:1em;overflow:hidden;vertical-align:baseline;line-height:1;}
+   .slot-digit-reel {display:flex;flex-direction:column;font-size:inherit;line-height:1;transform:translateY(0);transition-property:transform;transition-timing-function:cubic-bezier(.16,.84,.22,1);will-change:transform;}
+   .slot-digit-item {display:block;flex:0 0 1em;height:1em;line-height:1;text-align:center;}
+   .slot-static-char {display:inline-block;flex:0 0 auto;line-height:1;}
    .spend-ring {
        /*
           원형 그래프는 JS에서 requestAnimationFrame으로 직접 조금씩 그린다.
