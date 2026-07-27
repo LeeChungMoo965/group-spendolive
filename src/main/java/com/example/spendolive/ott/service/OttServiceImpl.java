@@ -19,9 +19,7 @@ import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.ott.domain.OttServiceDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.repository.OttRepository;
-// [홈페이지 전체 알림 기능 설정] 방 참여완료 알림 발송용
-import com.example.spendolive.notification.service.NotificationService;
-import com.example.spendolive.notification.domain.NotificationType;
+
 
 // 사용자 OTT 비즈니스 로직 - 조건 판단, 계산, 처리 순서와 트랜잭션 담당
 @Service
@@ -30,18 +28,11 @@ public class OttServiceImpl implements OttService {
     private static final double PLATFORM_FEE_RATE = 3.0;
     private static final int PAYMENT_CLOSE_DAYS_BEFORE = 7;
 
-    // OTT 데이터 조회와 저장을 담당하는 Repository
     private final OttRepository ottRepository;
 
-    // [홈페이지 전체 알림 기능 설정] 알림 발송용.
-    // 현재 이 필드로 발송 중인 알림: 방 모집완료/참여완료(ROOM_FULL), 정산완료 본인용(SETTLEMENT_DONE),
-    // 새 채팅 메시지(CHAT) - 총 4곳. 앞으로 알림을 더 추가할 때도 이 필드 그대로 재사용하면 됨.
-    private final NotificationService notificationService;
-
-    // OTT Repository를 주입받아 사용자 OTT 비즈니스 로직 처리
-    public OttServiceImpl(OttRepository ottRepository, NotificationService notificationService) {
+    // OTT 데이터 조회와 저장을 담당하는 Repository
+    public OttServiceImpl(OttRepository ottRepository) {
         this.ottRepository = ottRepository;
-        this.notificationService = notificationService;
     }
 
     // =========================================================
@@ -356,15 +347,6 @@ public class OttServiceImpl implements OttService {
                         + total_amount + "원 결제를 완료했습니다.",
                 "/spendolive/ott/recruit.do?tab=settlement&room_id=" + room_id);
 
-        // [홈페이지 전체 알림 기능 설정] 정산완료(본인용) 알림.
-        // 위 insertOttNotification은 "방장"한테만 "누가 결제했다"고 알려주는 기존 코드였고,
-        // 정작 결제한 본인은 알림을 못 받고 있었어서 이 부분을 새로 추가함.
-        notificationService.createNotification(
-                loginId,
-                NotificationType.SETTLEMENT_DONE,
-                "정산 완료",
-                room_name + " " + settlement_month + " 이용분 " + total_amount + "원 결제가 완료되었습니다.",
-                "/spendolive/ott/recruit.do?tab=settlement&room_id=" + room_id);
     }
 
     // 결제 완료 사용자를 정원 확인 후 ACTIVE 멤버로 입장 처리
@@ -418,23 +400,13 @@ public class OttServiceImpl implements OttService {
 
         if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
             ottRepository.updateRoomStatus(room_id, "ACTIVE");
-
-            // [홈페이지 전체 알림 기능 설정] 방 모집완료(정원 참) 알림
-            String fullLinkUrl = "/spendolive/ott/chat/room.do?room_id=" + room_id;
-            for (String memberId : ottRepository.selectActiveRoomMemberIds(room_id)) {
-                notificationService.createNotification(
-                        memberId,
-                        NotificationType.ROOM_FULL,
-                        "모집이 마감되었습니다",
-                        room.getRoom_name() + " 공유방 모집 인원이 다 찼어요.",
-                        fullLinkUrl);
-            }
         }
+
         // [홈페이지 전체 알림 기능 설정] 방 참여완료 - 예전엔 selectMemberDisplayName()이 없어서
         // 통째로 주석 처리되어 있던 부분. 지금은 메서드가 존재해서 살리고, 알림 타입은
         // ROOM_FULL을 재사용하기로 함(전용 타입 없음).
         // 본인한테는 "참여 완료" 알림, 나머지 멤버들한테는 "새 이용자 추가됨" 알림 - 둘 다 발송.
-        String member_name = ottRepository.selectMemberDisplayName(loginId);
+        /*String member_name = ottRepository.selectMemberDisplayName(loginId);
         insertSystemChatMessage(room_id, loginId,
                 member_name + "님이 결제를 완료하고 공유방에 입장했습니다.");
 
@@ -460,7 +432,9 @@ public class OttServiceImpl implements OttService {
                     member_name + "님이 " + room.getRoom_name() + " 공유방에 입장했습니다.",
                     joinLinkUrl);
         }
-    }
+    */
+}
+    
 
     // =========================================================
     // 4. 방 종료와 나가기 예약
@@ -505,13 +479,6 @@ public class OttServiceImpl implements OttService {
                 "/spendolive/ott/chat/room.do?room_id=" + room_id,
                 hostId);
 
-
-                // 추가: 방장 본인에게도 알림 (이용자 나가기 신청 때와 동일한 문구)
-        ottRepository.insertOttNotification(
-            hostId,
-            "공유방 나가기 신청 완료",
-            room.getRoom_name() + " 공유방에서 다음 결제 전까지 방을 나가게 됩니다. (" + close_effective_date + ")",
-            "/spendolive/ott/chat/room.do?room_id=" + room_id);
             }
 
     // 결제 상태와 날짜 규칙을 확인하여 방 나가기 예약
@@ -561,15 +528,7 @@ public class OttServiceImpl implements OttService {
                         + leave_scheduled_date + " 나가기 예약을 했습니다.",
                 "/spendolive/ott/chat/room.do?room_id=" + room_id);
 
-        // 추가: 신청한 본인에게도 알림
-        ottRepository.insertOttNotification(
-                loginId,
-                "공유방 나가기 신청 완료",
-                room.getRoom_name() + " 공유방에서 다음 결제 전까지 방을 나가게 됩니다. (" + leave_scheduled_date + ")",
-                "/spendolive/ott/chat/room.do?room_id=" + room_id);
-
-
-
+        
                 return "나가기 예약이 완료되었습니다. " + leave_scheduled_date + "에 자동으로 방에서 나가집니다.";
             }
 
@@ -602,11 +561,6 @@ public class OttServiceImpl implements OttService {
     @Override
     @Transactional
     public void processScheduledOttJobs() {
-        // [홈페이지 전체 알림 기능 설정] 이 메서드는 그대로 둠(수정 없음).
-        // 결제 예정일 사전안내/결제실패·강퇴/환불완료 알림은 별도 파일
-        // OttNotificationScheduler(notification.scheduler 패키지)에서 독립적으로 처리함.
-        // 이 배치가 남기는 kicked_at/left_at/closed_at 등을 그 스케줄러가 나중에 조회해서
-        // 알림만 보내는 방식이라, 여기 로직은 원본 그대로 건드릴 필요가 없음.
         ottRepository.processLeaveReservations();
         ottRepository.expireOverduePayments();
         ottRepository.closeEffectiveRooms();
@@ -629,11 +583,7 @@ public class OttServiceImpl implements OttService {
             return;
         }
         ottRepository.insertChatMessage(room_id, sender_id, normalizedMessage);
-        // [홈페이지 전체 알림 기능 설정] 새 메시지는 알림센터(notification_tb)로 안 보냄.
-        // 이미 있는 초록 채팅 위젯이 ott_chat_message_tb/ott_chat_read_tb 기준으로
-        // 안 읽은 메시지 배지를 따로 보여주고 있어서 중복이라 뺌.
-        // "채팅방 알림"은 여기가 아니라 completePaidRoomEntry()의 방 참여완료 알림
-        // (ROOM_FULL 재사용, 처음 정식 멤버가 되는 시점)이 그 역할을 함.
+        
     }
 
     // 채팅 권한 확인 후 마지막 읽은 시각 갱신

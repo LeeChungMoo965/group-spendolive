@@ -63,4 +63,8 @@ public final class NotificationType {
 
     /** (캘린더) 지출 결제일 임박 */
     public static final String EXPENSE_DUE = "EXPENSE_DUE";
+
+    /** OTT 공유방 일반 알림 (레거시 ottRepository.insertOttNotification과 동일 타입값).
+    OttAlarmService에서 정산 오픈/종료 예정/나가기 신청 등에 사용. */
+    public static final String OTT = "OTT";
 }

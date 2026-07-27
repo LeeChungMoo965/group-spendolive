@@ -27,10 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.service.MemberService;
-// [알림] 회원가입 축하 알림 발송을 위해 추가.
 
-import com.example.spendolive.notification.service.NotificationService;
-import com.example.spendolive.notification.domain.NotificationType;
 import com.example.spendolive.payment.service.PaymentServiceImpl;
 @Controller("memberController")
 @ControllerAdvice
@@ -39,9 +36,6 @@ public class MemberControllerImpl implements MemberController{
     @Autowired
     private MemberService memberService;
 
-    // [알림] 회원가입 축하 알림 발송용. 다른 곳에선 안 씀.
-    @Autowired
-    private NotificationService notificationService;
     private MemberVO memberVO;
     private MemberAccountVO accountmemberVO;
     @Value("${kakao.client.id}")
@@ -146,20 +140,6 @@ public class MemberControllerImpl implements MemberController{
         session.removeAttribute("member_name");
         try {
             memberService.addMember(member);
-
-            // [알림] 회원가입 축하 알림. 알림 발송이 실패해도
-            // 회원가입 자체는 이미 완료된 것이므로 별도 try-catch로 감싸서
-            // 여기서 예외가 나도 회원가입 흐름(redirect)에는 영향 없게 함
-            try {
-                notificationService.createNotification(
-                        member.getId(),
-                        NotificationType.SIGNUP,
-                        "회원가입을 축하합니다!",
-                        "SpendOlive 가입을 환영합니다. 지출관리, 캘린더, OTT 공유방 기능을 이용해보세요.",
-                        "/spendolive/main.do");
-            } catch (Exception notiEx) {
-                System.err.println("[MemberControllerImpl.addMember] 가입 축하 알림 발송 실패: " + notiEx.getMessage());
-            }
 
             redirectAttributes.addFlashAttribute("msg", "회원가입에 성공하였습니다 ! ");
             return new ModelAndView("redirect:/member/loginForm.do");

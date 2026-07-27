@@ -29,6 +29,18 @@ public class NotificationRepository {
             ORDER BY star_yn DESC, read_yn ASC, created_at DESC
         """;
 
+    // 벨 드롭다운 전용: 안읽은 알림만 (읽으면 목록에서 사라져야 하므로)
+    private static final String FIND_UNREAD_BY_ID_SQL = """
+            SELECT
+                notification_id, id, notification_type,
+                title, message, link_url,
+                read_yn, star_yn,
+                TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
+            FROM notification_tb
+            WHERE id = ? AND read_yn = 'N'
+            ORDER BY star_yn DESC, created_at DESC
+        """;
+
     private static final String COUNT_UNREAD_SQL = """
             SELECT COUNT(*)
             FROM notification_tb
@@ -39,6 +51,15 @@ public class NotificationRepository {
             UPDATE notification_tb
             SET read_yn = 'Y'
             WHERE notification_id = ? AND id = ?
+        """;
+
+    // 목적지 페이지(link_url)에 직접 들어왔을 때 자동 읽음 처리용
+    // (예: INQUIRY_REPLY 알림은 link_url="/spendolive/inquiry/list.do" 이고,
+    //  사용자가 벨 알림 클릭이 아니라 메뉴 등으로 이 페이지에 바로 들어와도 읽음 처리되어야 함)
+    private static final String UPDATE_READ_BY_LINK_URL_SQL = """
+            UPDATE notification_tb
+            SET read_yn = 'Y'
+            WHERE id = ? AND link_url = ? AND read_yn = 'N'
         """;
 
     // 단건 조회
@@ -104,6 +125,17 @@ public class NotificationRepository {
         }
     }
 
+    /* ─── 목록 조회 (안읽은 것만, 벨 드롭다운 전용) ───────── */
+    public List<NotificationDTO> findUnreadById(String id) {
+        if (id == null || id.isBlank()) return Collections.emptyList();
+        try {
+            return jdbcTemplate.query(FIND_UNREAD_BY_ID_SQL, (rs, rowNum) -> mapRow(rs), id);
+        } catch (DataAccessException e) {
+            System.err.println("[NotificationRepository.findUnreadById] DB 오류: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
     /* ─── 안 읽은 개수 ────────────────────────────────────── */
     public int countUnread(String id) {
         if (id == null || id.isBlank()) return 0;
@@ -126,6 +158,18 @@ public class NotificationRepository {
             }
         } catch (DataAccessException e) {
             System.err.println("[NotificationRepository.updateReadYn] DB 오류: " + e.getMessage());
+        }
+    }
+
+    /* ─── 목적지 페이지(link_url) 진입 시 자동 읽음 처리 ─────
+       해당 회원의 해당 link_url을 향한 안읽은 알림을 전부 읽음 처리.
+       (알림이 여러 개 쌓여 있어도 그 페이지에 들어왔다는 건 다 확인한 것으로 간주) ─── */
+    public void updateReadByLinkUrl(String id, String linkUrl) {
+        if (id == null || id.isBlank() || linkUrl == null || linkUrl.isBlank()) return;
+        try {
+            jdbcTemplate.update(UPDATE_READ_BY_LINK_URL_SQL, id, linkUrl);
+        } catch (DataAccessException e) {
+            System.err.println("[NotificationRepository.updateReadByLinkUrl] DB 오류: " + e.getMessage());
         }
     }
 
