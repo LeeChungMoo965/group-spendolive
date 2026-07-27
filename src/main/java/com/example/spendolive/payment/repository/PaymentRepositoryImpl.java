@@ -50,6 +50,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     +"SETTLEMENT_ID, payment_id,member_login_id, REFUND_AMOUNT, refund_reason, refund_status, completed_at) "
     +" VALUES(?,?,?,?,?,?,?) ";
 //select
+    
     private final String settlement_paymentByroomId = "select "
     +"sp.payment_id, sp.settlement_id, sp.id, sp.base_amount, sp.fee_rate, sp.fee_amount, sp.total_amount, sp.payment_status, sp.card_number," 
     +"sp.card_company, sp.paid_at, sp.confirmed_at, sp.expired_at, sp.cancelled_at, sp.paymentKey, sp.orderId, sp.memo "

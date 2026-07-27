@@ -17,6 +17,7 @@ import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.ott.service.OttService;
 import com.example.spendolive.payment.domain.PaymentAjaxResponse;
 import com.example.spendolive.payment.domain.PaymentAmountDTO;
+import com.example.spendolive.payment.domain.SettlementPaymentVO;
 import com.example.spendolive.payment.exception.PaymentProcessException;
 import com.example.spendolive.payment.service.PaymentService;
 
@@ -156,7 +157,7 @@ public class PaymentControllerImpl implements PaymentController {
             PaymentAmountDTO paymentAmount = paymentService.executeRoomPayment(userId, roomId);
 
             // Toss 결제가 끝난 뒤에만 실제 OTT 방 멤버로 입장 처리합니다.
-            ottService.completePaidRoomEntry((long) roomId, userId);
+
 
             return ResponseEntity.ok(new PaymentAjaxResponse(
                     true,
@@ -235,8 +236,21 @@ public class PaymentControllerImpl implements PaymentController {
         String paymentStatus = paymentService.getRoomPaymentStatus(userId, roomId);
 
         if (isPaidStatus(paymentStatus)) {
+            try{
             ottService.completePaidRoomEntry((long) roomId, userId);
-
+            }catch(Exception e){
+                SettlementPaymentVO payment = paymentService.getSettlement_PaymentByRoomId(userId,roomId);
+            
+                paymentService.updatePaymentstatusRefund(payment);
+                
+                return ResponseEntity.ok(new PaymentAjaxResponse(
+                    false,
+                    "PAYMENT_FAILED",
+                    "방 정원이 초과하여 결제를 취소 합니다.",
+                    paymentStatus,
+                    roomId,
+                    null));
+            }
             return ResponseEntity.ok(new PaymentAjaxResponse(
                     true,
                     "PAYMENT_COMPLETED",
