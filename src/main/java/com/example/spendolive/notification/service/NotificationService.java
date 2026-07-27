@@ -21,6 +21,23 @@ public class NotificationService {
         return notificationRepository.findById(id);
     }
 
+    /** 벨 드롭다운 전용: 안읽은 알림만 반환 (읽으면 목록에서 사라짐) */
+    public List<NotificationDTO> getUnreadNotificationList(String id) {
+        return notificationRepository.findUnreadById(id);
+    }
+
+    /**
+     * 알림이 가리키는 목적지 페이지(link_url)에 사용자가 "직접" 들어왔을 때 호출.
+     * 벨 드롭다운/알림센터를 거치지 않고 메뉴 등으로 바로 들어와도,
+     * 그 페이지 내용을 확인한 것이므로 관련 알림을 읽음 처리한다.
+     *
+     * @param id      로그인 회원 ID
+     * @param linkUrl 알림 생성 시 저장했던 것과 동일한 경로 (예: "/spendolive/inquiry/list.do")
+     */
+    public void markAsReadByLinkUrl(String id, String linkUrl) {
+        notificationRepository.updateReadByLinkUrl(id, linkUrl);
+    }
+
     public int getUnread_count(String id) {
         return notificationRepository.countUnread(id);
     }

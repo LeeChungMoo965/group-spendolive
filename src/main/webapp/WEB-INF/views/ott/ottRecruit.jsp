@@ -41,7 +41,7 @@
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="${tab eq 'all' ? 'active' : ''}">모든 모집글</a>
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=write" class="${tab eq 'write' ? 'active' : ''}">모집글 작성</a>
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=manage" class="${tab eq 'manage' or tab eq 'apply' ? 'active' : ''}">참여방 관리</a>
-            <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산 및 알림</a>
+            <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산 관리</a>
         </div>
 
         <div class="ott-tab-content">
@@ -389,7 +389,7 @@
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">SETTLEMENT & ALERT</p>
-                                <h2>정산 및 알림</h2>
+                                <h2>정산 상태</h2>
                             </div>
                             <span>참여자별 정산 상태 확인</span>
                         </div>

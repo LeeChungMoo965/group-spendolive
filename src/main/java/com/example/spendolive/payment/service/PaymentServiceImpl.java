@@ -32,6 +32,7 @@ import com.example.spendolive.ott.domain.OttRoomDTO;
 import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.repository.OttRepository;
+import com.example.spendolive.ott.service.OttService;
 import com.example.spendolive.payment.domain.*;
 import com.example.spendolive.payment.exception.PaymentProcessException;
 import com.example.spendolive.payment.repository.PaymentRepository;
@@ -43,7 +44,8 @@ public class PaymentServiceImpl implements PaymentService{
     private MemberRepository memberRepository;
     @Autowired
     private OttRepository ottRepository;
-
+    @Autowired
+    private OttService ottService;
     @Value("${openbanking.useorg-code}")
     private String useorgCode;
 
@@ -278,7 +280,7 @@ public class PaymentServiceImpl implements PaymentService{
 
             if (isPaidStatus(currentPaymentStatus)) {
                 throw new PaymentProcessException(
-                        "ALREADY_PAID",
+                        "PAID",
                         "이미 결제가 완료된 방입니다. 참여한 방으로 이동합니다.");
             }
 
@@ -304,7 +306,7 @@ public class PaymentServiceImpl implements PaymentService{
                         "ROOM_FULL",
                         "모집 인원이 마감되어 결제할 수 없습니다.");
             }
-
+            
             executeAutomaticPayment(
                     userId,
                     paymentAmount.getTotalAmount(),
@@ -313,7 +315,7 @@ public class PaymentServiceImpl implements PaymentService{
                     paymentAmount.getBaseAmount(),
                     paymentAmount.getSettlementId(),
                     paymentAmount.getHostLoginId());
-
+            ottService.completePaidRoomEntry((long) roomId, userId);
             return paymentAmount;
 
         } finally {
@@ -439,8 +441,7 @@ public class PaymentServiceImpl implements PaymentService{
             }
 
             if (totalAmount != amount) {
-                cancelApprovedPayment(
-                        paymentKey);
+                cancelApprovedPayment(paymentKey);
                 throw new PaymentProcessException(
                         "PAYMENT_AMOUNT_MISMATCH",
                         "승인 금액이 달라 결제를 즉시 취소했습니다.");
@@ -486,7 +487,6 @@ public class PaymentServiceImpl implements PaymentService{
                 paymentRepository.insertEscrow(escrowInfo);
                 paymentRepository.insertPlatfoem_Revenue(revenueInfo);
                 paymentRepository.updatSettlementroommemberStatus(roomId, userId);
-                throw new RuntimeException("결제가 완료되지 않은 상태입니다: " + status);
             } catch (Exception databaseException) {
                 boolean cancelled = cancelApprovedPayment(
                         paymentKey
@@ -553,7 +553,6 @@ public class PaymentServiceImpl implements PaymentService{
                 Map<String, Object> resBody = mapper.readValue(cancelResponse.getBody(), Map.class);
                 String canceledAtStr = (String) resBody.get("approvedAt");
                 System.out.println("결제 취소 성공 확인 paymentKey: " + paymentKey + " | 승인시간: " + canceledAtStr);
-                
             }
             return cancelResponse.getStatusCode() == HttpStatus.OK;
         } catch (Exception cancelException) {
@@ -746,15 +745,17 @@ public class PaymentServiceImpl implements PaymentService{
         return ottRepository.selectRoom(roomid);
     }
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updatePaymentstatusRefund(SettlementPaymentVO payment) throws Exception {
         int payment_id = payment.getPayment_id();
+        
         int refund_amount = payment.getTotal_amount();
         String id = payment.getId();
         int settlement_id = payment.getSettlement_id();
         LocalDateTime created_at = LocalDateTime.now();
-       
+        String paymentkey = payment.getPaymentKey();
+        cancelApprovedPayment(paymentkey);
         paymentRepository.updatePaymentstatusRefund(payment_id);
-
         SettlementRefundVO refund = new SettlementRefundVO();
         refund.setMember_login_id(id);
         refund.setCompleted_at(created_at);
