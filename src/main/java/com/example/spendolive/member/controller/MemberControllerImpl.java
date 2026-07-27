@@ -9,7 +9,7 @@ import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
+import com.example.spendolive.member.exception.MemberProcessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -24,14 +24,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import com.example.spendolive.payment.service.PaymentServiceImpl;
 import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberAjaxResponse;
 import com.example.spendolive.member.domain.MemberVO;
-import com.example.spendolive.member.exception.MemberProcessException;
+
 import com.example.spendolive.member.service.MemberService;
 
-import com.example.spendolive.payment.service.PaymentServiceImpl;
+
 @Controller("memberController")
 @ControllerAdvice
 @RequestMapping(value="/member")
@@ -57,11 +57,12 @@ public class MemberControllerImpl implements MemberController{
     
     // 코드리뷰.4
     @RequestMapping(value="/login.do" ,method = RequestMethod.POST )
-    public ModelAndView login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<MemberAjaxResponse> login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
             throws Exception {
         ModelAndView mav = new ModelAndView();
         memberVO = memberService.login(loginMap);
         String id = memberVO.getId();
+        String url ="";
         List<MemberAccountVO> accountList =memberService.getAccountById(id);
         //로그인 성공 하여 memberVO객체가 생성될 시 home화면 이동
         if(memberVO != null && memberVO.getId() != null && !memberVO.getId().equals("")) {
@@ -75,26 +76,46 @@ public class MemberControllerImpl implements MemberController{
                     }
                 }
             }
+            
             try{
                 
                 String log = (String) session.getAttribute("log");
-                if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
-                else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
-                else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}
+                if(log.equals("mypage")){url = "/spendolive/mypage.do";}
+                else if(log.equals("expense")){url = "/spendolive/expense.do";}
+                else if(log.equals("ott")){ url = "/spendolive/ott.do";}
                 
             }catch(Exception e){   
-                mav.setViewName("redirect:/spendolive/main.do");
-                if(memberVO.getRole().equals("ADMIN")){mav.setViewName("redirect:/spendolive/admin/main.do");}
+                url = "/spendolive/main.do";
+                if(memberVO.getRole().equals("ADMIN")){url = "/spendolive/admin/main.do";
+                return ResponseEntity.ok(new MemberAjaxResponse(
+                    true,
+                    "ADMINLOGIN_COMPLETED",
+                    "로그인에 성공하였습니다..",
+                    "SUCCESS",
+                    null,
+                    url));
+                }
             }
               
         }
         //로그인 실피 시 로그인 화면 유지
         else {
-            String message = "아이디나 비밀번호가 틀립니다. 다시 로그인해주세요.";
-            mav.addObject("message", message);
-            mav.setViewName("/member/loginForm"); 
+            url = "/spendolive/member/loginForm.do";
+            return ResponseEntity.ok(new MemberAjaxResponse(
+                false,
+                "LOGIN_FAILED",
+                "로그인에 실패하였습니다..",
+                "FAIL",
+                null,
+                url));
         }
-        return mav;
+        return ResponseEntity.ok(new MemberAjaxResponse(
+                true,
+                "LOGIN_COMPLETED",
+                "로그인에 성공하였습니다..",
+                "SUCCESS",
+                null,
+                url));
     }
     
     // 코드리뷰.3 ->loginform.jsp

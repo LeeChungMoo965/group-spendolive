@@ -173,3 +173,49 @@
         }, 1200);
     }
 })();
+(function () {
+    const loginForm = document.querySelector('form');
+    const loginButton = document.getElementById('loginButton');
+    if (!loginButton||!loginForm) return;
+    
+    // 2. 아이디 중복확인 버튼 클릭 이벤트
+    loginButton.addEventListener('click', async function (e) {
+        const formData = new FormData(loginForm);
+        const payload = new URLSearchParams(formData);
+        e.preventDefault();
+        try {
+            showMemberModal('login','processing', '로그인 중 입니다.', '잠시만 기다려주세요.');
+            const response = await fetch('/member/login.do', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'Accept': 'application/json'
+                },
+                body: payload
+            });
+
+            const result = await response.json();
+
+            // 백엔드가 보내주는 code 값으로 확인 (CHECK_COMPLETED = 사용 가능)
+            if (result.code === 'LOGIN_COMPLETED') {
+                showMemberModal('login','success', '로그인 완료 !', result.message || '로그인이 완료되었습니다.메인 페이지로 이동하겠습니다.');
+                loginmoveAfterSuccess(result);
+            } else if(result.code === 'ADMINLOGIN_COMPLETED') {
+                showMemberModal('login','success', '관리자 로그인 완료 !', result.message || '관리자 로그인이 완료되었습니다.관리자  페이지로 이동하겠습니다.');
+                loginmoveAfterSuccess(result);
+            }else{
+                showMemberModal('login','error', '로그인 실패',  '로그인에 실패하였습니다. 아이디 정보를 확인 해주세요.');
+            }
+
+        } catch (error) {
+            console.error("로그인 에러 상세 내용:", error);
+        showMemberModal('login','error', '시스템 오류', '로그인 중 오류가 발생했습니다.');
+        }
+    });
+    function loginmoveAfterSuccess(result) {
+  
+        window.setTimeout(function () {
+            window.location.href = result.redirectUrl;
+        }, 500);
+    }
+})();

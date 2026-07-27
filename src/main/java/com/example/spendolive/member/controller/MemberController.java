@@ -16,7 +16,7 @@ import com.example.spendolive.member.domain.MemberAjaxResponse;
 import com.example.spendolive.member.domain.MemberVO;
 public interface MemberController {
 	public ResponseEntity<MemberAjaxResponse> sendEmail(@RequestParam("email") String email, HttpServletRequest request) throws Exception;
-	public ModelAndView login(@RequestParam Map<String, String> loginMap,HttpServletRequest request, HttpServletResponse response) throws Exception;
+	public ResponseEntity<MemberAjaxResponse> login(@RequestParam Map<String, String> loginMap,HttpServletRequest request, HttpServletResponse response) throws Exception;
 	public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) throws Exception;
 	public ModelAndView loginForm(@RequestParam String log, HttpServletRequest request, HttpServletResponse response) throws Exception;
 	public ResponseEntity<MemberAjaxResponse>  addMember(@ModelAttribute("member") MemberVO member,
