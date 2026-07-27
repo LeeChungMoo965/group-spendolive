@@ -288,7 +288,7 @@ if (!isPhoneVerified) {
   alert('전화번호 인증을 완료해 주세요.');
   return false;
 }
-if (!isIdVerified) {
+if (isIdVerified) {
   alert('아이디 중복확인을 완료해 주세요.');
   return false;
 }
@@ -563,3 +563,37 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 });
+// AJAX 팝업 모달 모듈
+function showMemberModal(prefix, type, titleText, messageText) {
+    const overlay = document.getElementById(prefix + 'StatusOverlay');
+    const title = document.getElementById(prefix + 'StatusTitle');
+    const message = document.getElementById(prefix + 'StatusMessage');
+    const spinner = document.getElementById(prefix + 'StatusSpinner');
+    const icon = document.getElementById(prefix + 'StatusIcon');
+    const closeBtn = document.getElementById(prefix + 'StatusCloseButton');
+    const actions = document.getElementById(prefix + 'StatusActions');
+
+    if (!overlay) return;
+
+    overlay.hidden = false;
+    if (title) title.textContent = titleText;
+    if (message) message.textContent = messageText;
+
+    // 아이콘 / 스피너 제어
+    if (spinner) spinner.hidden = (type !== 'processing');
+    if (icon) {
+        icon.hidden = (type === 'processing');
+        icon.textContent = (type === 'success') ? '✓' : '!';
+    }
+
+    // 버튼 영역 제어
+    if (actions) actions.hidden = (type === 'processing');
+    overlay.dataset.state = type;
+    overlay.style.display = 'flex';
+
+    if (closeBtn) {
+        closeBtn.onclick = function () {
+            overlay.style.display = 'none';
+        };
+    }
+}

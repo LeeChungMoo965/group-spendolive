@@ -55,11 +55,11 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "FROM member_tb "
   + "WHERE status = 'ACTIVE'";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
-    +" from member_tb where id =? AND STATUS ='ACTIVE'";
+    +" from member_tb where id =? ";
     private final String checkEmail = "select decode(count(*),1, 'false', 0, 'true') as email"
-    +" from member_tb where email =? AND STATUS ='ACTIVE'";
+    +" from member_tb where email =? ";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
-    +" from member_tb where phone =? AND STATUS ='ACTIVE'";
+    +" from member_tb where phone =? ";
    
     private final String selectMemberByIdSql =
     "SELECT member_id, id, email, password, member_name, nickname, "
