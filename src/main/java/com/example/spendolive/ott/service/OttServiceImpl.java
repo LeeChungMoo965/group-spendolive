@@ -245,7 +245,7 @@ public class OttServiceImpl implements OttService {
         LocalDate service_end_date = service_start_date.plusMonths(1).minusDays(1);
         LocalDate payment_start_date = service_start_date.minusMonths(1);
         LocalDate payment_close_date = service_start_date.minusDays(PAYMENT_CLOSE_DAYS_BEFORE);
-        LocalDate replace_start_date = payment_close_date;
+        LocalDate replace_start_date = payment_close_date.plusDays(1);
         LocalDate replace_end_date = service_start_date.minusDays(1);
 
         List<OttRoomMemberDTO> members = ottRepository.selectActiveMembers(room_id);
@@ -637,20 +637,27 @@ public class OttServiceImpl implements OttService {
     // 방 생성 시 결제 연결용 READY 정산 회차 생성
     private void createReadySettlement(Long room_id, String hostId) {
         OttRoomDTO room = ottRepository.selectRoom(room_id);
+    
         if (!canHostManageRoom(room, hostId)) {
             return;
         }
-
+    
         YearMonth targetMonth = YearMonth.now().plusMonths(1);
-        if (ottRepository.existsSettlement(room_id, targetMonth.toString())) {
+    
+        if (ottRepository.existsSettlement(
+                room_id,
+                targetMonth.toString())) {
             return;
         }
-
-        LocalDate service_start_date = resolveBillingDate(targetMonth, room.getBilling_day());
+    
+        LocalDate service_start_date = resolveBillingDate(
+                        targetMonth,
+                        room.getBilling_day());
         LocalDate service_end_date = service_start_date.plusMonths(1).minusDays(1);
         LocalDate payment_start_date = LocalDate.now();
         LocalDate payment_close_date = service_start_date.minusDays(PAYMENT_CLOSE_DAYS_BEFORE);
-
+        LocalDate replace_start_date = payment_close_date.plusDays(1);
+        LocalDate replace_end_date = service_start_date.minusDays(1);
         OttSettlementDTO settlement = createSettlementDTO(
                 room_id,
                 targetMonth.toString(),
@@ -661,8 +668,8 @@ public class OttServiceImpl implements OttService {
                 payment_close_date,
                 service_start_date,
                 service_end_date,
-                payment_close_date,
-                service_start_date.minusDays(1),
+                replace_start_date,
+                replace_end_date,
                 "READY");
         ottRepository.insertSettlement(settlement);
     }

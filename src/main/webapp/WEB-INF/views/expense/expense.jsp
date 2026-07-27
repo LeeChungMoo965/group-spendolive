@@ -723,7 +723,7 @@
         }
 
         function changeEditRepeatYnByRow(row) {
-            const expense_id = row.dataset.expense_id;
+            const expense_id = row.dataset.expenseId;
             const typeSelect = row.querySelector('.edit-expense-type');
             const editRepeatCycleSelect = row.querySelector('.edit-repeat-cycle');
             const editRepeatYnInput = document.getElementById(`editRepeatYn${expense_id}`);
