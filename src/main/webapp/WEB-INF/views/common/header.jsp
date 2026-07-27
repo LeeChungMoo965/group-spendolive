@@ -42,15 +42,32 @@
             </a>
 
             <nav class="nav">
-                <a href="${contextPath}/spendolive/notice/center.do"
-                class="header-bell ${fn:contains(requestURI, '/notice') ? 'active' : ''}">
+                <div class="header-bell-wrap">
+                    <button type="button"
+                        id="bellToggleBtn"
+                        class="header-bell ${fn:contains(requestURI, '/notice') ? 'active' : ''}"
+                        onclick="toggleNotifDropdown(event)">
 
-                    <span class="bell-icon">🔔</span>
+                        <span class="bell-icon">🔔</span>
 
-                    <span id="notificationBadge"
-                        class="notification-badge"
-                        style="display:none;"></span>
-                </a>
+                        <span id="notificationBadge"
+                            class="notification-badge"
+                            style="display:none;"></span>
+                    </button>
+
+                    <%-- 종 아이콘 클릭 시 뜨는 최근 알림 미리보기. 최근 5개는 그냥 보이고,
+                         그 이상은 스크롤로 내려서 봄. 실제 목록/읽음처리는
+                         notice.js의 loadNotificationList 로직을 그대로 재사용함 --%>
+                    <div id="notifDropdown" class="notif-dropdown">
+                        <div class="notif-dropdown-header">
+                            <strong>알림</strong>
+                            <a href="${contextPath}/spendolive/notice/center.do">전체보기</a>
+                        </div>
+                        <div id="notifDropdownList" class="notif-dropdown-list">
+                            <div class="notif-dropdown-empty">불러오는 중...</div>
+                        </div>
+                    </div>
+                </div>
             </nav>
 
             <div class="header-actions">

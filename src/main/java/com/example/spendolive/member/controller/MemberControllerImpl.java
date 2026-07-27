@@ -30,6 +30,10 @@ import com.example.spendolive.member.domain.MemberAjaxResponse;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.exception.MemberProcessException;
 import com.example.spendolive.member.service.MemberService;
+// [알림] 회원가입 축하 알림 발송을 위해 추가.
+
+import com.example.spendolive.notification.service.NotificationService;
+import com.example.spendolive.notification.domain.NotificationType;
 import com.example.spendolive.payment.service.PaymentServiceImpl;
 @Controller("memberController")
 @ControllerAdvice
@@ -37,6 +41,10 @@ import com.example.spendolive.payment.service.PaymentServiceImpl;
 public class MemberControllerImpl implements MemberController{
     @Autowired
     private MemberService memberService;
+
+    // [알림] 회원가입 축하 알림 발송용. 다른 곳에선 안 씀.
+    @Autowired
+    private NotificationService notificationService;
     private MemberVO memberVO;
     private MemberAccountVO accountmemberVO;
     @Value("${kakao.client.id}")

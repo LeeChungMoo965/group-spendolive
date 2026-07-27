@@ -34,6 +34,11 @@ public class NoticeRepository {
             ORDER BY n.pinned_yn DESC, n.notice_id DESC
         """;
 
+    // 관리자 공지 목록 전용: 위 FIND_ALL_SQL과 같은 정렬 기준에 OFFSET/LIMIT만 추가.
+    // (관리자 화면은 read_yn/star_yn을 안 쓰지만, mapRowWithReadStar를 그대로 재사용하려고
+    //  같은 컬럼 구조를 유지함 — 파라미터로 넘기는 id는 항상 빈 문자열이라 항상 read_yn/star_yn='N')
+    private static final String FIND_ALL_PAGED_SQL = FIND_ALL_SQL + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
     // 단건 조회
     private static final String FIND_BY_ID_SQL = """
             SELECT
@@ -42,6 +47,22 @@ public class NoticeRepository {
                 TO_CHAR(updated_at, 'YYYY.MM.DD') AS updated_at
             FROM notice_tb
             WHERE notice_id = ?
+        """;
+
+    // 사용자 상세 페이지 전용: 위 FIND_BY_ID_SQL과 같은 단건 조회에
+    // 로그인 회원 기준 읽음(read_yn)/찜(star_yn) 여부까지 같이 계산해서 붙여줌.
+    // (관리자 수정 화면은 read_yn/star_yn이 필요 없어서 기존 FIND_BY_ID_SQL/findById를 그대로 씀)
+    private static final String FIND_BY_ID_WITH_STAR_SQL = """
+            SELECT
+                n.notice_id, n.admin_id, n.title, n.content, n.pinned_yn,
+                CASE WHEN nr.notice_id IS NULL THEN 'N' ELSE 'Y' END AS read_yn,
+                CASE WHEN nf.notice_id IS NULL THEN 'N' ELSE 'Y' END AS star_yn,
+                TO_CHAR(n.created_at, 'YYYY.MM.DD') AS created_at,
+                TO_CHAR(n.updated_at, 'YYYY.MM.DD') AS updated_at
+            FROM notice_tb n
+            LEFT JOIN notice_read_tb nr ON n.notice_id = nr.notice_id AND nr.id = ?
+            LEFT JOIN notice_favorite_tb nf ON n.notice_id = nf.notice_id AND nf.id = ?
+            WHERE n.notice_id = ?
         """;
 
     private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM notice_tb";
@@ -157,6 +178,16 @@ public class NoticeRepository {
         }
     }
 
+    /* ─── 관리자 목록 전용: 페이지네이션(OFFSET/LIMIT) 조회 ──── */
+    public List<NoticeDTO> findAllPaged(int offset, int limit) {
+        try {
+            return jdbcTemplate.query(FIND_ALL_PAGED_SQL, (rs, rowNum) -> mapRowWithReadStar(rs), "", "", offset, limit);
+        } catch (DataAccessException e) {
+            System.err.println("[NoticeRepository.findAllPaged] DB 오류: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
     /* ─── 단건 조회 ───────────────────────────────────────── */
     public NoticeDTO findById(int noticeId) {
         try {
@@ -166,6 +197,20 @@ public class NoticeRepository {
             return null;
         } catch (DataAccessException e) {
             System.err.println("[NoticeRepository.findById] DB 오류: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /* ─── 단건 조회(사용자 상세 페이지 전용, 찜 상태 포함) ────── */
+    public NoticeDTO findByIdWithStar(int noticeId, String id) {
+        try {
+            String safeId = (id != null) ? id : "";
+            return jdbcTemplate.queryForObject(FIND_BY_ID_WITH_STAR_SQL, (rs, rowNum) -> mapRowWithReadStar(rs), safeId, safeId, noticeId);
+        } catch (EmptyResultDataAccessException e) {
+            System.err.println("[NoticeRepository.findByIdWithStar] notice_id=" + noticeId + " 존재하지 않음");
+            return null;
+        } catch (DataAccessException e) {
+            System.err.println("[NoticeRepository.findByIdWithStar] DB 오류: " + e.getMessage());
             return null;
         }
     }

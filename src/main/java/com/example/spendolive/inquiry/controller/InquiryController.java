@@ -43,9 +43,10 @@ public class InquiryController {
     public ModelAndView inquiryList(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "status", defaultValue = "all") String status,
-            HttpSession session) {
+            HttpSession session, RedirectAttributes ra) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
@@ -88,9 +89,10 @@ public class InquiryController {
 
     /* ─── 문의 작성 폼 ────────────────────────────────────── */
     @GetMapping("/write.do")
-    public ModelAndView inquiryWriteForm(HttpSession session) {
+    public ModelAndView inquiryWriteForm(HttpSession session, RedirectAttributes ra) {
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
@@ -111,6 +113,7 @@ public class InquiryController {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
@@ -158,6 +161,7 @@ public class InquiryController {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
             return new ModelAndView("redirect:/member/loginForm.do");
         }
 
@@ -175,11 +179,11 @@ public class InquiryController {
         }
 
         // TODO: 상세 페이지 JSP(inquiryDetail.jsp)는 아직 없음. 만들어지면 아래 두 줄 활성화.
-        // ModelAndView mav = new ModelAndView("common/layout");
-        // mav.addObject("body_page", "/WEB-INF/views/inquiry/inquiryDetail.jsp");
-        // mav.addObject("inquiry", inquiry);
-        // return mav;
-        return new ModelAndView("redirect:/spendolive/inquiry/list.do");
+        ModelAndView mav = new ModelAndView("common/layout");
+        mav.addObject("body_page", "/WEB-INF/views/inquiry/inquiryDetail.jsp");
+        mav.addObject("inquiry", inquiry);
+        return mav;
+        
     }
 
     /* ─── 첨부파일 미리보기/다운로드 ──────────────────────── */
