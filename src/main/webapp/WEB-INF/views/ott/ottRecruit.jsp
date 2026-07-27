@@ -149,13 +149,14 @@
                                     </c:forEach>
                                 </select>
                             </label>
+                            
                             </div>
+                            <div class="auth-form-group">
                             <label class="recruit-search-keyword">
                                 <span>방 제목</span>
                                 <input type="text" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}" placeholder="예) 모집합니다">
                             </label>
-                        </div>
-                         
+                         </div>
                           <div class="auth-form-group">
                                 <button type="submit" class="btn btn-primary">검색</button>
                                 <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="btn btn-danger-outline">초기화</a>

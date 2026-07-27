@@ -423,9 +423,10 @@
             // 화면에 붙은 다음 프레임에서 transform을 줘야 transition이 동작한다.
             requestAnimationFrame(function () {
                 requestAnimationFrame(function () {
-                    const itemHeight = digitBox.getBoundingClientRect().height || 20;
                     const finalIndex = numbers.length - 1;
-                    reel.style.transform = 'translateY(-' + (itemHeight * finalIndex) + 'px)';
+
+                    reel.style.transform =
+                        'translateY(-' + finalIndex + 'em)';
                 });
             });
 
@@ -488,7 +489,3 @@
         }
     })();
 </script>
-
-<script src="${contextPath}/resources/js/app.js">
-</script>
-
