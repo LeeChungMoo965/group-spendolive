@@ -21,12 +21,13 @@ import com.example.spendolive.ott.domain.OttSettlementDTO;
 public class OttRepositoryImpl implements OttRepository {
 
     // INSERT문 ================================================================
-    private static final String INSERT_ACTIVE_ROOM_MEMBER_SQL = "INSERT INTO ott_room_member_tb (room_member_id, room_id, member_login_id, member_role, share_amount, fee_rate, fee_amount, pay_amount, status, pay_day) VALUES (?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE', ?)";
+    private static final String INSERT_ACTIVE_ROOM_MEMBER_SQL = "INSERT INTO ott_room_member_tb (room_member_id, room_id, member_login_id, member_role, share_amount, fee_rate, fee_amount, pay_amount, status, pay_day) "
+    +" SELECT ?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE', ? from ott_room_tb where room_id =? AND (SELECT COUNT(*) FROM ott_room_member_tb WHERE room_id =? ) < member_limit;";
 
     private static final String INSERT_CHAT_MESSAGE_SQL = "INSERT INTO ott_chat_message_tb (message_id, room_id, sender_id, message_content) VALUES (?, ?, ?, ?)";
 
     private static final String INSERT_HOST_MEMBER_SQL = "INSERT INTO ott_room_member_tb (room_member_id, room_id, member_login_id, member_role, share_amount, fee_rate, fee_amount, pay_amount, status) VALUES (?, ?, ?, 'HOST', 0, 0, 0, 0, 'ACTIVE')";
-
+ 
     private static final String INSERT_OTT_NOTIFICATION_SQL = "INSERT INTO notification_tb (id, notification_type, title, message, link_url, read_yn, star_yn) VALUES (?, 'OTT', ?, ?, ?, 'N', 'N')";
 
     private static final String INSERT_REFUNDS_FOR_ROOM_CLOSE_INSERT_REFUND_SQL = """
@@ -1445,7 +1446,7 @@ public class OttRepositoryImpl implements OttRepository {
             double fee_rate, int fee_amount, int pay_amount, int pay_day) {
         Long room_member_id = jdbcTemplate.queryForObject(SELECT_ROOM_MEMBER_SEQUENCE_SQL, Long.class);
         jdbcTemplate.update(INSERT_ACTIVE_ROOM_MEMBER_SQL, room_member_id, room_id, loginId,
-                share_amount, fee_rate, fee_amount, pay_amount, pay_day);
+                share_amount, fee_rate, fee_amount, pay_amount, pay_day,room_id,room_id);
     }
 
     // 기존 방 멤버를 ACTIVE 상태로 재입장 처리

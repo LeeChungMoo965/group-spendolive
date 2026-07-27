@@ -164,7 +164,6 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         try {
             
             paymentService.updatePaymentstatusRefund(payment);
-            paymentService.cancelApprovedPayment(paymentkey);
             redirectAttributes.addFlashAttribute("msg", "환불 성공");
             return "redirect:/admin/settlement/paymentdetaillist.do" ;
         } catch (Exception e) {
