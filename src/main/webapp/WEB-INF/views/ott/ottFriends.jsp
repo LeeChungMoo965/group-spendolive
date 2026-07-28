@@ -143,7 +143,7 @@
                 </c:otherwise>
             </c:choose>
         </article>
-
+        <br>
         <%-- 가족방 생성 폼 --%>
         <article id="createRoom" class="card ott-tab-panel">
             <div class="panel-header">
