@@ -88,6 +88,7 @@ CREATE TABLE settlement_refund_tb (
     refund_id       NUMBER NOT NULL,
     payment_id      NUMBER NOT NULL,
     settlement_id   NUMBER NOT NULL,
+    room_id         NUMBER NOT NULL, -- 환불 대상 OTT 방 ID
     member_login_id VARCHAR2(20) NOT NULL,
     refund_amount   NUMBER NOT NULL,
     refund_reason   VARCHAR2(30) DEFAULT 'ROOM_CLOSE' ,
@@ -99,6 +100,7 @@ CREATE TABLE settlement_refund_tb (
     CONSTRAINT pk_settlement_refund PRIMARY KEY (refund_id),
     CONSTRAINT fk_refund_payment FOREIGN KEY (payment_id) REFERENCES settlement_payment_tb(payment_id),
     CONSTRAINT fk_refund_settlement FOREIGN KEY (settlement_id) REFERENCES settlement_tb(settlement_id),
+    CONSTRAINT fk_refund_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
     CONSTRAINT fk_refund_member FOREIGN KEY (member_login_id) REFERENCES member_tb(id),
     CONSTRAINT uk_refund_payment UNIQUE (payment_id),
     CONSTRAINT ck_refund_amount CHECK (refund_amount >= 0),
@@ -121,8 +123,8 @@ CREATE INDEX idx_refund_payment ON settlement_refund_tb(payment_id);
 CREATE INDEX idx_refund_member_login ON settlement_refund_tb(member_login_id, refund_status);
 
 
-CREATE INDEX idx_refund_payment ON settlement_refund_tb(payment_id);
-CREATE INDEX idx_refund_member_login ON settlement_refund_tb(member_login_id, refund_status);
+-- 중복 인덱스 생성문 제거: CREATE INDEX idx_refund_payment ON settlement_refund_tb(payment_id);
+-- 중복 인덱스 생성문 제거: CREATE INDEX idx_refund_member_login ON settlement_refund_tb(member_login_id, refund_status);
 CREATE INDEX idx_refund_room ON settlement_refund_tb(room_id, refund_status);
 
 /* =========================================================

@@ -15,15 +15,18 @@ import org.springframework.web.servlet.ModelAndView;
 import com.example.spendolive.Expense.domain.ExpenseDTO;
 import com.example.spendolive.Expense.service.ExpenseService;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.ott.service.OttService;
 
 @Controller
 @RequestMapping("/spendolive")
 public class SpendOliveController {
 
     private final ExpenseService expenseService;
+    private final OttService ottService;
 
-    public SpendOliveController(ExpenseService expenseService) {
+    public SpendOliveController(ExpenseService expenseService, OttService ottService) {
         this.expenseService = expenseService;
+        this.ottService = ottService;
     }
 
     @RequestMapping(value = {"/", "/main.do"}, method = {RequestMethod.GET, RequestMethod.POST})
@@ -88,6 +91,7 @@ public class SpendOliveController {
             mav.addObject("mainFixedTotal", 0);
             mav.addObject("mainVariableTotal", 0);
             mav.addObject("mainOttTotal", 0);
+            mav.addObject("mainOttSettlementCount", 0);
             mav.addObject("mainBudget", 1700000);
             return;
         }
@@ -118,6 +122,12 @@ public class SpendOliveController {
         mav.addObject("mainFixedTotal", fixedTotal);
         mav.addObject("mainVariableTotal", variableTotal);
         mav.addObject("mainOttTotal", ottTotal);
+
+        // 금액으로 추정하지 않고 선택 월에 사용자가 실제로 관련된 정산 회차를 센다.
+        mav.addObject(
+                "mainOttSettlementCount",
+                ottService.getMySettlementCount(memberInfo.getId(), selectedYearMonth));
+
         mav.addObject("mainBudget", monthlyBudget);
     }
 

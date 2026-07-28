@@ -206,8 +206,9 @@ ALTER TABLE ott_room_member_tb ADD (
     settlement_status  VARCHAR2(30) DEFAULT 'READY' , -- 방장 정산(송금) 후에 상태
     CONSTRAINT ck_ott_member_settlement_status CHECK (
         settlement_status IN (
-            'READY',              -- 정산 안됨
-            'DONE'               -- 정산 완료
+            'YET',                -- 다음 정산 회차로 전환되기 전 상태
+            'READY',              -- 정산 준비 상태
+            'DONE'                -- 정산 완료
         )
     )
 );
@@ -273,7 +274,7 @@ CREATE TABLE settlement_tb (
     total_pay_amount   NUMBER DEFAULT 0 NOT NULL,     -- 전체 결제 요청 금액
     due_date           DATE NOT NULL,                 -- 기존 호환용 마감일
     payment_start_date DATE,                          -- 결제 가능 시작일
-    payment_close_date DATE,                          -- 결제 마감일. 이용 시작 5일 전
+    payment_close_date DATE,                          -- 결제 마감일. 이용 시작 7일 전
     service_start_date DATE,                          -- 이용 시작일
     service_end_date   DATE,                          -- 이용 종료일
     replace_start_date DATE,                          -- 대체 모집 시작일

@@ -467,7 +467,7 @@
 
                 <%-- 모집글 작성 탭 --%>
                 <c:otherwise>
-                    <article class="card ott-tab-panel recruit-list-panel">
+                    <article class="card ott-tab-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">WRITE POST</p>
@@ -476,12 +476,14 @@
                             <span>신청 버튼은 결제 화면으로 연결됩니다</span>
                         </div>
 
-                        <%-- OTT 고정 요금 미리보기 --%>
-                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="recruit-search-form" data-room-mode="RECRUIT">
-                            <label>
-                                OTT 종류    </label>
-                                <select name="ott_service_id" class="ott-service-select" required>
+                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="recruit-search-form ott-fixed-plan-form" data-room-mode="RECRUIT">
+                            <%-- OTT 종류 --%>
+                            <div class="auth-form-group">
+                                <label for="recruitOttService">OTT 종류</label>
+
+                                <select id="recruitOttService" name="ott_service_id" class="ott-service-select" required>
                                     <option value="">선택</option>
+
                                     <c:forEach var="service" items="${serviceList}">
                                         <option value="${service.ott_service_id}"
                                                 data-service-name="${service.service_name}"
@@ -498,30 +500,66 @@
                                         </option>
                                     </c:forEach>
                                 </select>
-                        </div>
-                            <div class="auth-form-group">
-                                <label>모집글 제목</label>
-                                <input type="text" name="room_name" placeholder="비워두면 OTT - 최고 멤버십 - 모집으로 저장됩니다.">
-                             </div>
-        
-                            <div class="auth-form-group">
-                                <label>결제일</label>
-                                <input type="number" name="billing_day" min="1" max="31" value="1" required>
                             </div>
-                            <input type="hidden" name="plan_name" class="ott-plan-input">
-                            <input type="hidden" name="total_price" class="ott-total-price-input">
-                            <input type="hidden" name="member_limit" class="ott-member-limit-input">
 
+                            <%-- 모집글 제목 --%>
+                            <div class="auth-form-group">
+                                <label for="recruitRoomName">모집글 제목</label>
+
+                                <input type="text"
+                                    id="recruitRoomName"
+                                    name="room_name"
+                                    placeholder="비워두면 OTT - 최고 멤버십 - 모집으로 저장됩니다.">
+                            </div>
+
+                            <%-- 결제일 --%>
+                            <div class="auth-form-group">
+                                <label for="recruitBillingDay">결제일</label>
+
+                                <input type="number"
+                                    id="recruitBillingDay"
+                                    name="billing_day"
+                                    min="1"
+                                    max="31"
+                                    value="1"
+                                    required>
+                            </div>
+
+                            <input type="hidden"
+                                name="plan_name"
+                                class="ott-plan-input">
+
+                            <input type="hidden"
+                                name="total_price"
+                                class="ott-total-price-input">
+
+                            <input type="hidden"
+                                name="member_limit"
+                                class="ott-member-limit-input">
+
+                            <%-- 요금 안내 --%>
                             <div class="ott-fixed-plan-preview">
-                                <strong>OTT를 선택하면 최고 멤버십 기준 금액이 자동 적용됩니다.</strong>
-                                <p>추가 계정 비용이 있는 OTT는 기본 구독료에 추가 비용을 더한 뒤 N분의 1로 계산합니다. 서비스 수수료는 3%입니다.</p>
+                                <strong>
+                                    OTT를 선택하면 최고 멤버십 기준 금액이 자동 적용됩니다.
+                                </strong>
+
+                                <p>
+                                    추가 계정 비용이 있는 OTT는 기본 구독료에 추가 비용을 더한 뒤
+                                    N분의 1로 계산합니다. 서비스 수수료는 3%입니다.
+                                </p>
                             </div>
 
-                            <button type="submit" class="btn btn-primary full ott-form-submit">모집글 등록</button>
+                            <%-- 등록 버튼은 아래 전체 너비 유지 --%>
+                            <button type="submit"
+                                    class="btn btn-primary full ott-form-submit">
+                                모집글 등록
+                            </button>
                         </form>
                     </article>
                 </c:otherwise>
             </c:choose>
+            </div>
         </div>
-    </div>
 </section>
+
+<script src="${contextPath}/resources/js/ott.js"></script>

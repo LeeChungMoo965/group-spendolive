@@ -168,6 +168,15 @@ public class OttServiceImpl implements OttService {
         return ottRepository.countUnreadChatMessages(loginId);
     }
 
+    // 메인 대시보드에서 선택 월의 실제 OTT 정산 회차 수 조회
+    @Override
+    public int getMySettlementCount(String loginId, String settlement_month) {
+        if (!isValidLogin(loginId) || settlement_month == null || settlement_month.isBlank()) {
+            return 0;
+        }
+        return ottRepository.countMySettlements(loginId, settlement_month);
+    }
+
     // =========================================================
     // 2. 방 생성과 참가
     // =========================================================
@@ -230,7 +239,7 @@ public class OttServiceImpl implements OttService {
     // 정산 조건을 확인하고 정산 회차와 멤버별 결제 건 생성
     @Override
     @Transactional
-    public void requestSettlement(Long room_id, String hostId, String settlement_month, String due_date) {
+    public void requestSettlement(Long room_id, String hostId, String settlement_month) {
         if (room_id == null || !isValidLogin(hostId)) {
             return;
         }
@@ -241,10 +250,21 @@ public class OttServiceImpl implements OttService {
         }
 
         YearMonth targetMonth = parseSettlementMonth(settlement_month);
+
+        // 과거 이용 회차를 새로 열면 날짜와 결제 흐름이 꼬일 수 있으므로 생성하지 않는다.
+        if (targetMonth.isBefore(YearMonth.now())) {
+            return;
+        }
+
         LocalDate service_start_date = resolveBillingDate(targetMonth, room.getBilling_day());
         LocalDate service_end_date = service_start_date.plusMonths(1).minusDays(1);
         LocalDate payment_start_date = service_start_date.minusMonths(1);
         LocalDate payment_close_date = service_start_date.minusDays(PAYMENT_CLOSE_DAYS_BEFORE);
+
+        // pay_day도 정산 회차의 실제 결제 마감일과 같은 기준(이용 시작 7일 전)으로 맞춘다.
+        // 월말·2월은 LocalDate 계산 결과의 일자를 사용하므로 30일 고정 보정이 필요 없다.
+        ottRepository.updateActiveMemberPayDay(room_id, payment_close_date.getDayOfMonth());
+
         LocalDate replace_start_date = payment_close_date.plusDays(1);
         LocalDate replace_end_date = service_start_date.minusDays(1);
 
@@ -372,10 +392,14 @@ public class OttServiceImpl implements OttService {
         }
 
         int share_amount = safeDivide(room.getTotal_price(), room.getMember_limit());
-        int pay_day = room.getBilling_day() - 10;
-        if(pay_day <= 0){
-            pay_day = 30 + pay_day;
-        }
+
+        // 멤버 결제일도 정산 결제 마감일과 동일하게 이용 시작 7일 전으로 계산한다.
+        // 단순히 billing_day에서 숫자를 빼지 않고 LocalDate를 사용해
+        // 2월·윤년·31일이 없는 달까지 정확하게 처리한다.
+        int pay_day = resolveNextPaymentCloseDate(
+                LocalDate.now(),
+                room.getBilling_day()).getDayOfMonth();
+
         int fee_amount = calculateFeeAmount(share_amount, PLATFORM_FEE_RATE);
         int pay_amount = share_amount + fee_amount;
 
@@ -395,7 +419,8 @@ public class OttServiceImpl implements OttService {
                     share_amount,
                     PLATFORM_FEE_RATE,
                     fee_amount,
-                    pay_amount);
+                    pay_amount,
+                    pay_day);
         }
 
         if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
@@ -634,7 +659,6 @@ public class OttServiceImpl implements OttService {
         return room;
     }
 
-    // 방 생성 시 결제 연결용 READY 정산 회차 생성
     private void createReadySettlement(Long room_id, String hostId) {
         OttRoomDTO room = ottRepository.selectRoom(room_id);
     
@@ -642,6 +666,7 @@ public class OttServiceImpl implements OttService {
             return;
         }
     
+        LocalDate today = LocalDate.now();
         YearMonth targetMonth = YearMonth.now().plusMonths(1);
     
         if (ottRepository.existsSettlement(
@@ -650,14 +675,49 @@ public class OttServiceImpl implements OttService {
             return;
         }
     
-        LocalDate service_start_date = resolveBillingDate(
+        LocalDate service_start_date =
+                resolveBillingDate(
                         targetMonth,
                         room.getBilling_day());
-        LocalDate service_end_date = service_start_date.plusMonths(1).minusDays(1);
-        LocalDate payment_start_date = LocalDate.now();
-        LocalDate payment_close_date = service_start_date.minusDays(PAYMENT_CLOSE_DAYS_BEFORE);
-        LocalDate replace_start_date = payment_close_date.plusDays(1);
-        LocalDate replace_end_date = service_start_date.minusDays(1);
+    
+        LocalDate service_end_date =
+                service_start_date.plusMonths(1).minusDays(1);
+    
+        LocalDate payment_start_date = today;
+    
+        LocalDate normal_payment_close_date =
+                service_start_date.minusDays(
+                        PAYMENT_CLOSE_DAYS_BEFORE);
+    
+        LocalDate payment_close_date;
+    
+        /*
+         * 원래 결제 마감일이 이미 지났다면
+         * 첫 정산에 한해서 서비스 시작 전날까지 결제 가능하게 한다.
+         */
+        if (normal_payment_close_date.isBefore(today)) {
+            payment_close_date =
+                    service_start_date.minusDays(1);
+        } else {
+            payment_close_date =
+                    normal_payment_close_date;
+        }
+    
+        LocalDate replace_start_date =
+                payment_close_date.plusDays(1);
+    
+        LocalDate replace_end_date =
+                service_start_date.minusDays(1);
+    
+        /*
+         * 첫 정산의 결제 마감일이 서비스 시작 전날이면
+         * 대체 모집 기간이 존재하지 않는다.
+         */
+        if (replace_start_date.isAfter(replace_end_date)) {
+            replace_start_date = null;
+            replace_end_date = null;
+        }
+    
         OttSettlementDTO settlement = createSettlementDTO(
                 room_id,
                 targetMonth.toString(),
@@ -671,6 +731,7 @@ public class OttServiceImpl implements OttService {
                 replace_start_date,
                 replace_end_date,
                 "READY");
+    
         ottRepository.insertSettlement(settlement);
     }
 
@@ -693,15 +754,23 @@ public class OttServiceImpl implements OttService {
         settlement.setTotal_price(total_price);
         settlement.setTotal_fee(total_fee);
         settlement.setTotal_pay_amount(total_pay_amount);
-        settlement.setDue_date(payment_close_date.toString());
-        settlement.setPayment_start_date(payment_start_date.toString());
-        settlement.setPayment_close_date(payment_close_date.toString());
-        settlement.setService_start_date(service_start_date.toString());
-        settlement.setService_end_date(service_end_date.toString());
-        settlement.setReplace_start_date(replace_start_date.toString());
-        settlement.setReplace_end_date(replace_end_date.toString());
+        // 대체 모집 기간이 없는 첫 회차는 replace 날짜가 null일 수 있다.
+        // 날짜를 바로 toString()하면 NullPointerException이 발생하므로 공통 변환 메서드를 사용한다.
+        settlement.setDue_date(toDateString(payment_close_date));
+        settlement.setPayment_start_date(toDateString(payment_start_date));
+        settlement.setPayment_close_date(toDateString(payment_close_date));
+        settlement.setService_start_date(toDateString(service_start_date));
+        settlement.setService_end_date(toDateString(service_end_date));
+        settlement.setReplace_start_date(toDateString(replace_start_date));
+        settlement.setReplace_end_date(toDateString(replace_end_date));
         settlement.setStatus(status);
         return settlement;
+    }
+
+    // LocalDate를 DB 저장용 문자열로 변환한다.
+    // 날짜가 존재하지 않는 선택 항목은 null을 그대로 반환한다.
+    private String toDateString(LocalDate date) {
+        return date == null ? null : date.toString();
     }
 
     // 방 생성 전에 방 유형과 OTT 요금 기본값 적용
@@ -841,6 +910,23 @@ public class OttServiceImpl implements OttService {
             }
         }
         return YearMonth.now().plusMonths(1);
+    }
+
+    /**
+     * 오늘 이후 가장 가까운 결제 마감일을 계산한다.
+     * 결제 마감일은 서비스 이용 시작일의 7일 전으로 통일한다.
+     */
+    private LocalDate resolveNextPaymentCloseDate(LocalDate today, Integer billing_day) {
+        YearMonth serviceMonth = YearMonth.from(today);
+        LocalDate serviceStartDate = resolveBillingDate(serviceMonth, billing_day);
+        LocalDate paymentCloseDate = serviceStartDate.minusDays(PAYMENT_CLOSE_DAYS_BEFORE);
+
+        if (paymentCloseDate.isBefore(today)) {
+            serviceStartDate = resolveBillingDate(serviceMonth.plusMonths(1), billing_day);
+            paymentCloseDate = serviceStartDate.minusDays(PAYMENT_CLOSE_DAYS_BEFORE);
+        }
+
+        return paymentCloseDate;
     }
 
     // 정산 월과 결제일을 기준으로 실제 결제 날짜 계산

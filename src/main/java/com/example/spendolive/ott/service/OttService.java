@@ -72,6 +72,9 @@ public interface OttService {
     // 사용자의 전체 읽지 않은 채팅 수 조회
     int getUnreadChatCount(String loginId);
 
+    // 선택 월에 사용자가 관련된 실제 OTT 정산 회차 수 조회
+    int getMySettlementCount(String loginId, String settlement_month);
+
     // 가족·지인 방을 생성하고 생성자를 방장으로 등록
     void createFriendRoom(OttRoomDTO roomDTO, String loginId);
 
@@ -86,7 +89,7 @@ public interface OttService {
 
 
     // 방장 권한과 정산 기간을 검증해 새로운 정산 회차 생성
-    void requestSettlement(Long room_id, String hostId, String settlement_month, String due_date);
+    void requestSettlement(Long room_id, String hostId, String settlement_month);
 
     // 로그인 사용자의 미결제 건을 PAID로 변경
     void markPaymentPaid(Long payment_id, String loginId);

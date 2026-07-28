@@ -22,7 +22,7 @@ public class OttRepositoryImpl implements OttRepository {
 
     // INSERT문 ================================================================
     private static final String INSERT_ACTIVE_ROOM_MEMBER_SQL = "INSERT INTO ott_room_member_tb (room_member_id, room_id, member_login_id, member_role, share_amount, fee_rate, fee_amount, pay_amount, status, pay_day) "
-    +" SELECT ?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE', ? from ott_room_tb where room_id =? AND (SELECT COUNT(*) FROM ott_room_member_tb WHERE room_id =? ) < member_limit";
+    +" SELECT ?, ?, ?, 'MEMBER', ?, ?, ?, ?, 'ACTIVE', ? from ott_room_tb where room_id =? AND (SELECT COUNT(*) FROM ott_room_member_tb WHERE room_id = ? AND status = 'ACTIVE') < member_limit";
 
     private static final String INSERT_CHAT_MESSAGE_SQL = "INSERT INTO ott_chat_message_tb (message_id, room_id, sender_id, message_content) VALUES (?, ?, ?, ?)";
 
@@ -80,7 +80,7 @@ public class OttRepositoryImpl implements OttRepository {
                     payment_status,
                     memo
                 )
-                SELECT ?, ?, ?, ?, 3, ?, ?, 'UNPAID', ?
+                SELECT ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?
                 FROM dual
                 WHERE NOT EXISTS (
                     SELECT 1
@@ -145,7 +145,25 @@ public class OttRepositoryImpl implements OttRepository {
                   )
                 """;
 
-    private static final String COUNT_RECRUIT_ROOMS_SQL = "SELECT COUNT(*) FROM ott_room_tb WHERE NVL(room_mode, 'RECRUIT') = 'RECRUIT' AND status <> 'CLOSED'";
+    private static final String COUNT_RECRUIT_ROOMS_SQL = "SELECT COUNT(*) FROM ott_room_tb WHERE NVL(room_mode, 'RECRUIT') = 'RECRUIT' AND status IN ('RECRUITING', 'REPLACE_RECRUITING')";
+
+    // 메인 화면에는 금액 추정치가 아니라 사용자가 실제로 관련된 정산 회차 수를 표시한다.
+    private static final String COUNT_MY_SETTLEMENTS_SQL = """
+                SELECT COUNT(DISTINCT st.settlement_id)
+                FROM settlement_tb st
+                JOIN ott_room_tb r ON st.room_id = r.room_id
+                WHERE st.settlement_month = ?
+                  AND NVL(st.status, 'READY') <> 'CANCELLED'
+                  AND (
+                       r.host_login_id = ?
+                       OR EXISTS (
+                            SELECT 1
+                            FROM ott_room_member_tb rm
+                            WHERE rm.room_id = r.room_id
+                              AND rm.member_login_id = ?
+                       )
+                  )
+                """;
 
     private static final String COUNT_UNREAD_CHAT_MESSAGES_SQL = """
                 SELECT COUNT(*)
@@ -960,7 +978,9 @@ public class OttRepositoryImpl implements OttRepository {
                   )
                 """;
 
-    private static final String REACTIVATE_ROOM_MEMBER_SQL = "UPDATE ott_room_member_tb SET member_role = 'MEMBER', share_amount = ?, fee_rate = ?, fee_amount = ?, pay_amount = ?, status = 'ACTIVE', joined_at = SYSDATE, kicked_at = NULL, kicked_reason = NULL, left_at = NULL WHERE room_id = ? AND member_login_id = ?";
+    // 재입장 시 과거 탈퇴 예약 정보까지 초기화한다.
+    // 이 값이 남아 있으면 스케줄러가 재입장한 사용자를 다시 자동 퇴장시킬 수 있다.
+    private static final String REACTIVATE_ROOM_MEMBER_SQL = "UPDATE ott_room_member_tb SET member_role = 'MEMBER', share_amount = ?, fee_rate = ?, fee_amount = ?, pay_amount = ?, pay_day = ?, status = 'ACTIVE', joined_at = SYSDATE, kicked_at = NULL, kicked_reason = NULL, left_at = NULL, leave_reserved_yn = 'N', leave_requested_at = NULL, leave_scheduled_date = NULL, leave_cancelled_at = NULL, leave_reason = NULL WHERE room_id = ? AND member_login_id = ?";
 
     private static final String RESERVE_ROOM_LEAVE_SQL = "UPDATE ott_room_member_tb SET leave_reserved_yn = 'Y', leave_requested_at = SYSDATE, leave_scheduled_date = ?, leave_cancelled_at = NULL, leave_reason = '다음 결제일 전 나가기 예약' WHERE room_id = ? AND member_login_id = ? AND member_role = 'MEMBER' AND status = 'ACTIVE'";
 
@@ -987,6 +1007,10 @@ public class OttRepositoryImpl implements OttRepository {
     private static final String UPDATE_ROOM_CLOSE_REQUEST_SQL = "UPDATE ott_room_tb SET status = 'CLOSE_REQUESTED', close_requested_at = SYSDATE, close_effective_date = ?, close_reason = ?, close_notice = ?, updated_at = SYSDATE WHERE room_id = ? AND host_login_id = ? AND status NOT IN ('CLOSE_REQUESTED', 'CLOSED')";
 
     private static final String UPDATE_ROOM_STATUS_SQL = "UPDATE ott_room_tb SET status = ?, updated_at = SYSDATE WHERE room_id = ? AND status NOT IN ('CLOSE_REQUESTED', 'CLOSED')";
+
+    // 정산 회차가 열릴 때 실제 결제 마감일의 일자로 ACTIVE 멤버 값을 맞춘다.
+    private static final String UPDATE_ACTIVE_MEMBER_PAY_DAY_SQL =
+            "UPDATE ott_room_member_tb SET pay_day = ? WHERE room_id = ? AND status = 'ACTIVE' AND member_role = 'MEMBER'";
 
     private static final String UPDATE_SETTLEMENT_SQL = "UPDATE settlement_tb SET total_price = ?, total_fee = ?, total_pay_amount = ?, due_date = ?, payment_start_date = ?, payment_close_date = ?, service_start_date = ?, service_end_date = ?, replace_start_date = ?, replace_end_date = ?, status = ? WHERE settlement_id = ?";
 
@@ -1333,6 +1357,18 @@ public class OttRepositoryImpl implements OttRepository {
         return count == null ? 0 : count;
     }
 
+    // 선택 월에 사용자가 실제로 관련된 정산 회차 수 조회
+    @Override
+    public int countMySettlements(String loginId, String settlement_month) {
+        Integer count = jdbcTemplate.queryForObject(
+                COUNT_MY_SETTLEMENTS_SQL,
+                Integer.class,
+                settlement_month,
+                loginId,
+                loginId);
+        return count == null ? 0 : count;
+    }
+
     // =========================================================
     // 6. 방·정산·멤버 저장 SQL
     // =========================================================
@@ -1427,6 +1463,7 @@ public class OttRepositoryImpl implements OttRepository {
                 settlement_id,
                 member.getMember_login_id(),
                 nullToZero(member.getShare_amount()),
+                member.getFee_rate() == null ? 0.0 : member.getFee_rate(),
                 nullToZero(member.getFee_amount()),
                 nullToZero(member.getPay_amount()),
                 memo,
@@ -1452,8 +1489,22 @@ public class OttRepositoryImpl implements OttRepository {
     // 기존 방 멤버를 ACTIVE 상태로 재입장 처리
     @Override
     public void reactivateRoomMember(Long room_id, String loginId, int share_amount,
-            double fee_rate, int fee_amount, int pay_amount) {
-        jdbcTemplate.update(REACTIVATE_ROOM_MEMBER_SQL, share_amount, fee_rate, fee_amount, pay_amount, room_id, loginId);
+            double fee_rate, int fee_amount, int pay_amount, int pay_day) {
+        jdbcTemplate.update(
+                REACTIVATE_ROOM_MEMBER_SQL,
+                share_amount,
+                fee_rate,
+                fee_amount,
+                pay_amount,
+                pay_day,
+                room_id,
+                loginId);
+    }
+
+    // 해당 정산 회차의 실제 결제 마감일에 맞춰 ACTIVE 멤버 결제일 갱신
+    @Override
+    public void updateActiveMemberPayDay(Long room_id, int pay_day) {
+        jdbcTemplate.update(UPDATE_ACTIVE_MEMBER_PAY_DAY_SQL, pay_day, room_id);
     }
 
     // 일반 멤버의 방 나가기 예약 정보 저장

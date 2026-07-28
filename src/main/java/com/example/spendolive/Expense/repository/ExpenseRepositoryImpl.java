@@ -8,7 +8,9 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -231,7 +233,7 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
                 Date.valueOf(startDate)
         );
 
-        result.addAll(makeRepeatedExpenses(repeatBaseList, targetMonth));
+        result.addAll(makeRepeatedExpenses(repeatBaseList, targetMonth, result));
 
         result.sort(
                 Comparator.comparing(ExpenseDTO::getExpense_date, Comparator.nullsLast(Comparator.reverseOrder()))
@@ -328,8 +330,28 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
         );
     }
 
-    private List<ExpenseDTO> makeRepeatedExpenses(List<ExpenseDTO> repeatBaseList, YearMonth targetMonth) {
+    /**
+     * 반복 설정으로 생성될 내역을 만든다.
+     *
+     * 같은 날짜에 같은 카테고리·제목·금액으로 실제 지출이 등록되어 있으면
+     * 사용자가 해당 회차를 직접 입력한 것으로 보고
+     * 자동 반복 내역을 추가하지 않는다.
+     */
+    private List<ExpenseDTO> makeRepeatedExpenses(
+            List<ExpenseDTO> repeatBaseList,
+            YearMonth targetMonth,
+            List<ExpenseDTO> actualExpenseList) {
+
         List<ExpenseDTO> repeatedList = new ArrayList<>();
+        Set<String> actualOccurrenceKeys = new HashSet<>();
+        Set<String> generatedBaseDateKeys = new HashSet<>();
+
+        for (ExpenseDTO actual : actualExpenseList) {
+            LocalDate actualDate = toLocalDate(actual.getExpense_date());
+            if (actualDate != null) {
+                actualOccurrenceKeys.add(makeOccurrenceKey(actual, actualDate));
+            }
+        }
 
         LocalDate targetStart = targetMonth.atDay(1);
         LocalDate targetEnd = targetMonth.plusMonths(1).atDay(1);
@@ -347,8 +369,15 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
                 int day = Math.min(baseDate.getDayOfMonth(), targetMonth.lengthOfMonth());
                 LocalDate repeatedDate = targetMonth.atDay(day);
 
-                if (!repeatedDate.isBefore(targetStart) && repeatedDate.isBefore(targetEnd) && repeatedDate.isAfter(baseDate)) {
-                    repeatedList.add(copyAsRepeatedExpense(base, repeatedDate));
+                if (!repeatedDate.isBefore(targetStart)
+                        && repeatedDate.isBefore(targetEnd)
+                        && repeatedDate.isAfter(baseDate)) {
+                    addRepeatedExpenseIfNeeded(
+                            repeatedList,
+                            actualOccurrenceKeys,
+                            generatedBaseDateKeys,
+                            base,
+                            repeatedDate);
                 }
             }
 
@@ -361,25 +390,75 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
 
                 while (repeatedDate.isBefore(targetEnd)) {
                     if (repeatedDate.isAfter(baseDate)) {
-                        repeatedList.add(copyAsRepeatedExpense(base, repeatedDate));
+                        addRepeatedExpenseIfNeeded(
+                                repeatedList,
+                                actualOccurrenceKeys,
+                                generatedBaseDateKeys,
+                                base,
+                                repeatedDate);
                     }
                     repeatedDate = repeatedDate.plusWeeks(1);
                 }
             }
 
-            if ("YEARLY".equals(repeat_cycle)) {
-                if (baseDate.getMonth() == targetMonth.getMonth()) {
-                    int day = Math.min(baseDate.getDayOfMonth(), targetMonth.lengthOfMonth());
-                    LocalDate repeatedDate = targetMonth.atDay(day);
+            if ("YEARLY".equals(repeat_cycle)
+                    && baseDate.getMonth() == targetMonth.getMonth()) {
 
-                    if (repeatedDate.isAfter(baseDate)) {
-                        repeatedList.add(copyAsRepeatedExpense(base, repeatedDate));
-                    }
+                int day = Math.min(baseDate.getDayOfMonth(), targetMonth.lengthOfMonth());
+                LocalDate repeatedDate = targetMonth.atDay(day);
+
+                if (repeatedDate.isAfter(baseDate)) {
+                    addRepeatedExpenseIfNeeded(
+                            repeatedList,
+                            actualOccurrenceKeys,
+                            generatedBaseDateKeys,
+                            base,
+                            repeatedDate);
                 }
             }
         }
 
         return repeatedList;
+    }
+
+    /**
+     * 실제 등록 내역과 겹치지 않고, 같은 원본의 같은 날짜가 아직 생성되지
+     * 않았을 때만 자동 반복 내역을 추가한다.
+     */
+    private void addRepeatedExpenseIfNeeded(
+            List<ExpenseDTO> repeatedList,
+            Set<String> actualOccurrenceKeys,
+            Set<String> generatedBaseDateKeys,
+            ExpenseDTO base,
+            LocalDate repeatedDate) {
+
+        String occurrenceKey = makeOccurrenceKey(base, repeatedDate);
+        String baseDateKey = String.valueOf(base.getExpense_id()) + "|" + repeatedDate;
+
+        if (actualOccurrenceKeys.contains(occurrenceKey)) {
+            return;
+        }
+
+        if (!generatedBaseDateKeys.add(baseDateKey)) {
+            return;
+        }
+
+        repeatedList.add(copyAsRepeatedExpense(base, repeatedDate));
+    }
+
+    /**
+     * 수동 등록 내역과 자동 반복 내역이 같은 회차인지 비교하는 키다.
+     * 제목의 앞뒤 공백과 대소문자 차이는 같은 값으로 처리한다.
+     */
+    private String makeOccurrenceKey(ExpenseDTO expense, LocalDate expenseDate) {
+        return String.valueOf(expense.getCategory_id())
+                + "|" + normalizeOccurrenceText(expense.getExpense_title())
+                + "|" + (expense.getAmount() == null ? 0 : expense.getAmount())
+                + "|" + expenseDate;
+    }
+
+    private String normalizeOccurrenceText(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
     }
 
     private ExpenseDTO copyAsRepeatedExpense(ExpenseDTO base, LocalDate repeatedDate) {
