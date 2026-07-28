@@ -43,53 +43,6 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 var isEmailVerified = false; 
 
-// 기존 스크립트와 주소 충돌을 피하기 위해 .do를 뺀 주소 추출 변수
-const eContextPath = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2)) === "/member" ? "" : window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
-function sendEmail() {
-    var email = $("#email").val();
-    if(!email || email.trim() === "") {
-        alert("이메일을 입력해 주세요.");
-        return;
-    }
-
-    alert("인증번호를 발송 중입니다. 잠시만 기다려 주세요...");
-    $.ajax({
-      url: eContextPath + "/member/checkEmail", // 컨트롤러 매핑 주소
-      type: 'POST',
-      data: { email: email },
-      success: function(isSuccess) {
-        if (isSuccess) {
-          $.ajax({
-              type: "POST",
-              url: eContextPath + "/member/sendEmail",
-              data: { "email": email },
-              success: function(isSuccess) {
-                  if(isSuccess) {
-                      alert("입력하신 이메일로 인증번호가 전송되었습니다.");
-                      $("#emailAuthArea").show(); 
-    
-                      if(typeof setAuthMessage === 'function') {
-                          setAuthMessage("emailResult","이메일 인증번호가 발송되었습니다.","ok");
-                      }
-                  } else {
-                      alert("메일 발송에 실패했습니다. 이메일 주소를 확인해 주세요.");
-                  }
-              },
-              error: function() {
-                  alert("서버 통신 오류가 발생했습니다.");
-              }
-          });
-        } else {
-          alert('✗ 존재하는 이메일 입니다.');
-        }
-    },
-    error: function() {
-              // 중복확인 메서들 따로 만들기는 하였으나 어차피 데이터 제약조건이 유니크라서 SQL에서 중복 차단
-        alert('중복확인 중 오류가 발생했습니다.');
-    }
-       
-  });
-  }
 
 // 2. 사용자가 입력한 6자리 인증번호를 확인
 function verifyEmail() {
@@ -123,43 +76,6 @@ function verifyEmail() {
 
 // 글로벌 변수로 휴대폰 인증 여부 체크용 플래그 선언
 let isPhoneVerified = false;
-
-// 1. 전화번호로 인증번호 발송 요청 (가상 시뮬레이터 가동)
-function sendSms() {
-  const phone = $('#phone').val();
-  if (!phone) {
-      alert('전화번호를 입력해 주세요.');
-      return;
-  }
-  $.ajax({
-      url: eContextPath + "/member/checkPhone", // 컨트롤러 매핑 주소
-      type: 'POST',
-      data: { phone: phone },
-      success: function(isSuccess) {
-        if (isSuccess) {
-          $.ajax({
-              url: eContextPath + "/member/sendSms", // 컨트롤러 매핑 주소
-              type: 'POST',
-              data: { phone: phone },
-              success: function(response) {
-                  alert('인증번호가 발송되었습니다.');
-                  $('#phoneAuthArea').show(); // 숨겨진 인증박스 오픈
-                  $('#phoneAuthResult').text('인증번호 6자리 숫자를 입력하세요.').css('color', '#666');
-              },
-              error: function() {
-                  alert('문자 발송 요청 중 오류가 발생했습니다 핸드폰 번호를 확인해 주세요! ');
-              }
-          });
-        } else {
-          alert('✗ 존재하는 핸드폰 입니다.');
-        }
-    },
-    error: function() {
-        alert('중복확인 중 오류가 발생했습니다.');
-    }
-  });
-  
-}
 
 // 2. 사용자가 입력한 가상 인증번호 검증
 function verifySms() {

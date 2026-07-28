@@ -275,3 +275,52 @@
       event.returnValue = '';
   });
 })();
+(function () {
+    // class로 모든 카드 변경 버튼을 가져옵니다.
+    const changeCardButtons = document.querySelectorAll('.btn-change-card');
+    if (changeCardButtons.length === 0) return;
+
+    changeCardButtons.forEach(function (button) {
+        button.addEventListener('click', async function (e) {
+            e.preventDefault();
+
+            // 클릭된 버튼의 data-card-idx 값 추출
+            const card_idx = this.dataset.cardIdx;
+
+            if (!card_idx) {
+                alert("카드 정보를 찾을 수 없습니다.");
+                return;
+            }
+
+            try {
+                showMemberModal('card', 'processing', '변경 중입니다.', '잠시만 기다려주세요.');
+
+                const response = await fetch('/payment/updatePrimaryCard.do', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'Accept': 'application/json'
+                    },
+                    body: new URLSearchParams({ card_idx: card_idx })
+                });
+
+                const result = await response.json();
+
+                if (result.code === 'UPDATE_COMPLETED' || result.success) {
+                    showMemberModal('card', 'success', '카드 변경 성공!', result.message || '카드 변경이 완료되었습니다.');
+                    
+                    // 1초 후 페이지 새로고침하여 적용 상태 반영
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showMemberModal('card', 'error', '카드 변경 실패', result.message || '카드 변경 중 오류가 발생하였습니다.');
+                }
+
+            } catch (error) {
+                console.error("🚨 에러 발생:", error);
+                showMemberModal('card', 'error', '시스템 오류', '카드 변경 처리 중 통신 오류가 발생했습니다.');
+            }
+        });
+    });
+})();

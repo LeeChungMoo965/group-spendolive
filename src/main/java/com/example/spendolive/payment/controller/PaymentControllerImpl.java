@@ -1,11 +1,14 @@
 package com.example.spendolive.payment.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,7 +16,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.service.MemberService;
 import com.example.spendolive.ott.service.OttService;
 import com.example.spendolive.payment.domain.PaymentAjaxResponse;
 import com.example.spendolive.payment.domain.PaymentAmountDTO;
@@ -31,7 +36,8 @@ public class PaymentControllerImpl implements PaymentController {
 
     @Autowired
     private PaymentService paymentService;
-
+    @Autowired
+    private MemberService memberService;
     @Autowired
     private OttService ottService;
 
@@ -47,7 +53,8 @@ public class PaymentControllerImpl implements PaymentController {
         MemberVO memberVO = session == null
                 ? null
                 : (MemberVO) session.getAttribute("memberInfo");
-
+        List<MemberCardVO> cardList = memberService.getCardById(memberVO.getId());
+        session.setAttribute("cardList", cardList);
         if (!isLoggedIn(memberVO)) {
             return new ModelAndView("redirect:/member/loginForm.do");
         }
@@ -305,5 +312,33 @@ public class PaymentControllerImpl implements PaymentController {
 
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }
-    
+    @Override
+    @PostMapping("/updatePrimaryCard.do")
+    public ResponseEntity<PaymentAjaxResponse> updatePrimaryCard(@RequestParam("card_idx") String card_idxstr,@RequestHeader(value = "Referer", required = false) String referer,  HttpServletRequest request,HttpSession session) throws Exception {
+        int card_idx = Integer.parseInt(card_idxstr);
+        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+        String userId = memberVO.getId();
+        try{
+        memberService.updatePrimaryCard(userId,card_idx);
+        return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new PaymentAjaxResponse(
+                            true,
+                            "UPDATE_COMPLETED",
+                            "변경에 성공하였습니다.",
+                            "SUCCESS",
+                            null,
+                            null));
+        }catch(PaymentProcessException e){
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new PaymentAjaxResponse(
+                            false,
+                            "UPDATE_FAILED",
+                            "변경에 실패하였습니다.",
+                            "FAILED",
+                            null,
+                            null ));
+        }
+    }
 }
