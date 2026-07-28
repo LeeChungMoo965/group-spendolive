@@ -4,7 +4,7 @@
 
 <%-- admin.css는 common/header.jsp가 role=='ADMIN'일 때 이미 자동으로 로드해줌 → 여기서 또 링크할 필요 없음 --%>
 
-<div class="admin-main admin-board-page">
+<div class="admin-main" data-admin-page="faq">
 
     <div class="hero">
         <div>
@@ -101,5 +101,3 @@
     </div>
     </div>
 </div>
-
-<script src="${contextPath}/resources/js/admin.js"></script>

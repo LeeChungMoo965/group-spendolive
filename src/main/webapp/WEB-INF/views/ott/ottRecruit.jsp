@@ -44,7 +44,7 @@
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산 관리</a>
         </div>
 
-        <div class="ott-tab-content">
+        <div>
             <c:choose>
                 <%-- 전체 모집글 탭 --%>
                 <c:when test="${tab eq 'all'}">
@@ -55,12 +55,12 @@
                         주의: 이 JSP는 화면과 요청 전송만 담당한다.
                              실제 방 찾기/구성원 저장 로직은 Controller → Service → Repository에서 처리한다.
                     --%>
-                    <article class="card ott-tab-panel quick-join-panel">
+                    <article class="card ott-tab-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">QUICK JOIN</p>
                                 <h2>빠른 참가</h2>
-                                <p class="panel-description">
+                                <p>
                                     원하는 OTT를 선택하면 오래된 모집방 중 자리가 비어있는 방부터 자동으로 참여합니다.
                                 </p>
                             </div>
@@ -82,7 +82,7 @@
                         --%>
                         <form action="${contextPath}/spendolive/ott/recruit/quick-join.do"
                             method="post"
-                            class="recruit-filter-form quick-join-form">
+                            class="quick-join-form">
 
                                 <%--
                                     빠른 참가에서는 roomId가 없다.
@@ -91,7 +91,7 @@
                                     여기서 선택한 ottServiceId를 서버로 보내면,
                                     서버가 이 OTT에 해당하는 빈 모집방을 자동으로 찾는다.
                                 --%>
-                            <div class="recruit-filter-grid quick-join-grid">
+                            <div class="quick-join-grid">
                                 <label>
                                     OTT 종류
                                     <select name="ott_service_id" class="form-control ott-service-select" required>
@@ -126,7 +126,7 @@
                     <br>
 
                     <%-- 모집글 검색 및 목록 --%>
-                    <article class="card ott-tab-panel recruit-list-panel">
+                    <article class="card ott-tab-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">ALL POSTS</p>
@@ -137,30 +137,27 @@
 
                         <form action="${contextPath}/spendolive/ott/recruit.do" method="get" class="recruit-search-form">
                             <input type="hidden" name="tab" value="all">
-
-                            <%-- 검색 영역은 인증 폼 공통 클래스와 분리해 높이와 여백을 동일하게 맞춘다. --%>
-                            <div class="recruit-search-field">
-                                <label>
-                                    <span>OTT 종류</span>
-                                    <select name="ott_service_id">
-                                        <option value="">전체 OTT</option>
-                                        <c:forEach var="service" items="${serviceList}">
-                                            <option value="${service.ott_service_id}" ${selectedOttServiceId eq service.ott_service_id ? 'selected' : ''}>
-                                                ${service.service_name}
-                                            </option>
-                                        </c:forEach>
-                                    </select>
-                                </label>
+                        <div class="auth-form-group">
+                            <label>
+                                <span>OTT 종류</span>
+                                <select name="ott_service_id">
+                                    <option value="">전체 OTT</option>
+                                    <c:forEach var="service" items="${serviceList}">
+                                        <option value="${service.ott_service_id}" ${selectedOttServiceId eq service.ott_service_id ? 'selected' : ''}>
+                                            ${service.service_name}
+                                        </option>
+                                    </c:forEach>
+                                </select>
+                            </label>
+                            
                             </div>
-
-                            <div class="recruit-search-field">
-                                <label class="recruit-search-keyword">
-                                    <span>방 제목</span>
-                                    <input type="text" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}" placeholder="예) 모집합니다">
-                                </label>
-                            </div>
-
-                            <div class="recruit-search-actions">
+                            <div class="auth-form-group">
+                            <label>
+                                <span>방 제목</span>
+                                <input type="text" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}" placeholder="예) 모집합니다">
+                            </label>
+                         </div>
+                          <div class="auth-form-group">
                                 <button type="submit" class="btn btn-primary">검색</button>
                                 <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="btn btn-danger-outline">초기화</a>
                             </div>
@@ -334,7 +331,7 @@
                         </section>
 
                         <%-- 참여자 관리 영역 --%>
-                        <section class="manage-section joined-section">
+                        <section class="manage-section">
                             <div class="settlement-sub-header">
                                 <div>
                                     <h3>내가 참여한 방</h3>
@@ -347,7 +344,7 @@
                                 <c:when test="${not empty joinedRoomList}">
                                     <div class="ott-room-card-list manage-room-list">
                                         <c:forEach var="room" items="${joinedRoomList}" varStatus="roomStatus">
-                                            <div class="ott-room-card manage-room-card joined-room-card">
+                                            <div class="ott-room-card manage-room-card">
                                                 <div class="room-index-badge">${roomStatus.count}</div>
                                                 <div class="family-room-info">
                                                     <strong>${room.room_name}</strong>
@@ -399,7 +396,7 @@
 
                         <div class="settlement-stack">
                             <%-- 개인 및 팀원 결제 상태 --%>
-                            <section class="settlement-wide-block settlement-status-block">
+                            <section class="settlement-wide-block">
                                 <div class="settlement-sub-header">
                                     <div>
                                         <h3>내 정산 상태</h3>

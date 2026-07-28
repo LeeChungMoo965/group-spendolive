@@ -4,7 +4,7 @@
 
 <%-- admin.css는 common/header.jsp가 role=='ADMIN'일 때 이미 자동으로 로드해줌 → 여기서 또 링크할 필요 없음 --%>
 
-<div class="admin-main admin-board-page">
+<div class="admin-main" data-admin-page="notice">
 
     <div class="hero">
         <div>
@@ -90,7 +90,7 @@
                 <c:if test="${pgStart > 1}">
                     <a class="admin-pg-btn" href="${contextPath}/admin/notice/list.do?page=1">1</a>
                     <c:if test="${pgStart > 2}">
-                        <span class="admin-pg-ellipsis">…</span>
+                        <span>…</span>
                     </c:if>
                 </c:if>
 
@@ -101,7 +101,7 @@
 
                 <c:if test="${pgEnd < totalPages}">
                     <c:if test="${pgEnd < totalPages - 1}">
-                        <span class="admin-pg-ellipsis">…</span>
+                        <span>…</span>
                     </c:if>
                     <a class="admin-pg-btn" href="${contextPath}/admin/notice/list.do?page=${totalPages}">${totalPages}</a>
                 </c:if>

@@ -4,7 +4,7 @@
 
 <%-- admin.css는 common/header.jsp가 role=='ADMIN'일 때 이미 자동으로 로드해줌 --%>
 
-<div class="admin-main admin-board-page">
+<div class="admin-main" data-admin-page="inquiry">
 
     <div class="hero">
         <div>
@@ -106,7 +106,7 @@
                 <c:if test="${pgStart > 1}">
                     <a class="admin-pg-btn" href="${contextPath}/admin/inquiry/list.do?status=${currentStatus}&page=1">1</a>
                     <c:if test="${pgStart > 2}">
-                        <span class="admin-pg-ellipsis">…</span>
+                        <span>…</span>
                     </c:if>
                 </c:if>
 
@@ -117,7 +117,7 @@
 
                 <c:if test="${pgEnd < totalPages}">
                     <c:if test="${pgEnd < totalPages - 1}">
-                        <span class="admin-pg-ellipsis">…</span>
+                        <span>…</span>
                     </c:if>
                     <a class="admin-pg-btn" href="${contextPath}/admin/inquiry/list.do?status=${currentStatus}&page=${totalPages}">${totalPages}</a>
                 </c:if>
@@ -127,7 +127,7 @@
 
     <%-- 문의별 상세+답변폼 숨김 템플릿 --%>
     <c:forEach var="inq" items="${inquiryList}">
-        <div class="admin-inq-detail-tpl" id="adminInqDetailTpl${inq.inquiry_id}" style="display:none">
+        <div id="adminInqDetailTpl${inq.inquiry_id}" style="display:none">
             <p class="section-kicker">문의 #${inq.inquiry_id}</p>
             <h2 style="margin:4px 0 10px;">${inq.title}</h2>
             <p style="color:var(--muted);margin-bottom:16px;">
@@ -145,13 +145,13 @@
                 </c:choose>
             </p>
 
-            <div class="form-group">
+            <div>
                 <label>문의 내용</label>
                 <div style="white-space:pre-wrap;padding:14px;border:1px solid #eef0e1;border-radius:12px;background:#fffef8;">${inq.content}</div>
             </div>
 
             <c:if test="${not empty inq.files}">
-                <div class="form-group">
+                <div>
                     <label>첨부파일</label>
                     <div style="display:flex;flex-wrap:wrap;gap:8px;">
                         <c:forEach var="file" items="${inq.files}">
@@ -178,13 +178,13 @@
                 <input type="hidden" name="listStatus" value="${currentStatus}">
                 <input type="hidden" name="listPage" value="${currentPage}">
 
-                <div class="form-row" style="display:grid;grid-template-columns:1fr 160px;gap:14px;">
-                    <div class="form-group">
+                <div style="display:grid;grid-template-columns:1fr 160px;gap:14px;">
+                    <div>
                         <label for="reply_content_${inq.inquiry_id}">답변 내용</label>
                         <textarea id="reply_content_${inq.inquiry_id}" name="reply_content" class="form-textarea"
                                   placeholder="답변 내용을 입력하세요" required>${inq.reply_content}</textarea>
                     </div>
-                    <div class="form-group">
+                    <div>
                         <label for="status_${inq.inquiry_id}">처리 상태</label>
                         <select id="status_${inq.inquiry_id}" name="status" class="select-input" style="width:100%;">
                             <option value="DONE"   ${inq.status == 'REVIEW' ? '' : 'selected'}>답변 완료</option>
@@ -201,12 +201,10 @@
     </c:forEach>
 
     <div class="modal" id="adminInqDetailModal" onclick="closeAdminInquiryModal(event)">
-        <div class="modal-box modal-admin-inquiry" onclick="event.stopPropagation()">
+        <div class="modal-box" onclick="event.stopPropagation()">
             <button type="button" class="modal-close" onclick="closeAdminInquiryModal(event)">✕</button>
             <div id="adminInqDetailBody"></div>
         </div>
     </div>
     </div>
 </div>
-
-<script src="${contextPath}/resources/js/admin.js"></script>

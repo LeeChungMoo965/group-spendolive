@@ -41,7 +41,7 @@
                         </a>
                     </div>
                     <div class="hero-stats">
-                        <div class="dashboard" >
+                        <div>
                             <strong>
                             <span id="mainTotalStat">1,284,000원</span>
                         </strong>

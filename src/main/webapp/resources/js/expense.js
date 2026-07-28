@@ -312,6 +312,46 @@
     const amountSort = document.getElementById('expenseAmountSort');
     const expenseRows = Array.from(document.querySelectorAll('.expense-row'));
     const expenseTbody = document.getElementById('expenseRows');
+    const categoryFilterMasterList = categoryFilter
+        ? Array.from(categoryFilter.querySelectorAll('option[data-type]')).map(option => ({
+            value: option.value,
+            type: (option.dataset.type || '').trim(),
+            text: option.textContent.trim()
+        }))
+        : [];
+
+    // 목록의 분류를 선택하면 해당 분류에 속한 카테고리만 필터 선택창에 표시한다.
+    function syncExpenseCategoryFilter() {
+        if (!typeFilter || !categoryFilter) {
+            return;
+        }
+
+        const selectedType = typeFilter.value;
+        const previousCategory = categoryFilter.value;
+        const visibleCategories = selectedType
+            ? categoryFilterMasterList.filter(category => category.type === selectedType)
+            : categoryFilterMasterList;
+
+        categoryFilter.innerHTML = '';
+
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = selectedType ? '해당 분류 전체 카테고리' : '전체 카테고리';
+        categoryFilter.appendChild(allOption);
+
+        visibleCategories.forEach(function (category) {
+            const option = document.createElement('option');
+            option.value = category.value;
+            option.dataset.type = category.type;
+            option.textContent = category.text;
+            categoryFilter.appendChild(option);
+        });
+
+        const canKeepPreviousCategory = visibleCategories.some(
+            category => category.value === previousCategory
+        );
+        categoryFilter.value = canKeepPreviousCategory ? previousCategory : '';
+    }
 
     function filterExpenseRows() {
         const selectedType = typeFilter.value;
@@ -353,13 +393,21 @@
         }
     }
 
-    [typeFilter, categoryFilter, amountSort].forEach(filter => {
+    if (typeFilter) {
+        typeFilter.addEventListener('change', function () {
+            syncExpenseCategoryFilter();
+            filterExpenseRows();
+        });
+    }
+
+    [categoryFilter, amountSort].forEach(filter => {
         if (filter) {
             filter.addEventListener('change', filterExpenseRows);
         }
     });
 
-    // 최초 진입 시에도 현재 필터 조건과 빈 목록 안내를 한 번 적용한다.
+    // 최초 진입 시에도 분류에 맞는 카테고리와 현재 필터 조건을 적용한다.
     if (typeFilter && categoryFilter && amountSort && expenseTbody) {
+        syncExpenseCategoryFilter();
         filterExpenseRows();
     }

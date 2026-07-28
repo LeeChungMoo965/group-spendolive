@@ -9,7 +9,7 @@
 --%>
 
 <%-- 채팅방 기본정보 --%>
-<section id="ottChatPage" class="page-hero ott-sub-hero chat-page-hero"
+<section id="ottChatPage" class="page-hero ott-sub-hero"
          data-context-path="${contextPath}"
          data-room-id="${chatRoom.room_id}"
          data-message="${fn:escapeXml(msg)}">

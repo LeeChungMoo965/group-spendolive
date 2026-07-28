@@ -143,7 +143,7 @@
                 </c:otherwise>
             </c:choose>
         </article>
-        <br>
+
         <%-- 가족방 생성 폼 --%>
         <article id="createRoom" class="card ott-tab-panel">
             <div class="panel-header">
@@ -212,7 +212,7 @@
 
             <div class="settlement-stack">
                 <%-- 개인 및 팀원 결제 상태 --%>
-                <section class="settlement-wide-block settlement-status-block">
+                <section class="settlement-wide-block">
                     <div class="settlement-sub-header">
                         <div>
                             <h3>정산 상태</h3>

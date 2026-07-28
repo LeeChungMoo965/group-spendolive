@@ -441,6 +441,13 @@
                         </table>
                     </div>
 
+                    <%-- 거래내역이 10건을 초과하면 기존 계좌·카드 페이지 버튼 스타일로 페이지를 이동한다. --%>
+                    <div id="accountTransactionPager" class="mypage-form-actions mypage-asset-pager is-hidden" hidden>
+                        <button type="button" class="btn btn-outline btn-mini" data-transaction-page="prev">이전</button>
+                        <span><b id="accountTransactionCurrentPage">1</b> / <b id="accountTransactionTotalPage">1</b></span>
+                        <button type="button" class="btn btn-outline btn-mini" data-transaction-page="next">다음</button>
+                    </div>
+
                     <div class="mypage-account-box">
                         <span>계좌 등록 당시 잔액</span>
                         <strong id="accountTransactionInitialBalance">0원</strong>
@@ -467,6 +474,22 @@
                                     <c:out value="${empty card.card_company ? '카드' : card.card_company}" />
                                     카드번호 - <c:out value="${card.card_number}" />
                                 </p>
+                            </div>
+
+                            <%-- 계좌의 주계좌 UI와 같은 버튼·상태 디자인을 재사용한다. --%>
+                            <div>
+                                <c:choose>
+                                    <c:when test="${card.status eq 'YES'}">
+                                        <span class="chip done">주카드</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form action="${contextPath}/spendolive/mypage/card/primary/update.do" method="post">
+                                            <input type="hidden" name="cardIdx" value="${card.card_idx}">
+                                            <button type="submit" class="btn btn-primary btn-mini"
+                                                    onclick="return confirm('이 카드를 주카드로 설정할까요?');">주카드로 설정</button>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
                     </c:forEach>

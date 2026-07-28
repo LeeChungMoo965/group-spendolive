@@ -4,6 +4,11 @@ function getMyPageContextPath() {
     return page ? (page.dataset.contextPath || '') : '';
 }
 
+// 거래내역은 전체 데이터를 유지한 채 화면 출력만 10건씩 나눈다.
+const ACCOUNT_TRANSACTION_PAGE_SIZE = 10;
+let accountTransactionList = [];
+let accountTransactionCurrentPage = 1;
+
 /* =========================================================
    [마이페이지 계좌·카드 연결 JavaScript 추가 시작]
    화면 전환, 계좌 제목 수정, 계좌·카드 4개 단위 페이지 처리를 담당한다.
@@ -117,6 +122,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    initializeAccountTransactionPager();
+
     const targetId = window.location.hash.replace('#', '');
     if (['profile-edit', 'report-manage', 'asset-manage'].includes(targetId)) {
         showMyPagePanel(targetId);
@@ -139,6 +146,9 @@ function loadAccountTransactions(button) {
     document.getElementById('accountTransactionInitialBalance').textContent = '-';
 
     tbody.innerHTML = '<tr><td colspan="4">거래내역을 불러오는 중입니다.</td></tr>';
+    accountTransactionList = [];
+    accountTransactionCurrentPage = 1;
+    setAccountTransactionPagerVisible(false);
     // mypage-form-section의 display:grid가 hidden 표시를 덮어쓰지 않도록 숨김 클래스도 함께 제거한다.
     panel.classList.remove('is-hidden');
     panel.hidden = false;
@@ -166,6 +176,9 @@ function loadAccountTransactions(button) {
             panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         })
         .catch(function (error) {
+            accountTransactionList = [];
+            accountTransactionCurrentPage = 1;
+            setAccountTransactionPagerVisible(false);
             tbody.innerHTML = '';
             const row = document.createElement('tr');
             const cell = document.createElement('td');
@@ -178,24 +191,63 @@ function loadAccountTransactions(button) {
 
 /* 최신 거래가 위로 오도록 전달된 거래내역과 거래 직후 잔액을 표에 출력한다. */
 function renderAccountTransactions(transactionList, currentBalance) {
-    const tbody = document.getElementById('accountTransactionBody');
     const initialBalanceTarget = document.getElementById('accountTransactionInitialBalance');
-    const transactions = Array.isArray(transactionList) ? transactionList : [];
+    accountTransactionList = Array.isArray(transactionList) ? transactionList : [];
+    accountTransactionCurrentPage = 1;
+
+    if (accountTransactionList.length === 0) {
+        renderAccountTransactionPage();
+        initialBalanceTarget.textContent = formatWon(currentBalance);
+        return;
+    }
+
+    // 최초 잔액은 현재 페이지 10건이 아니라 전체 거래내역의 가장 오래된 거래를 기준으로 계산한다.
+    const oldestTransaction = accountTransactionList[accountTransactionList.length - 1];
+    if (oldestTransaction.balance_after === null || oldestTransaction.balance_after === undefined) {
+        initialBalanceTarget.textContent = '기록 없음';
+    } else {
+        const initialBalance =
+            Number(oldestTransaction.balance_after) - getSignedTransactionAmount(oldestTransaction);
+        initialBalanceTarget.textContent = formatWon(initialBalance);
+    }
+
+    renderAccountTransactionPage();
+}
+
+/* 현재 거래내역 페이지의 최대 10건만 표에 출력한다. */
+function renderAccountTransactionPage() {
+    const tbody = document.getElementById('accountTransactionBody');
+    const pager = document.getElementById('accountTransactionPager');
+    const currentPageText = document.getElementById('accountTransactionCurrentPage');
+    const totalPageText = document.getElementById('accountTransactionTotalPage');
+
+    if (!tbody || !pager || !currentPageText || !totalPageText) {
+        return;
+    }
 
     tbody.innerHTML = '';
 
-    if (transactions.length === 0) {
+    if (accountTransactionList.length === 0) {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
         cell.colSpan = 4;
         cell.textContent = '등록된 거래내역이 없습니다.';
         row.appendChild(cell);
         tbody.appendChild(row);
-        initialBalanceTarget.textContent = formatWon(currentBalance);
+        setAccountTransactionPagerVisible(false);
         return;
     }
 
-    transactions.forEach(function (transaction) {
+    const totalPages = Math.ceil(accountTransactionList.length / ACCOUNT_TRANSACTION_PAGE_SIZE);
+    accountTransactionCurrentPage = Math.min(Math.max(accountTransactionCurrentPage, 1), totalPages);
+
+    const startIndex = (accountTransactionCurrentPage - 1) * ACCOUNT_TRANSACTION_PAGE_SIZE;
+    const pageTransactions = accountTransactionList.slice(
+        startIndex,
+        startIndex + ACCOUNT_TRANSACTION_PAGE_SIZE
+    );
+
+    pageTransactions.forEach(function (transaction) {
         const row = document.createElement('tr');
         const signedAmount = getSignedTransactionAmount(transaction);
 
@@ -212,15 +264,53 @@ function renderAccountTransactions(transactionList, currentBalance) {
         tbody.appendChild(row);
     });
 
-    // 가장 오래된 거래의 직후 잔액에서 그 거래 금액을 되돌려 계좌 등록 당시 잔액을 계산한다.
-    const oldestTransaction = transactions[transactions.length - 1];
-    if (oldestTransaction.balance_after === null || oldestTransaction.balance_after === undefined) {
-        initialBalanceTarget.textContent = '기록 없음';
-    } else {
-        const initialBalance =
-            Number(oldestTransaction.balance_after) - getSignedTransactionAmount(oldestTransaction);
-        initialBalanceTarget.textContent = formatWon(initialBalance);
+    currentPageText.textContent = accountTransactionCurrentPage;
+    totalPageText.textContent = totalPages;
+    setAccountTransactionPagerVisible(totalPages > 1);
+
+    const prevButton = pager.querySelector('[data-transaction-page="prev"]');
+    const nextButton = pager.querySelector('[data-transaction-page="next"]');
+    if (prevButton) {
+        prevButton.disabled = accountTransactionCurrentPage === 1;
     }
+    if (nextButton) {
+        nextButton.disabled = accountTransactionCurrentPage === totalPages;
+    }
+}
+
+/* 기존 마이페이지 페이지 버튼을 거래내역에도 그대로 연결한다. */
+function initializeAccountTransactionPager() {
+    const pager = document.getElementById('accountTransactionPager');
+    if (!pager) {
+        return;
+    }
+
+    pager.querySelectorAll('[data-transaction-page]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const direction = button.dataset.transactionPage;
+            const totalPages = Math.max(1, Math.ceil(accountTransactionList.length / ACCOUNT_TRANSACTION_PAGE_SIZE));
+
+            if (direction === 'prev' && accountTransactionCurrentPage > 1) {
+                accountTransactionCurrentPage -= 1;
+            } else if (direction === 'next' && accountTransactionCurrentPage < totalPages) {
+                accountTransactionCurrentPage += 1;
+            } else {
+                return;
+            }
+
+            renderAccountTransactionPage();
+        });
+    });
+}
+
+function setAccountTransactionPagerVisible(visible) {
+    const pager = document.getElementById('accountTransactionPager');
+    if (!pager) {
+        return;
+    }
+
+    pager.hidden = !visible;
+    pager.classList.toggle('is-hidden', !visible);
 }
 
 /* 사용자 입력값을 HTML 문자열로 합치지 않고 textContent로 안전하게 출력한다. */
@@ -270,6 +360,9 @@ function closeAccountTransactions() {
     // mypage-form-section의 display:grid보다 우선하는 공통 숨김 클래스로 거래내역 영역을 닫는다.
     panel.classList.add('is-hidden');
     panel.hidden = true;
+    accountTransactionList = [];
+    accountTransactionCurrentPage = 1;
+    setAccountTransactionPagerVisible(false);
 }
 /* [마이페이지 계좌·카드 연결 JavaScript 추가 끝] */
 
