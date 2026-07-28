@@ -146,7 +146,7 @@
                             </select>
                         </label>
 
-                        <label id="repeatCycleArea" style="display:none;">
+                        <label id="repeatCycleArea" class="expense-hidden">
                             반복 주기
                             <select id="repeat_cycle" name="repeat_cycle">
                                 <option value="">반복 없음</option>
@@ -174,12 +174,11 @@
                             <p class="card-desc">선택한 달의 지출만 표시됩니다.</p>
                         </div>
 
-                        <form action="${contextPath}/spendolive/expense/list.do" method="get" class="month-search-form">
+                        <form action="${contextPath}/spendolive/expense/list.do" method="get">
                             <input type="month"
                                    name="yearMonth"
                                    value="${selectedYearMonth}"
-                                   onchange="this.form.submit()"
-                                   class="month-picker-input">
+                                   onchange="this.form.submit()">
                         </form>
                     </div>
                     <div class="expense-filter-bar">
@@ -194,7 +193,7 @@
                             <option value="">전체 카테고리</option>
 
                             <c:forEach var="category" items="${categoryList}">
-                                <option value="${category.category_id}">
+                                <option value="${category.category_id}" data-type="${category.expense_type}">
                                     ${category.category_name}
                                 </option>
                             </c:forEach>
@@ -225,8 +224,18 @@
                                 <c:forEach var="expense" items="${expenseList}" varStatus="status">
                                     <fmt:formatDate var="expenseDateValue" value="${expense.expense_date}" pattern="yyyy-MM-dd" />
 
+                                    <%--
+                                        자동 반복 내역은 같은 원본 expense_id를 공유할 수 있으므로
+                                        발생 날짜를 붙여 화면 행 키를 고유하게 만든다.
+                                    --%>
+                                    <c:set var="expenseRowKey" value="${expense.expense_id}" />
+                                    <c:if test="${expense.auto_generated_yn == 'Y'}">
+                                        <c:set var="expenseRowKey" value="${expense.expense_id}_${expenseDateValue}" />
+                                    </c:if>
+
                                     <tr class="expense-row"
-                                    data-expense-id="${expense.expense_id}"
+                                    data-expense-id="${expenseRowKey}"
+                                    data-source-expense-id="${expense.expense_id}"
                                     data-type="${expense.expense_type}"
                                     data-category="${expense.category_id}"
                                     data-amount="${expense.amount}"
@@ -235,7 +244,7 @@
                                             <span class="view-mode">
                                                 <fmt:formatDate value="${expense.expense_date}" pattern="yyyy.MM.dd" />
                                             </span>
-                                            <input class="edit-mode" form="editForm${expense.expense_id}" type="date" name="expense_date" value="${expenseDateValue}" required style="display:none;">
+                                            <input class="edit-mode expense-hidden" form="editForm${expense.expense_id}" type="date" name="expense_date" value="${expenseDateValue}" required>
                                         </td>
 
                                         <td>
@@ -245,7 +254,7 @@
                                                     <span class="tag">자동</span>
                                                 </c:if>
                                             </span>
-                                            <input class="edit-mode" form="editForm${expense.expense_id}" type="text" name="expense_title" value="${expense.expense_title}" required style="display:none;">
+                                            <input class="edit-mode expense-hidden" form="editForm${expense.expense_id}" type="text" name="expense_title" value="${expense.expense_title}" required>
                                         </td>
 
                                         <td>
@@ -257,7 +266,7 @@
                                                     <c:otherwise>${expense.expense_type}</c:otherwise>
                                                 </c:choose>
                                             </span>
-                                            <select class="edit-mode edit-expense-type" form="editForm${expense.expense_id}" name="expense_type" data-row-id="${expense.expense_id}" onchange="filterEditCategoriesFromSelect(this)" required style="display:none;">
+                                            <select class="edit-mode edit-expense-type expense-hidden" form="editForm${expense.expense_id}" name="expense_type" data-row-id="${expense.expense_id}" onchange="filterEditCategoriesFromSelect(this)" required>
                                                 <option value="FIXED" ${expense.expense_type == 'FIXED' ? 'selected' : ''}>고정</option>
                                                 <option value="VARIABLE" ${expense.expense_type == 'VARIABLE' ? 'selected' : ''}>변동</option>
                                                 <option value="OTT" ${expense.expense_type == 'OTT' ? 'selected' : ''}>OTT</option>
@@ -266,7 +275,7 @@
 
                                         <td>
                                             <span class="view-mode">${expense.category_name}</span>
-                                            <select class="edit-mode edit-category" form="editForm${expense.expense_id}" name="category_id" data-row-id="${expense.expense_id}" required style="display:none;">
+                                            <select class="edit-mode edit-category expense-hidden" form="editForm${expense.expense_id}" name="category_id" data-row-id="${expense.expense_id}" required>
                                                 <c:forEach var="category" items="${categoryList}">
                                                     <option value="${category.category_id}" data-type="${category.expense_type}" ${category.category_id == expense.category_id ? 'selected' : ''}>
                                                         ${category.category_name}
@@ -279,7 +288,7 @@
                                             <span class="view-mode">
                                                 <fmt:formatNumber value="${expense.amount}" pattern="#,###" />원
                                             </span>
-                                            <input class="edit-mode" form="editForm${expense.expense_id}" type="number" name="amount" value="${expense.amount}" min="0" required style="display:none;">
+                                            <input class="edit-mode expense-hidden" form="editForm${expense.expense_id}" type="number" name="amount" value="${expense.amount}" min="0" required>
                                         </td>
 
                                         <td>
@@ -293,7 +302,7 @@
                                                     <c:otherwise>-</c:otherwise>
                                                 </c:choose>
                                             </span>
-                                            <select class="edit-mode" form="editForm${expense.expense_id}" name="payment_method" style="display:none;">
+                                            <select class="edit-mode expense-hidden" form="editForm${expense.expense_id}" name="payment_method">
                                                 <option value="" ${empty expense.payment_method ? 'selected' : ''}>선택 안함</option>
                                                 <option value="CARD" ${expense.payment_method == 'CARD' ? 'selected' : ''}>카드</option>
                                                 <option value="CASH" ${expense.payment_method == 'CASH' ? 'selected' : ''}>현금</option>
@@ -312,7 +321,7 @@
                                                     <c:otherwise>-</c:otherwise>
                                                 </c:choose>
                                             </span>
-                                            <select class="edit-mode edit-repeat-cycle" form="editForm${expense.expense_id}" name="repeat_cycle" data-row-id="${expense.expense_id}" onchange="changeEditRepeatYnFromSelect(this)" style="display:none;">
+                                            <select class="edit-mode edit-repeat-cycle expense-hidden" form="editForm${expense.expense_id}" name="repeat_cycle" data-row-id="${expense.expense_id}" onchange="changeEditRepeatYnFromSelect(this)">
                                                 <option value="" ${empty expense.repeat_cycle ? 'selected' : ''}>반복 없음</option>
                                                 <option value="MONTHLY" ${expense.repeat_cycle == 'MONTHLY' ? 'selected' : ''}>매월</option>
                                                 <option value="WEEKLY" ${expense.repeat_cycle == 'WEEKLY' ? 'selected' : ''}>매주</option>
@@ -334,10 +343,10 @@
                                                         <input type="hidden" form="editForm${expense.expense_id}" name="memo" value="${expense.memo}">
                                                     </form>
 
-                                                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                                    <div class="expense-action-buttons">
                                                         <button type="button" class="btn btn-primary edit-btn" onclick="changeEditMode(this)">수정</button>
-                                                        <button type="submit" form="editForm${expense.expense_id}" class="btn btn-primary save-btn" style="display:none;">완료</button>
-                                                        <button type="button" class="btn btn-outline cancel-btn" onclick="cancelEditMode(this)" style="display:none;">취소</button>
+                                                        <button type="submit" form="editForm${expense.expense_id}" class="btn btn-primary save-btn expense-hidden">완료</button>
+                                                        <button type="button" class="btn btn-outline cancel-btn expense-hidden" onclick="cancelEditMode(this)">취소</button>
 
                                                         <form action="${contextPath}/spendolive/expense/delete.do" method="post" onsubmit="return confirm('이 지출 내역을 삭제하시겠습니까?');">
                                                             <input type="hidden" name="expense_id" value="${expense.expense_id}">
@@ -353,11 +362,16 @@
 
                                 <c:if test="${empty expenseList}">
                                     <tr>
-                                        <td colspan="8" style="text-align:center;">
+                                        <td colspan="8" class="expense-empty-cell">
                                             선택한 달에 등록된 지출 내역이 없습니다.
                                         </td>
                                     </tr>
                                 </c:if>
+                                <tr id="expenseFilterEmpty" class="expense-hidden">
+                                    <td colspan="8" class="expense-empty-cell">
+                                        선택한 조건에 맞는 지출 내역이 없습니다.
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -390,7 +404,7 @@
                                     <fmt:formatNumber value="${monthData.total}" pattern="#,###" />원
                                 </strong>
                                 <div class="bar-track">
-                                    <div style="height:${monthData.barPercent}%;"></div>
+                                    <div class="expense-chart-bar" data-bar-height="${monthData.barPercent}"></div>
                                 </div>
                                 <span>${monthData.monthLabel}</span>
                             </div>
@@ -421,7 +435,7 @@
                                             <span>${categoryData.percent}%</span>
                                         </div>
                                         <div class="category-progress">
-                                            <span style="width:${categoryData.percent}%;"></span>
+                                            <span class="category-progress-bar" data-progress-width="${categoryData.percent}"></span>
                                         </div>
                                         <p>
                                             <fmt:formatNumber value="${categoryData.total}" pattern="#,###" />원
@@ -466,342 +480,4 @@
 
 </main>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const expenseTypeSelect = document.getElementById('expense_type');
-        const categorySelect = document.getElementById('category_id');
-        const repeatCycleArea = document.getElementById('repeatCycleArea');
-        const repeatCycleSelect = document.getElementById('repeat_cycle');
-        const repeatYnInput = document.getElementById('repeat_yn');
-        const fixedYnInput = document.getElementById('fixed_yn');
-
-        const categoryMasterList = categorySelect
-            ? Array.from(categorySelect.querySelectorAll('option[data-type]')).map(option => ({
-                value: option.value,
-                type: (option.dataset.type || '').trim(),
-                text: option.textContent.trim()
-            }))
-            : [];
-
-        function isRepeatTargetType(type) {
-            return type === 'FIXED' || type === 'OTT';
-        }
-
-        function makeCategoryOption(category) {
-            const option = document.createElement('option');
-            option.value = category.value;
-            option.dataset.type = category.type;
-            option.textContent = category.text;
-            return option;
-        }
-
-        function renderCategoryOptions(select, selectedType, selectedValue, placeholderText) {
-            if (!select) {
-                return;
-            }
-
-            select.innerHTML = '';
-
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = placeholderText || '카테고리 선택';
-            select.appendChild(placeholder);
-
-            if (!selectedType) {
-                select.value = '';
-                return;
-            }
-
-            const filteredList = categoryMasterList.filter(category => category.type === selectedType);
-
-            if (filteredList.length === 0) {
-                placeholder.textContent = '해당 분류의 카테고리가 없습니다';
-                select.value = '';
-                return;
-            }
-
-            filteredList.forEach(category => {
-                select.appendChild(makeCategoryOption(category));
-            });
-
-            const hasSelectedValue = filteredList.some(category => category.value === String(selectedValue || ''));
-
-            if (hasSelectedValue) {
-                select.value = selectedValue;
-            } else {
-                select.value = '';
-            }
-        }
-
-        function filterCategories() {
-            if (!expenseTypeSelect || !categorySelect) {
-                return;
-            }
-
-            const selectedType = expenseTypeSelect.value;
-
-            if (!selectedType) {
-                renderCategoryOptions(categorySelect, '', '', '먼저 분류를 선택하세요');
-            } else {
-                renderCategoryOptions(categorySelect, selectedType, categorySelect.value, '카테고리 선택');
-            }
-
-            if (isRepeatTargetType(selectedType)) {
-                if (repeatCycleArea) {
-                    repeatCycleArea.style.display = 'block';
-                }
-
-                if (fixedYnInput) {
-                    fixedYnInput.value = 'Y';
-                }
-            } else {
-                if (repeatCycleArea) {
-                    repeatCycleArea.style.display = 'none';
-                }
-
-                if (repeatCycleSelect) {
-                    repeatCycleSelect.value = '';
-                }
-
-                if (repeatYnInput) {
-                    repeatYnInput.value = 'N';
-                }
-
-                if (fixedYnInput) {
-                    fixedYnInput.value = 'N';
-                }
-            }
-
-            changeRepeatYn();
-        }
-
-        function changeRepeatYn() {
-            if (!expenseTypeSelect) {
-                return;
-            }
-
-            if (isRepeatTargetType(expenseTypeSelect.value) && repeatCycleSelect && repeatCycleSelect.value !== '') {
-                if (repeatYnInput) {
-                    repeatYnInput.value = 'Y';
-                }
-
-                if (fixedYnInput) {
-                    fixedYnInput.value = 'Y';
-                }
-            } else if (isRepeatTargetType(expenseTypeSelect.value)) {
-                if (repeatYnInput) {
-                    repeatYnInput.value = 'N';
-                }
-
-                if (fixedYnInput) {
-                    fixedYnInput.value = 'Y';
-                }
-            } else {
-                if (repeatYnInput) {
-                    repeatYnInput.value = 'N';
-                }
-
-                if (fixedYnInput) {
-                    fixedYnInput.value = 'N';
-                }
-            }
-        }
-
-        function changeEditMode(button) {
-            const row = button.closest('tr');
-
-            if (!row) {
-                console.error('수정할 행을 찾을 수 없습니다.');
-                return;
-            }
-
-            row.querySelectorAll('.view-mode').forEach(element => {
-                element.style.display = 'none';
-            });
-
-            row.querySelectorAll('.edit-mode').forEach(element => {
-                element.style.display = 'inline-block';
-            });
-
-            const editButton = row.querySelector('.edit-btn');
-            const saveButton = row.querySelector('.save-btn');
-            const cancelButton = row.querySelector('.cancel-btn');
-            const deleteButton = row.querySelector('.delete-btn');
-
-            if (editButton) {
-                editButton.style.display = 'none';
-            }
-
-            if (saveButton) {
-                saveButton.style.display = 'inline-block';
-            }
-
-            if (cancelButton) {
-                cancelButton.style.display = 'inline-block';
-            }
-
-            if (deleteButton) {
-                deleteButton.style.display = 'none';
-            }
-
-            filterEditCategoriesByRow(row);
-            changeEditRepeatYnByRow(row);
-        }
-
-        function cancelEditMode(button) {
-            const row = button.closest('tr');
-
-            if (!row) {
-                return;
-            }
-
-            row.querySelectorAll('.view-mode').forEach(element => {
-                element.style.display = 'inline';
-            });
-
-            row.querySelectorAll('.edit-mode').forEach(element => {
-                element.style.display = 'none';
-            });
-
-            const editButton = row.querySelector('.edit-btn');
-            const saveButton = row.querySelector('.save-btn');
-            const cancelButton = row.querySelector('.cancel-btn');
-            const deleteButton = row.querySelector('.delete-btn');
-
-            if (editButton) {
-                editButton.style.display = 'inline-block';
-            }
-
-            if (saveButton) {
-                saveButton.style.display = 'none';
-            }
-
-            if (cancelButton) {
-                cancelButton.style.display = 'none';
-            }
-
-            if (deleteButton) {
-                deleteButton.style.display = 'inline-block';
-            }
-        }
-
-        function filterEditCategoriesFromSelect(select) {
-            const row = select.closest('tr');
-
-            if (!row) {
-                return;
-            }
-
-            filterEditCategoriesByRow(row);
-            changeEditRepeatYnByRow(row);
-        }
-
-        function changeEditRepeatYnFromSelect(select) {
-            const row = select.closest('tr');
-
-            if (!row) {
-                return;
-            }
-
-            changeEditRepeatYnByRow(row);
-        }
-
-        function filterEditCategoriesByRow(row) {
-            const typeSelect = row.querySelector('.edit-expense-type');
-            const editCategorySelect = row.querySelector('.edit-category');
-
-            if (!typeSelect || !editCategorySelect) {
-                return;
-            }
-
-            renderCategoryOptions(
-                editCategorySelect,
-                typeSelect.value,
-                editCategorySelect.value,
-                '카테고리 선택'
-            );
-        }
-
-        function changeEditRepeatYnByRow(row) {
-            const expense_id = row.dataset.expenseId;
-            const typeSelect = row.querySelector('.edit-expense-type');
-            const editRepeatCycleSelect = row.querySelector('.edit-repeat-cycle');
-            const editRepeatYnInput = document.getElementById(`editRepeatYn${expense_id}`);
-            const editFixedYnInput = document.getElementById(`editFixedYn${expense_id}`);
-
-            if (!typeSelect || !editRepeatCycleSelect || !editRepeatYnInput || !editFixedYnInput) {
-                return;
-            }
-
-            if (isRepeatTargetType(typeSelect.value)) {
-                editFixedYnInput.value = 'Y';
-
-                if (editRepeatCycleSelect.value !== '') {
-                    editRepeatYnInput.value = 'Y';
-                } else {
-                    editRepeatYnInput.value = 'N';
-                }
-            } else {
-                editFixedYnInput.value = 'N';
-                editRepeatYnInput.value = 'N';
-                editRepeatCycleSelect.value = '';
-            }
-        }
-
-        window.changeEditMode = changeEditMode;
-        window.cancelEditMode = cancelEditMode;
-        window.filterEditCategoriesFromSelect = filterEditCategoriesFromSelect;
-        window.changeEditRepeatYnFromSelect = changeEditRepeatYnFromSelect;
-
-        if (expenseTypeSelect) {
-            expenseTypeSelect.addEventListener('change', filterCategories);
-        }
-
-        if (repeatCycleSelect) {
-            repeatCycleSelect.addEventListener('change', changeRepeatYn);
-        }
-
-        filterCategories();
-    });
-
-    const typeFilter = document.getElementById('expenseTypeFilter');
-    const categoryFilter = document.getElementById('expenseCategoryFilter');
-    const amountSort = document.getElementById('expenseAmountSort');
-    const expenseRows = Array.from(document.querySelectorAll('.expense-row'));
-    const expenseTbody = document.getElementById('expenseRows');
-
-    function filterExpenseRows() {
-        const selectedType = typeFilter.value;
-        const selectedCategory = categoryFilter.value;
-        const selectedSort = amountSort.value;
-
-        const sortedRows = [...expenseRows].sort((a, b) => {
-            if (selectedSort === 'DESC') {
-                return Number(b.dataset.amount) - Number(a.dataset.amount);
-            }
-
-            if (selectedSort === 'ASC') {
-                return Number(a.dataset.amount) - Number(b.dataset.amount);
-            }
-
-            return Number(a.dataset.order) - Number(b.dataset.order);
-        });
-
-        sortedRows.forEach(row => {
-            const typeMatch =
-                !selectedType || row.dataset.type === selectedType;
-
-            const categoryMatch =
-                !selectedCategory || row.dataset.category === selectedCategory;
-
-            row.style.display =
-                typeMatch && categoryMatch ? '' : 'none';
-
-            expenseTbody.appendChild(row);
-        });
-    }
-
-    [typeFilter, categoryFilter, amountSort].forEach(filter => {
-        filter.addEventListener('change', filterExpenseRows);
-    });
-</script>
+<script src="${contextPath}/resources/js/expense.js"></script>

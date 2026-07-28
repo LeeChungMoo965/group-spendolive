@@ -5,97 +5,90 @@
      · 제출 시 /spendolive/admin/faq/ajax/insert|update.do 로 전송
    - 순서변경(▲▼)/삭제: /spendolive/admin/faq/ajax/moveUp|moveDown|delete.do
    - 성공 시 목록 조각(#adminBoardArea)만 다시 불러와 갱신
-   - 공용 파일(admin.js)은 건드리지 않고, 알림 모달도 이 파일 안에 자체 포함
+   - 공용 파일(admin.js)은 건드리지 않고, 알림 모달은 기존 공통 CSS 클래스 재사용
    ============================================================ */
    (function () {
     "use strict";
 
-    /* ── 이 화면 전용 알림/확인 모달 (지역 함수 — soModal.js 없이 자체 포함) ── */
+        /* 공통 CSS(.modal/.modal-box/.panel-title/.toolbar/.btn)만 사용하는 알림·확인 모달 */
     function soEnsureModal() {
-        if (document.getElementById("soLocalModalStyle") == null) {
-            var css = ""
-              + ".so-local-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(20,29,18,.48);backdrop-filter:blur(2px);}"
-              + ".so-local-overlay[hidden]{display:none;}"
-              + ".so-local-box{width:min(100%,23rem);padding:2rem 1.5rem 1.5rem;border-radius:1.25rem;background:#fff;box-shadow:0 1.5rem 4rem rgba(21,40,18,.24);text-align:center;animation:soLocalPop .18s ease-out;}"
-              + "@keyframes soLocalPop{from{transform:scale(.94);opacity:0;}to{transform:scale(1);opacity:1;}}"
-              + ".so-local-icon{display:flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;margin:0 auto 1.125rem;border-radius:50%;background:#eef5df;color:#5f7628;font-size:1.5rem;font-weight:900;}"
-              + ".so-local-overlay[data-state='error'] .so-local-icon{background:#fff0eb;color:#c0392b;}"
-              + ".so-local-title{margin:0 0 .5rem;color:#26351f;font-size:1.125rem;font-weight:800;white-space:pre-line;line-height:1.5;}"
-              + ".so-local-msg{margin:0;color:#6f7b66;line-height:1.65;white-space:pre-line;}"
-              + ".so-local-msg[hidden]{display:none;}"
-              + ".so-local-actions{display:flex;gap:.5rem;justify-content:center;margin-top:1.5rem;}"
-              + ".so-local-btn{min-width:5rem;padding:.65rem 1.2rem;border-radius:.7rem;font-weight:700;font-size:.95rem;cursor:pointer;border:1.5px solid transparent;}"
-              + ".so-local-ok{background:#6d7f2e;color:#fff;}.so-local-ok:hover{background:#5f7628;}"
-              + ".so-local-cancel{background:#f1f4df;color:#3f4a2c;border-color:#dfe6cb;}.so-local-cancel:hover{border-color:#b9c58f;}"
-              + ".so-local-cancel[hidden]{display:none;}";
-            var st = document.createElement("style");
-            st.id = "soLocalModalStyle";
-            st.textContent = css;
-            document.head.appendChild(st);
-        }
         var el = document.getElementById("soLocalModalOverlay");
         if (el == null) {
             el = document.createElement("div");
             el.id = "soLocalModalOverlay";
-            el.className = "so-local-overlay";
+            el.className = "modal";
             el.setAttribute("role", "dialog");
             el.setAttribute("aria-modal", "true");
-            el.hidden = true;
             el.innerHTML =
-                  '<div class="so-local-box">'
-                +   '<div class="so-local-icon" aria-hidden="true"></div>'
-                +   '<h3 class="so-local-title"></h3>'
-                +   '<p class="so-local-msg"></p>'
-                +   '<div class="so-local-actions">'
-                +     '<button type="button" class="so-local-btn so-local-cancel" hidden>취소</button>'
-                +     '<button type="button" class="so-local-btn so-local-ok">확인</button>'
+                  '<div class="modal-box">'
+                +   '<div class="panel-title">'
+                +     '<p class="section-kicker" id="soLocalModalKicker">NOTICE</p>'
+                +     '<h3 id="soLocalModalTitle"></h3>'
+                +     '<p id="soLocalModalMessage" hidden></p>'
+                +   '</div>'
+                +   '<div class="toolbar">'
+                +     '<span></span>'
+                +     '<div class="toolbar-left">'
+                +       '<button type="button" class="btn ghost" id="soLocalModalCancel" hidden>취소</button>'
+                +       '<button type="button" class="btn primary" id="soLocalModalOk">확인</button>'
+                +     '</div>'
                 +   '</div>'
                 + '</div>';
             document.body.appendChild(el);
         }
         return el;
     }
+
     function soOpenModal(message, opts, isConfirm) {
         opts = opts || {};
         var el = soEnsureModal();
-        var icon = el.querySelector(".so-local-icon");
-        var titleEl = el.querySelector(".so-local-title");
-        var msgEl = el.querySelector(".so-local-msg");
-        var okBtn = el.querySelector(".so-local-ok");
-        var cancelBtn = el.querySelector(".so-local-cancel");
+        var kickerEl = document.getElementById("soLocalModalKicker");
+        var titleEl = document.getElementById("soLocalModalTitle");
+        var msgEl = document.getElementById("soLocalModalMessage");
+        var okBtn = document.getElementById("soLocalModalOk");
+        var cancelBtn = document.getElementById("soLocalModalCancel");
         var type = opts.type || (isConfirm ? "info" : "success");
-        el.setAttribute("data-state", type === "error" ? "error" : "success");
-        icon.textContent = (type === "error") ? "!" : (isConfirm ? "?" : "✓");
+
+        kickerEl.textContent = type === "error" ? "ERROR" : (isConfirm ? "CONFIRM" : "NOTICE");
+
         if (opts.title) {
             titleEl.textContent = opts.title;
             msgEl.textContent = message || "";
             msgEl.hidden = !message;
         } else {
             titleEl.textContent = message || "";
+            msgEl.textContent = "";
             msgEl.hidden = true;
         }
+
         okBtn.textContent = opts.confirmText || "확인";
         cancelBtn.textContent = opts.cancelText || "취소";
         cancelBtn.hidden = !isConfirm;
+
         return new Promise(function (resolve) {
             function done(result) {
-                el.hidden = true;
-                okBtn.onclick = null; cancelBtn.onclick = null; el.onclick = null;
+                el.classList.remove("show");
+                okBtn.onclick = null;
+                cancelBtn.onclick = null;
+                el.onclick = null;
                 document.removeEventListener("keydown", onKey);
                 resolve(result);
             }
+
             function onKey(e) {
                 if (e.key === "Escape") done(false);
                 else if (e.key === "Enter") done(true);
             }
+
             okBtn.onclick = function () { done(true); };
             cancelBtn.onclick = function () { done(false); };
             el.onclick = function (e) { if (e.target === el) done(false); };
             document.addEventListener("keydown", onKey);
-            el.hidden = false;
+            el.classList.add("show");
             okBtn.focus();
         });
     }
+
     function soAlert(message, opts) { return soOpenModal(message, opts, false); }
     function soConfirm(message, opts) { return soOpenModal(message, opts, true); }
 

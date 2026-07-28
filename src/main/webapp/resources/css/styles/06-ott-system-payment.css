@@ -15,10 +15,6 @@
  .room-close-form {display: flex;gap: 0.5rem;align-items: center;width: 100%;margin-top: 0.75rem;padding-top: 0.75rem;border-top: 1px solid rgba(125, 151, 78, 0.16);}
  .room-close-form strong {min-width: 11.25rem;color: #4a5c2c;}
  .room-close-form input[type="text"] {flex: 1;min-width: 13.75rem;border: 1px solid #dfe8c9;border-radius: 0.75rem;padding: 0.625rem 0.75rem;background: #fffef8;}
- .settlement-auto-guide {min-width: 13.125rem;padding: 0.625rem 0.75rem;border-radius: 0.875rem;background: #f7faee;border: 1px solid #e2edc9;}
- .settlement-auto-guide b,.settlement-auto-guide small {display: block;}
- .settlement-auto-guide b {color: #4d6328;margin-bottom: 0.1875rem;}
- .settlement-auto-guide small {color: #6f7c57;line-height: 1.35;}
  .settlement-pay-box {display: flex;flex-direction: column;align-items: flex-end;gap: 0.375rem;min-width: 6.875rem;}
  .settlement-pay-box b {color: #2f3b20;}
  .settlement-pay-box small {font-size: 0.75rem;color: #6f7c57;}

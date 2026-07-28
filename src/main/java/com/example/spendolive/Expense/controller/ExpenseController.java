@@ -1,5 +1,6 @@
 package com.example.spendolive.Expense.controller;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -42,30 +43,28 @@ public class ExpenseController {
         Long member_id = getLoginMember_id(session);
 
         if (member_id == null) {
-            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인해 주세요.");
             return "redirect:/member/loginForm.do?log=expense";
         }
 
-        if (yearMonth == null || yearMonth.isBlank()) {
-            yearMonth = (date != null && !date.isBlank())
-                ? date.substring(0, 7)
-                : YearMonth.now().toString();
-    }
-        
+        // URL 파라미터를 직접 substring/parse하지 않고 먼저 검증한다.
+        // 잘못된 yearMonth/date 값이 들어와도 현재 달 화면으로 안전하게 이동한다.
+        String selectedDate = normalizeDate(date);
+        yearMonth = normalizeYearMonth(yearMonth, selectedDate);
 
         YearMonth selectedMonth = YearMonth.parse(yearMonth);
-    List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(member_id, yearMonth);
+        List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(member_id, yearMonth);
 
-    // date가 지정된 경우, 테이블에는 그 날짜 지출만 필터링
-    List<ExpenseDTO> tableExpenseList = monthExpenseList;
-        if (date != null && !date.isBlank()) {
+        // date가 지정된 경우, 테이블에는 그 날짜 지출만 필터링
+        List<ExpenseDTO> tableExpenseList = monthExpenseList;
+        if (selectedDate != null) {
             tableExpenseList = monthExpenseList.stream()
-                    .filter(expense -> date.equals(formatDate(expense.getExpense_date())))
+                    .filter(expense -> selectedDate.equals(formatDate(expense.getExpense_date())))
                     .toList();
         }
 
         model.addAttribute("selectedYearMonth", yearMonth);
-        model.addAttribute("selectedDate", date); // JSP에서 "OO일만 보는 중" 안내용
+        model.addAttribute("selectedDate", selectedDate); // JSP에서 "OO일만 보는 중" 안내용
         model.addAttribute("monthList", makeMonthList(yearMonth));
         model.addAttribute("expenseList", tableExpenseList);
         model.addAttribute("categoryList", expenseService.getCategoryList());
@@ -84,7 +83,7 @@ public class ExpenseController {
         return "common/layout";
     }
 
-    // 헬퍼 하나 추가
+    // java.util.Date를 화면 비교용 yyyy-MM-dd 문자열로 변환한다.
     private String formatDate(java.util.Date date) {
         if (date == null) return null;
         return new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
@@ -137,10 +136,7 @@ public class ExpenseController {
 
         expenseService.addExpense(expenseDTO);
 
-        if (yearMonth == null || yearMonth.isBlank()) {
-            yearMonth = YearMonth.now().toString();
-        }
-
+        yearMonth = normalizeYearMonth(yearMonth, null);
         return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
     }
 
@@ -160,10 +156,7 @@ public class ExpenseController {
 
         expenseService.modifyExpense(expenseDTO);
 
-        if (yearMonth == null || yearMonth.isBlank()) {
-            yearMonth = YearMonth.now().toString();
-        }
-
+        yearMonth = normalizeYearMonth(yearMonth, null);
         return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
     }
 
@@ -180,11 +173,38 @@ public class ExpenseController {
 
         expenseService.removeExpense(expense_id, member_id);
 
-        if (yearMonth == null || yearMonth.isBlank()) {
-            yearMonth = YearMonth.now().toString();
+        yearMonth = normalizeYearMonth(yearMonth, null);
+        return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
+    }
+
+    // yyyy-MM 형식이 아니면 date의 연월 또는 현재 연월로 보정한다.
+    private String normalizeYearMonth(String yearMonth, String date) {
+        if (yearMonth != null && !yearMonth.isBlank()) {
+            try {
+                return YearMonth.parse(yearMonth).toString();
+            } catch (Exception ignored) {
+                // 잘못된 주소값은 아래 기본값으로 처리한다.
+            }
         }
 
-        return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
+        if (date != null) {
+            return YearMonth.from(LocalDate.parse(date)).toString();
+        }
+
+        return YearMonth.now().toString();
+    }
+
+    // yyyy-MM-dd 형식이 아니면 날짜 필터를 사용하지 않는다.
+    private String normalizeDate(String date) {
+        if (date == null || date.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDate.parse(date).toString();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private Long getLoginMember_id(HttpSession session) {

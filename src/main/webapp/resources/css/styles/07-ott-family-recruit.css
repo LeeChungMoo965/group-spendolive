@@ -7,7 +7,7 @@
  OTT 페이지 구조 재정리: 가족 지인 / 외부 모집글 분리
  ========================================================= */
 
- .family-room-section,.family-create-card,.family-settlement-panel,.manage-panel {margin-top: 1.5rem;}
+ .family-room-section,.family-settlement-panel,.manage-panel {margin-top: 1.5rem;}
  .family-room-list,.manage-room-list {gap: 0.875rem;}
  .family-room-card,.manage-room-card {position: relative;align-items: stretch;padding-left: 3.625rem;}
  .room-index-badge {position: absolute;left: 1rem;top: 1rem;width: 1.75rem;height: 1.75rem;border-radius: 999px;background: #eef3df;color: #6d7f2e;display: inline-flex;align-items: center;justify-content: center;font-weight: 900;font-size: 0.8125rem;}
@@ -41,3 +41,13 @@
    .compact-close-form {grid-template-columns: 1fr;}
    .team-payment-row {grid-template-columns: 1fr;}
  }
+
+/* 가족방 초대 링크 공유 영역 */
+.invite-share-box {margin-top:0.875rem;padding:0.875rem;border:1px solid rgba(126,144,61,0.18);border-radius:1rem;background:rgba(255,253,238,0.75);}
+.invite-share-box strong {display:block;margin-bottom:0.375rem;font-size:0.875rem;}
+.invite-url-row {display:flex;gap:0.5rem;align-items:center;margin-top:0.625rem;}
+.invite-url-input {flex:1;min-width:0;padding:0.625rem 0.75rem;border:1px solid #d9dfbd;border-radius:0.75rem;background:#fff;font-size:0.8125rem;}
+.invite-share-actions {display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.625rem;}
+.invite-qr-box {display:none;margin-top:0.75rem;padding:0.75rem;border-radius:0.875rem;background:#fff;text-align:center;}
+.invite-qr-box.show {display:block;}
+.invite-qr-box img {width:11.25rem;height:11.25rem;}

@@ -14,25 +14,12 @@
    .settlement-sub-header h3 {margin: 0 0 0.375rem;color: #132718;}
    .settlement-sub-header p {margin: 0;color: #657362;line-height: 1.6;}
    .settlement-sub-header > span {color: #7b7f36;font-weight: 800;white-space: nowrap;}
-   .settlement-wide-list {display: grid;gap: 0.875rem;}
-   .wide-settlement-row {display: grid;grid-template-columns: minmax(17.5rem, 1.4fr) minmax(10.625rem, 0.75fr) minmax(10.625rem, 0.75fr) minmax(9.375rem, auto);align-items: end;gap: 1rem;width: 100%;padding: 1.125rem;}
-   .settlement-room-title {min-width: 0;}
-   .settlement-room-title strong {display: block;color: #20391e;line-height: 1.45;word-break: keep-all;}
-   .settlement-room-title small {display: block;margin-top: 0.375rem;color: #748070;line-height: 1.5;}
-   .settlement-field {display: grid;gap: 0.4375rem;color: #40523d;font-weight: 800;font-size: 0.8125rem;}
-   .settlement-field input {width: 100%;}
    .settlement-status-wide-list {display: grid;grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));gap: 0.75rem;}
    .settlement-status-row {margin-top: 0;padding: 1rem;background: #ffffff;border: 1px solid #e3ece0;border-radius: 1.125rem;}
    .settlement-status-row strong {color: #20391e;}
    
-   @media(max-width: 68.75rem) { /* 1100px / 16 = 68.75rem */
-     .wide-settlement-row {grid-template-columns: 1fr 1fr;align-items: stretch;}
-   }
-   
    @media(max-width: 43.75rem) { /* 700px / 16 = 43.75rem */
      .settlement-sub-header {flex-direction: column;}
-     .wide-settlement-row {grid-template-columns: 1fr;}
-     .settlement-room-title,.settlement-send-btn {grid-column: auto;}
    }
    /* 1. 메뉴 전체를 감싸는 컨테이너 */
    

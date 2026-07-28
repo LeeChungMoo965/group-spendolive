@@ -110,3 +110,5 @@
         </div>
     </div>
 </section>
+
+<script src="${contextPath}/resources/js/ott.js"></script>
