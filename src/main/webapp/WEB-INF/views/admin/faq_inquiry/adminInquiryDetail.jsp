@@ -66,7 +66,10 @@
             </div>
         </c:if>
 
-        <form action="${contextPath}/admin/inquiry/reply.do" method="post">
+        <%-- AJAX 전환: adminInquiry.js가 submit을 가로채 ajax/reply.do로 보냄.
+             이 독립 상세 페이지에는 #adminBoardArea가 없으므로, 성공 후엔
+             페이지를 새로고침해 갱신된 답변/상태를 보여준다. --%>
+        <form class="admin-reply-form" onsubmit="return false;">
             <input type="hidden" name="inquiry_id" value="${inquiry.inquiry_id}">
 
             <div class="form-row" style="display:grid;grid-template-columns:1fr 160px;gap:14px;">
@@ -90,3 +93,5 @@
         </form>
     </div>
 </div>
+
+<script src="${contextPath}/resources/js/adminInquiry.js"></script>

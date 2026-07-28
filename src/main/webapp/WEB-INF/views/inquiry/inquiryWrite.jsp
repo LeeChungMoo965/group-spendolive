@@ -21,9 +21,10 @@
             </ul>
         </div>
 
-        <%-- TODO: 컨트롤러 매핑 확정되면 action 경로 확인 필요. 파일 첨부가 있어 enctype은 multipart/form-data 로 고정 --%>
-        <form class="form-card" action="${contextPath}/spendolive/inquiry/write.do" method="post"
-              enctype="multipart/form-data" onsubmit="return validateInquiryForm(this)">
+        <%-- AJAX 전환: form submit(페이지 이동) 대신 inquiry.js가 FormData로 fetch 전송.
+             파일 첨부가 있어 enctype은 multipart/form-data 유지(FormData가 자동 처리). --%>
+        <form class="form-card" id="inquiryWriteForm" enctype="multipart/form-data"
+              onsubmit="return false;">
 
             <h2>문의 내용 입력</h2>
 
@@ -70,7 +71,7 @@
             </div>
 
             <div class="field">
-                <label>파일 첨부 <span style="color:var(--muted)">선택 · 최대 3개 / 5MB</span></label>
+                <label>파일 첨부 <span style="color:var(--muted)">선택 · 최대 5개 / 5MB</span></label>
                 <label class="upload-area" for="attachmentInput">
                     <div class="upload-icon">📎</div>
                     <p><strong>파일을 드래그하거나 클릭해서 업로드</strong><br>PNG, JPG, GIF, PDF · 파일당 최대 5MB</p>
@@ -108,10 +109,11 @@
 
             <div class="form-actions">
                 <a class="btn btn-danger-outline" style="flex:1;height:50px" href="${contextPath}/spendolive/inquiry/list.do">취소</a>
-                <button type="submit" class="btn btn-primary" style="flex:2;height:50px;font-size:15px;">문의 제출하기</button>
+                <button type="button" id="inquirySubmitBtn" class="btn btn-primary" style="flex:2;height:50px;font-size:15px;">문의 제출하기</button>
             </div>
         </form>
     </div>
 </div>
 
 <script src="${contextPath}/resources/js/faq.js"></script>
+<script src="${contextPath}/resources/js/inquiry.js"></script>

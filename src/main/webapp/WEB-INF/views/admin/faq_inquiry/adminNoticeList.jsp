@@ -14,20 +14,18 @@
         </div>
     </div>
 
-    <c:if test="${not empty msg}">
-        <div class="flash-ok">${msg}</div>
-    </c:if>
-    <c:if test="${not empty errorMsg}">
-        <div class="flash-err">⚠ ${errorMsg}</div>
-    </c:if>
+    <%-- msg/errorMsg는 더 이상 flash로 넘어오지 않음(redirect가 없어졌으므로).
+         등록/수정/삭제 결과 메시지는 adminNotice.js가 toast(showToast)로 띄워준다. --%>
 
     <div class="panel">
         <div class="panel-header">
             <div class="panel-title">
                 <p class="section-kicker">NOTICE LIST</p>
-                <h2>공지사항 목록 (총 ${totalCount}건)</h2>
+                <%-- 총 건수는 이제 서버 렌더링이 아니라 JS가 AJAX 응답으로 채워 넣음 --%>
+                <h2>공지사항 목록 (총 <span id="noticeTotalCount">0</span>건)</h2>
             </div>
-            <a href="${contextPath}/admin/notice/write.do" class="btn primary">+ 새 공지 작성</a>
+            <%-- 새 공지 작성: 페이지 이동 대신 모달을 연다 (adminNotice.js가 처리) --%>
+            <button type="button" id="noticeCreateBtn" class="btn primary">+ 새 공지 작성</button>
         </div>
 
         <div class="table-wrap">
@@ -42,70 +40,56 @@
                         <th style="width:150px;text-align:center;">관리</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <c:choose>
-                        <c:when test="${empty noticeList}">
-                            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">등록된 공지사항이 없습니다.</td></tr>
-                        </c:when>
-                        <c:otherwise>
-                            <c:forEach var="notice" items="${noticeList}" varStatus="s">
-                                <tr>
-                                    <td style="text-align:center;">${notice.notice_id}</td>
-                                    <td style="text-align:center;">
-                                        <c:choose>
-                                            <c:when test="${notice.pinned_yn == 'Y'}"><span class="badge green">중요</span></c:when>
-                                            <c:otherwise><span class="badge gray">일반</span></c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <a href="${contextPath}/admin/notice/edit.do?notice_id=${notice.notice_id}">${notice.title}</a>
-                                    </td>
-                                    <td>${notice.admin_id}</td>
-                                    <td>${notice.created_at}</td>
-                                    <td>
-                                        <div class="table-actions" style="justify-content:center;">
-                                            <a href="${contextPath}/admin/notice/edit.do?notice_id=${notice.notice_id}" class="mini-btn">수정</a>
-                                            <form action="${contextPath}/admin/notice/delete.do" method="post" style="display:inline;"
-                                                  onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                                                <input type="hidden" name="notice_id" value="${notice.notice_id}">
-                                                <button type="submit" class="mini-btn danger">삭제</button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </c:otherwise>
-                    </c:choose>
+                <%-- 목록 내용은 전부 adminNotice.js의 renderNoticeTable()이 채워 넣는다.
+                     최초에는 빈 tbody 상태로 렌더되고, 페이지 로드 직후 JS가
+                     /admin/notice/ajax/list.do 를 호출해서 실제 데이터를 그려준다. --%>
+                <tbody id="adminNoticeTableBody">
+                    <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">불러오는 중...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <c:if test="${totalPages > 1}">
-            <%-- 관리자 문의 목록과 동일한 윈도우 방식 페이지네이션.
-                 20개 넘을 때만 나타나고, 1번/마지막 번호는 항상 고정 노출 --%>
-            <c:set var="pgStart" value="${currentPage - 2 < 1 ? 1 : currentPage - 2}" />
-            <c:set var="pgEnd" value="${currentPage + 2 > totalPages ? totalPages : currentPage + 2}" />
+        <%-- 페이지네이션도 JS가 totalPages/currentPage를 받아서 버튼을 직접 그려 넣음 --%>
+        <div id="adminNoticePagination" class="admin-pagination"></div>
+    </div>
 
-            <div class="admin-pagination">
-                <c:if test="${pgStart > 1}">
-                    <a class="admin-pg-btn" href="${contextPath}/admin/notice/list.do?page=1">1</a>
-                    <c:if test="${pgStart > 2}">
-                        <span class="admin-pg-ellipsis">…</span>
-                    </c:if>
-                </c:if>
+    <%-- ══════════════════════════════════════════════════════════
+         공지 작성/수정 모달 (문의/FAQ 모달과 같은 공통 .modal 시스템 재사용)
+         작성=빈 폼 / 수정=adminNotice.js가 ajax/detail.do로 값을 채워 넣음.
+         ※ 모달 박스에는 stopPropagation을 걸지 않는다(걸면 X/취소 클릭이 막힘).
+         ══════════════════════════════════════════════════════════ --%>
+    <div class="modal" id="adminNoticeModal">
+        <div class="modal-box modal-admin-inquiry">
+            <button type="button" class="modal-close" data-action="closeNoticeModal">✕</button>
+            <form id="noticeModalForm" onsubmit="return false;">
+                <input type="hidden" id="modalNoticeId" name="notice_id" value="0">
+                <h2 id="noticeModalHeading" style="margin-top:0;">새 공지사항 등록</h2>
 
-                <c:forEach begin="${pgStart}" end="${pgEnd}" var="p">
-                    <a class="admin-pg-btn ${p == currentPage ? 'active' : ''}"
-                       href="${contextPath}/admin/notice/list.do?page=${p}">${p}</a>
-                </c:forEach>
+                <div class="form-group">
+                    <label for="modalNoticeTitleInput">제목</label>
+                    <input type="text" id="modalNoticeTitleInput" name="title" placeholder="공지 제목을 입력하세요" required>
+                </div>
 
-                <c:if test="${pgEnd < totalPages}">
-                    <c:if test="${pgEnd < totalPages - 1}">
-                        <span class="admin-pg-ellipsis">…</span>
-                    </c:if>
-                    <a class="admin-pg-btn" href="${contextPath}/admin/notice/list.do?page=${totalPages}">${totalPages}</a>
-                </c:if>
-            </div>
-        </c:if>
+                <div class="form-group">
+                    <label>구분</label>
+                    <div class="pin-group">
+                        <input type="checkbox" id="modalNoticePinned" name="pinned_yn" value="Y">
+                        <label for="modalNoticePinned">중요 공지로 설정</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalNoticeContent">내용</label>
+                    <textarea id="modalNoticeContent" name="content" placeholder="공지 내용을 입력하세요" required></textarea>
+                </div>
+
+                <div class="btn-row" style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:16px;">
+                    <button type="button" class="btn btn-outline" data-action="closeNoticeModal">취소</button>
+                    <button type="button" id="noticeModalSubmitBtn" class="btn btn-primary">등록</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
+<script src="${contextPath}/resources/js/adminNotice.js"></script>

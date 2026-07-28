@@ -79,6 +79,12 @@ document.addEventListener('DOMContentLoaded', function() {
    지출 데이터 로드 & 렌더링
    ========================================================= */
 
+   /* [AJAX] GET /calendar/expenses.do?year=&month=
+   - FullCalendar의 datesSet 콜백(달력에서 월이 바뀔 때마다 자동 발생)에서 호출됨
+   - year/month를 쿼리스트링으로 넘겨 "그 달에 해당하는 지출 내역만" 서버에서 걸러 받음
+   - 응답 데이터 하나로 달력 이벤트(renderCalendarEvents)와 사이드 패널 목록
+     (renderSidePanel)을 같이 그리므로, 여기서만 fetch하고 나머지는 순수 렌더 함수로 분리 */
+
 function loadMonthlyExpenses(year, month) {
     fetch(`${eContextPath}/calendar/expenses.do?year=${year}&month=${month}`, {
         credentials: 'same-origin'
@@ -197,6 +203,11 @@ function renderSidePanelPager(totalPages) {
     const month = today.getMonth() + 1;
     const todayStr = `${year}-${String(month).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+    /* [AJAX] GET /calendar/expenses.do?year=&month=
+       - loadMonthlyExpenses와 같은 엔드포인트를 오늘이 속한 연/월로 다시 호출함
+         (별도의 "오늘만 조회" API가 없어서, 이번 달 전체를 받은 뒤 클라이언트에서
+          expense_date === 오늘 날짜인 것만 필터링함)
+       - 달력 렌더링과 무관하게 페이지 로드 시 한 번만 실행되는 독립적인 요청 */
     fetch(`${eContextPath}/calendar/expenses.do?year=${year}&month=${month}`, {
         credentials: 'same-origin'
     })
