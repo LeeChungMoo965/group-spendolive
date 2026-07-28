@@ -3,6 +3,7 @@ package com.example.spendolive.payment.controller;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -39,5 +40,5 @@ ResponseEntity<PaymentAjaxResponse> paymentStatus(
         HttpSession session) throws Exception;
 
 String tossCallback(RedirectAttributes redirectAttributes) throws Exception;
-
+ResponseEntity<PaymentAjaxResponse> updatePrimaryCard(@RequestParam("card_Idx") String card_idxstr,@RequestHeader(value = "Referer", required = false) String referer,HttpServletRequest request,HttpSession session) throws Exception;
 }

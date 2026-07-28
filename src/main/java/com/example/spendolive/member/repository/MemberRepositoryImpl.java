@@ -124,7 +124,20 @@ public class MemberRepositoryImpl implements MemberRepository{
                     AND target_account.account_idx = ?
               )
             """;
-    
+            private final String updatePrimaryCard = """
+                UPDATE member_card_tb
+                SET status = CASE
+                                 WHEN card_idx = ? THEN 'YES'
+                                 ELSE 'NO'
+                             END
+                WHERE id = ?
+                  AND EXISTS (
+                      SELECT 1
+                      FROM member_card_tb target_card
+                      WHERE target_card.id = ?
+                        AND target_card.card_idx = ?
+                  )
+                """;
     public MemberRepositoryImpl(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -467,7 +480,16 @@ public class MemberRepositoryImpl implements MemberRepository{
                 accountIdx
         );
     }
-
+    @Override
+    public int updatePrimaryCard(String userId, int cardIdx) {
+        return jdbcTemplate.update(
+                updatePrimaryCard,
+                cardIdx,
+                userId,
+                userId,
+                cardIdx
+        );
+    }
     @Override
     public void updateWarning(String userId, int count){
         jdbcTemplate.update(updateWarning, count+1, userId);

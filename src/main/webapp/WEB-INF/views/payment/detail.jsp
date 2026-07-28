@@ -13,7 +13,48 @@
                     결제 버튼을 누르면 등록된 주 결제 카드로 자동결제가 진행됩니다.
                 </p>
             </div>
+    <c:choose>
+                <c:when test="${empty cardList}">
+                <p>등록 카드가 없습니다.</p>
+                </c:when>
+<c:otherwise>
+<table class="payment-amount-table">
+                    <thead>
+                        <tr>
+                         <th>카드 구분</th>
+                                    <th>카드사</th>
+                                    <th>카드 번호</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+<c:forEach var="card" items="${cardList}" varStatus="s">
+    <tr>
+    
+                            <td><strong>   <c:choose>
+    <c:when test="${card.status == 'YES'}">
+        주 카드
+    </c:when>
+     <c:otherwise>
+    <button type="button" 
+                                class="btn btn-primary btn-mini btn-change-card" 
+                                data-card-idx="${card.card_idx}">
+                            결제 카드 변경
 
+      </c:otherwise>
+    </c:choose>
+    </strong></td>
+                            <td>
+                                <strong>
+                                    ${card.card_company}
+                                </strong>
+                            </td>
+                            <td><strong>${card.card_number}</strong></td>
+                        </tr>
+                        </c:forEach>
+                    </tbody>
+                </table>
+                </c:otherwise>
+                </c:choose>
             <div class="table-wrap">
                 <table class="payment-amount-table">
                     <thead>
@@ -71,5 +112,45 @@
         </div>
     </div>
 </section>
+ <div id="cardStatusOverlay"
+                    class="payment-status-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="cardStatusTitle"
+                    aria-describedby="cardStatusMessage"
+                    hidden>
+                    <div class="payment-status-box">
+                    
+                    <div id="cardStatusSpinner"
+                            class="payment-status-spinner"
+                            aria-hidden="true"></div>
+
+                        <div id="cardStatusIcon"
+                            class="payment-status-icon"
+                            aria-hidden="true"
+                            hidden></div>
+                            <h3 id="cardStatusTitle">카드 변경 중 입니다.</h3>
+                        <p id="cardStatusMessage">
+                            창을 닫거나 새로고침하지 말아주세요.
+                        </p>
+                    <div id="cardStatusActions"
+                            class="payment-status-actions"
+                            hidden>
+                            <button type="button"
+                                    id="cardStatusCloseButton"
+                                    class="btn btn-outline">
+                                확인
+                            </button>
+                            <button type="button"
+                                    id="cardStatusActionButton"
+                                    class="btn btn-primary"
+                                    hidden>
+                                이동하기
+                            </button>
+                        </div>
+                </div>
+            </div>
+
 <jsp:include page="/WEB-INF/views/payment/popup.jsp" />
 <script src="${contextPath}/resources/js/payment.js"></script>
+<script src="${contextPath}/resources/js/app.js"></script>

@@ -68,4 +68,5 @@ public interface MemberService {
     boolean existsActiveMemberByIdAndPhone(String id, String phone) throws Exception;
 
     void updatePasswordById(String id, String newPassword) throws Exception;
+    void updatePrimaryCard(String id, int cardIdx) throws Exception;
 }
