@@ -171,12 +171,11 @@
                 </div>
             </c:if>
 
-            <%-- 답변 등록/수정 폼. listStatus/listPage는 등록 후 지금 보고 있던
-                 필터·페이지 그대로 목록(팝업이 있는 화면)으로 돌아오기 위한 값 --%>
-            <form action="${contextPath}/admin/inquiry/reply.do" method="post">
+            <%-- 답변 등록/수정 폼. AJAX 전환: adminInquiry.js가 submit을 가로채
+                 /admin/inquiry/ajax/reply.do로 보내고, 성공 시 모달 닫고 목록만 갱신.
+                 (전체 새로고침 없음) --%>
+            <form class="admin-reply-form" onsubmit="return false;">
                 <input type="hidden" name="inquiry_id" value="${inq.inquiry_id}">
-                <input type="hidden" name="listStatus" value="${currentStatus}">
-                <input type="hidden" name="listPage" value="${currentPage}">
 
                 <div class="form-row" style="display:grid;grid-template-columns:1fr 160px;gap:14px;">
                     <div class="form-group">
@@ -210,3 +209,7 @@
 </div>
 
 <script src="${contextPath}/resources/js/admin.js"></script>
+<%-- 문의↔FAQ는 탭으로 오가므로 두 스크립트를 모두 로드 (탭 전환 시 swap된
+     HTML 안의 script는 실행되지 않기 때문). 이벤트 위임이라 서로 간섭 없음. --%>
+<script src="${contextPath}/resources/js/adminInquiry.js"></script>
+<script src="${contextPath}/resources/js/adminFaq.js"></script>

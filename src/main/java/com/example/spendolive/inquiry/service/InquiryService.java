@@ -50,16 +50,8 @@ public class InquiryService {
         List<InquiryFileVO> files = fileStorageService.storeFiles(inquiry_id, attachments);
         for (InquiryFileVO file : files) {
             inquiryFileRepository.insertFile(file);
-
-            // 추가: 문의 접수 완료 알림 (본인에게)
-                notificationService.createNotification(
-                    inquiry.getId(),
-                    NotificationType.PERSONAL,
-                    "문의가 접수되었습니다",
-                    "\"" + inquiry.getTitle() + "\" 문의가 접수되었습니다. 답변까지 영업일 기준 1~2일 소요됩니다.",
-                    "/spendolive/inquiry/list.do"
-            );
         }
+        
 
         // [홈페이지 전체 알림 기능 설정] 문의 접수 완료 알림.
         // 딱 맞는 전용 타입이 없어서 NotificationType.PERSONAL(일반 개인 알림)을 재사용함.
@@ -191,5 +183,29 @@ public class InquiryService {
                     "/spendolive/inquiry/list.do"
             );
         }
+    }
+
+    /**
+     * 본인 문의 수정. 아직 답변이 안 달린(WAIT) 문의만 수정 가능.
+     * @return true면 수정 성공, false면 본인 문의가 아니거나 이미 답변이 달려서 수정 불가
+     */
+    public boolean updateInquiry(InquiryVO inquiry) {
+        int updated = inquiryRepository.updateInquiry(inquiry);
+        return updated > 0;
+    }
+
+    /**
+     * 본인 문의 삭제. 아직 답변이 안 달린(WAIT) 문의만 삭제 가능.
+     * DB 삭제가 성공한 경우에만 디스크의 첨부파일도 같이 정리한다.
+     * @return true면 삭제 성공, false면 본인 문의가 아니거나 이미 답변이 달려서 삭제 불가
+     */
+    @Transactional
+    public boolean deleteInquiry(int inquiryId, String memberId) {
+        int deleted = inquiryRepository.deleteInquiry(inquiryId, memberId);
+        if (deleted > 0) {
+            fileStorageService.deleteInquiryFiles(inquiryId);
+            return true;
+        }
+        return false;
     }
 }

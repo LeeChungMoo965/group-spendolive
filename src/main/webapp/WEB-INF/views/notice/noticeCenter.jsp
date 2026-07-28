@@ -97,4 +97,5 @@
     const loginYn = ${not empty loginYn ? loginYn : false};
 </script>
 
+<script src="${contextPath}/resources/js/ajaxLoading.js"></script>
 <script src="${contextPath}/resources/js/notice.js"></script>
