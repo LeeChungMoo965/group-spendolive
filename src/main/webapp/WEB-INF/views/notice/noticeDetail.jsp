@@ -59,5 +59,6 @@
     </div>
 </section>
 
+<script src="${contextPath}/resources/js/ajaxLoading.js"></script>
 <script src="${contextPath}/resources/js/notice.js"></script>
 <script src="${contextPath}/resources/js/noticeDetail.js"></script>

@@ -104,7 +104,7 @@ public class MemberServiceImpl implements MemberService {
 
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("j.yeah110@gmail.com");
+        message.setFrom("chung100302@gmail.com");
         message.setTo(toEmail);
         message.setSubject("[SpendOlive] 회원가입 인증번호 안내");
         message.setText(
@@ -251,7 +251,17 @@ public class MemberServiceImpl implements MemberService {
 
         return userInfoMap;
     }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePrimaryCard(String id, int cardIdx) throws Exception {
 
+
+        int updatedCount = memberRepository.updatePrimaryCard(id, cardIdx);
+        System.out.println("card: " + cardIdx+"ss"+id);
+        if (updatedCount == 0) {
+            throw new RuntimeException("주카드로 설정할 카드를 찾을 수 없습니다.");
+        }
+    }
     @Override
     public MemberVO getMemberById(String id) throws Exception {
         return memberRepository.selectMemberById(id);
@@ -370,8 +380,7 @@ public class MemberServiceImpl implements MemberService {
        
       
 //잔액 조회
-       
-        for(Map<String, Object> account : resList){
+            Map<String, Object> account = resList.get(0);
             String fintech_use_num = (String) account.get("fintech_use_num");
             String accountNum = (String) account.get("account_num_masked");
             String bankCode = (String) account.get("bank_code_std");
@@ -416,8 +425,6 @@ public class MemberServiceImpl implements MemberService {
                 balance,
                 accountHolderName
         );
-            }
-        
         memberRepository.updateMember_account_status(userId);
 
         // 토스 지급대행은 보안키 지원 문제로 현재 API 요청을 생략하는 구조

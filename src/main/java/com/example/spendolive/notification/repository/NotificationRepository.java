@@ -26,7 +26,7 @@ public class NotificationRepository {
                 TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
             FROM notification_tb
             WHERE id = ?
-            ORDER BY star_yn DESC, read_yn ASC, created_at DESC
+            ORDER BY star_yn DESC, read_yn ASC, created_at DESC, notification_id DESC
         """;
 
     // 벨 드롭다운 전용: 안읽은 알림만 (읽으면 목록에서 사라져야 하므로)
@@ -38,7 +38,7 @@ public class NotificationRepository {
                 TO_CHAR(created_at, 'YYYY.MM.DD') AS created_at
             FROM notification_tb
             WHERE id = ? AND read_yn = 'N'
-            ORDER BY star_yn DESC, created_at DESC
+            ORDER BY star_yn DESC, created_at DESC, notification_id DESC
         """;
 
     private static final String COUNT_UNREAD_SQL = """

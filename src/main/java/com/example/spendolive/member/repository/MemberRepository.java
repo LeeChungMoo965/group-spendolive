@@ -25,7 +25,7 @@ public interface MemberRepository {
 	public void updateMember_card_status(String id)throws DataAccessException;
 	public List<MemberCardVO> selectCardById(String userId)throws DataAccessException;
     public List<MemberAccountVO> selectAccountById(String userId)throws DataAccessException;
-
+	public int updatePrimaryCard(String userId, int cardIdx) throws DataAccessException;
     /* =========================================================
        [마이페이지 계좌·카드 연결 추가]
        계좌 제목 수정 요청을 Repository 구현체로 전달하는 메서드이다.

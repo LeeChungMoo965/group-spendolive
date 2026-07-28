@@ -61,7 +61,7 @@
                     <div id="notifDropdown" class="notif-dropdown">
                         <div class="notif-dropdown-header">
                             <strong>알림</strong>
-                            <a href="${contextPath}/spendolive/notice/center.do">전체보기</a>
+                            <a href="${contextPath}/spendolive/notice/center.do?tab=alert">전체보기</a>
                         </div>
                         <div id="notifDropdownList" class="notif-dropdown-list">
                             <div class="notif-dropdown-empty">불러오는 중...</div>

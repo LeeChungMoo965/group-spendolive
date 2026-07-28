@@ -141,6 +141,8 @@ html,body {overflow-x:hidden;}
 .admin-search-input {width:min(360px,100%);}
 .admin-empty-filter {margin-top:14px;padding:28px;border:1px dashed #d9dfbd;border-radius:var(--radius-md);background:#fffef8;color:var(--muted);text-align:center;font-weight:800;}
 .admin-form-note {margin:0 0 18px;padding:12px 15px;border-radius:var(--radius-md);background:var(--olive-100);color:var(--olive-800);font-size:13px;font-weight:800;}
+.modal-admin-inquiry {width:min(720px,100%);max-height:calc(100vh - 40px);overflow-y:auto;}
+.admin-inquiry-image {width:96px;height:96px;object-fit:cover;border:1px solid #eef0e1;border-radius:12px;}
 
 /* OTT 관리 카드 */
 .ott-cell {display:flex;align-items:center;gap:12px;}

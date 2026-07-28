@@ -1,15 +1,19 @@
 package com.example.spendolive.inquiry.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -110,41 +114,42 @@ public class AdminInquiryController {
         return mav;
     }
 
-    /* ─── 답변 등록/수정 ─────────────────────────────────── */
-    @PostMapping("/reply.do")
-    public ModelAndView reply(
+    /* ─── 답변 등록/수정 (AJAX) ───────────────────────────
+       목록이 팝업(모달)+AJAX 방식이므로, 답변도 페이지 이동 없이 JSON으로 처리.
+       성공 후에는 adminInquiry.js가 모달을 닫고 목록 조각(#adminBoardArea)만
+       다시 불러와 상태 배지를 갱신한다. */
+    @PostMapping("/ajax/reply.do")
+    @ResponseBody
+    public ResponseEntity<?> ajaxReply(
             @RequestParam(value = "inquiry_id", defaultValue = "0") int inquiry_id,
             @RequestParam(value = "reply_content", required = false) String reply_content,
             @RequestParam(value = "status", defaultValue = "DONE") String status,
-            // 목록이 팝업(모달) 방식으로 바뀌면서, 답변 등록 후에는 상세 페이지가 아니라
-            // 원래 보고 있던 목록(필터/페이지 유지)으로 돌아가야 하므로 폼에서 같이 넘겨받음
-            @RequestParam(value = "listStatus", defaultValue = "all") String listStatus,
-            @RequestParam(value = "listPage", defaultValue = "1") int listPage,
-            HttpSession session, RedirectAttributes ra) {
+            HttpSession session) {
 
-        String backToList = "redirect:/admin/inquiry/list.do?status=" + listStatus + "&page=" + listPage;
-
-        if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("result", "FORBIDDEN", "message", "관리자만 접근할 수 있습니다."));
+        }
         if (inquiry_id <= 0) {
-            ra.addFlashAttribute("errorMsg", "잘못된 문의 번호입니다.");
-            return new ModelAndView(backToList);
+            return ResponseEntity.badRequest()
+                    .body(Map.of("result", "INVALID_PARAM", "message", "잘못된 문의 번호입니다."));
         }
         if (reply_content == null || reply_content.isBlank()) {
-            ra.addFlashAttribute("errorMsg", "답변 내용을 입력해 주세요.");
-            return new ModelAndView(backToList);
+            return ResponseEntity.badRequest()
+                    .body(Map.of("result", "INVALID_PARAM", "message", "답변 내용을 입력해 주세요."));
         }
-        // 관리자가 고를 수 있는 상태는 DONE(답변완료) / REVIEW(검토중) 둘 중 하나로 제한
+        // 관리자가 고를 수 있는 상태는 DONE(답변완료)/REVIEW(검토중) 둘 중 하나로 제한
         if (!"DONE".equals(status) && !"REVIEW".equals(status)) {
             status = "DONE";
         }
 
         try {
             inquiryService.replyToInquiry(inquiry_id, reply_content.strip(), status);
-            ra.addFlashAttribute("msg", "답변이 등록되었습니다.");
+            return ResponseEntity.ok(Map.of("result", "OK", "message", "답변이 등록되었습니다."));
         } catch (DataAccessException e) {
-            System.err.println("[AdminInquiryController.reply] 답변 등록 실패: " + e.getMessage());
-            ra.addFlashAttribute("errorMsg", "답변 등록 중 오류가 발생했습니다.");
+            System.err.println("[AdminInquiryController.ajaxReply] 답변 등록 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("result", "ERROR", "message", "답변 등록 중 오류가 발생했습니다."));
         }
-        return new ModelAndView(backToList);
     }
 }

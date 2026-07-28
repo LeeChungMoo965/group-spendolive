@@ -32,6 +32,13 @@
     const typing = addMessage('답변을 찾는 중...', 'bot typing');
 
     try {
+     /* [AJAX] POST /chatbot/ask.do
+         - 사용자가 입력한 질문 텍스트를 JSON body로 그대로 서버에 전달
+         - 서버는 FAQ 등과 매칭해서 { answer, matched } 형태로 응답한다고 가정:
+           matched === false면 "찾은 답변이 없어 기본 안내 문구를 준 것"이라는 뜻이라
+           addMessage 세 번째 인자(fallback)를 true로 넘겨 스타일을 다르게 표시함
+         - 대화창 안에 이미 "답변을 찾는 중..." 말풍선이 있어서 fetchWithLoading()의
+           전역 스피너는 쓰지 않고 순정 fetch를 그대로 씀 */
       const res = await fetch(`${eContextPath}/chatbot/ask.do`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

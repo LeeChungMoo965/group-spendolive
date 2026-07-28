@@ -19,15 +19,18 @@
             <a class="btn btn-primary" href="${contextPath}/spendolive/inquiry/write.do">+ 새 문의 작성</a>
         </div>
 
+        <%-- ═══════════════════════════════════════════════════════════
+             #inqBoardArea : 필터/목록/페이지네이션을 감싸는 "교체 대상" 영역.
+             필터·페이지 클릭 시 inquiry.js가 list.do를 fetch해서 이 영역만
+             통째로 갈아끼운다(전체 새로고침 없음). 모달·삭제 폼은 이 밖에 둠. --%>
+        <div id="inqBoardArea">
+
         <div class="filters">
-            <a class="filter-btn ${currentStatus == 'all' ? 'active' : ''}"
-               href="${contextPath}/spendolive/inquiry/list.do?status=all">전체</a>
-            <a class="filter-btn ${currentStatus == 'wait' ? 'active' : ''}"
-               href="${contextPath}/spendolive/inquiry/list.do?status=wait">답변 대기</a>
-            <a class="filter-btn ${currentStatus == 'done' ? 'active' : ''}"
-               href="${contextPath}/spendolive/inquiry/list.do?status=done">답변 완료</a>
-            <a class="filter-btn ${currentStatus == 'review' ? 'active' : ''}"
-               href="${contextPath}/spendolive/inquiry/list.do?status=review">검토 중</a>
+            <%-- a href → data-status 버튼으로 변경. inquiry.js가 클릭을 가로채 AJAX 처리 --%>
+            <button type="button" class="filter-btn ${currentStatus == 'all' ? 'active' : ''}" data-status="all">전체</button>
+            <button type="button" class="filter-btn ${currentStatus == 'wait' ? 'active' : ''}" data-status="wait">답변 대기</button>
+            <button type="button" class="filter-btn ${currentStatus == 'done' ? 'active' : ''}" data-status="done">답변 완료</button>
+            <button type="button" class="filter-btn ${currentStatus == 'review' ? 'active' : ''}" data-status="review">검토 중</button>
         </div>
 
         <c:if test="${not empty inquiryList}">
@@ -130,6 +133,17 @@
                                 </c:otherwise>
                             </c:choose>
                         </div>
+
+                        <%-- 답변 대기 상태(관리자 답변 전)인 문의만 수정/삭제 가능.
+                             이미 답변이 달린 문의는 내용을 바꾸면 답변과 안 맞아질 수 있어서 막음. --%>
+                        <c:if test="${inq.status == 'WAIT'}">
+                            <div class="inq-detail-actions" style="display:flex;gap:8px;margin-top:16px">
+                                <a class="btn btn-outline" style="flex:1;text-align:center"
+                                   href="${contextPath}/spendolive/inquiry/edit.do?inquiryNo=${inq.inquiry_id}">수정</a>
+                                <button type="button" class="btn btn-danger-outline" style="flex:1"
+                                        onclick="event.stopPropagation(); deleteInquiry(${inq.inquiry_id})">삭제</button>
+                            </div>
+                        </c:if>
                     </div>
                 </c:forEach>
             </div>
@@ -139,24 +153,26 @@
                 <c:set var="pgStart" value="${currentPage - 2 < 1 ? 1 : currentPage - 2}" />
                 <c:set var="pgEnd" value="${currentPage + 2 > totalPages ? totalPages : currentPage + 2}" />
 
+                <%-- 페이지 번호도 a href → data-page 버튼. inquiry.js가 클릭을 가로채 AJAX 처리.
+                     현재 상태 필터(currentStatus)는 data-status로 같이 실어보내 유지 --%>
                 <div class="pagination">
                     <c:if test="${pgStart > 1}">
-                        <a class="pg-btn" href="${contextPath}/spendolive/inquiry/list.do?status=${currentStatus}&page=1">1</a>
+                        <button type="button" class="pg-btn" data-page="1" data-status="${currentStatus}">1</button>
                         <c:if test="${pgStart > 2}">
                             <span class="pg-ellipsis">…</span>
                         </c:if>
                     </c:if>
 
                     <c:forEach begin="${pgStart}" end="${pgEnd}" var="p">
-                        <a class="pg-btn ${p == currentPage ? 'active' : ''}"
-                           href="${contextPath}/spendolive/inquiry/list.do?status=${currentStatus}&page=${p}">${p}</a>
+                        <button type="button" class="pg-btn ${p == currentPage ? 'active' : ''}"
+                                data-page="${p}" data-status="${currentStatus}">${p}</button>
                     </c:forEach>
 
                     <c:if test="${pgEnd < totalPages}">
                         <c:if test="${pgEnd < totalPages - 1}">
                             <span class="pg-ellipsis">…</span>
                         </c:if>
-                        <a class="pg-btn" href="${contextPath}/spendolive/inquiry/list.do?status=${currentStatus}&page=${totalPages}">${totalPages}</a>
+                        <button type="button" class="pg-btn" data-page="${totalPages}" data-status="${currentStatus}">${totalPages}</button>
                     </c:if>
                 </div>
             </c:if>
@@ -172,11 +188,14 @@
                     </c:when>
                     <c:otherwise>
                         <p>해당 상태의 문의가 없습니다.</p>
-                        <a class="btn btn-outline" href="${contextPath}/spendolive/inquiry/list.do?status=all">전체 문의 보기</a>
+                        <%-- '전체 문의 보기'도 AJAX 필터 버튼으로 (data-status=all) --%>
+                        <button type="button" class="btn btn-outline filter-btn" data-status="all">전체 문의 보기</button>
                     </c:otherwise>
                 </c:choose>
             </div>
         </c:if>
+
+        </div> <%-- /#inqBoardArea --%>
     </div>
 
     <div class="modal" id="inqDetailModal" onclick="closeInqDetailModal(event)">
@@ -185,6 +204,8 @@
             <div id="inqDetailBody"></div>
         </div>
     </div>
+
+    <%-- 삭제는 이제 inquiry.js가 fetch(ajax/delete.do)로 처리하므로 숨김 폼 불필요 --%>
 
     <%-- 첨부 사진 확대보기 (01-foundation.css의 공통 .modal 시스템 재사용) --%>
     <div class="modal" id="inqLightbox" onclick="closeInqLightbox(event)">
@@ -196,4 +217,5 @@
 </div>
 
 <script src="${contextPath}/resources/js/faq.js"></script>
+<script src="${contextPath}/resources/js/inquiry.js"></script>
 

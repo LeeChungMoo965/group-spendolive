@@ -114,6 +114,13 @@ function closeInqDetailModal(e) {
     document.getElementById('inqDetailModal').classList.remove('show');
 }
 
+/* ---- inquiryList.jsp : 삭제 버튼 (답변 대기 상태만 노출됨) ---- */
+function deleteInquiry(inquiryId) {
+    if (!confirm('이 문의를 삭제하시겠어요? 삭제하면 되돌릴 수 없어요.')) return;
+    document.getElementById('inqDeleteInquiryNo').value = inquiryId;
+    document.getElementById('inqDeleteForm').submit();
+}
+
 /* ---- inquiryWrite.jsp : 개인정보 수집·이용 상세 [자세히 보기] 토글 ---- */
 function togglePrivacyDetail(linkEl) {
     const detail = document.getElementById('privacyDetail');
