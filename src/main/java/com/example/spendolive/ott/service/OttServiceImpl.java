@@ -424,7 +424,7 @@ public class OttServiceImpl implements OttService {
         }
 
         if (ottRepository.countActiveRoomMembers(room_id) >= room.getMember_limit()) {
-            ottRepository.updateRoomStatus(room_id, "ACTIVE");
+            ottRepository.updateRoomStatus(room_id, "FIRST");//FIRST고정 수정 X
         }
 
         // [홈페이지 전체 알림 기능 설정] 방 참여완료 - 예전엔 selectMemberDisplayName()이 없어서
@@ -718,6 +718,7 @@ public class OttServiceImpl implements OttService {
             replace_end_date = null;
         }
     
+
         OttSettlementDTO settlement = createSettlementDTO(
                 room_id,
                 targetMonth.toString(),
