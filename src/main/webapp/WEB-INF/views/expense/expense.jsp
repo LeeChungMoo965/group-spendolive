@@ -182,7 +182,30 @@
                                    class="month-picker-input">
                         </form>
                     </div>
+                    <div class="expense-filter-bar">
+                        <select id="expenseTypeFilter">
+                            <option value="">전체 분류</option>
+                            <option value="FIXED">고정</option>
+                            <option value="VARIABLE">변동</option>
+                            <option value="OTT">OTT</option>
+                        </select>
 
+                        <select id="expenseCategoryFilter">
+                            <option value="">전체 카테고리</option>
+
+                            <c:forEach var="category" items="${categoryList}">
+                                <option value="${category.category_id}">
+                                    ${category.category_name}
+                                </option>
+                            </c:forEach>
+                        </select>
+
+                        <select id="expenseAmountSort">
+                            <option value="">최신순</option>
+                            <option value="DESC">금액 높은 순</option>
+                            <option value="ASC">금액 낮은 순</option>
+                        </select>
+                    </div>
                     <div class="table-wrap">
                         <table>
                             <thead>
@@ -199,10 +222,15 @@
                             </thead>
 
                             <tbody id="expenseRows">
-                                <c:forEach var="expense" items="${expenseList}">
+                                <c:forEach var="expense" items="${expenseList}" varStatus="status">
                                     <fmt:formatDate var="expenseDateValue" value="${expense.expense_date}" pattern="yyyy-MM-dd" />
 
-                                    <tr class="expense-row" data-expense-id="${expense.expense_id}">
+                                    <tr class="expense-row"
+                                    data-expense-id="${expense.expense_id}"
+                                    data-type="${expense.expense_type}"
+                                    data-category="${expense.category_id}"
+                                    data-amount="${expense.amount}"
+                                    data-order="${status.index}">
                                         <td>
                                             <span class="view-mode">
                                                 <fmt:formatDate value="${expense.expense_date}" pattern="yyyy.MM.dd" />
@@ -695,7 +723,7 @@
         }
 
         function changeEditRepeatYnByRow(row) {
-            const expense_id = row.dataset.expense_id;
+            const expense_id = row.dataset.expenseId;
             const typeSelect = row.querySelector('.edit-expense-type');
             const editRepeatCycleSelect = row.querySelector('.edit-repeat-cycle');
             const editRepeatYnInput = document.getElementById(`editRepeatYn${expense_id}`);
@@ -734,5 +762,46 @@
         }
 
         filterCategories();
+    });
+
+    const typeFilter = document.getElementById('expenseTypeFilter');
+    const categoryFilter = document.getElementById('expenseCategoryFilter');
+    const amountSort = document.getElementById('expenseAmountSort');
+    const expenseRows = Array.from(document.querySelectorAll('.expense-row'));
+    const expenseTbody = document.getElementById('expenseRows');
+
+    function filterExpenseRows() {
+        const selectedType = typeFilter.value;
+        const selectedCategory = categoryFilter.value;
+        const selectedSort = amountSort.value;
+
+        const sortedRows = [...expenseRows].sort((a, b) => {
+            if (selectedSort === 'DESC') {
+                return Number(b.dataset.amount) - Number(a.dataset.amount);
+            }
+
+            if (selectedSort === 'ASC') {
+                return Number(a.dataset.amount) - Number(b.dataset.amount);
+            }
+
+            return Number(a.dataset.order) - Number(b.dataset.order);
+        });
+
+        sortedRows.forEach(row => {
+            const typeMatch =
+                !selectedType || row.dataset.type === selectedType;
+
+            const categoryMatch =
+                !selectedCategory || row.dataset.category === selectedCategory;
+
+            row.style.display =
+                typeMatch && categoryMatch ? '' : 'none';
+
+            expenseTbody.appendChild(row);
+        });
+    }
+
+    [typeFilter, categoryFilter, amountSort].forEach(filter => {
+        filter.addEventListener('change', filterExpenseRows);
     });
 </script>

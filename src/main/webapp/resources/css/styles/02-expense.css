@@ -82,3 +82,7 @@
   .monthly-budget-input-row .btn {width:100%;}
 }
 
+/* 최근 지출 필터 */
+.expense-filter-bar {display:flex;justify-content:flex-end;gap:0.5rem;flex-wrap:wrap;margin:1rem 0;}
+.expense-filter-bar select {width:auto;min-width:8.75rem;margin:0;padding:0.625rem 0.75rem;}
+@media(max-width:43.75rem) {.expense-filter-bar {justify-content:stretch;}.expense-filter-bar select {flex:1;min-width:8rem;}}

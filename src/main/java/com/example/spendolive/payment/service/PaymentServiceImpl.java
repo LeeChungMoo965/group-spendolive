@@ -1,6 +1,5 @@
 package com.example.spendolive.payment.service;
 
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -12,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
+import org.springframework.data.redis.core.StringRedisTemplate;
 import com.example.spendolive.member.domain.MemberCardVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.repository.MemberRepository;
@@ -36,7 +37,10 @@ import com.example.spendolive.ott.service.OttService;
 import com.example.spendolive.payment.domain.*;
 import com.example.spendolive.payment.exception.PaymentProcessException;
 import com.example.spendolive.payment.repository.PaymentRepository;
+
+import lombok.RequiredArgsConstructor;
 @Service
+@RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService{
     @Autowired
     private PaymentRepository paymentRepository;
@@ -46,6 +50,7 @@ public class PaymentServiceImpl implements PaymentService{
     private OttRepository ottRepository;
     @Autowired
     private OttService ottService;
+    private final StringRedisTemplate redisTemplate;
     @Value("${openbanking.useorg-code}")
     private String useorgCode;
 
@@ -260,6 +265,7 @@ public class PaymentServiceImpl implements PaymentService{
      * 중복 결제와 방 상태를 확인한 뒤 Toss 자동결제를 실행합니다.
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public PaymentAmountDTO executeRoomPayment(String userId, int roomId) throws Exception {
         if (userId == null || userId.isBlank()) {
             throw new PaymentProcessException(
@@ -299,14 +305,21 @@ public class PaymentServiceImpl implements PaymentService{
                         "HOST_CANNOT_PAY",
                         "방장은 자신이 만든 방에 참여 결제를 할 수 없습니다.");
             }
-
-            if (ottRepository.countActiveRoomMembers((long) roomId)
-                    >= paymentAmount.getMemberLimit()) {
-                throw new PaymentProcessException(
-                        "ROOM_FULL",
-                        "모집 인원이 마감되어 결제할 수 없습니다.");
+           
+       
+            String redisKey = "room:" + roomId + ":seats";
+            if (Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(
+                redisKey, 
+                String.valueOf(Math.max(paymentAmount.getMemberLimit() - ottRepository.countActiveRoomMembers((long) roomId), 0))))) {
+                    redisTemplate.expire(redisKey, 1, TimeUnit.HOURS);
             }
-            
+            Long remainingSeats = redisTemplate.opsForValue().decrement(redisKey);
+            if (remainingSeats == null ||remainingSeats < 0) {
+                // 자리가 없으므로 내가 깎은 1을 다시 원복하고 튕겨냄
+                redisTemplate.opsForValue().increment(redisKey);
+                throw new PaymentProcessException("ROOM_FULL", "이미 정원이 찬 방입니다.");
+            }
+            try{
             executeAutomaticPayment(
                     userId,
                     paymentAmount.getTotalAmount(),
@@ -317,8 +330,16 @@ public class PaymentServiceImpl implements PaymentService{
                     paymentAmount.getHostLoginId());
             ottService.completePaidRoomEntry((long) roomId, userId);
             return paymentAmount;
-
+            }catch(Exception e){
+                redisTemplate.opsForValue().increment(redisKey);
+                e.printStackTrace();
+                if (e instanceof PaymentProcessException) {
+                    throw e;
+                }
+                throw new PaymentProcessException("PAYMENT_FAILED", "결제 처리 중 오류가 발생했습니다: " + e.getMessage());
+            }
         } finally {
+            
             processingPayments.remove(processingKey);
         }
     }
@@ -414,9 +435,7 @@ public class PaymentServiceImpl implements PaymentService{
                         "Toss 결제 승인 응답을 받지 못했습니다.");
             }
 
-            tools.jackson.databind.ObjectMapper mapper =
-                    new tools.jackson.databind.ObjectMapper();
-            Map<String, Object> resBody = mapper.readValue(response.getBody(), Map.class);
+            Map<String, Object> resBody = jsonMapper.readValue(response.getBody(), Map.class);
             Map<String, Object> cardInfo = (Map<String, Object>) resBody.get("card");
 
             String paymentKey = (String) resBody.get("paymentKey");

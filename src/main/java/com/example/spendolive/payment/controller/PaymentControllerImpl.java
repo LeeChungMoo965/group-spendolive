@@ -83,8 +83,6 @@ public class PaymentControllerImpl implements PaymentController {
             HttpServletResponse response,
             HttpSession session,
             RedirectAttributes redirectAttributes) throws Exception {
-
-        response.setContentType("text/html; charset=UTF-8");
         MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
 
         if (!isLoggedIn(memberVO)) {
