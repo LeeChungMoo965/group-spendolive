@@ -78,6 +78,6 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
-<script src="${contextPath}/resources/js/app.js"></script>
-<script src="${contextPath}/resources/js/ajaxLoading.js"></script>
+<%-- calendar.js에서 사용하는 SpendOlive 기본 주소 --%>
+<script>const eContextPath = "${contextPath}/spendolive";</script>
 <script src="${contextPath}/resources/js/calendar.js"></script>
