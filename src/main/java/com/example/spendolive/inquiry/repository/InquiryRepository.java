@@ -44,6 +44,20 @@ public class InquiryRepository {
             WHERE inquiry_id = ?
         """;
 
+    // 본인 문의 수정: 답변이 아직 안 달린(WAIT) 상태일 때만 허용
+    // (WHERE 절에 id/status를 같이 걸어서, 다른 사람 문의거나 이미 답변된 문의는 0건 처리되게 함)
+    private static final String UPDATE_SQL = """
+            UPDATE inquiry_tb
+            SET category = ?, inquiry_type = ?, title = ?, content = ?
+            WHERE inquiry_id = ? AND id = ? AND status = 'WAIT'
+        """;
+
+    // 본인 문의 삭제: 답변이 아직 안 달린(WAIT) 상태일 때만 허용
+    private static final String DELETE_SQL = """
+            DELETE FROM inquiry_tb
+            WHERE inquiry_id = ? AND id = ? AND status = 'WAIT'
+        """;
+
     // ────────────────────────────────────────────────────────────
     // 필드 / 생성자 / RowMapper
     // ────────────────────────────────────────────────────────────
@@ -191,6 +205,35 @@ public class InquiryRepository {
             jdbcTemplate.update(REPLY_SQL, replyContent, status, inquiryId);
         } catch (DataAccessException e) {
             System.err.println("[InquiryRepository.replyToInquiry] DB 오류: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 본인 문의 수정. 반환값이 0이면 "본인 문의가 아니거나 이미 답변이 달려서" 수정되지 않은 것.
+     */
+    public int updateInquiry(InquiryVO inquiry) {
+        try {
+            return jdbcTemplate.update(UPDATE_SQL,
+                    inquiry.getCategory(), inquiry.getInquiry_type(),
+                    inquiry.getTitle(), inquiry.getContent(),
+                    inquiry.getInquiry_id(), inquiry.getId());
+        } catch (DataAccessException e) {
+            System.err.println("[InquiryRepository.updateInquiry] DB 오류: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 본인 문의 삭제. 반환값이 0이면 "본인 문의가 아니거나 이미 답변이 달려서" 삭제되지 않은 것.
+     * 첨부파일(inquiry_file_tb)은 FK의 ON DELETE CASCADE로 DB에서는 자동 삭제되지만,
+     * 디스크에 저장된 실제 파일은 별도로 지워야 해서 호출부(InquiryService)에서 처리함.
+     */
+    public int deleteInquiry(int inquiryId, String id) {
+        try {
+            return jdbcTemplate.update(DELETE_SQL, inquiryId, id);
+        } catch (DataAccessException e) {
+            System.err.println("[InquiryRepository.deleteInquiry] DB 오류: " + e.getMessage());
             throw e;
         }
     }

@@ -41,10 +41,10 @@
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="${tab eq 'all' ? 'active' : ''}">모든 모집글</a>
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=write" class="${tab eq 'write' ? 'active' : ''}">모집글 작성</a>
             <a href="${contextPath}/spendolive/ott/recruit.do?tab=manage" class="${tab eq 'manage' or tab eq 'apply' ? 'active' : ''}">참여방 관리</a>
-            <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산 및 알림</a>
+            <a href="${contextPath}/spendolive/ott/recruit.do?tab=settlement" class="${tab eq 'settlement' ? 'active' : ''}">정산 관리</a>
         </div>
 
-        <div class="ott-tab-content">
+        <div>
             <c:choose>
                 <%-- 전체 모집글 탭 --%>
                 <c:when test="${tab eq 'all'}">
@@ -55,12 +55,12 @@
                         주의: 이 JSP는 화면과 요청 전송만 담당한다.
                              실제 방 찾기/구성원 저장 로직은 Controller → Service → Repository에서 처리한다.
                     --%>
-                    <article class="card ott-tab-panel quick-join-panel">
+                    <article class="card ott-tab-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">QUICK JOIN</p>
                                 <h2>빠른 참가</h2>
-                                <p class="panel-description">
+                                <p>
                                     원하는 OTT를 선택하면 오래된 모집방 중 자리가 비어있는 방부터 자동으로 참여합니다.
                                 </p>
                             </div>
@@ -82,7 +82,7 @@
                         --%>
                         <form action="${contextPath}/spendolive/ott/recruit/quick-join.do"
                             method="post"
-                            class="recruit-filter-form quick-join-form">
+                            class="quick-join-form">
 
                                 <%--
                                     빠른 참가에서는 roomId가 없다.
@@ -91,7 +91,7 @@
                                     여기서 선택한 ottServiceId를 서버로 보내면,
                                     서버가 이 OTT에 해당하는 빈 모집방을 자동으로 찾는다.
                                 --%>
-                            <div class="recruit-filter-grid quick-join-grid">
+                            <div class="quick-join-grid">
                                 <label>
                                     OTT 종류
                                     <select name="ott_service_id" class="form-control ott-service-select" required>
@@ -126,7 +126,7 @@
                     <br>
 
                     <%-- 모집글 검색 및 목록 --%>
-                    <article class="card ott-tab-panel recruit-list-panel">
+                    <article class="card ott-tab-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">ALL POSTS</p>
@@ -137,7 +137,7 @@
 
                         <form action="${contextPath}/spendolive/ott/recruit.do" method="get" class="recruit-search-form">
                             <input type="hidden" name="tab" value="all">
-                        <div class="auth-form-group">
+                        <div>
                             <label>
                                 <span>OTT 종류</span>
                                 <select name="ott_service_id">
@@ -149,14 +149,15 @@
                                     </c:forEach>
                                 </select>
                             </label>
+                            
                             </div>
-                            <label class="recruit-search-keyword">
+                            <div>
+                            <label>
                                 <span>방 제목</span>
                                 <input type="text" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}" placeholder="예) 모집합니다">
                             </label>
-                        </div>
-                         
-                          <div class="auth-form-group">
+                         </div>
+                          <div>
                                 <button type="submit" class="btn btn-primary">검색</button>
                                 <a href="${contextPath}/spendolive/ott/recruit.do?tab=all" class="btn btn-danger-outline">초기화</a>
                             </div>
@@ -330,7 +331,7 @@
                         </section>
 
                         <%-- 참여자 관리 영역 --%>
-                        <section class="manage-section joined-section">
+                        <section class="manage-section">
                             <div class="settlement-sub-header">
                                 <div>
                                     <h3>내가 참여한 방</h3>
@@ -343,7 +344,7 @@
                                 <c:when test="${not empty joinedRoomList}">
                                     <div class="ott-room-card-list manage-room-list">
                                         <c:forEach var="room" items="${joinedRoomList}" varStatus="roomStatus">
-                                            <div class="ott-room-card manage-room-card joined-room-card">
+                                            <div class="ott-room-card manage-room-card">
                                                 <div class="room-index-badge">${roomStatus.count}</div>
                                                 <div class="family-room-info">
                                                     <strong>${room.room_name}</strong>
@@ -388,14 +389,14 @@
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">SETTLEMENT & ALERT</p>
-                                <h2>정산 및 알림</h2>
+                                <h2>정산 상태</h2>
                             </div>
                             <span>참여자별 정산 상태 확인</span>
                         </div>
 
                         <div class="settlement-stack">
                             <%-- 개인 및 팀원 결제 상태 --%>
-                            <section class="settlement-wide-block settlement-status-block">
+                            <section class="settlement-wide-block">
                                 <div class="settlement-sub-header">
                                     <div>
                                         <h3>내 정산 상태</h3>
@@ -475,13 +476,14 @@
                             <span>신청 버튼은 결제 화면으로 연결됩니다</span>
                         </div>
 
-                        <%-- OTT 고정 요금 미리보기 --%>
-                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="ott-form-grid wide-form ott-fixed-plan-form" data-room-mode="RECRUIT">
-                           <div class="auth-form-group">
-                            <label>
-                                OTT 종류    </label>
-                                <select name="ott_service_id" class="ott-service-select" required>
+                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="recruit-search-form ott-fixed-plan-form" data-room-mode="RECRUIT">
+                            <%-- OTT 종류 --%>
+                            <div class="auth-form-group">
+                                <label for="recruitOttService">OTT 종류</label>
+
+                                <select id="recruitOttService" name="ott_service_id" class="ott-service-select" required>
                                     <option value="">선택</option>
+
                                     <c:forEach var="service" items="${serviceList}">
                                         <option value="${service.ott_service_id}"
                                                 data-service-name="${service.service_name}"
@@ -498,30 +500,66 @@
                                         </option>
                                     </c:forEach>
                                 </select>
-                        </div>
-                            <div class="auth-form-group">
-                                <label>모집글 제목</label>
-                                <input type="text" name="room_name" placeholder="비워두면 OTT - 최고 멤버십 - 모집으로 저장됩니다.">
-                             </div>
-        
-                            <div class="auth-form-group">
-                                <label>결제일</label>
-                                <input type="number" name="billing_day" min="1" max="31" value="1" required>
                             </div>
-                            <input type="hidden" name="plan_name" class="ott-plan-input">
-                            <input type="hidden" name="total_price" class="ott-total-price-input">
-                            <input type="hidden" name="member_limit" class="ott-member-limit-input">
 
+                            <%-- 모집글 제목 --%>
+                            <div class="auth-form-group">
+                                <label for="recruitRoomName">모집글 제목</label>
+
+                                <input type="text"
+                                    id="recruitRoomName"
+                                    name="room_name"
+                                    placeholder="비워두면 OTT - 최고 멤버십 - 모집으로 저장됩니다.">
+                            </div>
+
+                            <%-- 결제일 --%>
+                            <div class="auth-form-group">
+                                <label for="recruitBillingDay">결제일</label>
+
+                                <input type="number"
+                                    id="recruitBillingDay"
+                                    name="billing_day"
+                                    min="1"
+                                    max="31"
+                                    value="1"
+                                    required>
+                            </div>
+
+                            <input type="hidden"
+                                name="plan_name"
+                                class="ott-plan-input">
+
+                            <input type="hidden"
+                                name="total_price"
+                                class="ott-total-price-input">
+
+                            <input type="hidden"
+                                name="member_limit"
+                                class="ott-member-limit-input">
+
+                            <%-- 요금 안내 --%>
                             <div class="ott-fixed-plan-preview">
-                                <strong>OTT를 선택하면 최고 멤버십 기준 금액이 자동 적용됩니다.</strong>
-                                <p>추가 계정 비용이 있는 OTT는 기본 구독료에 추가 비용을 더한 뒤 N분의 1로 계산합니다. 서비스 수수료는 3%입니다.</p>
+                                <strong>
+                                    OTT를 선택하면 최고 멤버십 기준 금액이 자동 적용됩니다.
+                                </strong>
+
+                                <p>
+                                    추가 계정 비용이 있는 OTT는 기본 구독료에 추가 비용을 더한 뒤
+                                    N분의 1로 계산합니다. 서비스 수수료는 3%입니다.
+                                </p>
                             </div>
 
-                            <button type="submit" class="btn btn-primary full ott-form-submit">모집글 등록</button>
+                            <%-- 등록 버튼은 아래 전체 너비 유지 --%>
+                            <button type="submit"
+                                    class="btn btn-primary full ott-form-submit">
+                                모집글 등록
+                            </button>
                         </form>
                     </article>
                 </c:otherwise>
             </c:choose>
+            </div>
         </div>
-    </div>
 </section>
+
+<script src="${contextPath}/resources/js/ott.js"></script>

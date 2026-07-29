@@ -59,6 +59,8 @@ public interface OttRepository {
     int countMyRooms(String loginId);
     // 내가 읽지 않은 OTT 채팅 메시지 개수 조회
     int countUnreadChatMessages(String loginId);
+    // 선택 월에 사용자가 관련된 실제 OTT 정산 회차 수 조회
+    int countMySettlements(String loginId, String settlement_month);
 
     // Service의 판단에 필요한 단순 조회
     // 방 ID에 해당하는 OTT 방 한 건 조회
@@ -117,7 +119,9 @@ public interface OttRepository {
             double fee_rate, int fee_amount, int pay_amount, int pay_day);
     // 기존 방 멤버를 ACTIVE 상태로 재입장 처리
     void reactivateRoomMember(Long room_id, String loginId, int share_amount,
-            double fee_rate, int fee_amount, int pay_amount);
+            double fee_rate, int fee_amount, int pay_amount, int pay_day);
+    // 해당 정산 회차의 실제 결제 마감일에 맞춰 ACTIVE 멤버의 결제일 갱신
+    void updateActiveMemberPayDay(Long room_id, int pay_day);
     // 일반 멤버의 방 나가기 예약 정보 저장
     int reserveRoomLeave(Long room_id, String loginId, LocalDate leave_scheduled_date);
     // 아직 처리되지 않은 방 나가기 예약 취소

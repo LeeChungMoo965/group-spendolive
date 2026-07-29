@@ -42,7 +42,6 @@ public class OttController {
     // OTT 메인 화면 - 공유 가능한 OTT 목록, 전체 모집방 수, 참여방 수 조회
     @GetMapping("/ott.do")
     public String ottMain(Model model, HttpSession session) {
-        ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
         session.removeAttribute("log");
         model.addAttribute("serviceList", ottService.getShareableServices());
@@ -61,19 +60,16 @@ public class OttController {
     // 가족·지인 공유방 화면 - 참여방, 방장 방, 정산 내역 조회
     @GetMapping("/ott/friends.do")
     public String friends(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
-        ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
         
         if (loginId == null) {   
-            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인해 주세요.");
             return "redirect:/member/loginForm.do";
         }
-        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String account_status = memberVO.getAccount_status();
-
-        if (account_status  == null) {
-
-            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+        // 계좌 상태는 null 여부가 아니라 실제 연동 완료 값인 "YES"로 검사한다.
+        // DB 기본값이 "NO"이므로 null만 검사하면 미연동 회원도 통과할 수 있다.
+        if (!hasLinkedAccount(session)) {
+            redirectAttributes.addFlashAttribute("msg", "OTT 관련 기능은 계좌 연동이 필요합니다.");
             return "redirect:/spendolive/main.do";
         }
         addCommonOttModel(model, loginId);
@@ -90,9 +86,15 @@ public class OttController {
         String loginId = getLoginId(session);
         
         if (loginId == null) {
-            
             return "redirect:/member/loginForm.do";
         }
+
+        // 화면 주소를 거치지 않고 생성 URL을 직접 호출하는 경우도 막는다.
+        if (!hasLinkedAccount(session)) {
+            redirectAttributes.addFlashAttribute("msg", "OTT 관련 기능은 계좌 연동이 필요합니다.");
+            return "redirect:/spendolive/main.do";
+        }
+
         ottService.createFriendRoom(roomDTO, loginId);
 
         // 방 생성 완료 알림
@@ -111,19 +113,15 @@ public class OttController {
                           Model model,
                           RedirectAttributes redirectAttributes,
                           HttpSession session) {
-        ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
         
         if (loginId == null) {
-            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능 입니다 로그인을 해주세요 !");
+            redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인해 주세요.");
             return "redirect:/member/loginForm.do";
         }
-        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String account_status = memberVO.getAccount_status();
-
-        if (account_status.equals("NO")) {
-
-            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요 !");
+        // OTT 화면과 생성·참가 요청에서 같은 계좌 연동 기준을 사용한다.
+        if (!hasLinkedAccount(session)) {
+            redirectAttributes.addFlashAttribute("msg", "OTT 관련 기능은 계좌 연동이 필요합니다.");
             return "redirect:/spendolive/main.do";
         }
         Long selectedOttServiceId = parseOttServiceId(ott_service_id);
@@ -150,12 +148,9 @@ public class OttController {
             
             return "redirect:/member/loginForm.do";
         }
-        MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-        String account_status = memberVO.getAccount_status();
-
-        if (account_status  == null) {
-
-            redirectAttributes.addFlashAttribute("msg", "OTT관련 기능은 계좌연동이 필요합니다. 계좌연동을 해주세요!");
+        // DB 기본값 "NO"를 확실히 차단하기 위해 "YES"만 허용한다.
+        if (!hasLinkedAccount(session)) {
+            redirectAttributes.addFlashAttribute("msg", "OTT 관련 기능은 계좌 연동이 필요합니다.");
             return "redirect:/spendolive/main.do";
         }
         ottService.createRecruitRoom(roomDTO, loginId);
@@ -180,7 +175,13 @@ public class OttController {
             return "redirect:/member/loginForm.do";
         }
 
-        //    parseOttServiceId()는 OttController 안에 이미 있는 변환용 메서드
+        // 빠른 참가도 OTT 기능이므로 동일한 계좌 연동 검사를 적용한다.
+        if (!hasLinkedAccount(session)) {
+            redirectAttributes.addFlashAttribute("msg", "OTT 관련 기능은 계좌 연동이 필요합니다.");
+            return "redirect:/spendolive/main.do";
+        }
+
+        // parseOttServiceId()는 OttController 안에 이미 있는 변환용 메서드
         Long selectedOttServiceId = parseOttServiceId(ott_service_id);
 
         if (selectedOttServiceId == null) {
@@ -221,7 +222,6 @@ public class OttController {
     // 채팅방 화면 - 참여 권한 확인 후 메시지 조회
     @GetMapping("/ott/chat/room.do")
     public String chatRoom(@RequestParam("room_id") Long room_id, Model model, HttpSession session) {
-        ottService.processScheduledOttJobs();
         String loginId = getLoginId(session);
 
         if (loginId == null) {
@@ -288,7 +288,7 @@ public class OttController {
             settlement_month = YearMonth.now().plusMonths(1).toString();
         }
 
-        ottService.requestSettlement(room_id, loginId, settlement_month, due_date);
+        ottService.requestSettlement(room_id, loginId, settlement_month);
 
         if ("friends".equals(returnPage)) {
             return "redirect:/spendolive/ott/friends.do?result=settlementRequested";
@@ -420,6 +420,13 @@ public class OttController {
         model.addAttribute("today", today.toString());
         model.addAttribute("kakaoJavascriptKey", kakaoJavascriptKey == null ? "" : kakaoJavascriptKey);
         model.addAttribute("settlementGuide", "OTT별 최고 멤버십 기준 금액을 N분의 1로 나누고 서비스 수수료 3%를 더해 정산합니다. 결제 마감일은 이용 시작일 7일 전으로 자동 계산됩니다.");
+    }
+
+    // OTT 계좌 연동 여부 공통 검사
+    // MEMBER_TB.ACCOUNT_STATUS의 연동 완료 값은 "YES"이므로 그 값만 허용한다.
+    private boolean hasLinkedAccount(HttpSession session) {
+        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+        return memberInfo != null && "YES".equals(memberInfo.getAccount_status());
     }
 
     // 로그인 사용자 ID 조회 - 세션의 회원 정보에서 ID 추출

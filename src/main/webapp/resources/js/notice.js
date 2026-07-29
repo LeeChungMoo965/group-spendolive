@@ -104,6 +104,14 @@ function setBoardTab(mode, initialFilter) {
             ? "/spendolive/notice/ajax/unreadNoticeList.do"
             : "/spendolive/notice/ajax/noticeList.do";
 
+        /* [AJAX] GET /notice/ajax/noticeList.do (또는 unreadNoticeList.do)
+           - 서버에 credentials: 'same-origin' 옵션을 줘서 로그인 세션 쿠키를 같이 보냄
+             (로그인 여부에 따라 read_yn 등 개인화된 값이 응답에 실려옴)
+           - 응답은 JSON 배열(공지 목록) 그대로 받아서 currentNoticeData에 저장,
+             실제 화면 그리기(<tr> 생성)는 여기서 안 하고 drawNoticePage()에 위임함
+             → 페이지 이동(moveNoticePage) 시 서버 재요청 없이 저장해둔 배열만 잘라 씀 */
+
+
         fetch(url, { credentials: 'same-origin' })
             .then(response => response.json())
             .then(data => {
@@ -226,6 +234,11 @@ let currentNotifFilter = "all";   // 현재 필터 기억 (읽음 처리 후 같
 function loadNotificationList(filter = "all") {
     currentNotifFilter = filter;
 
+     /* [AJAX] GET /notification/ajax/list.do
+       - 로그인한 사용자의 알림 전체를 받아온 뒤, "안 읽은 알림" 필터는
+         서버에 따로 안 물어보고 클라이언트에서 read_yn === "N"만 걸러냄
+         (알림은 공지와 달리 비로그인 접근 시나리오가 없어서 이 요청 자체가
+          로그인 필요 기능임 - setBoardTab에서 이미 loginYn 체크 후 호출됨) */
     fetch("/spendolive/notification/ajax/list.do", { credentials: 'same-origin' })
         .then(response => response.json())
         .then(data => {
@@ -319,6 +332,10 @@ function moveNotifPage(page) {
 
     function loadImportantNoticeList() {
         currentNoticeFilter = "important";
+        /* [AJAX] GET /notice/ajax/importantList.do
+           - pinned_yn = 'Y'(중요 고정) 공지만 서버에서 걸러서 내려줌
+           - 목록 전체(loadNoticeList)와 달리 페이지네이션 없이 한 번에 다 그림
+             (중요 공지는 개수가 적을 거라는 전제) */
         fetch("/spendolive/notice/ajax/importantList.do", { credentials: 'same-origin' })
             .then(response => response.json())
             .then(data => {
@@ -393,6 +410,12 @@ function moveNotifPage(page) {
 function readNotification(event, notification_id, link_url) {
     event.preventDefault();
 
+        /* [AJAX] POST /notification/ajax/read.do
+       - 알림 클릭 시 <a href="#">의 기본 이동을 막고(preventDefault) 먼저
+         서버에 읽음 처리를 요청한 뒤, 성공하면 location.href로 직접 이동시킴
+         (읽음 처리와 페이지 이동을 하나의 흐름으로 묶기 위해 GET 링크 대신 fetch 사용)
+       - body는 application/x-www-form-urlencoded 형식의 단순 폼 데이터 문자열 */
+
     fetch("/spendolive/notification/ajax/read.do", {
         method: "POST",
         credentials: 'same-origin',
@@ -431,9 +454,15 @@ document.addEventListener("DOMContentLoaded", function () {
     // 같이 불러오게 되면서, 탭 관련 요소가 없는 페이지에서 setBoardTab이 에러 없이
     // 조용히 무시되도록 가드를 추가함.
     if (document.getElementById("noticeTabBtn")) {
-        // 공지 상세에서 "목록으로" 눌러 filter=unread/important를 달고 돌아온 경우 반영
-        const urlFilter = new URLSearchParams(location.search).get("filter");
-        setBoardTab("notice", urlFilter);
+        const params = new URLSearchParams(location.search);
+        // ?tab=alert 이면 알림 탭으로 시작 (헤더 종모양의 '전체보기'가 이 링크로 연결됨).
+        // 그 외에는 기존대로 공지 탭. (공지 상세에서 filter=unread/important 달고 돌아온 경우 반영)
+        if (params.get("tab") === "alert") {
+            setBoardTab("alert");
+        } else {
+            const urlFilter = params.get("filter");
+            setBoardTab("notice", urlFilter);
+        }
     }
 });
 
@@ -449,6 +478,10 @@ function saveNoticeReadLocal(notice_id) {
    (목록은 버튼 텍스트만 바꾸면 되지만, 상세는 localStorage까지 같이
     관리해야 해서 화면 갱신 로직 자체는 통일하지 않고 통신 부분만 공유함)
    ========================================================= */
+/* [AJAX] POST /notice/ajax/star.do
+- Promise를 return해서 호출부(toggleNoticeStar, noticeDetail.js)가
+ 각자 .then()으로 이어서 화면(버튼 텍스트/localStorage)을 갱신하도록 함
+- 통신 로직만 여기 한 곳에 모아두고, 성공 후 UI 처리는 호출부 책임으로 분리 */
 function postNoticeStarToggle(noticeId) {
     return fetch("/spendolive/notice/ajax/star.do", {
         method: "POST",
@@ -484,6 +517,11 @@ function toggleNoticeStar(event, notice_id, button) {
 function toggleNotificationStar(event, notification_id, button) {
     event.preventDefault();
     event.stopPropagation();
+
+
+    /* [AJAX] POST /notification/ajax/star.do
+       - 공지 찜(postNoticeStarToggle)과 구조는 동일하지만 알림은 항상 로그인
+         상태에서만 목록이 뜨므로 별도의 loginYn 체크 없이 바로 요청함 */
 
     fetch("/spendolive/notification/ajax/star.do", {
         method: "POST",

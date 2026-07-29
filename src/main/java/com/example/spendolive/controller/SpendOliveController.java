@@ -13,17 +13,26 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spendolive.Expense.domain.ExpenseDTO;
+import com.example.spendolive.admin.dashboard.domain.AdminDashboardDTO;
+import com.example.spendolive.admin.dashboard.service.AdminDashboardService;
 import com.example.spendolive.Expense.service.ExpenseService;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.ott.service.OttService;
 
 @Controller
 @RequestMapping("/spendolive")
 public class SpendOliveController {
 
     private final ExpenseService expenseService;
+    private final OttService ottService;
+    private final AdminDashboardService adminDashboardService;
 
-    public SpendOliveController(ExpenseService expenseService) {
+    public SpendOliveController(ExpenseService expenseService,
+                                OttService ottService,
+                                AdminDashboardService adminDashboardService) {
         this.expenseService = expenseService;
+        this.ottService = ottService;
+        this.adminDashboardService = adminDashboardService;
     }
 
     @RequestMapping(value = {"/", "/main.do"}, method = {RequestMethod.GET, RequestMethod.POST})
@@ -42,7 +51,19 @@ public class SpendOliveController {
 
     @RequestMapping(value = {"/admin/main.do"}, method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView adminmain(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        return layout("/WEB-INF/views/admin/main/main.jsp");
+        ModelAndView mav = layout("/WEB-INF/views/admin/main/main.jsp");
+
+        // 관리자 메인 화면에 실제 DB 기준 운영 현황을 표시한다.
+        // 통계 조회에 문제가 생겨도 관리자 메뉴 전체가 500 오류로 막히지 않도록 0건 화면을 유지한다.
+        try {
+            AdminDashboardDTO dashboard = adminDashboardService.getDashboardSummary();
+            mav.addObject("adminDashboard", dashboard);
+        } catch (Exception e) {
+            mav.addObject("adminDashboard", new AdminDashboardDTO());
+            mav.addObject("adminDashboardError", "대시보드 통계를 불러오지 못했습니다. DB 테이블 상태를 확인해주세요.");
+        }
+
+        return mav;
     }
 
     @RequestMapping(value = "/calendar.do", method = {RequestMethod.GET, RequestMethod.POST})
@@ -88,6 +109,7 @@ public class SpendOliveController {
             mav.addObject("mainFixedTotal", 0);
             mav.addObject("mainVariableTotal", 0);
             mav.addObject("mainOttTotal", 0);
+            mav.addObject("mainOttSettlementCount", 0);
             mav.addObject("mainBudget", 1700000);
             return;
         }
@@ -118,6 +140,12 @@ public class SpendOliveController {
         mav.addObject("mainFixedTotal", fixedTotal);
         mav.addObject("mainVariableTotal", variableTotal);
         mav.addObject("mainOttTotal", ottTotal);
+
+        // 금액으로 추정하지 않고 선택 월에 사용자가 실제로 관련된 정산 회차를 센다.
+        mav.addObject(
+                "mainOttSettlementCount",
+                ottService.getMySettlementCount(memberInfo.getId(), selectedYearMonth));
+
         mav.addObject("mainBudget", monthlyBudget);
     }
 

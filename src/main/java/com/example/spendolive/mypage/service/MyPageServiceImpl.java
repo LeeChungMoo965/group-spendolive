@@ -59,11 +59,16 @@ public class MyPageServiceImpl implements MyPageService {
     
         myPage.setMemberInfo(memberInfo);
         myPage.setProfileInitial(makeProfileInitial(memberInfo));
+        // 메인·지출관리와 같은 ExpenseService 결과를 합산한다.
+        // 반복 지출은 화면에서 자동 생성되므로 DB SUM만 사용하면 마이페이지 금액과 달라질 수 있다.
         int thisMonthExpenseTotal = memberInfo == null
                 ? 0
-                : myPageRepository.selectThisMonthExpenseTotal(
-                        memberInfo.getMember_id()
-                );
+                : expenseService.getExpenseList(
+                        Long.valueOf(memberInfo.getMember_id()),
+                        YearMonth.now().toString()
+                  ).stream()
+                   .mapToInt(expense -> expense.getAmount() == null ? 0 : expense.getAmount())
+                   .sum();
 
         // 현재 달 예산을 조회해 지출 대비 사용률을 계산한다.
         int thisMonthBudget = memberInfo == null

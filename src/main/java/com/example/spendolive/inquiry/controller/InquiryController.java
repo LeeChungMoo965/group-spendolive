@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.spendolive.inquiry.domain.InquiryFileVO;
 import com.example.spendolive.inquiry.domain.InquiryVO;
@@ -55,8 +57,7 @@ public class InquiryController {
 
         // 벨 알림 클릭이 아니라 메뉴 등으로 이 페이지에 직접 들어와도,
         // INQUIRY_REPLY 알림이 가리키는 페이지를 실제로 확인한 것이므로 읽음 처리
-        notificationService.markAsReadByLinkUrl(memberInfo.getId(), "/spendolive/inquiry/list.do");
-
+       
         ModelAndView mav = new ModelAndView("common/layout");
         mav.addObject("body_page", "/WEB-INF/views/inquiry/inquiryList.jsp");
 
@@ -108,57 +109,6 @@ public class InquiryController {
         return mav;
     }
 
-    /* ─── 문의 등록 처리 ──────────────────────────────────── */
-    @PostMapping("/write.do")
-    public ModelAndView inquiryWrite(
-            @RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "inquiry_type", required = false) String inquiry_type,
-            @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "content", required = false) String content,
-            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments,
-            HttpSession session, RedirectAttributes ra) {
-
-        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
-        if (memberInfo == null) {
-            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
-            return new ModelAndView("redirect:/member/loginForm.do");
-        }
-
-        if (category == null || category.isBlank()
-                || inquiry_type == null || inquiry_type.isBlank()
-                || title == null || title.isBlank()
-                || content == null || content.isBlank()) {
-            ra.addFlashAttribute("errorMsg", "카테고리, 유형, 제목, 내용을 모두 입력해 주세요.");
-            return new ModelAndView("redirect:/spendolive/inquiry/write.do");
-        }
-
-        InquiryVO inquiry = new InquiryVO();
-        inquiry.setId(memberInfo.getId());
-        inquiry.setCategory(category);
-        inquiry.setInquiry_type(inquiry_type);
-        inquiry.setTitle(title.strip());
-        inquiry.setContent(content.strip());
-
-        try {
-            inquiryService.writeInquiry(inquiry, attachments);
-            ra.addFlashAttribute("msg", "문의가 접수되었습니다. 답변까지 영업일 기준 1~2일 소요됩니다.");
-        } catch (IllegalArgumentException e) {
-            // 첨부파일 검증 실패 (용량/확장자/개수 초과 등)
-            ra.addFlashAttribute("errorMsg", e.getMessage());
-            return new ModelAndView("redirect:/spendolive/inquiry/write.do");
-        } catch (DataAccessException e) {
-            System.err.println("[InquiryController.inquiryWrite] 등록 실패: " + e.getMessage());
-            ra.addFlashAttribute("errorMsg", "문의 접수 중 오류가 발생했습니다. 다시 시도해 주세요.");
-            return new ModelAndView("redirect:/spendolive/inquiry/write.do");
-        } catch (RuntimeException e) {
-            // 파일 디스크 저장 실패 등
-            System.err.println("[InquiryController.inquiryWrite] 첨부파일 저장 실패: " + e.getMessage());
-            ra.addFlashAttribute("errorMsg", "첨부파일 저장 중 오류가 발생했습니다. 다시 시도해 주세요.");
-            return new ModelAndView("redirect:/spendolive/inquiry/write.do");
-        }
-
-        return new ModelAndView("redirect:/spendolive/inquiry/list.do");
-    }
 
     /* ─── 문의 상세 ───────────────────────────────────────── */
     @GetMapping("/detail.do")
@@ -185,12 +135,166 @@ public class InquiryController {
             return new ModelAndView("redirect:/spendolive/inquiry/list.do");
         }
 
-        // TODO: 상세 페이지 JSP(inquiryDetail.jsp)는 아직 없음. 만들어지면 아래 두 줄 활성화.
+        // TODO: 상세 페이지 JSP(inquiryDetail.jsp)
         ModelAndView mav = new ModelAndView("common/layout");
         mav.addObject("body_page", "/WEB-INF/views/inquiry/inquiryDetail.jsp");
         mav.addObject("inquiry", inquiry);
         return mav;
         
+    }
+
+    /* ─── 문의 수정 폼 ─────────────────────────────────────── */
+    @GetMapping("/edit.do")
+    public ModelAndView inquiryEditForm(
+            @RequestParam(value = "inquiryNo", defaultValue = "0") int inquiryNo,
+            HttpSession session, RedirectAttributes ra) {
+
+        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+        if (memberInfo == null) {
+            ra.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인 후 이용해 주세요.");
+            return new ModelAndView("redirect:/member/loginForm.do");
+        }
+
+        InquiryVO inquiry = inquiryService.getInquiryDetail(inquiryNo);
+
+        // 본인 문의가 아니거나, 답변이 이미 달려서 더 이상 수정할 수 없는 상태면 목록으로
+        if (inquiry == null || !inquiry.getId().equals(memberInfo.getId()) || !"WAIT".equals(inquiry.getStatus())) {
+            ra.addFlashAttribute("errorMsg", "수정할 수 없는 문의입니다. (답변 대기 상태의 본인 문의만 수정 가능합니다)");
+            return new ModelAndView("redirect:/spendolive/inquiry/list.do");
+        }
+
+        ModelAndView mav = new ModelAndView("common/layout");
+        mav.addObject("body_page", "/WEB-INF/views/inquiry/inquiryEdit.jsp");
+        mav.addObject("inquiry", inquiry);
+        return mav;
+    }
+
+
+
+    /* ════════════════════════════════════════════════════════════
+       AJAX 전용 엔드포인트 (페이지 이동 없이 JSON으로 결과만 반환)
+       - 목록 조회/필터/페이지네이션은 기존 list.do(GET)를 그대로 재사용해서
+         프론트(inquiry.js)가 그 페이지의 #inqBoardArea 조각만 갈아끼운다.
+         (관리자 문의/FAQ의 admin.js swapBoardArea와 동일한 방식)
+       - 작성/수정/삭제만 아래 ajax/* 로 JSON 처리한다.
+       ════════════════════════════════════════════════════════════ */
+
+    /** AJAX: 문의 등록 (첨부파일 포함, FormData로 전송받음) */
+    @PostMapping("/ajax/write.do")
+    @ResponseBody
+    public ResponseEntity<?> ajaxWrite(
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "inquiry_type", required = false) String inquiry_type,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "content", required = false) String content,
+            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments,
+            HttpSession session) {
+
+        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+        if (memberInfo == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("result", "LOGIN_REQUIRED", "message", "로그인이 필요합니다."));
+        }
+        if (category == null || category.isBlank()
+                || inquiry_type == null || inquiry_type.isBlank()
+                || title == null || title.isBlank()
+                || content == null || content.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("result", "INVALID_PARAM", "message", "카테고리, 유형, 제목, 내용을 모두 입력해 주세요."));
+        }
+
+        InquiryVO inquiry = new InquiryVO();
+        inquiry.setId(memberInfo.getId());
+        inquiry.setCategory(category);
+        inquiry.setInquiry_type(inquiry_type);
+        inquiry.setTitle(title.strip());
+        inquiry.setContent(content.strip());
+
+        try {
+            inquiryService.writeInquiry(inquiry, attachments);
+            return ResponseEntity.ok(Map.of("result", "OK",
+                    "message", "문의가 접수되었습니다. 답변까지 영업일 기준 1~2일 소요됩니다."));
+        } catch (IllegalArgumentException e) {
+            // 첨부파일 검증 실패(용량/확장자/개수 초과 등)
+            return ResponseEntity.badRequest().body(Map.of("result", "ERROR", "message", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("[InquiryController.ajaxWrite] 등록 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("result", "ERROR", "message", "문의 접수 중 오류가 발생했습니다. 다시 시도해 주세요."));
+        }
+    }
+
+    /** AJAX: 문의 수정 (첨부파일은 수정 대상 아님 - 기존 정책 유지) */
+    @PostMapping("/ajax/edit.do")
+    @ResponseBody
+    public ResponseEntity<?> ajaxEdit(
+            @RequestParam(value = "inquiryNo", defaultValue = "0") int inquiryNo,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "inquiry_type", required = false) String inquiry_type,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "content", required = false) String content,
+            HttpSession session) {
+
+        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+        if (memberInfo == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("result", "LOGIN_REQUIRED", "message", "로그인이 필요합니다."));
+        }
+        if (category == null || category.isBlank()
+                || inquiry_type == null || inquiry_type.isBlank()
+                || title == null || title.isBlank()
+                || content == null || content.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("result", "INVALID_PARAM", "message", "카테고리, 유형, 제목, 내용을 모두 입력해 주세요."));
+        }
+
+        InquiryVO inquiry = new InquiryVO();
+        inquiry.setInquiry_id(inquiryNo);
+        inquiry.setId(memberInfo.getId());
+        inquiry.setCategory(category);
+        inquiry.setInquiry_type(inquiry_type);
+        inquiry.setTitle(title.strip());
+        inquiry.setContent(content.strip());
+
+        try {
+            boolean updated = inquiryService.updateInquiry(inquiry);
+            if (!updated) {
+                return ResponseEntity.badRequest().body(Map.of("result", "ERROR",
+                        "message", "수정할 수 없는 문의입니다. (답변 대기 상태의 본인 문의만 수정 가능합니다)"));
+            }
+            return ResponseEntity.ok(Map.of("result", "OK", "message", "문의가 수정되었습니다."));
+        } catch (Exception e) {
+            System.err.println("[InquiryController.ajaxEdit] 수정 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("result", "ERROR", "message", "수정 중 오류가 발생했습니다."));
+        }
+    }
+
+    /** AJAX: 문의 삭제 */
+    @PostMapping("/ajax/delete.do")
+    @ResponseBody
+    public ResponseEntity<?> ajaxDelete(
+            @RequestParam(value = "inquiryNo", defaultValue = "0") int inquiryNo,
+            HttpSession session) {
+
+        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+        if (memberInfo == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("result", "LOGIN_REQUIRED", "message", "로그인이 필요합니다."));
+        }
+
+        try {
+            boolean deleted = inquiryService.deleteInquiry(inquiryNo, memberInfo.getId());
+            if (!deleted) {
+                return ResponseEntity.badRequest().body(Map.of("result", "ERROR",
+                        "message", "삭제할 수 없는 문의입니다. (답변 대기 상태의 본인 문의만 삭제 가능합니다)"));
+            }
+            return ResponseEntity.ok(Map.of("result", "OK", "message", "문의가 삭제되었습니다."));
+        } catch (Exception e) {
+            System.err.println("[InquiryController.ajaxDelete] 삭제 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("result", "ERROR", "message", "삭제 중 오류가 발생했습니다."));
+        }
     }
 
     /* ─── 첨부파일 미리보기/다운로드 ──────────────────────── */

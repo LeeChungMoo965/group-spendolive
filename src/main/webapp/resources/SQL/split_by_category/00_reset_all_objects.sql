@@ -4,7 +4,6 @@
    주의: 아래 목록의 프로젝트 테이블과 데이터가 모두 삭제됩니다.
    기존 데이터를 보존해야 하면 이 파일을 실행하지 마세요.
    ========================================================= */
-
 SET DEFINE OFF;
 
 BEGIN
@@ -33,6 +32,7 @@ BEGIN
             'OTT_ROOM_MEMBER_TB',
             'OTT_ROOM_TB',
             'OTT_SERVICE_TB',
+            'MONTHLY_BUDGET_TB',
             'EXPENSE_TB',
             'EXPENSE_CATEGORY_TB',
             'MEMBER_CARD_TB',
@@ -50,6 +50,7 @@ BEGIN
             'SEQ_MEMBER',
             'SEQ_EXPENSE_CATEGORY',
             'SEQ_EXPENSE',
+            'SEQ_MONTHLY_BUDGET',
             'SEQ_OTT_SERVICE',
             'SEQ_OTT_ROOM',
             'SEQ_OTT_ROOM_MEMBER',
@@ -174,8 +175,7 @@ CREATE TABLE MEMBER_tran_TB (
     ACCOUNT_IDX            NUMBER NOT NULL,                          
     tran_date       VARCHAR2(30) NOT NULL,                           
     inout_type      VARCHAR2(10) NOT NULL,                       
-    tran_amt              NUMBER,
-    BALANCE_AFTER         NUMBER, -- 해당 거래가 끝난 직후의 계좌 잔액
+    tran_amt              NUMBER ,                           
     REG_DATE             DATE DEFAULT SYSDATE,              
     
     CONSTRAINT FK_MEMBER_tran_member_id FOREIGN KEY (ID) 
@@ -184,3 +184,66 @@ CREATE TABLE MEMBER_tran_TB (
     CONSTRAINT FK_MEMBER_tran_account_idx FOREIGN KEY (account_idx) 
     REFERENCES MEMBER_ACCOUNT_TB(account_idx) ON DELETE CASCADE
 );
+
+
+/* =========================================================
+   4. 회원별 월간 예산 테이블
+   - 회원이 연월별로 설정한 예산을 저장
+   - budget_month는 YYYY-MM 형식으로 저장 (예: 2026-07)
+   - created_at, updated_at은 화면에 표시하지 않고 변경 이력 확인용으로만 보관
+   ========================================================= */
+CREATE TABLE monthly_budget_tb (
+    budget_id      NUMBER NOT NULL,                     -- 월별 예산 고유번호
+    member_id      NUMBER NOT NULL,                     -- 예산을 설정한 회원 고유번호
+    budget_month   VARCHAR2(7) NOT NULL,                -- 예산 적용 연월 (YYYY-MM)
+    budget_amount  NUMBER DEFAULT 0 NOT NULL,           -- 해당 월의 예산 금액
+    created_at     DATE DEFAULT SYSDATE NOT NULL,       -- 최초 등록일
+    updated_at     DATE DEFAULT SYSDATE NOT NULL,       -- 마지막 수정일
+
+    CONSTRAINT pk_monthly_budget PRIMARY KEY (budget_id),
+    CONSTRAINT fk_monthly_budget_member
+        FOREIGN KEY (member_id)
+        REFERENCES member_tb(member_id)
+        ON DELETE CASCADE,
+    CONSTRAINT uk_monthly_budget_member_month
+        UNIQUE (member_id, budget_month),
+    CONSTRAINT ck_monthly_budget_amount
+        CHECK (budget_amount >= 0),
+    CONSTRAINT ck_monthly_budget_month
+        CHECK (REGEXP_LIKE(budget_month, '^[0-9]{4}-(0[1-9]|1[0-2])$'))
+);
+
+CREATE SEQUENCE seq_monthly_budget START WITH 1 INCREMENT BY 1 NOCACHE;
+
+CREATE OR REPLACE TRIGGER trg_monthly_budget_bi
+BEFORE INSERT ON monthly_budget_tb
+FOR EACH ROW
+WHEN (NEW.budget_id IS NULL)
+BEGIN
+    SELECT seq_monthly_budget.NEXTVAL INTO :NEW.budget_id FROM dual;
+END;
+/
+
+COMMENT ON TABLE monthly_budget_tb IS '회원별 월간 예산 저장 테이블';
+COMMENT ON COLUMN monthly_budget_tb.budget_id IS '월별 예산 고유번호';
+COMMENT ON COLUMN monthly_budget_tb.member_id IS '예산을 설정한 회원 고유번호';
+COMMENT ON COLUMN monthly_budget_tb.budget_month IS '예산 적용 연월(YYYY-MM)';
+COMMENT ON COLUMN monthly_budget_tb.budget_amount IS '해당 월의 예산 금액';
+COMMENT ON COLUMN monthly_budget_tb.created_at IS '예산 최초 등록일';
+COMMENT ON COLUMN monthly_budget_tb.updated_at IS '예산 마지막 수정일';
+
+
+SET DEFINE OFF;
+
+DROP TABLE MEMBER_ACCOUNT_TB;
+
+ALTER TABLE MEMBER_ACCOUNT_TB
+MODIFY OPEN_BANK_TOKEN VARCHAR2(1000);
+
+
+
+ALTER TABLE MEMBER_TRAN_TB
+ADD BALANCE_AFTER NUMBER;
+
+COMMENT ON COLUMN MEMBER_TRAN_TB.BALANCE_AFTER
+IS '해당 거래가 끝난 직후의 계좌 잔액';

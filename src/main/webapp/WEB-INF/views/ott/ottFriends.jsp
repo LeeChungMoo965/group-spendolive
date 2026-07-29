@@ -9,66 +9,10 @@
     초대, 정산, 탈퇴 기능 제공
 --%>
 
-<style>
-    .invite-share-box {
-        margin-top: 14px;
-        padding: 14px;
-        border: 1px solid rgba(126, 144, 61, 0.18);
-        border-radius: 16px;
-        background: rgba(255, 253, 238, 0.75);
-    }
-
-    .invite-share-box strong {
-        display: block;
-        margin-bottom: 6px;
-        font-size: 14px;
-    }
-
-    .invite-url-row {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        margin-top: 10px;
-    }
-
-    .invite-url-input {
-        flex: 1;
-        min-width: 0;
-        padding: 10px 12px;
-        border: 1px solid #d9dfbd;
-        border-radius: 12px;
-        background: #fff;
-        font-size: 13px;
-    }
-
-    .invite-share-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 10px;
-    }
-
-    .invite-qr-box {
-        display: none;
-        margin-top: 12px;
-        padding: 12px;
-        border-radius: 14px;
-        background: #fff;
-        text-align: center;
-    }
-
-    .invite-qr-box.show {
-        display: block;
-    }
-
-    .invite-qr-box img {
-        width: 180px;
-        height: 180px;
-    }
-</style>
-
 <%-- 페이지 상단 영역 --%>
-<section class="page-hero ">
+<section id="ottFriendsPage" class="page-hero"
+         data-context-path="${contextPath}"
+         data-kakao-key="${fn:escapeXml(kakaoJavascriptKey)}">
     <div class="container ">    
         <p class="eyebrow">FRIENDS SHARE ROOM</p>
         <h1>가족 · 지인 공유방</h1>
@@ -201,7 +145,7 @@
         </article>
 
         <%-- 가족방 생성 폼 --%>
-        <article id="createRoom" class="card ott-form-card family-create-card">
+        <article id="createRoom" class="card ott-tab-panel">
             <div class="panel-header">
                 <div>
                     <p class="eyebrow">CREATE ROOM</p>
@@ -210,7 +154,7 @@
                 <span>가족 · 지인 전용</span>
             </div>
 
-            <form action="${contextPath}/spendolive/ott/friends/create.do" method="post" class="ott-form-grid ott-fixed-plan-form" data-room-mode="FRIEND">
+            <form action="${contextPath}/spendolive/ott/friends/create.do" method="post" class="recruit-search-form ott-fixed-plan-form" data-room-mode="FRIEND">
                 <label>
                     OTT 종류
                     <select name="ott_service_id" class="ott-service-select" required>
@@ -268,7 +212,7 @@
 
             <div class="settlement-stack">
                 <%-- 개인 및 팀원 결제 상태 --%>
-                <section class="settlement-wide-block settlement-status-block">
+                <section class="settlement-wide-block">
                     <div class="settlement-sub-header">
                         <div>
                             <h3>정산 상태</h3>
@@ -336,127 +280,4 @@
 </section>
 
 <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
-<script>
-// 가족방 초대 공유 - URL 복사, QR, 카카오톡 공유 처리
-(function () {
-    var kakaoJavascriptKey = '${fn:escapeXml(kakaoJavascriptKey)}';
-
-    if (window.Kakao && kakaoJavascriptKey && !window.Kakao.isInitialized()) {
-        window.Kakao.init(kakaoJavascriptKey);
-    }
-
-    // 초대 URL 복사
-    function copyText(text) {
-        if (navigator.clipboard && window.isSecureContext) {
-            return navigator.clipboard.writeText(text);
-        }
-
-        var temp = document.createElement('textarea');
-        temp.value = text;
-        temp.style.position = 'fixed';
-        temp.style.left = '-9999px';
-        document.body.appendChild(temp);
-        temp.focus();
-        temp.select();
-        document.execCommand('copy');
-        document.body.removeChild(temp);
-        return Promise.resolve();
-    }
-
-    // 카카오 공유 데이터 생성
-    function buildSharePayload(room_name, inviteUrl) {
-        return {
-            objectType: 'feed',
-            content: {
-                title: room_name,
-                description: 'SpendOlive 가족방 초대 링크입니다. 링크를 열면 결제 화면으로 이동합니다.',
-                imageUrl: window.location.origin + '${contextPath}/resources/images/logo.png',
-                link: {
-                    mobileWebUrl: inviteUrl,
-                    webUrl: inviteUrl
-                }
-            },
-            buttons: [
-                {
-                    title: '결제하러 가기',
-                    link: {
-                        mobileWebUrl: inviteUrl,
-                        webUrl: inviteUrl
-                    }
-                }
-            ]
-        };
-    }
-
-    // 카카오 공유 실패 시 URL 복사
-    function shareKakao(room_name, inviteUrl) {
-        if (!kakaoJavascriptKey) {
-            return copyText(inviteUrl).then(function () {
-                alert('카카오 JavaScript 키가 아직 설정되지 않아 초대 URL을 대신 복사했습니다.');
-            });
-        }
-
-        if (!window.Kakao || !window.Kakao.isInitialized()) {
-            return copyText(inviteUrl).then(function () {
-                alert('카카오 SDK가 연결되지 않아 초대 URL을 대신 복사했습니다.');
-            });
-        }
-
-        try {
-            var payload = buildSharePayload(room_name, inviteUrl);
-
-            if (window.Kakao.Share && window.Kakao.Share.sendDefault) {
-                window.Kakao.Share.sendDefault(payload);
-                return Promise.resolve();
-            }
-
-            if (window.Kakao.Link && window.Kakao.Link.sendDefault) {
-                window.Kakao.Link.sendDefault(payload);
-                return Promise.resolve();
-            }
-        } catch (e) {
-            console.error(e);
-        }
-
-        return copyText(inviteUrl).then(function () {
-            alert('카카오톡 공유를 실행하지 못해 초대 URL을 대신 복사했습니다.');
-        });
-    }
-
-    // 초대 공유 버튼 이벤트 연결
-    document.querySelectorAll('.invite-share-box').forEach(function (box) {
-        var input = box.querySelector('.invite-url-input');
-        var copyBtn = box.querySelector('.invite-copy-btn');
-        var qrBtn = box.querySelector('.invite-qr-btn');
-        var kakaoBtn = box.querySelector('.invite-kakao-btn');
-        var qrBox = box.querySelector('.invite-qr-box');
-        var qrImg = qrBox ? qrBox.querySelector('img') : null;
-        var room_name = box.dataset.roomName || 'SpendOlive 가족방';
-
-        if (copyBtn && input) {
-            copyBtn.addEventListener('click', function () {
-                copyText(input.value).then(function () {
-                    alert('초대 URL을 복사했습니다.');
-                });
-            });
-        }
-
-        if (qrBtn && input && qrBox && qrImg) {
-            qrBtn.addEventListener('click', function () {
-            if (!qrImg.getAttribute('src')) {
-                qrImg.src =
-                    'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='
-                    + encodeURIComponent(input.value);
-            }
-                qrBox.classList.toggle('show');
-            });
-        }
-
-        if (kakaoBtn && input) {
-            kakaoBtn.addEventListener('click', function () {
-                shareKakao(room_name, input.value);
-            });
-        }
-    });
-})();
-</script>
+<script src="${contextPath}/resources/js/ott.js"></script>
