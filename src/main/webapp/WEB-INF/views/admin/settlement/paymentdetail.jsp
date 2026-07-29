@@ -49,15 +49,16 @@
                                     <c:choose>
                                         <c:when test="${payment.payment_status eq 'CANCELED' or payment.payment_status eq 'REFUNDED'}"><span class="badge gray">취소 완료</span></c:when>
                                         <c:otherwise>
-                                            <form action="${contextPath}/admin/settlement/cancelpaymenting.do" method="post">
-                                                <input type="hidden" name="paymentKey" value="${payment.paymentKey}">
-                                                <input type="hidden" name="payment_id" value="${payment.payment_id}">
-                                                <input type="hidden" name="id" value="${payment.id}">
-                                                <input type="hidden" name="settlement_id" value="${payment.settlement_id}">
-                                                <input type="hidden" name="total_amount" value="${payment.total_amount}">
-                                                <button type="submit" class="mini-btn danger">결제 취소</button>
-                                            </form>
-                                        </c:otherwise>
+                                            <button type="button" 
+                class="mini-btn warning adminrefundSubmitButton"
+                    data-payment-key="${payment.paymentKey}"
+                    data-payment-id="${payment.payment_id}"
+                    data-id="${payment.id}"
+                    data-settlement-id="${payment.settlement_id}"
+                    data-total-amount="${payment.total_amount}">
+                환불하기
+            </button>
+                                          </c:otherwise>
                                     </c:choose>
                                 </td>
                             </tr>

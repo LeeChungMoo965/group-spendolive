@@ -70,6 +70,7 @@ public class PaymentServiceImpl implements PaymentService{
 
     // 같은 서버에서 동일 회원이 동일 방 결제를 동시에 요청하는 것을 차단합니다.
     private final Set<String> processingPayments = ConcurrentHashMap.newKeySet();
+    private final Set<String> processingRefunds = ConcurrentHashMap.newKeySet();
     
 
     @Override
@@ -343,7 +344,55 @@ public class PaymentServiceImpl implements PaymentService{
             processingPayments.remove(processingKey);
         }
     }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
+        int payment_id = payment.getPayment_id();
+        String paymentkey = payment.getPaymentKey();
+        if (!processingRefunds.add(paymentkey)) {
+            throw new PaymentProcessException(
+                    "REFUND_PROCESSING",
+                    "이미 취소를 처리하고 있습니다. 잠시만 기다려주세요.");
+        }
 
+        try {
+            String currentPaymentStatus =paymentRepository.selectRefundStatus(payment_id);
+
+            if (isPaidStatus(currentPaymentStatus)) {
+                throw new PaymentProcessException(
+                        "REFUNDED",
+                        "이미 취소가 완료된 건입니다.");
+            }
+
+            if ("FAILED".equals(currentPaymentStatus)) {
+                throw new PaymentProcessException(
+                        "REFUND_NOT_ALLOWED",
+                        "현재 상태에서는 다시 취소할 수 없습니다.");
+            }
+            try{
+                if(!cancelApprovedPayment(paymentkey)){
+                String message = "결제 정보 저장에 실패해 Toss 승인을 취소했습니다.";
+                throw new PaymentProcessException(
+                        "REFUND_FAILED",
+                        message,
+                        null);
+                }
+            try{
+            updatePaymentstatusRefund(payment);
+            }catch(Exception a){
+                throw new PaymentProcessException("REFUND_FAILED", "결제 취소 후 서버 오류가 발생했습니다 송금 결제 내역을 확인해 주세요 " + a.getMessage());
+            }
+            }catch(Exception e){
+                e.printStackTrace();
+                if (e instanceof PaymentProcessException) {
+                    throw e;
+                }
+                throw new PaymentProcessException("REFUND_FAILED", "결제 취소 처리 중 오류가 발생했습니다: " + e.getMessage());
+            }
+        } finally {
+            processingRefunds.remove(paymentkey);
+        }
+    }
     /** Ajax 응답이 끊겼을 때 DB와 서버 처리 상태를 다시 확인합니다. */
     @Override
     public String getRoomPaymentStatus(String userId, int roomId) throws Exception {
@@ -507,9 +556,7 @@ public class PaymentServiceImpl implements PaymentService{
                 paymentRepository.insertPlatfoem_Revenue(revenueInfo);
                 paymentRepository.updatSettlementroommemberStatus(roomId, userId);
             } catch (Exception databaseException) {
-                boolean cancelled = cancelApprovedPayment(
-                        paymentKey
-                        );
+                boolean cancelled = cancelApprovedPayment(paymentKey);
 
                 String message = cancelled
                         ? "결제 정보 저장에 실패해 Toss 승인을 취소했습니다."
@@ -755,7 +802,14 @@ public class PaymentServiceImpl implements PaymentService{
     
     @Override
     public void updateTodaysettlementroommemberlate(int roomId,String userId,int late_day) throws Exception {
+        try{
         paymentRepository.updateTodaysettlementroommemberlate(roomId, userId,late_day);
+        }catch(Exception e){
+            throw new PaymentProcessException(
+                    "LATEDAY_FAILED",
+                    "정산 연기에 실패하였습니다.",
+                    e);
+        }
     }
     @Override
     public OttRoomDTO selectRoomByRoomId(int roomId) throws Exception {
@@ -773,7 +827,6 @@ public class PaymentServiceImpl implements PaymentService{
         int settlement_id = payment.getSettlement_id();
         LocalDateTime created_at = LocalDateTime.now();
         String paymentkey = payment.getPaymentKey();
-        cancelApprovedPayment(paymentkey);
         paymentRepository.updatePaymentstatusRefund(payment_id);
         SettlementRefundVO refund = new SettlementRefundVO();
         refund.setMember_login_id(id);
@@ -785,5 +838,27 @@ public class PaymentServiceImpl implements PaymentService{
         refund.setSettlement_id(settlement_id);
         paymentRepository.insertRefund(refund);
     }
+    @Override
+    public String selectEscrowStatus(int room_id, String host_id) {
+        try{
+        if (paymentRepository.selectEscrowStatus(room_id,host_id)) {
+            return "PAID";
+            }
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
+        return "UNPAID";
+    }
+    @Override
+    public String selectRefundStatus(int payment_id) {
+        try{
+            String status = paymentRepository.selectRefundStatus(payment_id);
+            return status;
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
+        
+    }
+
 }    
 

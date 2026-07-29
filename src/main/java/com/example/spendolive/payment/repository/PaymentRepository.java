@@ -52,5 +52,6 @@ public interface PaymentRepository {
     List<SettlementPaymentVO> selectsettlement_paymentAll() throws DataAccessException;
     void updatePaymentstatusRefund(int payment_id) throws DataAccessException;
     void insertRefund(SettlementRefundVO refund) throws DataAccessException;
-    
+    boolean selectEscrowStatus(int room_id,String host_id)throws DataAccessException;
+    public String selectRefundStatus(int payment_id) throws DataAccessException;
 }

@@ -40,9 +40,9 @@
                     <table class="admin-table">
                         <thead><tr><th>번호</th><th>방 ID</th><th>참여자 ID</th><th>결제 금액</th><th>결제 예정일</th><th>연체일</th><th>상태</th><th>처리</th></tr></thead>
                         <tbody>
-                        <c:forEach var="member" items="${paymentList}" varStatus="status">
+                        <c:forEach var="member" items="${paymentList}" varStatus="s">
                             <tr>
-                                <td>${status.count}</td>
+                                <td>${s.count}</td>
                                 <td>${member.room_id}</td>
                                 <td><c:out value="${member.member_login_id}" /></td>
                                 <td><fmt:formatNumber value="${member.pay_amount}" type="number" />원</td>
@@ -54,17 +54,16 @@
                                         <c:when test="${member.settlement_status eq 'DONE'}"><span class="badge green">결제 완료</span></c:when>
                                         <c:otherwise>
                                             <div class="table-actions">
-                                                <form action="${contextPath}/admin/settlement/paymenting.do" method="post">
-                                                    <input type="hidden" name="room_id" value="${member.room_id}">
-                                                    <input type="hidden" name="member_login_id" value="${member.member_login_id}">
-                                                    <button type="submit" class="mini-btn warning">결제 실행</button>
-                                                </form>
-                                                <form action="${contextPath}/admin/settlement/paymentlate.do" method="post">
-                                                    <input type="hidden" name="room_id" value="${member.room_id}">
-                                                    <input type="hidden" name="member_login_id" value="${member.member_login_id}">
-                                                    <input type="hidden" name="pay_late_day" value="${member.pay_late_day}">
-                                                    <button type="submit" class="mini-btn">하루 연기</button>
-                                                </form>
+                                                <button type="button"
+                                                     class="btn btn-primary adminpaymentSubmitButton"
+                                                      data-room_id="${member.room_id}" 
+                                                      data-member_login_id="${member.member_login_id}">정산금 받기</button> 
+   
+                                                 <button type="button"
+                                                       class="btn btn-primary adminlateSubmitButton"
+                                                       data-room_id="${member.room_id}" 
+                                                       data-pay_late_day="${member.pay_late_day}"
+                                                       data-member_login_id="${member.member_login_id}">하루 연기</button>
                                             </div>
                                         </c:otherwise>
                                     </c:choose>

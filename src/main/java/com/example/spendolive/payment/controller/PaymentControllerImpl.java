@@ -218,7 +218,7 @@ public class PaymentControllerImpl implements PaymentController {
     @GetMapping(value = "/status.do", produces = "application/json; charset=UTF-8")
     @ResponseBody
     public ResponseEntity<PaymentAjaxResponse> paymentStatus(
-            @RequestParam("roomId") int roomId,
+            @RequestParam("room_id") int room_id,
             HttpServletRequest request,
             HttpSession session) throws Exception {
 
@@ -233,18 +233,18 @@ public class PaymentControllerImpl implements PaymentController {
                             "LOGIN_REQUIRED",
                             "로그인이 필요합니다.",
                             "UNPAID",
-                            roomId,
+                            room_id,
                             contextPath + "/member/loginForm.do"));
         }
 
         String userId = memberVO.getId();
-        String paymentStatus = paymentService.getRoomPaymentStatus(userId, roomId);
+        String paymentStatus = paymentService.getRoomPaymentStatus(userId, room_id);
 
         if (isPaidStatus(paymentStatus)) {
             try{
-            ottService.completePaidRoomEntry((long) roomId, userId);
+            ottService.completePaidRoomEntry((long) room_id, userId);
             }catch(Exception e){
-                SettlementPaymentVO payment = paymentService.getSettlement_PaymentByRoomId(userId,roomId);
+                SettlementPaymentVO payment = paymentService.getSettlement_PaymentByRoomId(userId,room_id);
             
                 paymentService.updatePaymentstatusRefund(payment);
                 
@@ -252,8 +252,8 @@ public class PaymentControllerImpl implements PaymentController {
                     false,
                     "PAYMENT_FAILED",
                     "방 정원이 초과하여 결제를 취소 합니다.",
-                    paymentStatus,
-                    roomId,
+                    "REFUND",
+                    room_id,
                     null));
             }
             return ResponseEntity.ok(new PaymentAjaxResponse(
@@ -261,8 +261,8 @@ public class PaymentControllerImpl implements PaymentController {
                     "PAYMENT_COMPLETED",
                     "결제가 완료된 것을 확인했습니다.",
                     paymentStatus,
-                    roomId,
-                    buildRoomUrl(contextPath, roomId)));
+                    room_id,
+                    buildRoomUrl(contextPath, room_id)));
         }
 
         String message = "PROCESSING".equals(paymentStatus)
@@ -276,7 +276,7 @@ public class PaymentControllerImpl implements PaymentController {
                         : "PAYMENT_NOT_COMPLETED",
                 message,
                 paymentStatus,
-                roomId,
+                room_id,
                 null));
     }
 
