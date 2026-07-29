@@ -20,5 +20,3 @@
     <button id="chatbotSend">전송</button>
   </div>
 </div>
-
-<script src="${pageContext.request.contextPath}/resources/js/chatbot.js"></script>

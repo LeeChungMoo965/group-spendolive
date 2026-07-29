@@ -6,10 +6,14 @@
   const input = document.getElementById('chatbotInput');
   const sendBtn = document.getElementById('chatbotSend');
 
-  function open() {
-    panel.classList.add('show');
-    input.focus();
+  function toggle() {
+    const isOpen = panel.classList.toggle('show');
+  
+    if (isOpen) {
+      input.focus();
+    }
   }
+  
   function close() {
     panel.classList.remove('show');
   }
@@ -56,7 +60,7 @@
     }
   }
 
-  toggleBtn.addEventListener('click', open);
+  toggleBtn.addEventListener('click', toggle);
   closeBtn.addEventListener('click', close);
   sendBtn.addEventListener('click', send);
   input.addEventListener('keydown', (e) => {
