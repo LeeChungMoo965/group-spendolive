@@ -41,13 +41,15 @@
     </c:when>
      <c:otherwise>
 
-     <form action="${contextPath}/admin/settlement/cancelpaymenting.do" method="post">
-     <input id="paymentKey" type="hidden" name="paymentKey" value="${payment.paymentKey}">
-     <input id="payment_id" type="hidden" name="payment_id" value="${payment.payment_id}">
-    <input id="id" type="hidden" name="id" value="${payment.id}">
-    <input id="settlement_id" type="hidden" name="settlement_id" value="${payment.settlement_id}">
-    <input id="total_amount" type="hidden" name="total_amount" value="${payment.total_amount}">
-    <button class="mini-btn warning">환불하기</button></form>
+<button type="button" 
+        class="mini-btn warning adminrefundSubmitButton"
+        data-payment-key="${payment.paymentKey}"
+        data-payment-id="${payment.payment_id}"
+        data-id="${payment.id}"
+        data-settlement-id="${payment.settlement_id}"
+        data-total-amount="${payment.total_amount}">
+    환불하기
+</button>
     
       </c:otherwise>
     </c:choose>
@@ -60,6 +62,8 @@
 
 
     </div>
+
+<jsp:include page="/WEB-INF/views/payment/popup.jsp" />
     </body>
     </html>
     <script>
@@ -70,3 +74,4 @@
         }
     </script>
     <script src="${contextPath}/resources/js/admin.js"></script>
+        <script src="${contextPath}/resources/js/payment.js"></script>

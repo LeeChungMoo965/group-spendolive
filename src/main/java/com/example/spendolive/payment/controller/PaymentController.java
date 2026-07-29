@@ -35,7 +35,7 @@ ResponseEntity<PaymentAjaxResponse> payment(
         HttpSession session) throws Exception;
 
 ResponseEntity<PaymentAjaxResponse> paymentStatus(
-        @RequestParam("roomId") int roomId,
+        @RequestParam("room_id") int room_id,
         HttpServletRequest request,
         HttpSession session) throws Exception;
 

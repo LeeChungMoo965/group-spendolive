@@ -41,8 +41,9 @@
     <button class="mini-btn">정산 완료 확인</button>
     </c:when>
      <c:otherwise>
-     <form action="${contextPath}/admin/settlement/pay.do" method="post"><input id="room_id" type="hidden" name="room_id" value="${room.room_id}">
-    <button class="mini-btn warning">정산금 보내기</button></form>
+     <button type="button"
+        class="btn btn-primary adminsettlementSubmitButton"
+        data-room_id="${room.room_id}" data-member_login_id="${room.host_login_id}">정산금 보내기</button>
       </c:otherwise>
     </c:choose>
     </td></tr>

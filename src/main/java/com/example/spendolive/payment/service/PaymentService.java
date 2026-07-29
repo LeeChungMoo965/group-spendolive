@@ -57,4 +57,7 @@ public interface PaymentService {
     void updatePaymentstatusRefund(SettlementPaymentVO payment) throws Exception;
     boolean cancelApprovedPayment(String paymentKey) throws Exception;
     List<SettlementPaymentVO> selectpaymentAll() throws Exception;
+    String selectEscrowStatus(int room_id, String host_id)throws Exception;
+        String selectRefundStatus(int payment_id) throws Exception;
+    void executeRoomRefund(SettlementPaymentVO payment) throws Exception;
   }

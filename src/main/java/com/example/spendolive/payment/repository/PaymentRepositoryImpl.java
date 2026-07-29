@@ -87,6 +87,14 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     +"payment_id, settlement_id, id, base_amount, fee_rate, fee_amount, total_amount, payment_status, card_number," 
     +"card_company, paid_at, confirmed_at, expired_at, cancelled_at, paymentKey, orderId, memo "
     +" from settlement_payment_tb ";
+    private final String selectEscrowStatus = "select "
+    +"decode(count(*),1, 'false', 0, 'true') as status " 
+    +" from escrow_payout_tb "
+    +" where room_id =? and host_id=? and status='HELD' ";
+    private final String selectRefundStatus = "select "
+    +"REFUND_STATUS " 
+    +" from settlement_refund_tb "
+    +" where payment_id =? ";
 //update
     private final String insertTodayexcrow = "UPDATE escrow_payout_tb set STATUS = 'RELEASED' ,PAYOUT_AT =sysdate where ROOM_ID =? ";
     private final String updateTodaysettlement = "UPDATE settlement_tb set SETTLEMENT_STATUS = 'DONE' where ROOM_ID =? ";
@@ -269,6 +277,32 @@ public List<SettlementPaymentVO> selectsettlement_paymentAll() throws DataAccess
         return null; 
     }
 }
+    @Override
+    public boolean selectEscrowStatus(int room_id,String host_id){
+        try {
+            return jdbcTemplate.queryForObject(selectEscrowStatus, (rs, rowNum) -> {
+                String statuss = rs.getString("status");
+                if(statuss.equals("true")){
+                    return  true;}
+                return false;
+                } ,room_id,host_id);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return false; 
+        }
+    }
+    @Override
+    public String selectRefundStatus(int payment_id){
+        try {
+            return jdbcTemplate.queryForObject(selectRefundStatus, (rs, rowNum) -> {
+                return rs.getString("REFUND_STATUS");
+                } ,payment_id);
+        }catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
+            return null; 
+        }
+    }
+
 
     //Insert
     @Override

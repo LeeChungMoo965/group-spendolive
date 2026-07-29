@@ -28,7 +28,7 @@
             </c:when>
                 <c:otherwise>
                 <table class="admin-table">
-                <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead><tbody>
+                <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th colspan="2">처리</th></tr></thead><tbody>
                         <c:forEach var="member" items="${paymentList}" varStatus="s">
                       
 
@@ -40,14 +40,19 @@
         <button class="mini-btn">정산 완료</button>
     </c:when>
      <c:otherwise>
-
-     <form action="${contextPath}/admin/settlement/paymenting.do" method="post"><input id="room_id" type="hidden" name="room_id" value="${member.room_id}"><input id="room_id" type="hidden" name="member_login_id" value="${member.member_login_id}">
-    <button class="mini-btn warning">정산금 받기</button></form> </td><td> <span><form action="${contextPath}/admin/settlement/paymentlate.do" method="post"><input id="roomId" type="hidden" name="room_id" value="${member.room_id}">
-    <input id="roomId" type="hidden" name="member_login_id" value="${member.member_login_id}"><input id="roomId" type="hidden" name="pay_late_day" value="${member.pay_late_day}"><button class="mini-btn">연기</button></form></span>
+  <button type="button"
+        class="btn btn-primary adminpaymentSubmitButton"
+        data-room_id="${member.room_id}" 
+        data-member_login_id="${member.member_login_id}">정산금 받기</button> <span> 
+        <button type="button"
+        class="btn btn-primary adminlateSubmitButton"
+        data-room_id="${member.room_id}" 
+        data-pay_late_day="${member.pay_late_day}"
+        data-member_login_id="${member.member_login_id}">하루 연기</button> </span>
       </c:otherwise>
     </c:choose>
     </td></tr>
-                        </c:forEach>
+                        </c:forEach> 
                         </tbody></table>
                 </c:otherwise>
         </c:choose>
@@ -55,6 +60,7 @@
 
 
     </div>
+    <jsp:include page="/WEB-INF/views/payment/popup.jsp" />
     </body>
     </html>
     <script>
@@ -65,3 +71,4 @@
         }
     </script>
     <script src="${contextPath}/resources/js/admin.js"></script>
+    <script src="${contextPath}/resources/js/payment.js"></script>
