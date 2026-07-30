@@ -97,5 +97,34 @@
     const loginYn = ${not empty loginYn ? loginYn : false};
 </script>
 
-<script src="${contextPath}/resources/js/ajaxLoading.js"></script>
+
 <script src="${contextPath}/resources/js/notice.js"></script>
+
+<!-- 알림 상세 모달 -->
+<div id="notificationModal" class="notification-modal">
+
+    <div class="notification-modal-box">
+
+        <h3 id="notificationModalTitle"></h3>
+
+        <div id="notificationModalMessage" class="notification-modal-message"></div>
+
+        <div class="notification-modal-buttons">
+
+            <button type="button"
+                    class="btn btn-secondary"
+                    onclick="closeNotificationModal()">
+                닫기
+            </button>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    id="notificationMoveBtn">
+                해당 게시글로 이동
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

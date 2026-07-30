@@ -31,7 +31,7 @@ public class NoticeRepository {
             FROM notice_tb n
             LEFT JOIN notice_read_tb nr ON n.notice_id = nr.notice_id AND nr.id = ?
             LEFT JOIN notice_favorite_tb nf ON n.notice_id = nf.notice_id AND nf.id = ?
-            ORDER BY n.pinned_yn DESC, n.notice_id DESC
+            ORDER BY n.pinned_yn DESC, star_yn DESC, n.notice_id DESC
         """;
 
     // 관리자 공지 목록 전용: 위 FIND_ALL_SQL과 같은 정렬 기준에 OFFSET/LIMIT만 추가.
