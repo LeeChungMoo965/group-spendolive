@@ -1,3 +1,4 @@
+<%-- [AJAX 변경 주석] 가족방 생성·나가기·종료·정산 폼을 부분 갱신 가능한 AJAX 폼으로 표시했다. --%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -108,14 +109,15 @@
                                         <c:choose>
                                             <c:when test="${room.leave_reserved_yn eq 'Y'}">
                                                 <small class="warn-text">나가기 예약됨 · ${room.leave_scheduled_date} 자동 퇴장</small>
-                                                <form action="${contextPath}/spendolive/ott/room/leave-cancel.do" method="post" class="compact-close-form">
+                                                <%-- OTT 상태 변경 폼은 실제 저장 성공 후 현재 OTT 본문만 다시 불러온다. --%>
+                                                <form action="${contextPath}/spendolive/ott/room/leave-cancel.do" method="post" class="compact-close-form" data-ajax-form data-ajax-action="/spendolive/ott/ajax/room/leave-cancel.do" data-loading-message="나가기 예약을 취소하고 있습니다.">
                                                     <input type="hidden" name="room_id" value="${room.room_id}">
                                                     <input type="hidden" name="returnPage" value="friends">
                                                     <button type="submit" class="btn btn-outline btn-mini" onclick="return confirm('나가기 예약을 취소할까요?');">예약 취소</button>
                                                 </form>
                                             </c:when>
                                             <c:otherwise>
-                                                <form action="${contextPath}/spendolive/ott/room/leave-reserve.do" method="post" class="compact-close-form">
+                                                <form action="${contextPath}/spendolive/ott/room/leave-reserve.do" method="post" class="compact-close-form" data-ajax-form data-ajax-action="/spendolive/ott/ajax/room/leave-reserve.do" data-ajax-confirm="다음 이용 회차부터 나가도록 예약할까요?" data-loading-message="나가기 예약을 처리하고 있습니다.">
                                                     <input type="hidden" name="room_id" value="${room.room_id}">
                                                     <input type="hidden" name="returnPage" value="friends">
                                                     <button type="submit" class="btn btn-primary btn-mini" onclick="return confirm('나가기 예약을 할까요? 다음 결제일 7일 전 자동으로 방에서 나가집니다.');">나가기 예약</button>
@@ -125,7 +127,7 @@
                                     </c:if>
 
                                     <c:if test="${room.host_login_id eq loginId and room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
-                                        <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form compact-close-form">
+                                        <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form compact-close-form" data-ajax-form data-ajax-action="/spendolive/ott/ajax/room/close-request.do" data-ajax-confirm="방 종료를 예약할까요?" data-loading-message="방 종료 예약을 처리하고 있습니다.">
                                             <input type="hidden" name="room_id" value="${room.room_id}">
                                             <input type="hidden" name="returnPage" value="friends">
                                             <input type="hidden" name="close_reason" value="파티장 요청">
@@ -154,7 +156,7 @@
                 <span>가족 · 지인 전용</span>
             </div>
 
-            <form action="${contextPath}/spendolive/ott/friends/create.do" method="post" class="recruit-search-form ott-fixed-plan-form" data-room-mode="FRIEND">
+            <form action="${contextPath}/spendolive/ott/friends/create.do" method="post" class="recruit-search-form ott-fixed-plan-form" data-room-mode="FRIEND" data-ajax-form data-ajax-action="/spendolive/ott/ajax/friends/create.do" data-loading-message="가족·지인 공유방을 개설하고 있습니다.">
                 <label>
                     OTT 종류
                     <select name="ott_service_id" class="ott-service-select" required>
@@ -239,7 +241,7 @@
                                                 <b><fmt:formatNumber value="${settlement.my_total_amount}" pattern="#,##0" />원</b>
                                                 <small>${settlement.my_payment_status}</small>
                                                 <c:if test="${settlement.my_payment_status eq 'UNPAID'}">
-                                                    <form action="${contextPath}/spendolive/ott/settlement/pay.do" method="post">
+                                                    <form action="${contextPath}/spendolive/ott/settlement/pay.do" method="post" data-ajax-form data-ajax-action="/spendolive/ott/ajax/settlement/pay.do" data-ajax-confirm="정산 결제를 완료 처리할까요?" data-loading-message="정산을 처리하고 있습니다.">
                                                         <input type="hidden" name="payment_id" value="${settlement.payment_id}">
                                                         <input type="hidden" name="returnPage" value="friends">
                                                         <button type="submit" class="btn btn-primary btn-mini">결제 완료</button>
@@ -257,7 +259,7 @@
                     </c:choose>
 
                     <c:if test="${not empty hostedSettlementPaymentList}">
-                        <div class="team-payment-status-box">
+                        <div class="team-status-box">
                             <h3>팀원별 정산 상태</h3>
                             <div class="team-payment-list">
                                 <c:forEach var="payment" items="${hostedSettlementPaymentList}">
@@ -280,4 +282,4 @@
 </section>
 
 <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
-<script src="${contextPath}/resources/js/ott.js"></script>
+<script src="${contextPath}/resources/js/ott.js" data-ajax-reload></script>

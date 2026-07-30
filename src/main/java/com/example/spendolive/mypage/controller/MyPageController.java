@@ -35,9 +35,9 @@ public class MyPageController {
     private static final Map<String, String> BANK_NAME_MAP = Map.ofEntries(
             Map.entry("002", "산업은행"),
             Map.entry("003", "기업은행"),
-            Map.entry("004", "국민은행"),
-            Map.entry("007", "수협은행"),
-            Map.entry("011", "농협은행"),
+            Map.entry("004", "KB국민은행"),
+            Map.entry("007", "Sh수협은행"),
+            Map.entry("011", "NH농협은행"),
             Map.entry("020", "우리은행"),
             Map.entry("023", "SC제일은행"),
             Map.entry("027", "한국씨티은행"),
@@ -52,6 +52,39 @@ public class MyPageController {
             Map.entry("089", "케이뱅크"),
             Map.entry("090", "카카오뱅크"),
             Map.entry("092", "토스뱅크")
+    );
+
+    /* =========================================================
+       [마이페이지 카드사명 표시]
+       MEMBER_CARD_TB.CARD_COMPANY에는 토스 issuerCode 원본을 유지하고,
+       마이페이지 화면에서만 사용자에게 읽기 쉬운 카드사명으로 변환한다.
+       CARD_NAME은 사용자가 수정하는 카드 별칭이므로 기존 기능을 그대로 유지한다.
+       ========================================================= */
+    private static final Map<String, String> CARD_COMPANY_NAME_MAP = Map.ofEntries(
+            Map.entry("3K", "기업 BC"),
+            Map.entry("46", "광주은행"),
+            Map.entry("71", "롯데카드"),
+            Map.entry("30", "한국산업은행"),
+            Map.entry("31", "BC카드"),
+            Map.entry("51", "삼성카드"),
+            Map.entry("38", "새마을금고"),
+            Map.entry("41", "신한카드"),
+            Map.entry("62", "신협"),
+            Map.entry("36", "씨티카드"),
+            Map.entry("33", "우리BC카드(BC 매입)"),
+            Map.entry("W1", "우리카드(우리 매입)"),
+            Map.entry("37", "우체국예금보험"),
+            Map.entry("39", "저축은행중앙회"),
+            Map.entry("35", "전북은행"),
+            Map.entry("42", "제주은행"),
+            Map.entry("15", "카카오뱅크"),
+            Map.entry("3A", "케이뱅크"),
+            Map.entry("24", "토스뱅크"),
+            Map.entry("21", "하나카드"),
+            Map.entry("61", "현대카드"),
+            Map.entry("11", "KB국민카드"),
+            Map.entry("91", "NH농협카드"),
+            Map.entry("34", "Sh수협은행")
     );
 
     private final MyPageService myPageService;
@@ -100,6 +133,8 @@ public class MyPageController {
         // STATUS가 YES인 주계좌만 상단 계좌관리 카드에 전달한다.
         mav.addObject("currentAccount", findPrimaryAccount(myPage));
         mav.addObject("bankNameMap", BANK_NAME_MAP);
+        // CARD_COMPANY 원본 코드는 유지하고 JSP에서 카드사명으로 표시한다.
+        mav.addObject("cardCompanyNameMap", CARD_COMPANY_NAME_MAP);
         mav.addObject("warning_count", myPage.getWarning_count());
         mav.addObject("myReportCount", myPage.getMyReportCount());
         mav.addObject("myReportList", myPage.getMyReportList());
@@ -211,6 +246,35 @@ public class MyPageController {
     }
     /* [마이페이지 계좌·카드 연결 추가 끝] */
 
+    /* [기존 일반 POST 호환]
+       JavaScript가 비활성화되거나 AJAX 공통 스크립트 로드에 실패해도 카드 이름을 수정할 수 있게 한다. */
+    @PostMapping("/mypage/card/name/update.do")
+    public ModelAndView updateCardName(@RequestParam("cardIdx") int cardIdx,
+                                       @RequestParam("cardName") String cardName,
+                                       HttpSession session) {
+        ModelAndView mav = new ModelAndView();
+        MemberVO loginMember = (MemberVO) session.getAttribute("memberInfo");
+
+        if (loginMember == null || loginMember.getId() == null || loginMember.getId().isBlank()) {
+            mav.setViewName("redirect:/member/loginForm.do");
+            return mav;
+        }
+
+        String safeCardName = cardName == null ? "" : cardName.trim();
+        if (safeCardName.isBlank() || safeCardName.length() > 30) {
+            mav.setViewName("redirect:/spendolive/mypage.do?assetError=invalidCardName#asset-manage");
+            return mav;
+        }
+
+        try {
+            memberService.updateCardName(loginMember.getId(), cardIdx, safeCardName);
+            mav.setViewName("redirect:/spendolive/mypage.do?cardNameUpdated=Y#asset-manage");
+        } catch (Exception e) {
+            mav.setViewName("redirect:/spendolive/mypage.do?assetError=cardNameUpdateFailed#asset-manage");
+        }
+        return mav;
+    }
+
     // 마이페이지 계좌 목록에서 선택한 계좌를 주계좌로 변경한다.
     @PostMapping("/mypage/account/primary/update.do")
     public ModelAndView updatePrimaryAccount(@RequestParam("accountIdx") int accountIdx,
@@ -230,6 +294,25 @@ public class MyPageController {
             mav.setViewName("redirect:/spendolive/mypage.do?assetError=primaryAccountUpdateFailed#asset-manage");
         }
 
+        return mav;
+    }
+
+    /* [기존 일반 POST 호환]
+       AJAX 사용이 불가능한 경우에도 주카드 변경이 가능하도록 기존 주소를 유지한다. */
+    @PostMapping("/mypage/card/primary/update.do")
+    public ModelAndView updatePrimaryCard(@RequestParam("cardIdx") int cardIdx, HttpSession session) {
+        ModelAndView mav = new ModelAndView();
+        MemberVO loginMember = (MemberVO) session.getAttribute("memberInfo");
+        if (loginMember == null || loginMember.getId() == null || loginMember.getId().isBlank()) {
+            mav.setViewName("redirect:/member/loginForm.do");
+            return mav;
+        }
+        try {
+            memberService.updatePrimaryCard(loginMember.getId(), cardIdx);
+            mav.setViewName("redirect:/spendolive/mypage.do?primaryCardUpdated=Y#asset-manage");
+        } catch (Exception e) {
+            mav.setViewName("redirect:/spendolive/mypage.do?assetError=primaryCardUpdateFailed#asset-manage");
+        }
         return mav;
     }
 

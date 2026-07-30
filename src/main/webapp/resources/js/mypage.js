@@ -1,3 +1,7 @@
+/* [AJAX 변경 주석]
+ * 회원정보·계좌·카드 AJAX 폼과 기존 거래내역 요청을 공통 로딩 시스템에 연결한다.
+ * 기존 Controller/Service URL과 파라미터는 특별한 문제가 없는 한 그대로 유지한다.
+ */
 /* JSP에서 전달한 컨텍스트 경로를 페이지 data 속성에서 읽는다. */
 function getMyPageContextPath() {
     const page = document.querySelector('.mypage-page');
@@ -5,9 +9,9 @@ function getMyPageContextPath() {
 }
 
 // 거래내역은 전체 데이터를 유지한 채 화면 출력만 10건씩 나눈다.
-const ACCOUNT_TRANSACTION_PAGE_SIZE = 10;
-let accountTransactionList = [];
-let accountTransactionCurrentPage = 1;
+var ACCOUNT_TRANSACTION_PAGE_SIZE = 10;
+var accountTransactionList = [];
+var accountTransactionCurrentPage = 1;
 
 /* =========================================================
    [마이페이지 계좌·카드 연결 JavaScript 추가 시작]
@@ -51,7 +55,39 @@ function toggleAccountNameEdit(button) {
         return;
     }
 
-    form.submit();
+    form.requestSubmit();
+}
+
+// 카드 이름도 계좌 제목과 같은 방식으로 읽기 전용 상태에서 수정 모드로 전환한다.
+function toggleCardNameEdit(button) {
+    const form = button.closest('.mypage-asset-title-form');
+    const input = form ? form.querySelector('input[name="cardName"]') : null;
+    if (!form || !input) {
+        return;
+    }
+
+    if (input.readOnly) {
+        input.readOnly = false;
+        input.focus();
+        input.select();
+        button.textContent = '저장';
+        return;
+    }
+
+    const cardName = input.value.trim();
+    if (!cardName) {
+        alert('카드 이름을 입력해주세요.');
+        input.focus();
+        return;
+    }
+    if (cardName.length > 30) {
+        alert('카드 이름은 30자 이하로 입력해주세요.');
+        input.focus();
+        return;
+    }
+
+    // submit 이벤트를 발생시켜 pageAjax.js의 공통 AJAX 처리와 버튼 잠금을 그대로 사용한다.
+    form.requestSubmit();
 }
 
 // 계좌와 카드 목록은 4개 단위로 보이며, 부족한 칸은 빈 정보 카드로 채운다.
@@ -111,7 +147,7 @@ function initializeAssetPager(listId) {
     renderPage();
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+function initializeMyPageAssets() {
     initializeAssetPager('accountAssetList');
     initializeAssetPager('cardAssetList');
 
@@ -128,9 +164,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (['profile-edit', 'report-manage', 'asset-manage'].includes(targetId)) {
         showMyPagePanel(targetId);
     }
-});
+}
+
+initializeMyPageAssets();
 
 /* 선택한 계좌의 거래내역을 Ajax로 조회한다. */
+// [공통 AJAX 로딩 적용] 거래내역 조회 버튼을 전달해 요청 중 중복 클릭을 막고 완료 후 복구한다.
 function loadAccountTransactions(button) {
     const accountIdx = button.dataset.accountIdx;
     const panel = document.getElementById('accountTransactionPanel');
@@ -153,13 +192,15 @@ function loadAccountTransactions(button) {
     panel.classList.remove('is-hidden');
     panel.hidden = false;
 
-    fetch(
+    window.fetchWithLoading(
         getMyPageContextPath() + '/spendolive/mypage/account/transactions.do?accountIdx='
         + encodeURIComponent(accountIdx),
         {
             method: 'GET',
             credentials: 'same-origin',
-            headers: { 'Accept': 'application/json' }
+            headers: { 'Accept': 'application/json' },
+            button: button,
+            loadingMessage: '거래내역을 불러오고 있습니다.'
         }
     )
         .then(function (response) {
@@ -422,13 +463,17 @@ function closeAccountTransactions() {
     }
 })();
 
-function postForm(url, data) {
-    return fetch(url, {
+// [공통 AJAX 로딩 적용] 마이페이지 인증 POST의 버튼·문구 전달 방식을 한 곳으로 규격화한다.
+function postForm(url, data, options) {
+    const settings = options || {};
+    return window.fetchWithLoading(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
         },
-        body: new URLSearchParams(data)
+        body: new URLSearchParams(data),
+        button: settings.button || null,
+        loadingMessage: settings.loadingMessage
     });
 }
 
@@ -444,14 +489,15 @@ function setMessage(id, message, type) {
     }
 }
 
-function sendMyPageEmailCode() {
+// [이메일 인증 AJAX] JSP에서 전달한 버튼을 요청 중에만 잠그고 공통 팝업 문구를 표시한다.
+function sendMyPageEmailCode(button) {
     const email = document.getElementById('mypageEmail').value.trim();
     if (!email) {
         alert('이메일을 입력해주세요.');
         return;
     }
 
-    postForm(getMyPageContextPath() + '/spendolive/mypage/email/send.do', { email: email })
+    postForm(getMyPageContextPath() + '/spendolive/mypage/email/send.do', { email: email }, { button: button, loadingMessage: '이메일 인증번호를 발송하고 있습니다.' })
         .then(function (res) { return res.text(); })
         .then(function (result) {
             if (result === 'SUCCESS') {
@@ -466,7 +512,7 @@ function sendMyPageEmailCode() {
         });
 }
 
-function verifyMyPageEmailCode() {
+function verifyMyPageEmailCode(button) {
     const email = document.getElementById('mypageEmail').value.trim();
     const inputCode = document.getElementById('mypageEmailCode').value.trim();
     if (!inputCode) {
@@ -474,7 +520,7 @@ function verifyMyPageEmailCode() {
         return;
     }
 
-    postForm(getMyPageContextPath() + '/spendolive/mypage/email/verify.do', { email: email, inputCode: inputCode })
+    postForm(getMyPageContextPath() + '/spendolive/mypage/email/verify.do', { email: email, inputCode: inputCode }, { button: button, loadingMessage: '이메일 인증번호를 확인하고 있습니다.' })
         .then(function (res) { return res.text(); })
         .then(function (result) {
             if (result === 'true') {
@@ -490,14 +536,15 @@ function verifyMyPageEmailCode() {
         });
 }
 
-function sendMyPagePhoneCode() {
+// [휴대전화 인증 AJAX] 이메일 인증과 같은 공통 팝업·버튼 잠금 규격을 사용한다.
+function sendMyPagePhoneCode(button) {
     const phone = document.getElementById('mypagePhone').value.trim();
     if (!phone) {
         alert('전화번호를 입력해주세요.');
         return;
     }
 
-    postForm(getMyPageContextPath() + '/spendolive/mypage/phone/send.do', { phone: phone })
+    postForm(getMyPageContextPath() + '/spendolive/mypage/phone/send.do', { phone: phone }, { button: button, loadingMessage: '휴대전화 인증번호를 발송하고 있습니다.' })
         .then(function (res) { return res.text(); })
         .then(function (result) {
             if (result === 'SUCCESS') {
@@ -512,7 +559,7 @@ function sendMyPagePhoneCode() {
         });
 }
 
-function verifyMyPagePhoneCode() {
+function verifyMyPagePhoneCode(button) {
     const phone = document.getElementById('mypagePhone').value.trim();
     const inputCode = document.getElementById('mypagePhoneCode').value.trim();
     if (!inputCode) {
@@ -520,7 +567,7 @@ function verifyMyPagePhoneCode() {
         return;
     }
 
-    postForm(getMyPageContextPath() + '/spendolive/mypage/phone/verify.do', { phone: phone, inputCode: inputCode })
+    postForm(getMyPageContextPath() + '/spendolive/mypage/phone/verify.do', { phone: phone, inputCode: inputCode }, { button: button, loadingMessage: '휴대전화 인증번호를 확인하고 있습니다.' })
         .then(function (res) { return res.text(); })
         .then(function (result) {
             if (result === 'true') {
@@ -560,12 +607,15 @@ function submitWithdrawForm() {
     }
 }
 
-document.addEventListener('click', function (event) {
-    const modal = document.getElementById('withdrawModal');
-    if (modal && event.target === modal) {
-        closeWithdrawModal();
-    }
-});
+if (!window.__mypageWithdrawClickBound) {
+    document.addEventListener('click', function (event) {
+        const modal = document.getElementById('withdrawModal');
+        if (modal && event.target === modal) {
+            closeWithdrawModal();
+        }
+    });
+    window.__mypageWithdrawClickBound = true;
+}
 
 function checkMyPagePassword() {
     const currentPassword = document.getElementById('currentPassword').value.trim();

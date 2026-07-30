@@ -1,3 +1,4 @@
+/* [AJAX 변경 주석] 지출 AJAX 갱신과 차트 크기 표현에 필요한 클래스이며 JavaScript 인라인 style을 사용하지 않는다. */
 /* =========================================================
    02-expense
    지출관리 화면 확장, 인라인 수정, 분석 카드, 월별 요약
@@ -91,5 +92,5 @@
 .expense-hidden {display:none;}
 .expense-action-buttons {display:flex;gap:0.375rem;flex-wrap:wrap;}
 .expense-empty-cell {text-align:center;}
-.expense-chart-bar {height:var(--expense-bar-height, 0%);}
-.category-progress-bar {width:var(--expense-progress-width, 0%);}
+.expense-chart-bar {height:calc(var(--bar-height, 0) * 1%);}
+.category-progress-bar {width:calc(var(--progress-width, 0) * 1%);}

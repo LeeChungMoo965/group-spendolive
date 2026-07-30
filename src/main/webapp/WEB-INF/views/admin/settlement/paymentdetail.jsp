@@ -24,20 +24,35 @@
         <div class="panel-header">
             <div class="panel-title">
                 <div class="section-kicker">Payment History</div>
-                <h2>결제·환불 내역 (${empty paymentdetailList ? 0 : paymentdetailList.size()}건)</h2>
-                <p>결제 키와 주문번호를 확인하고 필요한 경우 결제를 취소합니다.</p>
+                <h2>결제·환불 내역 (<span id="paymentDetailVisibleCount">${empty paymentdetailList ? 0 : paymentdetailList.size()}</span>건)</h2>
+                <p>결제 ID, 회원 ID, 카드번호, 주문번호와 상태를 검색할 수 있습니다.</p>
             </div>
+        </div>
+
+        <div class="admin-filter-toolbar">
+            <div class="filter-pills" aria-label="결제 상태 안내">
+                <span class="badge green">결제 완료</span>
+                <span class="badge gray">취소·환불</span>
+            </div>
+            <input id="paymentDetailSearchInput" class="admin-search-input" type="search"
+                   placeholder="결제 ID, 회원 ID, 카드번호, 주문번호, 상태 검색"
+                   aria-label="결제 및 환불 내역 검색"
+                   data-search-table="#adminPaymentDetailTable">
         </div>
 
         <c:choose>
             <c:when test="${empty paymentdetailList}"><div class="admin-empty-filter">저장된 결제 내역이 없습니다.</div></c:when>
             <c:otherwise>
                 <div class="table-wrap">
-                    <table class="admin-table">
+                    <table id="adminPaymentDetailTable" class="admin-table"
+                           data-admin-filter-table="true"
+                           data-search-input="paymentDetailSearchInput"
+                           data-empty-target="#paymentDetailFilterEmpty"
+                           data-count-target="#paymentDetailVisibleCount">
                         <thead><tr><th>번호</th><th>결제 ID</th><th>회원 ID</th><th>카드번호</th><th>결제 금액</th><th>주문번호</th><th>상태</th><th>처리</th></tr></thead>
                         <tbody>
                         <c:forEach var="payment" items="${paymentdetailList}" varStatus="status">
-                            <tr>
+                            <tr data-row-status="${payment.payment_status}">
                                 <td>${status.count}</td>
                                 <td>${payment.payment_id}</td>
                                 <td><c:out value="${payment.id}" /></td>
@@ -49,15 +64,16 @@
                                     <c:choose>
                                         <c:when test="${payment.payment_status eq 'CANCELED' or payment.payment_status eq 'REFUNDED'}"><span class="badge gray">취소 완료</span></c:when>
                                         <c:otherwise>
-                                            <form action="${contextPath}/admin/settlement/cancelpaymenting.do" method="post">
-                                                <input type="hidden" name="paymentKey" value="${payment.paymentKey}">
-                                                <input type="hidden" name="payment_id" value="${payment.payment_id}">
-                                                <input type="hidden" name="id" value="${payment.id}">
-                                                <input type="hidden" name="settlement_id" value="${payment.settlement_id}">
-                                                <input type="hidden" name="total_amount" value="${payment.total_amount}">
-                                                <button type="submit" class="mini-btn danger">결제 취소</button>
-                                            </form>
-                                        </c:otherwise>
+                                            <button type="button" 
+                                                    class="mini-btn warning adminrefundSubmitButton"
+                                                    data-payment-key="${payment.paymentKey}"
+                                                    data-payment-id="${payment.payment_id}"
+                                                    data-id="${payment.id}"
+                                                    data-settlement-id="${payment.settlement_id}"
+                                                    data-total-amount="${payment.total_amount}">
+                                                환불하기
+                                            </button>
+                                          </c:otherwise>
                                     </c:choose>
                                 </td>
                             </tr>
@@ -65,6 +81,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="paymentDetailFilterEmpty" class="admin-empty-filter" hidden>검색 조건에 해당하는 결제·환불 내역이 없습니다.</div>
             </c:otherwise>
         </c:choose>
     </section>

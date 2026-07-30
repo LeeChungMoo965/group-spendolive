@@ -17,6 +17,7 @@ import com.example.spendolive.ott.domain.OttChatRoomDTO;
 import com.example.spendolive.ott.domain.OttRoomDTO;
 import com.example.spendolive.ott.domain.OttRoomMemberDTO;
 import com.example.spendolive.ott.domain.OttServiceDTO;
+import com.example.spendolive.notification.service.OttAlarmService;
 import com.example.spendolive.ott.domain.OttSettlementDTO;
 import com.example.spendolive.ott.repository.OttRepository;
 
@@ -29,10 +30,12 @@ public class OttServiceImpl implements OttService {
     private static final int PAYMENT_CLOSE_DAYS_BEFORE = 7;
 
     private final OttRepository ottRepository;
+    private final OttAlarmService ottAlarmService;
 
-    // OTT 데이터 조회와 저장을 담당하는 Repository
-    public OttServiceImpl(OttRepository ottRepository) {
+    // OTT 데이터와 알림 서비스를 생성자에서 한 번 주입받아 모든 OTT 처리에서 재사용한다.
+    public OttServiceImpl(OttRepository ottRepository, OttAlarmService ottAlarmService) {
         this.ottRepository = ottRepository;
+        this.ottAlarmService = ottAlarmService;
     }
 
     // =========================================================
@@ -312,13 +315,15 @@ public class OttServiceImpl implements OttService {
 
             String memo = room.getRoom_name() + " " + targetMonth + " 이용분 정산";
             ottRepository.insertSettlementPaymentIfAbsent(settlement_id, member, memo);
-            ottRepository.insertOttNotification(
+
+            // 알림 제목·본문·이동 주소는 OttAlarmService에서 한 곳으로 관리한다.
+            ottAlarmService.notifySettlementOpened(
                     member.getMember_login_id(),
-                    "OTT 다음 달 이용분 결제 요청",
-                    room.getRoom_name() + " " + targetMonth + " 이용분 "
-                            + nullToZero(member.getPay_amount()) + "원을 " + payment_close_date
-                            + "까지 결제해 주세요. 마감 후 미결제자는 자동 추방됩니다.",
-                    "/spendolive/ott/recruit.do?tab=settlement&room_id=" + room_id);
+                    room.getRoom_name(),
+                    targetMonth.toString(),
+                    nullToZero(member.getPay_amount()),
+                    payment_close_date,
+                    room_id);
         }
 
         ottRepository.updateRoomStatus(room_id, "PAYMENT_OPEN");
@@ -360,12 +365,14 @@ public class OttServiceImpl implements OttService {
         String settlement_month = mapString(data, "SETTLEMENT_MONTH");
         Integer total_amount = mapInteger(data, "TOTAL_AMOUNT");
 
-        ottRepository.insertOttNotification(
+        // 결제 완료 사실을 방장에게 알리고, 금액이 null이면 0원으로 안전하게 처리한다.
+        ottAlarmService.notifyPaymentCompletedToHost(
                 hostId,
-                "OTT 결제 완료 알림",
-                loginId + "님이 " + room_name + " " + settlement_month + " 이용분 "
-                        + total_amount + "원 결제를 완료했습니다.",
-                "/spendolive/ott/recruit.do?tab=settlement&room_id=" + room_id);
+                loginId,
+                room_name,
+                settlement_month,
+                nullToZero(total_amount),
+                room_id);
 
     }
 
@@ -427,38 +434,27 @@ public class OttServiceImpl implements OttService {
             ottRepository.updateRoomStatus(room_id, "FIRST");//FIRST고정 수정 X
         }
 
-        // [홈페이지 전체 알림 기능 설정] 방 참여완료 - 예전엔 selectMemberDisplayName()이 없어서
-        // 통째로 주석 처리되어 있던 부분. 지금은 메서드가 존재해서 살리고, 알림 타입은
-        // ROOM_FULL을 재사용하기로 함(전용 타입 없음).
-        // 본인한테는 "참여 완료" 알림, 나머지 멤버들한테는 "새 이용자 추가됨" 알림 - 둘 다 발송.
-        /*String member_name = ottRepository.selectMemberDisplayName(loginId);
+        // 참여 완료 채팅과 알림을 등록한다. 본인은 완료 알림을 받고, 기존 멤버는 입장 알림을 받는다.
+        String member_name = ottRepository.selectMemberDisplayName(loginId);
         insertSystemChatMessage(room_id, loginId,
                 member_name + "님이 결제를 완료하고 공유방에 입장했습니다.");
 
-        String joinLinkUrl = "/spendolive/ott/chat/room.do?room_id=" + room_id;
-
-        // 본인용: 내가 이 방에 참여 완료됨
-        notificationService.createNotification(
+        ottAlarmService.notifyRoomJoinedSelf(
                 loginId,
-                NotificationType.ROOM_FULL,
-                "공유방 참여 완료",
-                room.getRoom_name() + " 공유방에 참여 완료되었습니다.",
-                joinLinkUrl);
+                room.getRoom_name(),
+                room_id);
 
-        // 나머지 멤버용: 새 이용자가 추가됨
         for (String memberId : ottRepository.selectActiveRoomMemberIds(room_id)) {
             if (loginId.equals(memberId)) {
                 continue;
             }
-            notificationService.createNotification(
+            ottAlarmService.notifyRoomMemberJoined(
                     memberId,
-                    NotificationType.ROOM_FULL,
-                    "공유방 입장 알림",
-                    member_name + "님이 " + room.getRoom_name() + " 공유방에 입장했습니다.",
-                    joinLinkUrl);
+                    member_name,
+                    room.getRoom_name(),
+                    room_id);
         }
-    */
-}
+    }
     
 
     // =========================================================
@@ -497,14 +493,26 @@ public class OttServiceImpl implements OttService {
                 + close_effective_date.minusDays(1)
                 + "까지 이용할 수 있으며, 이미 결제된 다음 이용분은 자동 환불 처리됩니다.";
         insertSystemChatMessage(room_id, hostId, message);
-        notifyActiveRoomMembers(
-                room_id,
-                "OTT 공유방 종료 예정",
-                room.getRoom_name() + " 공유방이 " + close_effective_date + "에 종료될 예정입니다. " + notice,
-                "/spendolive/ott/chat/room.do?room_id=" + room_id,
-                hostId);
-
+        // 방장을 제외한 현재 참여자에게 종료 예정일과 안내 문구를 전달한다.
+        for (String memberId : ottRepository.selectActiveRoomMemberIds(room_id)) {
+            if (hostId.equals(memberId)) {
+                continue;
             }
+            ottAlarmService.notifyRoomCloseScheduled(
+                    memberId,
+                    room.getRoom_name(),
+                    close_effective_date,
+                    notice,
+                    room_id);
+        }
+
+        // 종료를 신청한 방장 본인에게도 접수 완료 알림을 남긴다.
+        ottAlarmService.notifySelfLeaveRequested(
+                hostId,
+                room.getRoom_name(),
+                close_effective_date,
+                room_id);
+    }
 
     // 결제 상태와 날짜 규칙을 확인하여 방 나가기 예약
     @Override
@@ -546,16 +554,23 @@ public class OttServiceImpl implements OttService {
 
         insertSystemChatMessage(room_id, loginId,
                 loginId + "님이 " + leave_scheduled_date + " 나가기 예약을 했습니다.");
-        ottRepository.insertOttNotification(
+        // 참여자의 나가기 신청 사실을 방장에게 알린다.
+        ottAlarmService.notifyMemberLeaveRequestedToHost(
                 room.getHost_login_id(),
-                "OTT 참여자 나가기 예약",
-                loginId + "님이 " + room.getRoom_name() + " 방에서 "
-                        + leave_scheduled_date + " 나가기 예약을 했습니다.",
-                "/spendolive/ott/chat/room.do?room_id=" + room_id);
+                loginId,
+                room.getRoom_name(),
+                leave_scheduled_date,
+                room_id);
 
-        
-                return "나가기 예약이 완료되었습니다. " + leave_scheduled_date + "에 자동으로 방에서 나가집니다.";
-            }
+        // 신청한 참여자 본인에게도 예약 완료 알림을 남긴다.
+        ottAlarmService.notifySelfLeaveRequested(
+                loginId,
+                room.getRoom_name(),
+                leave_scheduled_date,
+                room_id);
+
+        return "나가기 예약이 완료되었습니다. " + leave_scheduled_date + "에 자동으로 방에서 나가집니다.";
+    }
 
     // 미처리 방 나가기 예약 취소
     @Override
@@ -820,16 +835,6 @@ public class OttServiceImpl implements OttService {
             roomDTO.setTotal_price(serviceRule.getBase_price());
         } else {
             roomDTO.setTotal_price(serviceRule.getDefault_price());
-        }
-    }
-
-    private void notifyActiveRoomMembers(Long room_id, String title, String message,
-            String link_url, String except_member_login_id) {
-        for (String member_login_id : ottRepository.selectActiveRoomMemberIds(room_id)) {
-            if (except_member_login_id != null && except_member_login_id.equals(member_login_id)) {
-                continue;
-            }
-            ottRepository.insertOttNotification(member_login_id, title, message, link_url);
         }
     }
 

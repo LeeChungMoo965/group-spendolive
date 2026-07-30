@@ -1,3 +1,4 @@
+<%-- [AJAX 변경 주석] 검색·빠른 참가·방 생성·나가기·종료·정산을 AJAX 또는 부분 이동 대상으로 표시했다. --%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -80,9 +81,10 @@
                             3. 찾은 방의 roomId를 결제쪽으로 넘김
                             4. 결제쪽 개발자는 기존 신청하기처럼 roomId만 받아서 처리하면 됨
                         --%>
+                        <%-- 빠른 참가는 서버에서 참가 가능한 방을 먼저 확인한 뒤 기존 결제 화면 주소를 받는다. --%>
                         <form action="${contextPath}/spendolive/ott/recruit/quick-join.do"
                             method="post"
-                            class="quick-join-form">
+                            class="quick-join-form" data-ajax-form data-ajax-action="/spendolive/ott/ajax/recruit/quick-join.do" data-loading-message="참가 가능한 방을 확인하고 있습니다.">
 
                                 <%--
                                     빠른 참가에서는 roomId가 없다.
@@ -135,7 +137,8 @@
                             <span>${fn:length(recruitRoomList)}개</span>
                         </div>
 
-                        <form action="${contextPath}/spendolive/ott/recruit.do" method="get" class="recruit-search-form">
+                        <%-- [공통 AJAX 로딩 적용] 사용자가 검색을 실행할 때만 팝업을 띄우고 모집글 영역을 부분 갱신한다. --%>
+                        <form action="${contextPath}/spendolive/ott/recruit.do" method="get" class="recruit-search-form" data-ajax-navigation data-loading-message="모집글을 검색하고 있습니다.">
                             <input type="hidden" name="tab" value="all">
                         <div>
                             <label>
@@ -221,7 +224,7 @@
                                                 <c:when test="${(room.status eq 'RECRUITING' or room.status eq 'REPLACE_RECRUITING') and room.my_application_status eq 'NONE'}">
                                                     <form action="${contextPath}/payment/detail.do" method="post">
                                                         <input type="hidden" name="room_id" value="${room.room_id}">
-                                                        <button type="submit" style = "background:#959945;color:var(--olive-dark); color : #fff " class="btn btn-primary full">신청하기</button>
+                                                        <button type="submit" class="btn btn-primary full recruit-apply-button">신청하기</button>
                                                     </form>
                                                 </c:when>
                                                 <c:when test="${room.my_application_status eq 'ACTIVE'}">
@@ -283,7 +286,7 @@
                                                     <span class="status-pill ${room.status}">${room.status}</span>
                                                     <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary btn-mini">대화방</a>
                                                     <c:if test="${room.status ne 'CLOSE_REQUESTED' and room.status ne 'CLOSED'}">
-                                                        <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form compact-close-form">
+                                                        <form action="${contextPath}/spendolive/ott/room/close-request.do" method="post" class="room-close-form compact-close-form" data-ajax-form data-ajax-action="/spendolive/ott/ajax/room/close-request.do" data-ajax-confirm="방 종료를 예약할까요?" data-loading-message="방 종료 예약을 처리하고 있습니다.">
                                                             <input type="hidden" name="room_id" value="${room.room_id}">
                                                             <input type="hidden" name="returnPage" value="recruit">
                                                             <input type="hidden" name="close_reason" value="파티장 요청">
@@ -356,14 +359,14 @@
                                                     <c:choose>
                                                         <c:when test="${room.leave_reserved_yn eq 'Y'}">
                                                             <small class="warn-text">나가기 예약됨 · ${room.leave_scheduled_date} 자동 퇴장</small>
-                                                            <form action="${contextPath}/spendolive/ott/room/leave-cancel.do" method="post" class="compact-close-form">
+                                                            <form action="${contextPath}/spendolive/ott/room/leave-cancel.do" method="post" class="compact-close-form" data-ajax-form data-ajax-action="/spendolive/ott/ajax/room/leave-cancel.do" data-loading-message="나가기 예약을 취소하고 있습니다.">
                                                                 <input type="hidden" name="room_id" value="${room.room_id}">
                                                                 <input type="hidden" name="returnPage" value="recruit">
                                                                 <button type="submit" class="btn btn-danger-outline btn-mini" onclick="return confirm('나가기 예약을 취소할까요?');">예약 취소</button>
                                                             </form>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <form action="${contextPath}/spendolive/ott/room/leave-reserve.do" method="post" class="compact-close-form">
+                                                            <form action="${contextPath}/spendolive/ott/room/leave-reserve.do" method="post" class="compact-close-form" data-ajax-form data-ajax-action="/spendolive/ott/ajax/room/leave-reserve.do" data-ajax-confirm="다음 이용 회차부터 나가도록 예약할까요?" data-loading-message="나가기 예약을 처리하고 있습니다.">
                                                                 <input type="hidden" name="room_id" value="${room.room_id}">
                                                                 <input type="hidden" name="returnPage" value="recruit">
                                                                 <button type="submit" class="btn btn-danger-outline btn-mini" onclick="return confirm('나가기 예약을 할까요? 다음 결제일 7일 전 자동으로 방에서 나가집니다.');">나가기 예약</button>
@@ -424,7 +427,7 @@
                                                             <b><fmt:formatNumber value="${settlement.my_total_amount}" pattern="#,##0" />원</b>
                                                             <small>${settlement.my_payment_status}</small>
                                                             <c:if test="${settlement.my_payment_status eq 'UNPAID'}">
-                                                                <form action="${contextPath}/spendolive/ott/settlement/pay.do" method="post">
+                                                                <form action="${contextPath}/spendolive/ott/settlement/pay.do" method="post" data-ajax-form data-ajax-action="/spendolive/ott/ajax/settlement/pay.do" data-ajax-confirm="정산 결제를 완료 처리할까요?" data-loading-message="정산을 처리하고 있습니다.">
                                                                     <input type="hidden" name="payment_id" value="${settlement.payment_id}">
                                                                     <input type="hidden" name="returnPage" value="recruit">
                                                                     <button type="submit" class="btn btn-primary btn-mini">결제 완료</button>
@@ -442,7 +445,7 @@
                                 </c:choose>
 
                                 <c:if test="${not empty hostedSettlementPaymentList}">
-                                    <div class="team-payment-status-box">
+                                    <div class="team-status-box">
                                         <h3>팀원별 정산 상태</h3>
                                         <div class="team-payment-list">
                                             <c:forEach var="payment" items="${hostedSettlementPaymentList}">
@@ -476,7 +479,7 @@
                             <span>신청 버튼은 결제 화면으로 연결됩니다</span>
                         </div>
 
-                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="recruit-search-form ott-fixed-plan-form" data-room-mode="RECRUIT">
+                        <form action="${contextPath}/spendolive/ott/recruit/create.do" method="post" class="recruit-search-form ott-fixed-plan-form" data-room-mode="RECRUIT" data-ajax-form data-ajax-action="/spendolive/ott/ajax/recruit/create.do" data-loading-message="모집글을 등록하고 있습니다.">
                             <%-- OTT 종류 --%>
                             <div class="auth-form-group">
                                 <label for="recruitOttService">OTT 종류</label>
@@ -562,4 +565,4 @@
         </div>
 </section>
 
-<script src="${contextPath}/resources/js/ott.js"></script>
+<script src="${contextPath}/resources/js/ott.js" data-ajax-reload></script>

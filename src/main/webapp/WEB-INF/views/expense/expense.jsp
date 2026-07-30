@@ -1,3 +1,4 @@
+<%-- [AJAX 변경 주석] 지출 등록·수정·삭제·예산·월 이동 폼에 기존 action을 유지하면서 AJAX 전용 주소와 로딩 문구를 추가했다. --%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -27,9 +28,13 @@
                 </div>
 
                 <%-- 선택한 달의 예산을 등록하거나 수정한다. --%>
+                <%-- data-ajax-form은 기존 파라미터 이름을 유지한 채 pageAjax.js가 제출을 가로채도록 하는 표시다. --%>
                 <form action="${contextPath}/spendolive/expense/budget/save.do"
                       method="post"
-                      class="monthly-budget-form">
+                      class="monthly-budget-form"
+                      data-ajax-form
+                      data-ajax-action="/spendolive/expense/ajax/budget/save.do"
+                      data-loading-message="예산을 저장하고 있습니다.">
                     <input type="hidden" name="budget_month" value="${selectedYearMonth}">
 
                     <label for="monthlyBudgetAmount">
@@ -92,7 +97,7 @@
                 <div class="expense-form card">
                     <h3>빠른 지출 등록</h3>
 
-                    <form action="${contextPath}/spendolive/expense/add.do" method="post" class="form-grid">
+                    <form action="${contextPath}/spendolive/expense/add.do" method="post" class="form-grid" data-ajax-form data-ajax-action="/spendolive/expense/ajax/add.do" data-loading-message="지출을 등록하고 있습니다.">
                         <input type="hidden" name="yearMonth" value="${selectedYearMonth}">
                         <input type="hidden" id="repeat_yn" name="repeat_yn" value="N">
                         <input type="hidden" id="fixed_yn" name="fixed_yn" value="N">
@@ -174,11 +179,11 @@
                             <p class="card-desc">선택한 달의 지출만 표시됩니다.</p>
                         </div>
 
-                        <form action="${contextPath}/spendolive/expense/list.do" method="get">
+                        <%-- [공통 AJAX 로딩 적용] 사용자가 조회 월을 바꿀 때 본문만 갱신하고 지정 문구를 공통 팝업에 표시한다. --%>
+                        <form action="${contextPath}/spendolive/expense/list.do" method="get" data-ajax-navigation data-loading-message="선택한 달의 지출 내역을 불러오고 있습니다.">
                             <input type="month"
                                    name="yearMonth"
-                                   value="${selectedYearMonth}"
-                                   onchange="this.form.submit()">
+                                   value="${selectedYearMonth}">
                         </form>
                     </div>
                     <div class="expense-filter-bar">
@@ -335,7 +340,7 @@
                                                     <span class="tag">원본달에서 삭제</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <form id="editForm${expense.expense_id}" action="${contextPath}/spendolive/expense/modify.do" method="post">
+                                                    <form id="editForm${expense.expense_id}" action="${contextPath}/spendolive/expense/modify.do" method="post" data-ajax-form data-ajax-action="/spendolive/expense/ajax/modify.do" data-loading-message="지출을 수정하고 있습니다.">
                                                         <input type="hidden" name="expense_id" value="${expense.expense_id}">
                                                         <input type="hidden" name="yearMonth" value="${selectedYearMonth}">
                                                         <input type="hidden" id="editRepeatYn${expense.expense_id}" name="repeat_yn" value="${expense.repeat_yn}">
@@ -348,7 +353,7 @@
                                                         <button type="submit" form="editForm${expense.expense_id}" class="btn btn-primary save-btn expense-hidden">완료</button>
                                                         <button type="button" class="btn btn-outline cancel-btn expense-hidden" onclick="cancelEditMode(this)">취소</button>
 
-                                                        <form action="${contextPath}/spendolive/expense/delete.do" method="post" onsubmit="return confirm('이 지출 내역을 삭제하시겠습니까?');">
+                                                        <form action="${contextPath}/spendolive/expense/delete.do" method="post" data-ajax-form data-ajax-action="/spendolive/expense/ajax/delete.do" data-ajax-confirm="이 지출 내역을 삭제하시겠습니까?" data-loading-message="지출을 삭제하고 있습니다.">
                                                             <input type="hidden" name="expense_id" value="${expense.expense_id}">
                                                             <input type="hidden" name="yearMonth" value="${selectedYearMonth}">
                                                             <button type="submit" class="btn btn-outline delete-btn">삭제</button>
@@ -404,7 +409,7 @@
                                     <fmt:formatNumber value="${monthData.total}" pattern="#,###" />원
                                 </strong>
                                 <div class="bar-track">
-                                    <div class="expense-chart-bar" data-bar-height="${monthData.barPercent}"></div>
+                                    <div class="expense-chart-bar" style="--bar-height:${item.percent};"></div>
                                 </div>
                                 <span>${monthData.monthLabel}</span>
                             </div>
@@ -480,4 +485,4 @@
 
 </main>
 
-<script src="${contextPath}/resources/js/expense.js"></script>
+<script src="${contextPath}/resources/js/expense.js" data-ajax-reload></script>

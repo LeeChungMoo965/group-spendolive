@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const htmlTag = document.documentElement;
   const btnUp = document.getElementById('btn-font-up');
   const btnDown = document.getElementById('btn-font-down');
-  const fontSelect = document.getElementById('fontSelect');
+  const fontCards = document.querySelectorAll('.font-card');
 
   const CONFIG = {
       default: 16,
@@ -335,9 +335,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     localStorage.setItem('userFontFamily', fontKey);
 
-    if (fontSelect) {
-        fontSelect.value = fontKey;
-    }
+    fontCards.forEach(card => {
+      if (card.getAttribute('data-font') === fontKey) {
+          card.classList.add('active');
+      } else {
+          card.classList.remove('active');
+      }
+  });
 }
 
   function updateButtonStatus(size) {
@@ -384,43 +388,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 
-  if (fontSelect) {
-      fontSelect.addEventListener('change', function(e) {
-          applyFontFamily(e.target.value);
-      });
-  }
+  fontCards.forEach(card => {
+    card.addEventListener('click', function(e) {
+        e.preventDefault();
+        const fontKey = this.getAttribute('data-font');
+        applyFontFamily(fontKey);
+    });
 });
-// AJAX 팝업 모달 모듈
-function showMemberModal(prefix, type, titleText, messageText) {
-    const overlay = document.getElementById(prefix + 'StatusOverlay');
-    const title = document.getElementById(prefix + 'StatusTitle');
-    const message = document.getElementById(prefix + 'StatusMessage');
-    const spinner = document.getElementById(prefix + 'StatusSpinner');
-    const icon = document.getElementById(prefix + 'StatusIcon');
-    const closeBtn = document.getElementById(prefix + 'StatusCloseButton');
-    const actions = document.getElementById(prefix + 'StatusActions');
-
-    if (!overlay) return;
-
-    overlay.hidden = false;
-    if (title) title.textContent = titleText;
-    if (message) message.textContent = messageText;
-
-    // 아이콘 / 스피너 제어
-    if (spinner) spinner.hidden = (type !== 'processing');
-    if (icon) {
-        icon.hidden = (type === 'processing');
-        icon.textContent = (type === 'success') ? '✓' : '!';
-    }
-
-    // 버튼 영역 제어
-    if (actions) actions.hidden = (type === 'processing');
-    overlay.dataset.state = type;
-    overlay.style.display = 'flex';
-
-    if (closeBtn) {
-        closeBtn.onclick = function () {
-            overlay.style.display = 'none';
-        };
-    }
-}
+});

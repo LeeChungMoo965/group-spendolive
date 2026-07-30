@@ -1,19 +1,19 @@
 
 <%-- 결제 처리 중에는 뒤쪽 화면을 조작하지 못하도록 전체 화면 팝업을 표시합니다. --%>
 <div id="paymentStatusOverlay"
-     class="payment-status-overlay"
+     class="status-overlay"
      role="dialog"
      aria-modal="true"
      aria-labelledby="paymentStatusTitle"
      aria-describedby="paymentStatusMessage"
      hidden>
-    <div class="payment-status-box">
+    <div class="status-box">
         <div id="paymentStatusSpinner"
-             class="payment-status-spinner"
+             class="status-spinner"
              aria-hidden="true"></div>
 
         <div id="paymentStatusIcon"
-             class="payment-status-icon"
+             class="status-icon"
              aria-hidden="true"
              hidden></div>
 
@@ -23,7 +23,7 @@
         </p>
 
         <div id="paymentStatusActions"
-             class="payment-status-actions"
+             class="status-actions"
              hidden>
             <button type="button"
                     id="paymentStatusCloseButton"
