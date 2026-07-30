@@ -207,20 +207,20 @@
              <jsp:include page="/WEB-INF/views/common/font.jsp" />
     </section>
      <div id="loginStatusOverlay"
-                    class="payment-status-overlay"
+                    class="status-overlay"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="loginStatusTitle"
                     aria-describedby="loginStatusMessage"
                     hidden>
-                    <div class="payment-status-box">
+                    <div class="status-box">
                     
                     <div id="loginStatusSpinner"
-                            class="payment-status-spinner"
+                            class="status-spinner"
                             aria-hidden="true"></div>
 
                         <div id="loginStatusIcon"
-                            class="payment-status-icon"
+                            class="status-icon"
                             aria-hidden="true"
                             hidden></div>
                             <h3 id="loginStatusTitle">로그인중 입니다.</h3>
@@ -228,7 +228,7 @@
                             창을 닫거나 새로고침하지 말아주세요.
                         </p>
                     <div id="loginStatusActions"
-                            class="payment-status-actions"
+                            class="status-actions"
                             hidden>
                             <button type="button"
                                     id="loginStatusCloseButton"

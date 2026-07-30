@@ -104,7 +104,7 @@
                 <button type="button"
                         id="paymentSubmitButton"
                         class="btn btn-primary"
-                        data-room-id="${paymentAmount.roomId}">
+                        data-room_id="${paymentAmount.roomId}">
                     결제하기
                 </button>
             </div>
@@ -112,20 +112,20 @@
     </div>
 </section>
  <div id="cardStatusOverlay"
-                    class="payment-status-overlay"
+                    class="status-overlay"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="cardStatusTitle"
                     aria-describedby="cardStatusMessage"
                     hidden>
-                    <div class="payment-status-box">
+                    <div class="status-box">
                     
                     <div id="cardStatusSpinner"
-                            class="payment-status-spinner"
+                            class="status-spinner"
                             aria-hidden="true"></div>
 
                         <div id="cardStatusIcon"
-                            class="payment-status-icon"
+                            class="status-icon"
                             aria-hidden="true"
                             hidden></div>
                             <h3 id="cardStatusTitle">카드 변경 중 입니다.</h3>
@@ -133,7 +133,7 @@
                             창을 닫거나 새로고침하지 말아주세요.
                         </p>
                     <div id="cardStatusActions"
-                            class="payment-status-actions"
+                            class="status-actions"
                             hidden>
                             <button type="button"
                                     id="cardStatusCloseButton"

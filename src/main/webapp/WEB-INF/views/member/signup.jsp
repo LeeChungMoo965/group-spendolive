@@ -100,44 +100,7 @@
                     <input id="email" name="email"type="email" placeholder="example@email.com" required>
                     <button id="emailButton" class="auth-btn auth-btn-light" type="button">인증요청</button>
                 </div>
-                <div id="emailStatusOverlay"
-                    class="payment-status-overlay"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="emailStatusTitle"
-                    aria-describedby="emailStatusMessage"
-                    hidden>
-                    <div class="payment-status-box">
-                    
-                    <div id="emailStatusSpinner"
-                            class="payment-status-spinner"
-                            aria-hidden="true"></div>
-
-                        <div id="emailStatusIcon"
-                            class="payment-status-icon"
-                            aria-hidden="true"
-                            hidden></div>
-                            <h3 id="emailStatusTitle">중복 확인중 입니다.</h3>
-                        <p id="emailStatusMessage">
-                            창을 닫거나 새로고침하지 말아주세요.
-                        </p>
-                    <div id="emailStatusActions"
-                            class="payment-status-actions"
-                            hidden>
-                            <button type="button"
-                                    id="emailStatusCloseButton"
-                                    class="btn btn-outline">
-                                확인
-                            </button>
-                            <button type="button"
-                                    id="emailStatusActionButton"
-                                    class="btn btn-primary"
-                                    hidden>
-                                이동하기
-                            </button>
-                        </div>
-                </div>
-            </div>
+             
 
             <div class="auth-form-group" id="emailAuthArea" style="display:none;">
                 <label for="emailAuthCode">인증번호 입력</label>
@@ -155,44 +118,7 @@
                     <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required>
                     <button id="phoneButton" class="auth-btn auth-btn-light" type="button">인증요청</button>
                 </div>
-                <div id="phoneStatusOverlay"
-                    class="payment-status-overlay"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="phoneStatusTitle"
-                    aria-describedby="phoneStatusMessage"
-                    hidden>
-                    <div class="payment-status-box">
-                    
-                    <div id="phoneStatusSpinner"
-                            class="payment-status-spinner"
-                            aria-hidden="true"></div>
-
-                        <div id="phoneStatusIcon"
-                            class="payment-status-icon"
-                            aria-hidden="true"
-                            hidden></div>
-                            <h3 id="phoneStatusTitle">중복 확인중 입니다.</h3>
-                        <p id="phoneStatusMessage">
-                            창을 닫거나 새로고침하지 말아주세요.
-                        </p>
-                    <div id="phoneStatusActions"
-                            class="payment-status-actions"
-                            hidden>
-                            <button type="button"
-                                    id="phoneStatusCloseButton"
-                                    class="btn btn-outline">
-                                확인
-                            </button>
-                            <button type="button"
-                                    id="phoneStatusActionButton"
-                                    class="btn btn-primary"
-                                    hidden>
-                                이동하기
-                            </button>
-                        </div>
-                </div>
-            </div>
+                
 
             <div class="auth-form-group" id="phoneAuthArea" style="display:none;">
                 <label for="phoneAuthCode">전화번호 인증번호 입력</label>
@@ -233,44 +159,7 @@
                     <input id="userId" type="text" name="id" placeholder="사용할 아이디를 입력하세요" required>
                     <button id="checkIdButton" class="auth-btn auth-btn-light" type="button">중복확인</button>
                 </div>
-        <div id="idStatusOverlay"
-            class="payment-status-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="memberStatusTitle"
-            aria-describedby="memberStatusMessage"
-            hidden>
-            <div class="payment-status-box">
-            
-            <div id="idStatusSpinner"
-                    class="payment-status-spinner"
-                    aria-hidden="true"></div>
-
-                <div id="idStatusIcon"
-                    class="payment-status-icon"
-                    aria-hidden="true"
-                    hidden></div>
-                    <h3 id="idStatusTitle">중복 확인중 입니다.</h3>
-                <p id="idStatusMessage">
-                    창을 닫거나 새로고침하지 말아주세요.
-                </p>
-            <div id="idStatusActions"
-                    class="payment-status-actions"
-                    hidden>
-                    <button type="button"
-                            id="idStatusCloseButton"
-                            class="btn btn-outline">
-                        확인
-                    </button>
-                    <button type="button"
-                            id="idStatusActionButton"
-                            class="btn btn-primary"
-                            hidden>
-                        이동하기
-                    </button>
-                </div>
-        </div>
-            </div>
+      
             <div class="auth-form-group">
                 <label for="email">
                     이메일
@@ -279,44 +168,7 @@
                     <input id="email" name="email"type="email" placeholder="example@email.com" required>
                     <button id="emailButton" class="auth-btn auth-btn-light" type="button">인증요청</button>
                 </div>
-                <div id="emailStatusOverlay"
-                    class="payment-status-overlay"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="emailStatusTitle"
-                    aria-describedby="emailStatusMessage"
-                    hidden>
-                    <div class="payment-status-box">
-                    
-                    <div id="emailStatusSpinner"
-                            class="payment-status-spinner"
-                            aria-hidden="true"></div>
-
-                        <div id="emailStatusIcon"
-                            class="payment-status-icon"
-                            aria-hidden="true"
-                            hidden></div>
-                            <h3 id="emailStatusTitle">중복 확인중 입니다.</h3>
-                        <p id="emailStatusMessage">
-                            창을 닫거나 새로고침하지 말아주세요.
-                        </p>
-                    <div id="emailStatusActions"
-                            class="payment-status-actions"
-                            hidden>
-                            <button type="button"
-                                    id="emailStatusCloseButton"
-                                    class="btn btn-outline">
-                                확인
-                            </button>
-                            <button type="button"
-                                    id="emailStatusActionButton"
-                                    class="btn btn-primary"
-                                    hidden>
-                                이동하기
-                            </button>
-                        </div>
-                </div>
-            </div>
+                
             
             <div class="auth-form-group" id="emailAuthArea" style="display:none;">
                 <label for="emailAuthCode">인증번호 입력</label>
@@ -333,44 +185,7 @@
                     <input id="phone" name="phone" type="tel" placeholder="010-0000-0000" required>
                     <button id="phoneButton" class="auth-btn auth-btn-light" type="button">인증요청</button>
                 </div>
-                <div id="phoneStatusOverlay"
-                    class="payment-status-overlay"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="phoneStatusTitle"
-                    aria-describedby="phoneStatusMessage"
-                    hidden>
-                    <div class="payment-status-box">
-                    
-                    <div id="phoneStatusSpinner"
-                            class="payment-status-spinner"
-                            aria-hidden="true"></div>
-
-                        <div id="phoneStatusIcon"
-                            class="payment-status-icon"
-                            aria-hidden="true"
-                            hidden></div>
-                            <h3 id="phoneStatusTitle">중복 확인중 입니다.</h3>
-                        <p id="phoneStatusMessage">
-                            창을 닫거나 새로고침하지 말아주세요.
-                        </p>
-                    <div id="phoneStatusActions"
-                            class="payment-status-actions"
-                            hidden>
-                            <button type="button"
-                                    id="phoneStatusCloseButton"
-                                    class="btn btn-outline">
-                                확인
-                            </button>
-                            <button type="button"
-                                    id="phoneStatusActionButton"
-                                    class="btn btn-primary"
-                                    hidden>
-                                이동하기
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                
             <div class="auth-form-group" id="phoneAuthArea" style="display:none;">
                 <label for="phoneAuthCode">전화번호 인증번호 입력</label>
                 <div class="auth-input-row">
@@ -608,20 +423,20 @@ SpendOlive(이하 '서비스')는 개인정보 보호법, 정보통신망 이용
             </a>
         </div>
              <div id="signupStatusOverlay"
-                    class="payment-status-overlay"
+                    class="status-overlay"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="emailStatusTitle"
                     aria-describedby="emailStatusMessage"
                     hidden>
-                    <div class="payment-status-box">
+                    <div class="status-box">
                     
                     <div id="signupStatusSpinner"
-                            class="payment-status-spinner"
+                            class="status-spinner"
                             aria-hidden="true"></div>
 
                         <div id="signupStatusIcon"
-                            class="payment-status-icon"
+                            class="status-icon"
                             aria-hidden="true"
                             hidden></div>
                             <h3 id="signupStatusTitle">회원가입중 입니다.</h3>
@@ -629,7 +444,7 @@ SpendOlive(이하 '서비스')는 개인정보 보호법, 정보통신망 이용
                             창을 닫거나 새로고침하지 말아주세요.
                         </p>
                     <div id="signupStatusActions"
-                            class="payment-status-actions"
+                            class="status-actions"
                             hidden>
                             <button type="button"
                                     id="signupStatusCloseButton"
@@ -652,6 +467,7 @@ SpendOlive(이하 '서비스')는 개인정보 보호법, 정보통신망 이용
 <script src="${contextPath}/resources/js/app.js"></script>
 <script src="${contextPath}/resources/js/signup.js"></script>
 </body>
+<jsp:include page="/WEB-INF/views/member/popup.jsp" />
 </html>
 <script>
 var msg = "${msg}";
