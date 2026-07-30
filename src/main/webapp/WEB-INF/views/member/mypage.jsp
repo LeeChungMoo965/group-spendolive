@@ -1,3 +1,4 @@
+<%-- [AJAX 변경 주석] 회원정보·계좌명·주계좌·주카드 폼은 기존 action을 호환용으로 유지하고 AJAX 전용 주소를 추가했다. --%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -180,7 +181,8 @@
                 <span>비밀번호 변경 시 확인 입력이 필요합니다.</span>
             </div>
 
-            <form action="${contextPath}/spendolive/mypage/update.do" method="post" class="mypage-edit-form" id="mypageProfileForm">
+            <%-- 기존 일반 POST action은 호환용이며, data-ajax-action이 실제 비동기 처리 주소다. --%>
+            <form action="${contextPath}/spendolive/mypage/update.do" method="post" class="mypage-edit-form" id="mypageProfileForm" data-ajax-form data-ajax-action="/spendolive/mypage/ajax/update.do" data-loading-message="회원정보를 저장하고 있습니다.">
                 <input type="hidden" id="originalEmail" value="${memberInfo.email}">
                 <input type="hidden" id="originalPhone" value="${memberInfo.phone}">
                 <input type="hidden" id="emailVerified" value="N">
@@ -216,11 +218,12 @@
                                 이메일
                                 <input type="email" name="email" id="mypageEmail" value="${memberInfo.email}" required>
                             </label>
-                            <button type="button" class="btn btn-primary full" onclick="sendMyPageEmailCode()">이메일 인증</button>
+                            <%-- [공통 AJAX 로딩 적용] this를 전달해 요청 중 클릭한 버튼만 잠그고 완료 후 복구한다. --%>
+                            <button type="button" class="btn btn-primary full" onclick="sendMyPageEmailCode(this)">이메일 인증</button>
                         </div>
                         <div class="mypage-code-row">
                             <input type="text" id="mypageEmailCode" placeholder="이메일 인증번호 입력">
-                            <button type="button" class="btn btn-primary full" onclick="verifyMyPageEmailCode()">확인</button>
+                            <button type="button" class="btn btn-primary full" onclick="verifyMyPageEmailCode(this)">확인</button>
                         </div>
                         <p class="mypage-help" id="emailVerifyMessage">이메일을 변경할 때만 인증이 필요합니다.</p>
                     </div>
@@ -231,11 +234,12 @@
                                 전화번호
                                 <input type="text" name="phone" id="mypagePhone" value="${memberInfo.phone}">
                             </label>
-                            <button type="button" class="btn btn-primary full" onclick="sendMyPagePhoneCode()">전화번호 인증</button>
+                            <%-- [공통 AJAX 로딩 적용] 휴대전화 인증도 동일한 팝업·버튼 잠금 규격을 사용한다. --%>
+                            <button type="button" class="btn btn-primary full" onclick="sendMyPagePhoneCode(this)">전화번호 인증</button>
                         </div>
                         <div class="mypage-code-row">
                             <input type="text" id="mypagePhoneCode" placeholder="문자 인증번호 입력">
-                            <button type="button" class="btn btn-primary full" onclick="verifyMyPagePhoneCode()">확인</button>
+                            <button type="button" class="btn btn-primary full" onclick="verifyMyPagePhoneCode(this)">확인</button>
                         </div>
                         <p class="mypage-help" id="phoneVerifyMessage">전화번호를 변경할 때만 인증이 필요합니다.</p>
                     </div>
@@ -366,7 +370,7 @@
                         <c:set var="accountBankName" value="${bankNameMap[account.bank_code]}" />
                         <div class="mypage-asset-item" data-asset-item>
                             <div class="mypage-asset-main">
-                                <form action="${contextPath}/spendolive/mypage/account/name/update.do" method="post" class="mypage-asset-title-form">
+                                <form action="${contextPath}/spendolive/mypage/account/name/update.do" method="post" class="mypage-asset-title-form" data-ajax-form data-ajax-action="/spendolive/mypage/ajax/account/name/update.do" data-loading-message="계좌 제목을 수정하고 있습니다.">
                                     <input type="hidden" name="accountIdx" value="${account.account_idx}">
                                     <input type="text" name="accountName" maxlength="20" readonly
                                            value="${fn:escapeXml(empty account.account_name ? '계좌' : account.account_name)}"
@@ -385,24 +389,21 @@
                             <%-- 기존 버튼 스타일을 활용해 주계좌 선택과 거래내역 버튼을 함께 표시한다. --%>
                             <div class="mypage-room-actions">
                                 <c:choose>
-                                    <c:when test="${account.status eq 'YES'}">
-                                        <span class="chip done">주계좌</span>
+                                    <c:when test="${card.status eq 'YES'}">
+                                        <span class="chip done">주카드</span>
                                     </c:when>
                                     <c:otherwise>
-                                        <form action="${contextPath}/spendolive/mypage/account/primary/update.do" method="post">
-                                            <input type="hidden" name="accountIdx" value="${account.account_idx}">
-                                            <button type="submit" class="btn btn-primary btn-mini"
-                                                    onclick="return confirm('이 계좌를 주계좌로 설정할까요?');">주계좌로 설정</button>
+                                        <form action="${contextPath}/spendolive/mypage/card/primary/update.do"
+                                            method="post"
+                                            data-ajax-form
+                                            data-ajax-action="/spendolive/mypage/ajax/card/primary/update.do"
+                                            data-ajax-confirm="이 카드를 주카드로 설정할까요?"
+                                            data-loading-message="주카드를 변경하고 있습니다.">
+                                            <input type="hidden" name="cardIdx" value="${card.card_idx}">
+                                            <button type="submit" class="btn btn-primary btn-mini">주카드로 설정</button>
                                         </form>
                                     </c:otherwise>
                                 </c:choose>
-                                <button type="button"
-                                        class="btn btn-outline btn-mini transaction-history-btn"
-                                        data-account-idx="${account.account_idx}"
-                                        data-account-name="${fn:escapeXml(empty account.account_name ? '계좌' : account.account_name)}"
-                                        data-bank-name="${fn:escapeXml(empty accountBankName ? account.bank_code : accountBankName)}"
-                                        data-account-number="${fn:escapeXml(account.account_number)}"
-                                        data-current-balance="${account.balance}">거래내역</button>
                             </div>
                         </div>
                     </c:forEach>
@@ -467,11 +468,31 @@
 
                 <div class="mypage-asset-list" id="cardAssetList" data-empty-text="카드 정보가 없습니다.">
                     <c:forEach var="card" items="${cardList}">
+                        <%-- CARD_COMPANY에는 issuerCode 원본을 유지하고 화면에서만 카드사명으로 바꾼다. --%>
+                        <c:set var="cardCompanyDisplayName"
+                               value="${not empty cardCompanyNameMap[card.card_company] ? cardCompanyNameMap[card.card_company] : (empty card.card_company ? '카드' : card.card_company)}" />
+
+                        <%-- 15번 SQL 실행으로 CARD_NAME에 코드가 복사된 기존 데이터는
+                             카드 별칭을 직접 수정하기 전까지 카드사명으로 자연스럽게 표시한다. --%>
+                        <c:set var="cardDisplayName"
+                               value="${empty card.card_name or card.card_name eq card.card_company ? cardCompanyDisplayName : card.card_name}" />
+
                         <div class="mypage-asset-item mypage-card-item" data-asset-item>
                             <div class="mypage-asset-main">
-                                <strong><c:out value="${empty card.card_company ? '카드' : card.card_company}" /></strong>
+                                <%-- [마이페이지 카드 이름 수정]
+                                     카드사명과 별개로 사용자가 알아보기 쉬운 표시 이름을 저장한다. --%>
+                                <form action="${contextPath}/spendolive/mypage/card/name/update.do" method="post"
+                                      class="mypage-asset-title-form" data-ajax-form
+                                      data-ajax-action="/spendolive/mypage/ajax/card/name/update.do"
+                                      data-loading-message="카드 이름을 수정하고 있습니다.">
+                                    <input type="hidden" name="cardIdx" value="${card.card_idx}">
+                                    <input type="text" name="cardName" maxlength="30" readonly
+                                           value="${fn:escapeXml(cardDisplayName)}"
+                                           aria-label="카드 이름">
+                                    <button type="button" class="btn btn-outline btn-mini" onclick="toggleCardNameEdit(this)">수정</button>
+                                </form>
                                 <p>
-                                    <c:out value="${empty card.card_company ? '카드' : card.card_company}" />
+                                    <c:out value="${cardCompanyDisplayName}" />
                                     카드번호 - <c:out value="${card.card_number}" />
                                 </p>
                             </div>
@@ -483,10 +504,10 @@
                                         <span class="chip done">주카드</span>
                                     </c:when>
                                     <c:otherwise>
-                                        <form action="${contextPath}/spendolive/mypage/card/primary/update.do" method="post">
+                                        <form action="${contextPath}/spendolive/mypage/card/primary/update.do" method="post" data-ajax-form data-ajax-action="/spendolive/mypage/ajax/card/primary/update.do" data-ajax-confirm="이 카드를 주카드로 설정할까요?" data-loading-message="주카드를 변경하고 있습니다.">
                                             <input type="hidden" name="cardIdx" value="${card.card_idx}">
                                             <button type="submit" class="btn btn-primary btn-mini"
-                                                    onclick="return confirm('이 카드를 주카드로 설정할까요?');">주카드로 설정</button>
+                                                    >주카드로 설정</button>
                                         </form>
                                     </c:otherwise>
                                 </c:choose>
@@ -636,5 +657,5 @@
     </div>
 </div>
 
-<script src="${contextPath}/resources/js/mypage.js"></script>
+<script src="${contextPath}/resources/js/mypage.js" data-ajax-reload></script>
 

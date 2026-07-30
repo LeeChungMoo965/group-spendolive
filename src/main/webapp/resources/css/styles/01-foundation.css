@@ -1,3 +1,4 @@
+/* [AJAX 변경 주석] 공통 AJAX 로딩 오버레이, 처리 중 버튼, 인증 화면 공통 상태 클래스다. */
 /* =========================================================
    01-foundation
    기본 변수, Reset, Header, 공통 Layout, 기본 Main/Expense/Calendar/OTT/MyPage/Auth/Responsive
@@ -29,6 +30,8 @@ button,input,select,textarea {font-family:inherit;}
 .btn:hover {transform:translateY(-0.1875rem);}
 .btn-primary {background:var(--olives);color:var(--olive-dark);border:1px solid #c4c96a;}
 .btn-primary:hover {background:#e5e9b4;border-color: #6c7458;color: var(--olive-dark);}
+.btn-primary.recruit-apply-button {background:#959945;color:#fff;border-color:#959945;}
+.btn-primary.recruit-apply-button:hover {background:#858a3b;color:#fff;border-color:#858a3b;}
 .btn-danger-outline {border: 1px solid rgba(193, 77, 57, .45);background: #fff5f2;color: #b8422e;}
 .btn-danger-outline:hover {background: #fde6df;border-color: rgba(184, 66, 46, .75);color: #9f321f;}
 .btn-danger {border: 1px solid #c44732;background: #c44732;color: #fff;}
@@ -244,13 +247,43 @@ th {color:var(--muted);font-size:0.8125rem;}
 @media(max-width: 33.3333rem) {
   .withdraw-row {justify-content: stretch;}
   .withdraw-actions {display: grid;}
-} 
+}
+
+.font-size-10 {font-size:10px;}
+.font-size-13 {font-size:13px;}
+.font-size-16 {font-size:16px;}
+.font-size-19 {font-size:19px;}
+.font-size-22 {font-size:22px;}
+.font-size-25 {font-size:25px;}
+.font-size-28 {font-size:28px;}
+.font-size-30 {font-size:30px;}
+html.font-family-system,html.font-family-system body {font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif!important;}
+html.font-family-jua,html.font-family-jua body {font-family:"Jua",sans-serif!important;}
+html.font-family-sans-serif,html.font-family-sans-serif body {font-family:"Noto Sans KR","Malgun Gothic","맑은 고딕",sans-serif!important;}
+html.font-family-serif,html.font-family-serif body {font-family:"Noto Serif KR","Batang","바탕",serif!important;}
+html.font-family-monospace,html.font-family-monospace body {font-family:"D2Coding","Courier New",monospace!important;}
+#btn-font-up:disabled,#btn-font-down:disabled {cursor:not-allowed;opacity:.5;}
+.auth-switch-panel {display:none;}
+.auth-switch-panel.active {display:block;}
+.auth-find-links {display:flex;align-items:center;gap:8px;}
+.auth-find-links a {color:var(--olive-dark);font-weight:800;text-decoration:none;}
+.auth-find-links a:hover {text-decoration:underline;}
+.auth-back-login {margin-top:12px;}
+.auth-reset-box {margin-top:18px;padding-top:18px;border-top:1px solid var(--line);}
+.auth-kakao-login {text-align:center;}
+.auth-logo-image {width:42px;height:42px;border-radius:50%;object-fit:cover;}
+.auth-terms-textarea {width:100%;height:200px;margin-top:12px;box-sizing:border-box;resize:none;}
 
 /* =========================================================
-   공용 AJAX 로딩 오버레이 (app.js의 showLoading()/hideLoading()이 제어)
+   공용 AJAX 로딩 오버레이
 ========================================================= */
-.global-loading-overlay {position: fixed;inset: 0;z-index: 2000;display: flex;align-items: center;justify-content: center;background: rgba(251, 250, 241, .65);opacity: 0;visibility: hidden;pointer-events: none;transition: opacity .15s ease, visibility .15s ease;}
-.global-loading-overlay.show {opacity: 1;visibility: visible;pointer-events: auto;}
-.global-loading-spinner {width: 2.75rem;height: 2.75rem;border-radius: 50%;border: 0.25rem solid var(--olive-soft);border-top-color: var(--olive);animation: global-loading-spin .7s linear infinite;}
-@keyframes global-loading-spin {to {transform: rotate(360deg);}}
-@media (prefers-reduced-motion: reduce) {.global-loading-spinner {animation: none;}}
+/* 공통 AJAX 로딩: hidden/show 클래스와 aria-busy 상태로 표시 여부를 제어한다. */
+.global-loading-overlay {position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;padding:1.25rem;background:rgba(31,36,24,.42);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .16s ease,visibility .16s ease;}
+.global-loading-overlay.show {opacity:1;visibility:visible;pointer-events:auto;}
+.global-loading-box {width:min(20rem,100%);display:grid;justify-items:center;gap:.75rem;padding:1.75rem;border:1px solid rgba(112,130,56,.18);border-radius:1.5rem;background:#fff;box-shadow:0 1.25rem 4.5rem rgba(31,36,24,.24);text-align:center;}
+.global-loading-spinner {width:2.75rem;height:2.75rem;border:.25rem solid var(--olive-soft);border-top-color:var(--olive);border-radius:50%;animation:global-loading-spin .72s linear infinite;}
+.global-loading-message {color:var(--olive-dark);font-size:1.05rem;}
+.global-loading-description {margin:0;color:var(--muted);font-size:.82rem;}
+.is-ajax-pending {cursor:wait!important;opacity:.68!important;}
+@keyframes global-loading-spin {to {transform:rotate(360deg);}}
+@media (prefers-reduced-motion:reduce) {.global-loading-spinner {animation:none;}}
