@@ -50,14 +50,14 @@
                                         <c:when test="${payment.payment_status eq 'CANCELED' or payment.payment_status eq 'REFUNDED'}"><span class="badge gray">취소 완료</span></c:when>
                                         <c:otherwise>
                                             <button type="button" 
-                class="mini-btn warning adminrefundSubmitButton"
-                    data-payment-key="${payment.paymentKey}"
-                    data-payment-id="${payment.payment_id}"
-                    data-id="${payment.id}"
-                    data-settlement-id="${payment.settlement_id}"
-                    data-total-amount="${payment.total_amount}">
-                환불하기
-            </button>
+                                                    class="mini-btn warning adminrefundSubmitButton"
+                                                    data-payment-key="${payment.paymentKey}"
+                                                    data-payment-id="${payment.payment_id}"
+                                                    data-id="${payment.id}"
+                                                    data-settlement-id="${payment.settlement_id}"
+                                                    data-total-amount="${payment.total_amount}">
+                                                환불하기
+                                            </button>
                                           </c:otherwise>
                                     </c:choose>
                                 </td>

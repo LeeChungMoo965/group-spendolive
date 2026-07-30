@@ -104,3 +104,6 @@
         </a>
     </div>
 </aside>
+<jsp:include page="/WEB-INF/views/payment/popup.jsp" />
+ <script src="${contextPath}/resources/js/admin.js"></script>
+        <script src="${contextPath}/resources/js/payment.js"></script>

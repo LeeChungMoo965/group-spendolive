@@ -29,19 +29,18 @@
                     <tbody>
 <c:forEach var="card" items="${cardList}" varStatus="s">
     <tr>
-    
-                            <td><strong>   <c:choose>
+<td><strong><c:choose>
     <c:when test="${card.status == 'YES'}">
         주 카드
-    </c:when>
-     <c:otherwise>
-    <button type="button" 
+        </c:when>
+            <c:otherwise>
+                        <button type="button" 
                                 class="btn btn-primary btn-mini btn-change-card" 
                                 data-card-idx="${card.card_idx}">
-                            결제 카드 변경
+                                결제 카드 변경</button>
 
-      </c:otherwise>
-    </c:choose>
+            </c:otherwise>
+        </c:choose>
     </strong></td>
                             <td>
                                 <strong>
@@ -152,5 +151,6 @@
             </div>
 
 <jsp:include page="/WEB-INF/views/payment/popup.jsp" />
+<script src="${contextPath}/resources/js/signup.js"></script>
 <script src="${contextPath}/resources/js/payment.js"></script>
 <script src="${contextPath}/resources/js/app.js"></script>
