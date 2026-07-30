@@ -291,8 +291,8 @@ public class MemberControllerImpl implements MemberController{
                 if(memberService.checkPhone(phone)){
                 }else return ResponseEntity.ok(new MemberAjaxResponse(
                     false,
-                    "EMAIL_EXIST",
-                    "EMAIL이 이미 존재 합니다.",
+                    "PHONE_EXIST",
+                    "번호가 이미 존재 합니다.",
                     "EXIST",
                     phone,
                     null));

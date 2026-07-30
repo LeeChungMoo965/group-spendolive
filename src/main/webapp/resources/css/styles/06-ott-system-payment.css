@@ -82,7 +82,7 @@
 /* =========================================================
    Ajax 자동결제 상세 화면과 진행 상태 팝업
    ========================================================= */
-.payment-detail-page .payment-summary-card {
+.paymentdetail-page .payment-summary-card {
   max-width: 46rem;
   margin: 0 auto;
   padding: 1.5rem;
@@ -141,7 +141,7 @@
 }
 
 /* 결제 중에는 화면 전체를 덮어서 중복 클릭과 다른 화면 조작을 막습니다. */
-.payment-status-overlay {
+.status-overlay {
   position: fixed;
   inset: 0;
   z-index: 10000;
@@ -153,11 +153,11 @@
   backdrop-filter: blur(0.125rem);
 }
 
-.payment-status-overlay[hidden] {
+.status-overlay[hidden] {
   display: none;
 }
 
-.payment-status-box {
+.status-box {
   width: min(100%, 23rem);
   padding: 2rem 1.5rem 1.5rem;
   border-radius: 1.25rem;
@@ -166,30 +166,30 @@
   text-align: center;
 }
 
-.payment-status-box h3 {
+.status-box h3 {
   margin: 0 0 0.625rem;
   color: #26351f;
   font-size: 1.125rem;
 }
 
-.payment-status-box p {
+.status-box p {
   margin: 0;
   color: #6f7b66;
   line-height: 1.65;
   white-space: pre-line;
 }
 
-.payment-status-spinner {
+.status-spinner {
   width: 2.75rem;
   height: 2.75rem;
   margin: 0 auto 1.125rem;
   border: 0.25rem solid #e6eddc;
   border-top-color: #6d7f2e;
   border-radius: 50%;
-  animation: payment-status-spin 0.8s linear infinite;
+  animation: status-spin 0.8s linear infinite;
 }
 
-.payment-status-icon {
+.status-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,42 +203,42 @@
   font-weight: 900;
 }
 
-.payment-status-overlay[data-state="error"] .payment-status-icon {
+.status-overlay[data-state="error"] .status-icon {
   background: #fff0eb;
   color: #c0392b;
 }
 
-.payment-status-actions {
+.status-actions {
   display: flex;
   justify-content: center;
   gap: 0.5rem;
   margin-top: 1.25rem;
 }
 
-.payment-status-actions[hidden] {
+.status-actions[hidden] {
   display: none;
 }
 
-@keyframes payment-status-spin {
+@keyframes status-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
 @media(max-width: 36rem) {
-  .payment-action-row,
-  .payment-status-actions {
+  .action-row,
+  .status-actions {
     flex-direction: column;
   }
 
-  .payment-action-row .btn,
-  .payment-status-actions .btn {
+  .action-row .btn,
+  .status-actions .btn {
     width: 100%;
   }
 }
 
-.payment-status-spinner[hidden],
-.payment-status-icon[hidden],
-.payment-status-actions button[hidden] {
+.status-spinner[hidden],
+.status-icon[hidden],
+.status-actions button[hidden] {
   display: none;
 }

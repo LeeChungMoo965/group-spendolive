@@ -4,6 +4,31 @@
 
 
 /* 플로팅 토글 버튼 */
+/* 폰트 카드는 전체 폰트가 바뀌어도 각각 해당 폰트로 텍스트 고정 */
+.font-card[data-font="system"],
+.font-card[data-font="system"] * {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.font-card[data-font="jua"],
+.font-card[data-font="jua"] * {
+  font-family: "Jua", sans-serif !important;
+}
+
+.font-card[data-font="sans-serif"],
+.font-card[data-font="sans-serif"] * {
+  font-family: "Noto Sans KR", "Malgun Gothic", "맑은 고딕", sans-serif !important;
+}
+
+.font-card[data-font="serif"],
+.font-card[data-font="serif"] * {
+  font-family: "Noto Serif KR", "Batang", "바탕", serif !important;
+}
+
+.font-card[data-font="monospace"],
+.font-card[data-font="monospace"] * {
+  font-family: "D2Coding", "Courier New", monospace !important;
+}
 .font-toggle2 {
     position: fixed;
     right: 1.75rem;
@@ -46,8 +71,8 @@
     width: 20rem !important;
     background: var(--panel-bg) !important;
     border: 1px solid var(--panel-border) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 0.65rem 1.85rem rgba(0, 0, 0, 0.18) !important;
     display: none; /* 기본 상태 숨김 */
     flex-direction: column;
     overflow: hidden;
@@ -102,7 +127,7 @@
   }
   
   .font-divider {
-    height: 1px;
+    height: 0.1rem;
     background-color: #f1f3f5;
     margin: 1.25rem 0;
   }
@@ -117,7 +142,7 @@
     position: relative;
     background: #ffffff;
     border: 1.5px solid var(--panel-border);
-    border-radius: 10px;
+    border-radius: 0.6rem;
     padding: 0.75rem 0.25rem 0.5rem;
     display: flex;
     flex-direction: column;
@@ -136,14 +161,14 @@
   .check-badge {
     display: none;
     position: absolute;
-    top: -6px;
-    right: -6px;
-    width: 18px;
-    height: 18px;
+    top: -0.4rem;
+    right: -0.6rem;
+    width: 1.12rem;
+    height: 1.12rem;
     background-color: var(--panel-green);
     color: #fff;
     border-radius: 50%;
-    font-size: 11px;
+    font-size: 0.7rem;
     font-weight: bold;
     align-items: center;
     justify-content: center;
@@ -159,7 +184,7 @@
     margin-bottom: 0.5rem;
     display: flex;
     align-items: baseline;
-    gap: 2px;
+    gap: 0.125rem;
   }
   
   .preview-box span { font-size: 0.85em; opacity: 0.7; }
@@ -181,8 +206,8 @@
     width: 100%;
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
-    border: 1.5px solid var(--panel-border);
-    border-radius: 10px;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.6rem;
     background-color: #fff;
     color: var(--panel-text-main);
     cursor: pointer;
@@ -198,8 +223,8 @@
   .font-card {
     position: relative;
     background: #ffffff;
-    border: 1.5px solid var(--panel-border, #e3e5e8);
-    border-radius: 10px;
+    border: 1px solid var(--panel-border, #e3e5e8);
+    border-radius: 0.6rem;
     padding: 0.75rem 0.25rem 0.5rem;
     display: flex;
     flex-direction: column;
