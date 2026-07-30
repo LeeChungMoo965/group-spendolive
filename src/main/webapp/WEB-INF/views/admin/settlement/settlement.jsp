@@ -68,10 +68,9 @@
                                     <c:choose>
                                         <c:when test="${room.settlement_status eq 'DONE'}"><span class="badge green">정산 완료</span></c:when>
                                         <c:otherwise>
-                                            <form action="${contextPath}/admin/settlement/pay.do" method="post">
-                                                <input type="hidden" name="room_id" value="${room.room_id}">
-                                                <button type="submit" class="mini-btn warning">정산금 보내기</button>
-                                            </form>
+                                            <button type="button"
+                                                class="btn btn-primary adminsettlementSubmitButton"
+                                                data-room_id="${room.room_id}" data-member_login_id="${room.host_login_id}">정산금 보내기</button>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>

@@ -29,19 +29,18 @@
                     <tbody>
 <c:forEach var="card" items="${cardList}" varStatus="s">
     <tr>
-    
-                            <td><strong>   <c:choose>
+<td><strong><c:choose>
     <c:when test="${card.status == 'YES'}">
         주 카드
-    </c:when>
-     <c:otherwise>
-    <button type="button" 
+        </c:when>
+            <c:otherwise>
+                        <button type="button" 
                                 class="btn btn-primary btn-mini btn-change-card" 
                                 data-card-idx="${card.card_idx}">
-                            결제 카드 변경
+                                결제 카드 변경</button>
 
-      </c:otherwise>
-    </c:choose>
+            </c:otherwise>
+        </c:choose>
     </strong></td>
                             <td>
                                 <strong>
@@ -105,7 +104,7 @@
                 <button type="button"
                         id="paymentSubmitButton"
                         class="btn btn-primary"
-                        data-room-id="${paymentAmount.roomId}">
+                        data-room_id="${paymentAmount.roomId}">
                     결제하기
                 </button>
             </div>
@@ -113,20 +112,20 @@
     </div>
 </section>
  <div id="cardStatusOverlay"
-                    class="payment-status-overlay"
+                    class="status-overlay"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="cardStatusTitle"
                     aria-describedby="cardStatusMessage"
                     hidden>
-                    <div class="payment-status-box">
+                    <div class="status-box">
                     
                     <div id="cardStatusSpinner"
-                            class="payment-status-spinner"
+                            class="status-spinner"
                             aria-hidden="true"></div>
 
                         <div id="cardStatusIcon"
-                            class="payment-status-icon"
+                            class="status-icon"
                             aria-hidden="true"
                             hidden></div>
                             <h3 id="cardStatusTitle">카드 변경 중 입니다.</h3>
@@ -134,7 +133,7 @@
                             창을 닫거나 새로고침하지 말아주세요.
                         </p>
                     <div id="cardStatusActions"
-                            class="payment-status-actions"
+                            class="status-actions"
                             hidden>
                             <button type="button"
                                     id="cardStatusCloseButton"
@@ -152,5 +151,6 @@
             </div>
 
 <jsp:include page="/WEB-INF/views/payment/popup.jsp" />
+<script src="${contextPath}/resources/js/signup.js"></script>
 <script src="${contextPath}/resources/js/payment.js"></script>
 <script src="${contextPath}/resources/js/app.js"></script>

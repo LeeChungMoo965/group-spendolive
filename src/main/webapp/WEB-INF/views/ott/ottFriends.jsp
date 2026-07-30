@@ -259,7 +259,7 @@
                     </c:choose>
 
                     <c:if test="${not empty hostedSettlementPaymentList}">
-                        <div class="team-payment-status-box">
+                        <div class="team-status-box">
                             <h3>팀원별 정산 상태</h3>
                             <div class="team-payment-list">
                                 <c:forEach var="payment" items="${hostedSettlementPaymentList}">

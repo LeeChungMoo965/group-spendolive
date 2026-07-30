@@ -136,7 +136,7 @@ public class PaymentControllerImpl implements PaymentController {
     @PostMapping(value = "/paymenting.do", produces = "application/json; charset=UTF-8")
     @ResponseBody
     public ResponseEntity<PaymentAjaxResponse> payment(
-            @RequestParam("roomId") int roomId,
+            @RequestParam("room_id") int room_id,
             HttpServletRequest request,
             HttpSession session) throws Exception {
 
@@ -151,15 +151,15 @@ public class PaymentControllerImpl implements PaymentController {
                             "LOGIN_REQUIRED",
                             "로그인이 필요합니다.",
                             "UNPAID",
-                            roomId,
+                            room_id,
                             contextPath + "/member/loginForm.do"));
         }
 
         String userId = memberVO.getId();
-        String roomUrl = buildRoomUrl(contextPath, roomId);
+        String roomUrl = buildRoomUrl(contextPath, room_id);
 
         try {
-            PaymentAmountDTO paymentAmount = paymentService.executeRoomPayment(userId, roomId);
+            PaymentAmountDTO paymentAmount = paymentService.executeRoomPayment(userId, room_id);
 
             // Toss 결제가 끝난 뒤에만 실제 OTT 방 멤버로 입장 처리합니다.
 
@@ -171,21 +171,21 @@ public class PaymentControllerImpl implements PaymentController {
                             + paymentAmount.getAutomaticPaymentDay()
                             + "일에 자동결제됩니다.",
                     "PAID",
-                    roomId,
+                    room_id,
                     roomUrl));
 
         } catch (PaymentProcessException e) {
             // 이미 결제된 요청은 재결제하지 않고 기존 결제 결과를 사용합니다.
             if ("ALREADY_PAID".equals(e.getCode())
                     || "ALREADY_MEMBER".equals(e.getCode())) {
-                ottService.completePaidRoomEntry((long) roomId, userId);
+                ottService.completePaidRoomEntry((long) room_id, userId);
 
                 return ResponseEntity.ok(new PaymentAjaxResponse(
                         true,
                         e.getCode(),
                         e.getMessage(),
                         "PAID",
-                        roomId,
+                        room_id,
                         roomUrl));
             }
 
@@ -195,8 +195,8 @@ public class PaymentControllerImpl implements PaymentController {
                             false,
                             e.getCode(),
                             e.getMessage(),
-                            paymentService.getRoomPaymentStatus(userId, roomId),
-                            roomId,
+                            paymentService.getRoomPaymentStatus(userId, room_id),
+                            room_id,
                             null));
 
         } catch (Exception e) {
@@ -207,8 +207,8 @@ public class PaymentControllerImpl implements PaymentController {
                             false,
                             "PAYMENT_FAILED",
                             "결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-                            paymentService.getRoomPaymentStatus(userId, roomId),
-                            roomId,
+                            paymentService.getRoomPaymentStatus(userId, room_id),
+                            room_id,
                             null));
         }
     }
@@ -218,7 +218,7 @@ public class PaymentControllerImpl implements PaymentController {
     @GetMapping(value = "/status.do", produces = "application/json; charset=UTF-8")
     @ResponseBody
     public ResponseEntity<PaymentAjaxResponse> paymentStatus(
-            @RequestParam("roomId") int roomId,
+            @RequestParam("room_id") int room_id,
             HttpServletRequest request,
             HttpSession session) throws Exception {
 
@@ -233,18 +233,18 @@ public class PaymentControllerImpl implements PaymentController {
                             "LOGIN_REQUIRED",
                             "로그인이 필요합니다.",
                             "UNPAID",
-                            roomId,
+                            room_id,
                             contextPath + "/member/loginForm.do"));
         }
 
         String userId = memberVO.getId();
-        String paymentStatus = paymentService.getRoomPaymentStatus(userId, roomId);
+        String paymentStatus = paymentService.getRoomPaymentStatus(userId, room_id);
 
         if (isPaidStatus(paymentStatus)) {
             try{
-            ottService.completePaidRoomEntry((long) roomId, userId);
+            ottService.completePaidRoomEntry((long) room_id, userId);
             }catch(Exception e){
-                SettlementPaymentVO payment = paymentService.getSettlement_PaymentByRoomId(userId,roomId);
+                SettlementPaymentVO payment = paymentService.getSettlement_PaymentByRoomId(userId,room_id);
             
                 paymentService.updatePaymentstatusRefund(payment);
                 
@@ -252,8 +252,8 @@ public class PaymentControllerImpl implements PaymentController {
                     false,
                     "PAYMENT_FAILED",
                     "방 정원이 초과하여 결제를 취소 합니다.",
-                    paymentStatus,
-                    roomId,
+                    "REFUND",
+                    room_id,
                     null));
             }
             return ResponseEntity.ok(new PaymentAjaxResponse(
@@ -261,8 +261,8 @@ public class PaymentControllerImpl implements PaymentController {
                     "PAYMENT_COMPLETED",
                     "결제가 완료된 것을 확인했습니다.",
                     paymentStatus,
-                    roomId,
-                    buildRoomUrl(contextPath, roomId)));
+                    room_id,
+                    buildRoomUrl(contextPath, room_id)));
         }
 
         String message = "PROCESSING".equals(paymentStatus)
@@ -276,7 +276,7 @@ public class PaymentControllerImpl implements PaymentController {
                         : "PAYMENT_NOT_COMPLETED",
                 message,
                 paymentStatus,
-                roomId,
+                room_id,
                 null));
     }
 
