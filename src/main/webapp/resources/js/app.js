@@ -452,59 +452,7 @@ function showStatusModal(prefix,state, modalTitle, modalMessage, option) {
     }
 }
 
-async function checkPaymentStatus(controllerurl,room_id, member_login_id = null, host_id = null, payment = null) {
-  const params = new URLSearchParams({ room_id: room_id });
-  if (member_login_id) {
-      params.append('member_login_id', member_login_id);
-  }
-  if (host_id) {
-      params.append('host_id', host_id);
-  }
-  if (payment) {
-      params.append('payment', payment);
-  }
-  for (let attempt = 0; attempt < 6; attempt += 1) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-      try {
-          const url = `${contextPath}/${controllerurl}/status.do?${params.toString()}`;
-          const response = await fetch(url,
-              {
-                  method: 'GET',
-                  credentials: 'same-origin',
-                  headers: {'Accept': 'application/json'},
-                  signal: controller.signal
-              }
-          );
-          
-
-          const result = await readJson(response);
-
-          if (result.success
-                  && (result.paymentStatus === 'PAID'
-                      || result.paymentStatus === 'CONFIRMED')) {
-              return result;
-          }
-
-          if (result.code === 'LOGIN_REQUIRED') {
-              return result;
-          }
-
-          if (result.paymentStatus !== 'PROCESSING') {
-              return result;
-          }
-      } catch (error) {
-          // 일시적인 네트워크 오류는 다음 확인 차례에서 다시 시도합니다.
-      } finally {
-          clearTimeout(timer);
-      }
-
-      await wait(1500);
-  }
-
-  return null;
-}
-async function executeRequest(options) {
+async function executeRequest(options,prefix) {
   const {
       button,           // 클릭된 타겟 버튼 (disabled 처리용)
       confirmMessage,   // confirm 창 메시지
@@ -525,7 +473,7 @@ async function executeRequest(options) {
   if (button) button.disabled = true;
 
   // 3. 상태 모달 열기
-  showStatusModal('payment', 'processing', modalTitle, modalDesc);
+  showStatusModal(prefix, 'processing', modalTitle, modalDesc);
 
   // 4. 타임아웃 컨트롤러 설정 (30초)
   const controller = new AbortController();
@@ -548,17 +496,17 @@ async function executeRequest(options) {
       // Success
       if (response.ok && result.success) {
           isProcessing = false;
-          moveAfterSuccess(result);
+          moveAfterSuccess(result, prefix);
           return;
       }
 
       // Response Error
-      showFailure(button, result);
+      showFailure(button, result,prefix);
 
   } catch (error) {
       // Network or Timeout Exception -> Fallback Check
       showStatusModal(
-          'payment',
+        prefix,
           'processing',
           '송금 결과를 확인하고 있습니다.',
           '통신이 잠시 끊겨 실제 결제 상태를 다시 확인합니다.'
@@ -568,7 +516,7 @@ async function executeRequest(options) {
 
       if (statusResult && statusResult.success) {
           isProcessing = false;
-          moveAfterSuccess(statusResult);
+          moveAfterSuccess(statusResult,prefix);
           return;
       }
 
@@ -593,4 +541,68 @@ function hideStatusModal(prefix) {
       overlay.hidden = true;
   }
   window.modalActionHandler = null;
+}
+function moveAfterSuccess(result,prefix) {
+  showStatusModal(
+      prefix,
+      'success',
+      '결제가 완료되었습니다.',
+      result.message || '참여한 방으로 이동합니다.',
+      { hideClose: true }
+  );
+
+  window.setTimeout(function () {
+      window.location.href = result.redirectUrl;
+  }, 1200);
+}
+function showFailure(targetButton, result, prefix = 'payment') {
+  isProcessing = false;
+  if (targetButton) {
+      targetButton.disabled = false;
+  }
+
+  if (result && result.code === 'LOGIN_REQUIRED') {
+      showStatusModal(prefix, 'error', '로그인이 필요합니다.', result.message || '다시 로그인해주세요.', {
+          actionText: '로그인 화면으로',
+          onAction: () => {
+              window.location.href = result.redirectUrl || (contextPath + '/member/loginForm.do');
+          }
+      });
+      return;
+  }
+
+  if (result && result.code === 'CARD_REQUIRED') {
+      showStatusModal(prefix, 'error', '결제 카드가 필요합니다.', result.message || '카드를 먼저 등록해주세요.', {
+          actionText: '카드 등록하기',
+          onAction: () => {
+              if (typeof window.requestBillingAuth === 'function') {
+                  window.requestBillingAuth();
+              } else {
+                  window.location.href = contextPath + '/spendolive/mypage.do';
+              }
+          }
+      });
+      return;
+  }
+  if (result && result.code === 'REPORTED_FAILED') {
+    showStatusModal(prefix, 'error', '이미 신고가 완료된 건 입니다.', result.message || '이미 완료된 건 입니다.', {
+        actionText: '메인 화면으로',
+        onAction: () => {
+            if (typeof window.requestBillingAuth === 'function') {
+                window.requestBillingAuth();
+            } else {
+                window.location.href = contextPath + '/spendolive/main.do';
+            }
+        }
+    });
+    return;
+}
+
+  const defaultTitle = prefix === 'payment' ? '결제를 완료하지 못했습니다.' : '실패하였습니다.';
+  showStatusModal(
+      prefix,
+      'error',
+      defaultTitle,
+      result && result.message ? result.message : '잠시 후 다시 시도해주세요.'
+  );
 }

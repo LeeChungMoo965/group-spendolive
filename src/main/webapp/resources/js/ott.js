@@ -20,6 +20,9 @@
     const list = document.getElementById('chatMessageList');
     const form = document.getElementById('chatSendForm');
     const input = document.getElementById('chatMessageInput');
+    const sendButton = form ? form.querySelector('button[type="submit"],input[type="submit"]') : null;
+    // [채팅 중복 전송 방지] 채팅에는 전역 팝업을 쓰지 않고 별도 pending 상태로 연속 전송만 막는다.
+    let chatSendPending = false;
 
     if (!room_id || !list || !form || !input) {
         return;
@@ -47,18 +50,14 @@
 
         if (!isSystem && message.mine_yn !== 'Y') {
 
-                const reportLink = document.createElement('a');
-                reportLink.href = '/report/report.do?reported_member_id='+message.sender_id+'&room_id='+room_id+'&chat_text='+message.message_content;
+                const reportLink = document.createElement('button');
                 reportLink.textContent = ' 신고하기';
-                reportLink.className = 'danger-outline';
+                reportLink.dataset.reported_member_id = message.sender_id;
+                reportLink.dataset.room_id = room_id;
+                reportLink.dataset.chat_text = message.message_content;
+                reportLink.className = 'btn btn-danger-outline mini reportSubmitButton';
                 // 필요한 경우 여기에 신고하기 클릭 이벤트 리스너를 달 수 있습니다.
-                reportLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // 예: reportMessage(message.message_id); 
-                    if (confirm('신고 하시겠습니까?')){
-                        location.href ='/report/report.do?reported_member_id='+message.sender_id+'&room_id='+room_id+'&chat_text='+encodeURIComponent(message.message_content);
-                    }
-                });
+                
 
                 time.appendChild(reportLink);
             }
@@ -101,21 +100,35 @@
     }
 
     // AJAX로 메시지 전송
+    // 채팅은 전역 로딩 팝업 대신 입력창 안에서 빠르게 이어져야 하므로 버튼 잠금만 적용한다.
     form.addEventListener('submit', function (event) {
         event.preventDefault();
 
-        if (!input.value.trim()) {
+        if (!input.value.trim() || chatSendPending) {
             return;
         }
 
+        chatSendPending = true;
+        if (sendButton) sendButton.disabled = true;
+
         fetch(form.action, {
             method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body: new FormData(form)
         })
-            .then(function () {
+            .then(function (response) {
+                if (!response.ok) throw new Error('메시지 전송에 실패했습니다.');
                 input.value = '';
                 loadMessages();
                 input.focus();
+            })
+            .catch(function (error) {
+                console.error('[ott chat] 메시지 전송 실패', error);
+            })
+            .finally(function () {
+                chatSendPending = false;
+                if (sendButton) sendButton.disabled = false;
             });
     });
 

@@ -23,11 +23,13 @@ CREATE TABLE report_tb (
     CONSTRAINT fk_report_reporter FOREIGN KEY (reporter_id) REFERENCES member_tb(id),
     CONSTRAINT fk_report_reported FOREIGN KEY (reported_member_id) REFERENCES member_tb(id),
     CONSTRAINT fk_report_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
+    CONSTRAINT uk_report_duplicate UNIQUE (reporter_id, room_id, report_reason),
     CONSTRAINT ck_report_status CHECK (report_status IN ('WAIT', 'PROCESSING', 'COMPLETE', 'REJECT'))
 );
 
 CREATE INDEX idx_report_reported ON report_tb(reported_member_id, report_status);
-
+ALTER TABLE report_tb
+ADD CONSTRAINT uk_report_duplicate UNIQUE (reporter_id, room_id, report_reason);
 /* =========================================================
    22. [팀 원본 사용] 경고 테이블
    ========================================================= */

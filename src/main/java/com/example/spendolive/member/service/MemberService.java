@@ -66,4 +66,7 @@ public interface MemberService {
 
     void updatePasswordById(String id, String newPassword) throws Exception;
     void updatePrimaryCard(String id, int cardIdx) throws Exception;
+
+    // 마이페이지에서 카드 표시 이름을 수정한다.
+    void updateCardName(String id, int cardIdx, String cardName) throws Exception;
 }

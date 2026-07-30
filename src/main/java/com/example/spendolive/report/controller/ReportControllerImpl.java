@@ -1,9 +1,11 @@
 package com.example.spendolive.report.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -21,7 +23,7 @@ public class ReportControllerImpl implements ReportController{
     @Autowired
     private ReportService reportService;
     @Override
-    @GetMapping("/report.do")
+    @PostMapping("/report.do")
     public ResponseEntity<ReportAjaxResponse> insertReport(@RequestParam("reported_member_id") String reported_member_id,@RequestParam("room_id") String room_id,@RequestParam("chat_text")   String chat_text, HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
         session = request.getSession();
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
@@ -42,7 +44,8 @@ public class ReportControllerImpl implements ReportController{
             System.out.println(chat_text);
             System.err.println("🚨 [신고 저장 오류]: " + e.getMessage());
            
-            return ResponseEntity.ok(new ReportAjaxResponse(
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(new ReportAjaxResponse(
                 false,
                 "REPORTED_FAILED",
                 e.getMessage(),

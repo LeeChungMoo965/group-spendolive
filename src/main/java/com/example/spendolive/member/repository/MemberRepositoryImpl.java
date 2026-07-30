@@ -65,7 +65,7 @@ public class MemberRepositoryImpl implements MemberRepository{
   private final String selectMemberAccountById= "select ACCOUNT_HOLDER_NAM,ACCOUNT_IDX,ACCOUNT_NUMBER,BALANCE,BANK_CODE,FINTECH_USE_NUM,ID,OPEN_BANK_TOKEN,OPEN_BANK_USER_SEQ,REG_DATE,FROM_DATE,FROM_TIME,TO_DATE,TO_TIME,ACCOUNT_NAME,STATUS "
                                                 + "from member_account_tb where id=? "
                                                 + "order by case when status='YES' then 0 else 1 end, account_idx ";
-    private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,ID,REG_DATE,STATUS "
+    private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,CARD_NAME,ID,REG_DATE,STATUS "
                                                 +"from member_card_tb where id=? ";
     private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
 
@@ -96,6 +96,10 @@ public class MemberRepositoryImpl implements MemberRepository{
        로그인 회원의 특정 계좌 제목(account_name)만 수정하는 SQL이다.
        ========================================================= */
     private final String updateAccountName="update member_account_tb set account_name=? where id=? and account_idx=? ";
+
+    /* [마이페이지 카드 이름 수정]
+       회원 아이디와 카드 번호를 함께 조건으로 사용해 다른 회원 카드가 수정되지 않게 한다. */
+    private final String updateCardName="update member_card_tb set card_name=? where id=? and card_idx=? ";
 
     // 선택한 계좌만 YES로 변경하고 같은 회원의 다른 계좌는 모두 NO로 변경하는 SQL이다.
     private final String updatePrimaryAccount = """
@@ -380,6 +384,7 @@ public class MemberRepositoryImpl implements MemberRepository{
             card.setBilling_key(rs.getString("billing_key"));
             card.setCard_idx(rs.getInt("card_idx"));
             card.setCard_number(rs.getString("card_number"));
+            card.setCard_name(rs.getString("card_name"));
             card.setId(rs.getString("id"));
             card.setReg_date(rs.getObject("reg_date", LocalDateTime.class));
             card.setStatus(rs.getString("status"));
@@ -444,6 +449,11 @@ public class MemberRepositoryImpl implements MemberRepository{
                 userId,
                 cardIdx
         );
+    }
+
+    @Override
+    public int updateCardName(String userId, int cardIdx, String cardName) {
+        return jdbcTemplate.update(updateCardName, cardName, userId, cardIdx);
     }
     @Override
     public void updateWarning(String userId, int count){

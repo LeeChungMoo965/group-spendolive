@@ -254,12 +254,17 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePrimaryCard(String id, int cardIdx) throws Exception {
-
-
         int updatedCount = memberRepository.updatePrimaryCard(id, cardIdx);
-        System.out.println("card: " + cardIdx+"ss"+id);
         if (updatedCount == 0) {
-            throw new RuntimeException("주카드로 설정할 카드를 찾을 수 없습니다.");
+            throw new IllegalArgumentException("주카드로 설정할 카드를 찾을 수 없습니다.");
+        }
+    }
+
+    @Override
+    public void updateCardName(String id, int cardIdx, String cardName) throws Exception {
+        int updatedCount = memberRepository.updateCardName(id, cardIdx, cardName);
+        if (updatedCount == 0) {
+            throw new IllegalArgumentException("이름을 수정할 카드를 찾을 수 없습니다.");
         }
     }
     @Override

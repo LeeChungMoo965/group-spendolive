@@ -1,55 +1,57 @@
 
-function moveAfterSuccess(result) {
-    showStatusModal(
-        'payment',
-        'success',
-        '결제가 완료되었습니다.',
-        result.message || '참여한 방으로 이동합니다.',
-        { hideClose: true }
-    );
-
-    window.setTimeout(function () {
-        window.location.href = result.redirectUrl;
-    }, 1200);
-}
-  function showFailure(targetButton, result, prefix = 'payment') {
-    isProcessing = false;
-    if (targetButton) {
-        targetButton.disabled = false;
+async function checkPaymentStatus(controllerurl,room_id, member_login_id = null, host_id = null, payment = null) {
+    const params = new URLSearchParams({ room_id: room_id });
+    if (member_login_id) {
+        params.append('member_login_id', member_login_id);
     }
-
-    if (result && result.code === 'LOGIN_REQUIRED') {
-        showStatusModal(prefix, 'error', '로그인이 필요합니다.', result.message || '다시 로그인해주세요.', {
-            actionText: '로그인 화면으로',
-            onAction: () => {
-                window.location.href = result.redirectUrl || (contextPath + '/member/loginForm.do');
-            }
-        });
-        return;
+    if (host_id) {
+        params.append('host_id', host_id);
     }
-
-    if (result && result.code === 'CARD_REQUIRED') {
-        showStatusModal(prefix, 'error', '결제 카드가 필요합니다.', result.message || '카드를 먼저 등록해주세요.', {
-            actionText: '카드 등록하기',
-            onAction: () => {
-                if (typeof window.requestBillingAuth === 'function') {
-                    window.requestBillingAuth();
-                } else {
-                    window.location.href = contextPath + '/spendolive/mypage.do';
+    if (payment) {
+        params.append('payment', payment);
+    }
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+        try {
+            const url = `${contextPath}/${controllerurl}/status.do?${params.toString()}`;
+            const response = await fetch(url,
+                {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {'Accept': 'application/json'},
+                    signal: controller.signal
                 }
+            );
+            
+  
+            const result = await readJson(response);
+  
+            if (result.success
+                    && (result.paymentStatus === 'PAID'
+                        || result.paymentStatus === 'CONFIRMED')) {
+                return result;
             }
-        });
-        return;
+  
+            if (result.code === 'LOGIN_REQUIRED') {
+                return result;
+            }
+  
+            if (result.paymentStatus !== 'PROCESSING') {
+                return result;
+            }
+        } catch (error) {
+            // 일시적인 네트워크 오류는 다음 확인 차례에서 다시 시도합니다.
+        } finally {
+            clearTimeout(timer);
+        }
+  
+        await wait(1500);
     }
+  
+    return null;
+  }
 
-    const defaultTitle = prefix === 'payment' ? '결제를 완료하지 못했습니다.' : '실패하였습니다.';
-    showStatusModal(
-        prefix,
-        'error',
-        defaultTitle,
-        result && result.message ? result.message : '잠시 후 다시 시도해주세요.'
-    );
-}
 const paymentCloseBtn = document.getElementById('StatusCloseButton');
 if (paymentCloseBtn) {
     paymentCloseBtn.addEventListener('click', function() {
@@ -107,7 +109,7 @@ if (paymentActionBtn) {
         checkStatusFunc: () => checkPaymentStatus('payment',room_id),
         // 필요하다면 에러 메시지도 커스텀 전달 가능
         fallbackErrorMessage: '결제 결과를 확인하지 못했습니다. 카드 승인 내역을 확인한 뒤 다시 시도해주세요.'
-    });
+    },'payment');
 });
   // 결제 중 새로고침이나 창 닫기를 시도하면 브라우저 기본 경고를 표시합니다.
  
@@ -144,7 +146,7 @@ if (paymentActionBtn) {
         bodyData: body,
         checkStatusFunc: () => checkPaymentStatus('admin/settlement',room_id, member_login_id),
         fallbackErrorMessage: '결제 결과를 확인하지 못했습니다. 카드 승인 내역을 확인한 뒤 다시 시도해주세요.'
-    });
+    },'payment');
 });
     // 결제 중 새로고침이나 창 닫기를 시도하면 브라우저 기본 경고를 표시합니다.
     
@@ -179,7 +181,7 @@ if (paymentActionBtn) {
             bodyData: body,
             checkStatusFunc: () => checkPaymentStatus('admin/settlement',room_id, null, host_id),
             fallbackErrorMessage: '송금 결과를 확인하지 못했습니다. 송금 내역을 확인한 뒤 다시 시도해주세요.'
-        });
+        },'payment');
     });
     // 결제 중 새로고침이나 창 닫기를 시도하면 브라우저 기본 경고를 표시합니다.
     
@@ -211,7 +213,7 @@ if (paymentActionBtn) {
         bodyData: params,
         checkStatusFunc: () => checkPaymentStatus('admin/settlement',null, null, null, params),
         fallbackErrorMessage: '결제 결과를 확인하지 못했습니다. 카드 승인 내역을 확인한 뒤 다시 시도해주세요.'
-    });
+    },'payment');
 });
     // 결제 중 새로고침이나 창 닫기를 시도하면 브라우저 기본 경고를 표시합니다.
     //연기
@@ -247,7 +249,7 @@ if (paymentActionBtn) {
             bodyData: body,
             modalTitle: '정산 연기를 처리하고 있습니다.',
             fallbackErrorMessage: '정산 연기 처리 결과를 확인하지 못했습니다.'
-        });
+        },'payment');
     });
     // 결제 중 새로고침이나 창 닫기를 시도하면 브라우저 기본 경고를 표시합니다.
     

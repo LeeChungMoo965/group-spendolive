@@ -31,7 +31,7 @@ public class ReportServiceImpl implements ReportService{
         reportInfo.setRoom_id(parsed_room_id);
         reportRepository.insertReport(reportInfo);
         }catch(Exception e){
-            throw new ReportProcessException("REPORT_FAILED", "신고 결과 저장중 문제가 생겼습니다. 다시 시도 해주세요");
+            throw new ReportProcessException("REPORT_FAILED", "이미 신고가 완료된 건 입니다.");
         }
     }
     @Override
