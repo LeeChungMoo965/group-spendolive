@@ -89,5 +89,5 @@
         </article>
     </div>
 </section>
-
+<jsp:include page="/WEB-INF/views/ott/popup.jsp" />
 <script src="${contextPath}/resources/js/ott.js"></script>
