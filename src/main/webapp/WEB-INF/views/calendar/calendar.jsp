@@ -79,5 +79,4 @@
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
 <script src="${contextPath}/resources/js/app.js"></script>
-<script src="${contextPath}/resources/js/ajaxLoading.js"></script>
 <script src="${contextPath}/resources/js/calendar.js"></script>

@@ -39,7 +39,7 @@
            addMessage 세 번째 인자(fallback)를 true로 넘겨 스타일을 다르게 표시함
          - 대화창 안에 이미 "답변을 찾는 중..." 말풍선이 있어서 fetchWithLoading()의
            전역 스피너는 쓰지 않고 순정 fetch를 그대로 씀 */
-      const res = await fetch(`${eContextPath}/chatbot/ask.do`, {
+      const res = await fetch(`/spendolive/chatbot/ask.do`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',

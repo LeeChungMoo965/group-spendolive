@@ -26,8 +26,8 @@
 /* 아래 전부 01-foundation.css에서 이동함 (캘린더 페이지 전용) */
 .calendar {height:auto !important;overflow:hidden;}
 .calendar-header {display:flex;justify-content:space-between;align-items:center;gap:1.25rem;padding:1.375rem 1.5rem;color:#fff;background:linear-gradient(135deg,var(--olive-dark),var(--olive));font-size:1.5rem;font-weight:950;}
-.detail-link {height:auto !important;padding:0.5625rem 0.875rem;border:1px solid rgba(255,255,255,.55);border-radius:999px;color:#fff;background:transparent;font-weight:850;cursor:pointer;}
-.side-event {height:auto !important;padding:0.875rem;border-radius:0.9375rem;background:var(--cream);border:1px solid var(--line);margin-bottom:0.625rem;}
+.detail-link {height:auto !important;padding:0.5625rem 0.875rem;border:0.0625rem solid rgba(255,255,255,.55);border-radius:999px;color:#fff;background:transparent;font-weight:850;cursor:pointer;}
+.side-event {height:auto !important;padding:0.875rem;border-radius:0.9375rem;background:var(--cream);border:0.0625rem solid var(--line);margin-bottom:0.625rem;}
 .side-event strong {display:block;margin-bottom:0.25rem;}
 .side-event span {color:var(--muted);font-size:0.8125rem;}
 .fc-daygrid-day-number {cursor: pointer;transition: font-weight 0.1s;}
@@ -38,14 +38,15 @@
 /* FullCalendar 날짜 칸 높이 고정 */
 .fc .fc-daygrid-day-frame {height: 7.8125rem;}
 /* FullCalendar "+N개" 더보기 링크*/
-.fc .fc-daygrid-more-link {display: inline-block;margin-top: 0.1875rem;padding: 0.1875rem 0.5rem;border-radius: 0.5rem;background: #ecf1b8;border: 1px solid var(--line);color: var(--olive-dark);font-size: 0.75rem;font-weight: 900;}.fc .fc-daygrid-more-link:hover {background: var(--olive-soft);text-decoration: none;}
+.fc .fc-daygrid-more-link {display: inline-block;margin-top: 0.1875rem;padding: 0.1875rem 0.5rem;border-radius: 0.5rem;background: #ecf1b8;border: 0.0625rem solid var(--line);color: var(--olive-dark);font-size: 0.75rem;font-weight: 900;}.fc .fc-daygrid-more-link:hover {background: var(--olive-soft);text-decoration: none;}
 /*"+N개" 클릭 시 뜨는 팝오버*/
-.fc .fc-popover {border: 1px solid var(--line);border-radius: 1rem;box-shadow: var(--shadow);overflow: hidden;}.fc .fc-popover-header {padding: 0.625rem 0.875rem;background: linear-gradient(135deg, var(--olive-dark), var(--olive));color: #fff;font-weight: 900;}.fc .fc-popover-title {color: #fff;}.fc .fc-popover-close {color: #fff;opacity: .85;font-size: 1rem;}.fc .fc-popover-close:hover {opacity: 1;}.fc .fc-popover-body {padding: 0.5rem;background: #fff;}.fc .fc-popover-body .calendar-expense-chip {margin: 0.25rem 0.125rem;}
+.fc .fc-popover {border: 0.0625rem solid var(--line);border-radius: 1rem;box-shadow: var(--shadow);overflow: hidden;}.fc .fc-popover-header {padding: 0.625rem 0.875rem;background: linear-gradient(135deg, var(--olive-dark), var(--olive));color: #fff;font-weight: 900;}.fc .fc-popover-title {color: #fff;}.fc .fc-popover-close {color: #fff;opacity: .85;font-size: 1rem;}.fc .fc-popover-close:hover {opacity: 1;}.fc .fc-popover-body {padding: 0.5rem;background: #fff;max-height: 11rem;   /* 대략 3개 높이 */
+   overflow-y: auto;    /* 넘치면 스크롤 */}.fc .fc-popover-body .calendar-expense-chip {margin: 0.25rem 0.125rem;}
 /* 사이드패널(이번 달 주요 지출) 페이지네이션*/
-.side-pager {display: flex;gap: 0.25rem;justify-content: center;margin: 0.75rem 0 1rem;}.pager-num-btn {min-width: 1.375rem;height: 1.375rem;padding: 0 0.3125rem;border: 1px solid var(--line);border-radius: 0.4375rem;background: #fff;color: var(--muted);font-weight: 800;font-size: 0.6875rem;cursor: pointer;transition: .15s ease;}.pager-num-btn:hover {border-color: var(--olive);color: var(--olive-dark);}.pager-num-btn.active {background: var(--olive);border-color: var(--olive);color: #fff;box-shadow: 0 0.25rem 0.625rem rgba(122, 127, 54, .25);}
+.side-pager {display: flex;gap: 0.25rem;justify-content: center;margin: 0.75rem 0 1rem;}.pager-num-btn {min-width: 1.375rem;height: 1.375rem;padding: 0 0.3125rem;border: 0.0625rem solid var(--line);border-radius: 0.4375rem;background: #fff;color: var(--muted);font-weight: 800;font-size: 0.6875rem;cursor: pointer;transition: .15s ease;}.pager-num-btn:hover {border-color: var(--olive);color: var(--olive-dark);}.pager-num-btn.active {background: var(--olive);border-color: var(--olive);color: #fff;box-shadow: 0 0.25rem 0.625rem rgba(122, 127, 54, .25);}
 /* 이번 달 지출 내역이 하나도 없을 때 사이드패널에 뜨는 안내 문구 */
-.empty-text {padding: 0.875rem;border-radius: 0.9375rem;background: var(--cream);border: 1px dashed var(--line);color: var(--muted);font-size: 0.8125rem;text-align: center;margin: 0;}
+.empty-text {padding: 0.875rem;border-radius: 0.9375rem;background: var(--cream);border: 0.0625rem dashed var(--line);color: var(--muted);font-size: 0.8125rem;text-align: center;margin: 0;}
 /*주말 색상 */
 .fc .fc-col-header-cell.fc-day-sun {color: var(--red);}.fc .fc-col-header-cell.fc-day-sat {color: #4d6f8f;}.fc .fc-day-sun .fc-daygrid-day-number {color: var(--red);}.fc .fc-day-sat .fc-daygrid-day-number {color: #4d6f8f;}
 /*사이드패널 카드 (이번 달 주요 지출 목록 한 줄)*/
-.side-event {display: block;padding: 0.75rem 0.875rem;margin-bottom: 0.5rem;border-radius: 0.75rem;background: #fff;border: 1px solid #e5e2d8;}.side-event:last-child {margin-bottom: 0;}.side-event strong {display: block;font-size: 0.875rem;font-weight: 900;margin-bottom: 0.25rem;color: #22261a;}.side-event span {display: block;font-size: 0.8125rem;color: var(--muted);}.side-event.type-fixed {background: rgba(122, 127, 54, 0.18);border-left: 3px solid var(--olive);}.side-event.type-variable {background: rgba(217, 119, 87, 0.18);border-left: 3px solid #d97757;}.side-event.type-ott {background: rgba(74, 111, 165, 0.18);border-left: 3px solid #4a6fa5;}
+.side-event {display: block;padding: 0.75rem 0.875rem;margin-bottom: 0.5rem;border-radius: 0.75rem;background: #fff;border: 0.0625rem solid #e5e2d8;}.side-event:last-child {margin-bottom: 0;}.side-event strong {display: block;font-size: 0.875rem;font-weight: 900;margin-bottom: 0.25rem;color: #22261a;}.side-event span {display: block;font-size: 0.8125rem;color: var(--muted);}.side-event.type-fixed {background: rgba(122, 127, 54, 0.18);border-left: 0.1875rem solid var(--olive);}.side-event.type-variable {background: rgba(217, 119, 87, 0.18);border-left: 0.1875rem solid #d97757;}.side-event.type-ott {background: rgba(74, 111, 165, 0.18);border-left: 0.1875rem solid #4a6fa5;}

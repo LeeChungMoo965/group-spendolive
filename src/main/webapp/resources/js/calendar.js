@@ -3,6 +3,10 @@ let monthlyExpenses = [];
 let sidePanelPage = 1;
 const SIDE_PAGE_SIZE = 3;
 
+// "오늘 할 일"도 "이번달 주요 지출"과 동일하게 3개씩 페이지네이션
+let todayTodoItems = [];
+let todayTodoPage = 1;
+
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar')
 
@@ -30,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isDayNumberClick) {
             return;
         }
-        location.href = `${eContextPath}/expense.do?date=${info.dateStr}#expense-list`;
+        location.href = `/spendolive/expense.do?date=${info.dateStr}#expense-list`;
         },
       
       eventContent: function(arg) {
@@ -86,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
      (renderSidePanel)을 같이 그리므로, 여기서만 fetch하고 나머지는 순수 렌더 함수로 분리 */
 
 function loadMonthlyExpenses(year, month) {
-    fetch(`${eContextPath}/calendar/expenses.do?year=${year}&month=${month}`, {
+    fetch(`/spendolive/calendar/expenses.do?year=${year}&month=${month}`, {
         credentials: 'same-origin'
     })
         .then(res => {
@@ -208,7 +212,7 @@ function renderSidePanelPager(totalPages) {
          (별도의 "오늘만 조회" API가 없어서, 이번 달 전체를 받은 뒤 클라이언트에서
           expense_date === 오늘 날짜인 것만 필터링함)
        - 달력 렌더링과 무관하게 페이지 로드 시 한 번만 실행되는 독립적인 요청 */
-    fetch(`${eContextPath}/calendar/expenses.do?year=${year}&month=${month}`, {
+    fetch(`/spendolive/calendar/expenses.do?year=${year}&month=${month}`, {
         credentials: 'same-origin'
     })
         .then(res => {
@@ -218,29 +222,40 @@ function renderSidePanelPager(totalPages) {
             return res.json();
         })
         .then(data => {
-            const todayItems = data.filter(exp => exp.expense_date === todayStr);
-            renderTodayTodo(todayItems);
+            todayTodoItems = data.filter(exp => exp.expense_date === todayStr);
+            todayTodoPage = 1;
+            renderTodayTodo();
         })
         .catch(err => {
             console.error(err);
         });
 }
 
-function renderTodayTodo(todayItems) {
+function renderTodayTodo() {
     const listEl = document.getElementById('todayTodoList');
     if (!listEl) {
         console.warn('todayTodoList 요소를 못 찾았어요 (calendar.jsp 확인 필요)');
         return;
     }
 
+    // 이번달 주요 지출과 동일하게 3개씩 잘라서 현재 페이지만 표시
+    const totalPages = Math.max(1, Math.ceil(todayTodoItems.length / SIDE_PAGE_SIZE));
+    if (todayTodoPage > totalPages) {
+        todayTodoPage = totalPages;
+    }
+
+    const startIdx = (todayTodoPage - 1) * SIDE_PAGE_SIZE;
+    const pageItems = todayTodoItems.slice(startIdx, startIdx + SIDE_PAGE_SIZE);
+
     listEl.innerHTML = '';
 
-    if (todayItems.length === 0) {
+    if (pageItems.length === 0) {
         listEl.innerHTML = '<p class="empty-text">오늘 예정된 지출이 없습니다.</p>';
+        renderTodayTodoPager(totalPages);
         return;
     }
 
-    todayItems.forEach(exp => {
+    pageItems.forEach(exp => {
         const typeClass = `type-${(exp.expense_type || 'variable').toLowerCase()}`;
 
         const item = document.createElement('div');
@@ -250,5 +265,38 @@ function renderTodayTodo(todayItems) {
             <span>${Number(exp.amount).toLocaleString()}원 · ${exp.category_name}</span>
         `;
         listEl.appendChild(item);
+    });
+
+    renderTodayTodoPager(totalPages);
+}
+
+function renderTodayTodoPager(totalPages) {
+    let pagerEl = document.getElementById('todayTodoPager');
+
+    if (!pagerEl) {
+        pagerEl = document.createElement('div');
+        pagerEl.id = 'todayTodoPager';
+        pagerEl.className = 'side-pager';   // 주요 지출 pager와 같은 스타일 재사용
+        document.getElementById('todayTodoList').insertAdjacentElement('afterend', pagerEl);
+    }
+
+    // 페이지가 1개뿐이면 버튼 숨김
+    if (totalPages <= 1) {
+        pagerEl.innerHTML = '';
+        return;
+    }
+
+    let buttonsHtml = '';
+    for (let page = 1; page <= totalPages; page++) {
+        const isActive = page === todayTodoPage ? 'active' : '';
+        buttonsHtml += `<button type="button" class="pager-num-btn ${isActive}" data-page="${page}">${page}</button>`;
+    }
+    pagerEl.innerHTML = buttonsHtml;
+
+    pagerEl.querySelectorAll('.pager-num-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            todayTodoPage = Number(btn.dataset.page);
+            renderTodayTodo();
+        });
     });
 }
