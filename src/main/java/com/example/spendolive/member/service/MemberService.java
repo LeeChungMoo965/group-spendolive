@@ -12,9 +12,6 @@ import com.example.spendolive.member.domain.MemberTranVO;
 import com.example.spendolive.member.domain.MemberVO;
 
 public interface MemberService {
-
-    MemberVO login(Map<String, String> loginMap) throws Exception;
-
     List<MemberAccountVO> getAccountById(String id) throws Exception;
 
     /* =========================================================

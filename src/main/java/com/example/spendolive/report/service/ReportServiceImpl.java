@@ -9,9 +9,8 @@ import com.example.spendolive.member.repository.MemberRepository;
 import com.example.spendolive.member.service.MemberService;
 import com.example.spendolive.report.domain.ReportVO;
 import com.example.spendolive.report.domain.WarningVO;
+import com.example.spendolive.report.exception.ReportProcessException;
 import com.example.spendolive.report.repository.ReportRepository;
-
-import java.lang.reflect.Member;
 import java.util.List;
 @Service
 public class ReportServiceImpl implements ReportService{
@@ -25,11 +24,15 @@ public class ReportServiceImpl implements ReportService{
         ReportVO reportInfo =new ReportVO();
         String reporter = memberInfo.getId();
         int parsed_room_id = Integer.parseInt(room_id);  
+        try{
         reportInfo.setReport_reason(chat_text);
         reportInfo.setReported_member_id(reported_member_id);
         reportInfo.setReporter_id(reporter);
         reportInfo.setRoom_id(parsed_room_id);
         reportRepository.insertReport(reportInfo);
+        }catch(Exception e){
+            throw new ReportProcessException("REPORT_FAILED", "신고 결과 저장중 문제가 생겼습니다. 다시 시도 해주세요");
+        }
     }
     @Override
     @Transactional
@@ -64,7 +67,7 @@ public class ReportServiceImpl implements ReportService{
         reportRepository.updateComment(comment, report_id);
         memberRepository.updateWarning(userId,count);
         }catch(Exception e){
-            System.err.println("🚨 [시스템 에러]: " + e.getMessage());
+            throw new ReportProcessException("REPORT_FAILED", "경고 처리 중 문제가 생겼습니다. 다시 시도 해주세요");
         }
         }else if(result.equals("2")){
             //퇴출

@@ -1,186 +1,4 @@
-const contextPath = 'http://localhost:8080';
-let isProcessing = false;
-function showStatusModal(prefix,state, modalTitle, modalMessage, option) {
-    const overlay = document.getElementById(prefix +'StatusOverlay');
-    const spinner = document.getElementById(prefix +'StatusSpinner');
-    const icon = document.getElementById(prefix +'StatusIcon');
-    const title = document.getElementById(prefix +'StatusTitle');
-    const message = document.getElementById(prefix +'StatusMessage');
-    const actions = document.getElementById(prefix +'StatusActions');
-    const closeButton = document.getElementById(prefix +'StatusCloseButton');
-    const actionButton = document.getElementById(prefix +'StatusActionButton');
-    const settings = option || {};
-    if (!overlay) return;
-    if (!title) return;
-      overlay.hidden = false;
-      title.textContent = modalTitle;
-      message.textContent = modalMessage;
-      overlay.dataset.state = state;
 
-    if (spinner) spinner.hidden = state !== 'processing';
-    if (icon) {
-        icon.hidden = state === 'processing';
-        icon.textContent = state === 'success' ? '✓' : '!';
-    }
-    if (actions) actions.hidden = state === 'processing';
-    if (closeButton) closeButton.hidden = state === 'success' || settings.hideClose === true;
-      window.modalActionHandler = typeof settings.onAction === 'function' ? settings.onAction : null;
-
-        if (actionButton) {
-            if (settings.actionText && window.modalActionHandler) {
-            actionButton.textContent = settings.actionText;
-            actionButton.hidden = false;
-            } else {
-            actionButton.hidden = true;
-            }
-        }
-  }
-  window.addEventListener('beforeunload', function (event) {
-    if (!isProcessing) {
-        return;
-    }
-    event.preventDefault();
-    event.returnValue = '';
-});
-  async function readJson(response) {
-    try {
-        return await response.json();
-    } catch (error) {
-        return {
-            success: false,
-            code: 'INVALID_RESPONSE',
-            message: '서버 응답을 확인할 수 없습니다.'
-        };
-    }
-}
-async function checkPaymentStatus(controllerurl,room_id, member_login_id = null, host_id = null, payment = null) {
-    const params = new URLSearchParams({ room_id: room_id });
-    if (member_login_id) {
-        params.append('member_login_id', member_login_id);
-    }
-    if (host_id) {
-        params.append('host_id', host_id);
-    }
-    if (payment) {
-        params.append('payment', payment);
-    }
-    for (let attempt = 0; attempt < 6; attempt += 1) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8000);
-        try {
-            const url = `${contextPath}/${controllerurl}/status.do?${params.toString()}`;
-            const response = await fetch(url,
-                {
-                    method: 'GET',
-                    credentials: 'same-origin',
-                    headers: {'Accept': 'application/json'},
-                    signal: controller.signal
-                }
-            );
-            
-
-            const result = await readJson(response);
-
-            if (result.success
-                    && (result.paymentStatus === 'PAID'
-                        || result.paymentStatus === 'CONFIRMED')) {
-                return result;
-            }
-
-            if (result.code === 'LOGIN_REQUIRED') {
-                return result;
-            }
-
-            if (result.paymentStatus !== 'PROCESSING') {
-                return result;
-            }
-        } catch (error) {
-            // 일시적인 네트워크 오류는 다음 확인 차례에서 다시 시도합니다.
-        } finally {
-            clearTimeout(timer);
-        }
-
-        await wait(1500);
-    }
-
-    return null;
-}
-async function executePaymentRequest(options) {
-    const {
-        button,           // 클릭된 타겟 버튼 (disabled 처리용)
-        confirmMessage,   // confirm 창 메시지
-        requestUrl,       // 요청 API 경로
-        bodyData,         // URLSearchParams 객체
-        checkStatusFunc,  // 예외 발생 시 실행할 폴링 함수 () => checkPaymentStatus(id)
-        modalTitle = '결제를 처리하고 있습니다.',
-        modalDesc = '창을 닫거나 새로고침하지 말아주세요.'
-    } = options;
-
-    // 1. 중복 진행 방지
-    if (isProcessing) return;
-
-    // 2. 사용자 확인
-    if (confirmMessage && !window.confirm(confirmMessage)) return;
-
-    isProcessing = true;
-    if (button) button.disabled = true;
-
-    // 3. 상태 모달 열기
-    showStatusModal('payment', 'processing', modalTitle, modalDesc);
-
-    // 4. 타임아웃 컨트롤러 설정 (30초)
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 30000);
-
-    try {
-        const response = await fetch(contextPath + requestUrl, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-            },
-            body: bodyData.toString(),
-            signal: controller.signal
-        });
-
-        const result = await readJson(response);
-
-        // Success
-        if (response.ok && result.success) {
-            isProcessing = false;
-            moveAfterSuccess(result);
-            return;
-        }
-
-        // Response Error
-        showFailure(button, result);
-
-    } catch (error) {
-        // Network or Timeout Exception -> Fallback Check
-        showStatusModal(
-            'payment',
-            'processing',
-            '송금 결과를 확인하고 있습니다.',
-            '통신이 잠시 끊겨 실제 결제 상태를 다시 확인합니다.'
-        );
-
-        const statusResult = await checkStatusFunc();
-
-        if (statusResult && statusResult.success) {
-            isProcessing = false;
-            moveAfterSuccess(statusResult);
-            return;
-        }
-
-        showFailure(button, statusResult || {
-            message: '송금 결과를 확인하지 못했습니다. 송금 내역을 확인한 뒤 다시 시도해주세요.'
-        });
-
-    } finally {
-        window.clearTimeout(timeoutId);
-    }
-}
 function moveAfterSuccess(result) {
     showStatusModal(
         'payment',
@@ -232,35 +50,23 @@ function moveAfterSuccess(result) {
         result && result.message ? result.message : '잠시 후 다시 시도해주세요.'
     );
 }
-  function hideStatusModal(prefix) {
-    // 결제/정산 진행 중일 때는 닫기 방지
-    if (isProcessing) return;
-
-    const p = prefix || 'payment';
-    const overlay = document.getElementById(p + 'StatusOverlay');
-    if (overlay) {
-        overlay.hidden = true;
-    }
-    window.modalActionHandler = null;
+const paymentCloseBtn = document.getElementById('StatusCloseButton');
+if (paymentCloseBtn) {
+    paymentCloseBtn.addEventListener('click', function() {
+        hideStatusModal('payment');
+    });
 }
-function wait(milliseconds) {
-    return new Promise(resolve => window.setTimeout(resolve, milliseconds));
-}
-  const paymentCloseBtn = document.getElementById('paymentStatusCloseButton');
-  if (paymentCloseBtn) {
-      paymentCloseBtn.addEventListener('click', function() {
-          hideStatusModal('payment');
-      });
-  }
 
-  const paymentActionBtn = document.getElementById('paymentStatusActionButton');
-  if (paymentActionBtn) {
-      paymentActionBtn.addEventListener('click', function () {
-        if (typeof window.modalActionHandler === 'function') {
-            window.modalActionHandler();
-          }
-      });
-  }
+const paymentActionBtn = document.getElementById('StatusActionButton');
+if (paymentActionBtn) {
+    paymentActionBtn.addEventListener('click', function () {
+      if (typeof window.modalActionHandler === 'function') {
+          window.modalActionHandler();
+        }
+    });
+}
+
+
 
 
 
@@ -293,7 +99,7 @@ function wait(milliseconds) {
     const body = new URLSearchParams();
     body.append('room_id', room_id);
     // 공통 모듈 함수 호출
-    await executePaymentRequest({
+    await executeRequest({
         button: paymentButton,
         confirmMessage: '표시된 금액으로 결제하시겠습니까?',
         requestUrl: '/payment/paymenting.do',
@@ -331,7 +137,7 @@ function wait(milliseconds) {
     }
 
     // 공통 모듈 호출
-    await executePaymentRequest({
+    await executeRequest({
         button: adminpaymentButton,
         confirmMessage: '표시된 금액으로 결제하시겠습니까?',
         requestUrl: '/admin/settlement/paymenting.do',
@@ -366,7 +172,7 @@ function wait(milliseconds) {
             body.append('host_id', host_id);
         }
         // 모듈화된 함수 호출
-        await executePaymentRequest({
+        await executeRequest({
             button: adminsettlementButton,
             confirmMessage: '표시된 금액으로 결제하시겠습니까?',
             requestUrl: '/admin/settlement/pay.do',
@@ -398,7 +204,7 @@ function wait(milliseconds) {
     });
 
     // 공통 모듈 호출
-    await executePaymentRequest({
+    await executeRequest({
         button: adminrefundButton,
         confirmMessage: '환불을 진행 하겠습니다?',
         requestUrl: '/admin/settlement/cancelpaymenting.do',
@@ -434,7 +240,7 @@ function wait(milliseconds) {
             body.append('pay_late_day', pay_late_day);
         }
         // 모듈화된 함수 호출
-        await executePaymentRequest({
+        await executeRequest({
             button: adminlateButton,
             confirmMessage: '정산 연기 처리하겠습니다.',
             requestUrl: '/admin/settlement/paymentlate.do',

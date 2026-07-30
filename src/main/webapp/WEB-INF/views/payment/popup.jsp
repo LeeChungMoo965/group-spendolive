@@ -26,12 +26,12 @@
              class="status-actions"
              hidden>
             <button type="button"
-                    id="paymentStatusCloseButton"
+                    id="StatusCloseButton"
                     class="btn btn-outline">
                 확인
             </button>
             <button type="button"
-                    id="paymentStatusActionButton"
+                    id="StatusActionButton"
                     class="btn btn-primary"
                     hidden>
                 이동하기

@@ -31,18 +31,6 @@ public class MemberRepositoryImpl implements MemberRepository{
 
 //select 
 
-    private final String login =
-    "SELECT member_id, id, email, password, member_name, nickname, "
-  + "phone, login_type, blocked_until, warning_count, role, status, "
-  + "verify_type, account_status, card_status, "
-  + "TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at, "
-  + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
-  + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
-  + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
-  + "FROM member_tb "
-  + "WHERE id = ? "
-  + "AND password = ? "
-  + "AND status = 'ACTIVE'";
 
   private final String selectMemberAllSql =
     "SELECT member_id, id, email, password, member_name, nickname, "
@@ -189,41 +177,6 @@ public class MemberRepositoryImpl implements MemberRepository{
         }
     }
     @Override
-    public MemberVO login(Map loginMap) throws DataAccessException {
-        String id = (String) loginMap.get("id");
-        String password = (String) loginMap.get("password");
-        try {
-        return jdbcTemplate.queryForObject(login, (rs, rowNum) -> {
-        MemberVO member = new MemberVO();
-        member.setMember_id(rs.getInt("member_id"));
-        member.setWarning_count(rs.getInt("warning_count"));
-        member.setId(rs.getString("id"));
-        member.setEmail(rs.getString("email"));
-        member.setLogin_type(rs.getString("login_type"));
-        member.setVerify_type(rs.getString("verify_type"));
-        member.setMember_name(rs.getString("member_name"));
-        member.setNickname(rs.getString("nickname"));
-        member.setPassword(rs.getString("password"));
-        member.setPhone(rs.getString("phone"));
-        member.setRole(rs.getString("role"));
-        member.setStatus(rs.getString("status"));
-        member.setCreated_at(rs.getString("created_at"));
-        member.setUpdated_at(rs.getString("updated_at"));
-        member.setBlocked_until(rs.getString("blocked_until"));
-        member.setLast_login_at(rs.getString("last_login_at"));
-        member.setVerify_type(rs.getString("verify_type"));
-        member.setWarning_count(rs.getInt("warning_count"));
-        member.setAccount_status(rs.getString("account_status"));
-        member.setCard_status(rs.getString("card_status"));
-        member.setWarninged_at(rs.getString("warninged_at"));
-        return member;
-        },id, password);
-    }catch (org.springframework.dao.EmptyResultDataAccessException e) {
-        // ◀ [수정] 조회가 안 되면(로그인 실패) 에러를 터뜨리지 말고 null을 안전하게 리턴!
-        return null; 
-    }
-    }
-    @Override
 	public void updateTossInfo(String userId, String card_num, String card_company, String billingkey)throws DataAccessException {
         jdbcTemplate.update(updateBillingKey,
         userId,
@@ -318,6 +271,8 @@ public class MemberRepositoryImpl implements MemberRepository{
         member.setUpdated_at(rs.getString("updated_at"));
         member.setBlocked_until(rs.getString("blocked_until"));
         member.setLast_login_at(rs.getString("last_login_at"));
+        member.setVerify_type(rs.getString("verify_type"));
+        member.setWarning_count(rs.getInt("warning_count"));
         member.setAccount_status(rs.getString("account_status"));
         member.setCard_status(rs.getString("card_status"));
         member.setWarninged_at(rs.getString("warninged_at"));
