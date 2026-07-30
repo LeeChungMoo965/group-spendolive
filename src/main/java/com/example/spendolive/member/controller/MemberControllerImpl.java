@@ -90,7 +90,7 @@ public class MemberControllerImpl implements MemberController{
                 return ResponseEntity.ok(new MemberAjaxResponse(
                     true,
                     "ADMINLOGIN_COMPLETED",
-                    "로그인에 성공하였습니다..",
+                    "로그인에 성공하였습니다.",
                     "SUCCESS",
                     null,
                     url));
@@ -104,7 +104,7 @@ public class MemberControllerImpl implements MemberController{
             return ResponseEntity.ok(new MemberAjaxResponse(
                 false,
                 "LOGIN_FAILED",
-                "로그인에 실패하였습니다..",
+                "로그인에 실패하였습니다.",
                 "FAIL",
                 null,
                 url));
@@ -112,7 +112,7 @@ public class MemberControllerImpl implements MemberController{
         return ResponseEntity.ok(new MemberAjaxResponse(
                 true,
                 "LOGIN_COMPLETED",
-                "로그인에 성공하였습니다..",
+                "로그인에 성공하였습니다.",
                 "SUCCESS",
                 null,
                 url));
@@ -164,7 +164,7 @@ public class MemberControllerImpl implements MemberController{
             return ResponseEntity.ok(new MemberAjaxResponse(
                 true,
                 "SIGNUP_COMPLETED",
-                "횐원가입에 성공하였습니다..",
+                "회원가입에 성공하였습니다.",
                 "SUCCESS",
                 "",
                 "/member/loginForm.do"));
@@ -175,7 +175,7 @@ public class MemberControllerImpl implements MemberController{
                     .body(new MemberAjaxResponse(
                             false,
                             "SIGNUP_FAILED",
-                            "회원가입에 실패하였습니다. 정보를 확인 해 주세요",
+                            "회원가입에 실패하였습니다. 정보를 확인 해 주세요.",
                             "FAILED",
                             "",
                             "redirect:/member/signup.do"));

@@ -1,15 +1,8 @@
-    document.addEventListener('DOMContentLoaded', function () {
-        // JSP에서는 퍼센트 값만 data-* 속성으로 전달하고 실제 스타일은 CSS 변수로 적용한다.
-        document.querySelectorAll('[data-bar-height]').forEach(element => {
-            const percent = Math.max(0, Math.min(100, Number(element.dataset.barHeight) || 0));
-            element.style.setProperty('--expense-bar-height', `${percent}%`);
-        });
-
-        document.querySelectorAll('[data-progress-width]').forEach(element => {
-            const percent = Math.max(0, Math.min(100, Number(element.dataset.progressWidth) || 0));
-            element.style.setProperty('--expense-progress-width', `${percent}%`);
-        });
-
+/* [AJAX 변경 주석]
+ * 기존 지출 화면 동작은 유지하고 AJAX 재렌더링 후 필요한 이벤트와 차트를 다시 초기화한다.
+ * 기존 Controller/Service URL과 파라미터는 특별한 문제가 없는 한 그대로 유지한다.
+ */
+function initExpensePage() {
         const expenseTypeSelect = document.getElementById('expense_type');
         const categorySelect = document.getElementById('category_id');
         const repeatCycleArea = document.getElementById('repeatCycleArea');
@@ -90,7 +83,7 @@
 
             if (isRepeatTargetType(selectedType)) {
                 if (repeatCycleArea) {
-                    repeatCycleArea.style.display = 'block';
+                    repeatCycleArea.classList.remove('expense-hidden');
                 }
 
                 if (fixedYnInput) {
@@ -98,7 +91,7 @@
                 }
             } else {
                 if (repeatCycleArea) {
-                    repeatCycleArea.style.display = 'none';
+                    repeatCycleArea.classList.add('expense-hidden');
                 }
 
                 if (repeatCycleSelect) {
@@ -158,11 +151,11 @@
             }
 
             row.querySelectorAll('.view-mode').forEach(element => {
-                element.style.display = 'none';
+                element.classList.add('expense-hidden');
             });
 
             row.querySelectorAll('.edit-mode').forEach(element => {
-                element.style.display = 'inline-block';
+                element.classList.remove('expense-hidden');
             });
 
             const editButton = row.querySelector('.edit-btn');
@@ -171,19 +164,19 @@
             const deleteButton = row.querySelector('.delete-btn');
 
             if (editButton) {
-                editButton.style.display = 'none';
+                editButton.classList.add('expense-hidden');
             }
 
             if (saveButton) {
-                saveButton.style.display = 'inline-block';
+                saveButton.classList.remove('expense-hidden');
             }
 
             if (cancelButton) {
-                cancelButton.style.display = 'inline-block';
+                cancelButton.classList.remove('expense-hidden');
             }
 
             if (deleteButton) {
-                deleteButton.style.display = 'none';
+                deleteButton.classList.add('expense-hidden');
             }
 
             filterEditCategoriesByRow(row);
@@ -198,11 +191,11 @@
             }
 
             row.querySelectorAll('.view-mode').forEach(element => {
-                element.style.display = 'inline';
+                element.classList.remove('expense-hidden');
             });
 
             row.querySelectorAll('.edit-mode').forEach(element => {
-                element.style.display = 'none';
+                element.classList.add('expense-hidden');
             });
 
             const editButton = row.querySelector('.edit-btn');
@@ -211,19 +204,19 @@
             const deleteButton = row.querySelector('.delete-btn');
 
             if (editButton) {
-                editButton.style.display = 'inline-block';
+                editButton.classList.remove('expense-hidden');
             }
 
             if (saveButton) {
-                saveButton.style.display = 'none';
+                saveButton.classList.add('expense-hidden');
             }
 
             if (cancelButton) {
-                cancelButton.style.display = 'none';
+                cancelButton.classList.add('expense-hidden');
             }
 
             if (deleteButton) {
-                deleteButton.style.display = 'inline-block';
+                deleteButton.classList.remove('expense-hidden');
             }
         }
 
@@ -305,7 +298,6 @@
         }
 
         filterCategories();
-    });
 
     const typeFilter = document.getElementById('expenseTypeFilter');
     const categoryFilter = document.getElementById('expenseCategoryFilter');
@@ -377,14 +369,13 @@
             const categoryMatch =
                 !selectedCategory || row.dataset.category === selectedCategory;
 
-            row.style.display =
-                typeMatch && categoryMatch ? '' : 'none';
+            row.classList.toggle('expense-hidden', !(typeMatch && categoryMatch));
 
             expenseTbody.appendChild(row);
         });
 
         // sortedRows는 이 함수 안에서 만든 지역변수이므로 빈 목록 계산도 함수 안에서 처리한다.
-        const visibleCount = sortedRows.filter(row => row.style.display !== 'none').length;
+        const visibleCount = sortedRows.filter(row => !row.classList.contains('expense-hidden')).length;
         const emptyMessage = document.getElementById('expenseFilterEmpty');
 
         if (emptyMessage) {
@@ -411,3 +402,7 @@
         syncExpenseCategoryFilter();
         filterExpenseRows();
     }
+}
+
+window.initExpensePage = initExpensePage;
+initExpensePage();

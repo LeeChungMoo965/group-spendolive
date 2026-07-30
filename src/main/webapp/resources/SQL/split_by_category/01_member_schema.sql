@@ -107,6 +107,7 @@ CREATE TABLE MEMBER_CARD_TB (
     BILLING_KEY     VARCHAR2(100) NOT NULL,                          -- 토스 빌링키 
     CARD_COMPANY    VARCHAR2(50),                                    -- 카드사 이름 (ex: 신한, 현대)
     CARD_NUMBER     VARCHAR2(20),                                    -- 마스킹된 카드번호 (ex: 433012******1234)
+    CARD_NAME       VARCHAR2(30),                                    -- 마이페이지 표시용 카드 이름
     REG_DATE        DATE DEFAULT SYSDATE,                            -- 등록일
     
     -- 회원 테이블과의 연관 관계 설정 (회원 탈퇴 시 카드 정보도 삭제되게)

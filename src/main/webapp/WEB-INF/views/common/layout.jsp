@@ -46,6 +46,13 @@
     </c:when>
 
     <c:otherwise>
+        <%-- [내 담당 사용자 영역 AJAX]
+             메인·지출·OTT 사용자·마이페이지에서만 공통 로딩과 부분 갱신을 사용한다.
+             관리자 분기에는 연결하지 않아 담당 밖 화면의 동작을 변경하지 않는다. --%>
+        <jsp:include page="/WEB-INF/views/common/ajaxLoading.jsp" />
+        <script>window.spendoliveContextPath = "${contextPath}";</script>
+        <script src="${contextPath}/resources/js/ajaxloading.js"></script>
+
         <%-- 일반 사용자 페이지는 기존 구조를 그대로 유지한다. --%>
         <div id="modern-wrapper">
             <header id="modern-header">
@@ -70,6 +77,8 @@
 
         <script src="${contextPath}/resources/js/chatbot.js"></script>
         <script src="${contextPath}/resources/js/app.js"></script>
+        <%-- data-ajax-form/data-ajax-navigation이 있는 내 담당 화면에서만 요청을 가로챈다. --%>
+        <script src="${contextPath}/resources/js/pageAjax.js"></script>
         <script src="${contextPath}/resources/js/bellIcon.js"></script>
     </c:otherwise>
 </c:choose>

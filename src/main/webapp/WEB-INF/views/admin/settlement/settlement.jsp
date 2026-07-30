@@ -24,8 +24,8 @@
         <div class="panel-header">
             <div class="panel-title">
                 <div class="section-kicker">Host Settlement</div>
-                <h2>방장 정산 목록 (${empty settlementList ? 0 : settlementList.size()}건)</h2>
-                <p>정산 대상 방의 금액과 처리 상태를 확인합니다.</p>
+                <h2>방장 정산 목록 (<span id="settlementVisibleCount">${empty settlementList ? 0 : settlementList.size()}</span>건)</h2>
+                <p>현재 상태 목록 안에서 방 ID, 방 이름, 방장 ID와 상태를 검색할 수 있습니다.</p>
             </div>
             <div class="filter-pills">
                 <a class="${param.status eq 'DONE' ? '' : 'active'}" href="${contextPath}/admin/settlement/list.do?status=READY">대기</a>
@@ -33,17 +33,33 @@
             </div>
         </div>
 
+        <div class="admin-filter-toolbar">
+            <div class="filter-pills" aria-label="정산 상태 안내">
+                <span class="badge yellow">READY</span>
+                <span class="badge green">DONE</span>
+            </div>
+            <input id="settlementSearchInput" class="admin-search-input" type="search"
+                   placeholder="방 ID, 방 이름, 방장 ID, 상태 검색"
+                   aria-label="방장 정산 검색"
+                   data-search-table="#adminSettlementTable">
+        </div>
+
         <c:choose>
             <c:when test="${empty settlementList}"><div class="admin-empty-filter">해당 조건의 정산 건이 없습니다.</div></c:when>
             <c:otherwise>
                 <div class="table-wrap">
-                    <table class="admin-table">
-                        <thead><tr><th>번호</th><th>방 ID</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead>
+                    <table id="adminSettlementTable" class="admin-table"
+                           data-admin-filter-table="true"
+                           data-search-input="settlementSearchInput"
+                           data-empty-target="#settlementFilterEmpty"
+                           data-count-target="#settlementVisibleCount">
+                        <thead><tr><th>번호</th><th>방 ID</th><th>방 이름</th><th>방장 ID</th><th>정산 금액</th><th>결제일</th><th>상태</th><th>처리</th></tr></thead>
                         <tbody>
                         <c:forEach var="room" items="${settlementList}" varStatus="status">
-                            <tr>
+                            <tr data-row-status="${room.settlement_status}">
                                 <td>${status.count}</td>
                                 <td>${room.room_id}</td>
+                                <td><c:out value="${room.room_name}" /></td>
                                 <td><c:out value="${room.host_login_id}" /></td>
                                 <td><fmt:formatNumber value="${room.total_price}" type="number" />원</td>
                                 <td>${room.billing_day}일</td>
@@ -64,6 +80,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="settlementFilterEmpty" class="admin-empty-filter" hidden>검색 조건에 해당하는 방장 정산 건이 없습니다.</div>
             </c:otherwise>
         </c:choose>
     </section>

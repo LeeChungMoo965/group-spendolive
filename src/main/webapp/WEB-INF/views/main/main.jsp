@@ -1,3 +1,4 @@
+<%-- [AJAX 변경 주석] 메인 월 선택은 전체 페이지 이동 대신 공통 부분 갱신 대상으로 표시했다. --%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
@@ -80,9 +81,13 @@
 
             <%-- 메인 그래프에 표시할 연월을 선택한다. --%>
             <c:if test="${mainLoggedIn}">
+                <%-- 월 변경 시 전체 layout 대신 지정된 본문 영역만 다시 조회한다. --%>
+                <%-- [공통 AJAX 로딩 적용] 월 선택은 전체 페이지 이동 대신 메인 콘텐츠만 갱신하며 공통 팝업을 사용한다. --%>
                 <form action="${contextPath}/spendolive/main.do"
                       method="get"
-                      class="main-month-select-form">
+                      class="main-month-select-form"
+                      data-ajax-navigation
+                      data-loading-message="선택한 달의 지출 현황을 불러오고 있습니다.">
                     <label for="mainYearMonth">조회 월</label>
                     <div>
                         <input type="month"
@@ -212,4 +217,4 @@
 </main>
 
 
-<script src="${contextPath}/resources/js/main.js"></script>
+<script src="${contextPath}/resources/js/main.js" data-ajax-reload></script>

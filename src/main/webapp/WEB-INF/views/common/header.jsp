@@ -171,12 +171,6 @@
                                         자주 묻는 질문
                                     </a>
                                 </li>
-                                <li>
-                                    <a class="so-menu-link ${fn:contains(requestURI, '/report') ? 'active' : ''}"
-                                    href="${contextPath}/spendolive/report/write.do">
-                                        신고하기
-                                    </a>
-                                </li>
                             </ul>
                         </li>
 
