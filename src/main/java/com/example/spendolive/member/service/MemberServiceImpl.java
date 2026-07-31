@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -33,7 +34,6 @@ import com.example.spendolive.member.domain.MemberTranVO;
 import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.exception.MemberProcessException;
 import com.example.spendolive.member.repository.MemberRepository;
-import com.example.spendolive.payment.service.PaymentService;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -50,8 +50,9 @@ public class MemberServiceImpl implements MemberService {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-//    private PaymentService paymentService;
 
     @Autowired
     private JavaMailSender mailSender;
@@ -80,13 +81,12 @@ public class MemberServiceImpl implements MemberService {
     private String useCode;
     @Value("${openbanking.integrated-redirect-uri}")
     private String openbankingIntegratedredirectUri;
-    @Override
-    public MemberVO login(Map<String, String> loginMap) throws Exception {
-        return memberRepository.login(loginMap);
-    }
-
+    
     @Override
     public void addMember(MemberVO memberVO) throws Exception {
+        String rawPassword = memberVO.getPassword();
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        memberVO.setPassword(encodedPassword);
         memberRepository.insertNewMember(memberVO);
     }
 

@@ -1,40 +1,44 @@
+package com.example.spendolive.common.security;
 
-
-/*package com.example.spendolive.common.security;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // API 및 Ajax 통신을 위해 
+            .csrf(csrf -> csrf.disable())
+            
+            // ★ 1. 브라우저 기본 팝업창(HTTP Basic) 끄기
+            .httpBasic(httpBasic -> httpBasic.disable())
+            
+            // ★ 2. 시큐리티 기본 폼 로그인 끄기 (우리가 만든 컨트롤러 쓰니까)
+            .formLogin(formLogin -> formLogin.disable())
+            
+            // ★ 3. 허용할 URL 및 정적 자원 설정
             .authorizeHttpRequests(auth -> auth
-                // 정적 자원 및 로그인 관련 페이지는 누구나 접근 허용
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/member/loginForm.do", "/member/login.do").permitAll()
-                // 결제 및 방 관련 주요 기능은 반드시 로그인 필요
-                .requestMatchers("/mypage/**", "/ott/**").authenticated()
-                // 그 외 모든 요청도 인증 필요
-                .anyRequest().authenticated()
+                .requestMatchers("/spendolive/admin/**").hasRole("ADMIN")
+                .anyRequest().permitAll()
             )
-            .formLogin(login -> login
-                .loginPage("/member/loginForm.do")
-                .loginProcessingUrl("/member/login.do")
-                .defaultSuccessUrl("/", true)
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/member/logout.do")
-                .logoutSuccessUrl("/")
-                .invalidateHttpSession(true)
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.sendRedirect("/spendolive/main.do");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.sendRedirect("/spendolive/main.do");
+                })
             );
-
         return http.build();
     }
-} */
+} 

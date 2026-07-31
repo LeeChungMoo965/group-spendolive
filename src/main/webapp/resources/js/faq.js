@@ -138,13 +138,13 @@ function countChars(inputId, countId, max) {
 }
 
 /* ---- inquiryWrite.jsp : 첨부파일 선택 시 파일명 표시 ---- */
-/* ---- inquiryWrite.jsp : 첨부파일 선택 (여러 번 선택해도 누적, 최대 3개 / 5MB) ----
+/* ---- inquiryWrite.jsp : 첨부파일 선택 (여러 번 선택해도 누적, 최대 5개 / 5MB) ----
    <input type="file" multiple>은 파일 선택창을 다시 열 때마다 input.files를
    통째로 새 걸로 덮어써버리는 브라우저 기본 동작 때문에, 이전에 고른 파일이
    사라지는 문제가 있었음. 이를 우회하기 위해 선택한 파일을 별도 배열
    (inqSelectedFiles)로 직접 관리하고, 매번 DataTransfer로 input.files를
    다시 조립해서 "누적 선택"처럼 보이게 함. */
-const INQ_MAX_FILES = 3;
+const INQ_MAX_FILES = 5;
 const INQ_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 let inqSelectedFiles = [];
 

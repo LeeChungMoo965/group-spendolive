@@ -6,13 +6,110 @@ let currentNoticeData = [];
 let currentNoticeFilter = "all";
 
 
+/* ─────────────────────────────────────────────────────────────
+   이 화면 전용 알림/확인 모달 (내 다른 화면들과 동일 규격).
+   문의(inquiry) 화면과 동일한 규격 — so-local 카드 스타일, CSS는 JS가 자체 주입(별도 CSS 불필요).
+     soAlert("메시지")                     // 알림(NOTICE)
+     soAlert("메시지", { type: "error" })  // 실패(ERROR)
+     soAlert(...).then(() => { ... })      // 확인 누른 뒤 실행
+     soConfirm("메시지", { title, confirmText, cancelText }).then(ok => { if (ok) ... })
+   ───────────────────────────────────────────────────────────── */
+function soEnsureModal() {
+        if (document.getElementById("soLocalModalStyle") == null) {
+            var css = ""
+              + ".so-local-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(20,29,18,.48);backdrop-filter:blur(2px);}"
+              + ".so-local-overlay[hidden]{display:none;}"
+              + ".so-local-box{width:min(100%,23rem);padding:2rem 1.5rem 1.5rem;border-radius:1.25rem;background:#fff;box-shadow:0 1.5rem 4rem rgba(21,40,18,.24);text-align:center;animation:soLocalPop .18s ease-out;}"
+              + "@keyframes soLocalPop{from{transform:scale(.94);opacity:0;}to{transform:scale(1);opacity:1;}}"
+              + ".so-local-icon{display:flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;margin:0 auto 1.125rem;border-radius:50%;background:#eef5df;color:#5f7628;font-size:1.5rem;font-weight:900;}"
+              + ".so-local-overlay[data-state='error'] .so-local-icon{background:#fff0eb;color:#c0392b;}"
+              + ".so-local-title{margin:0 0 .5rem;color:#26351f;font-size:1.125rem;font-weight:800;white-space:pre-line;line-height:1.5;}"
+              + ".so-local-msg{margin:0;color:#6f7b66;line-height:1.65;white-space:pre-line;}"
+              + ".so-local-msg[hidden]{display:none;}"
+              + ".so-local-actions{display:flex;gap:.5rem;justify-content:center;margin-top:1.5rem;}"
+              + ".so-local-btn{min-width:5rem;padding:.65rem 1.2rem;border-radius:.7rem;font-weight:700;font-size:.95rem;cursor:pointer;border:1.5px solid transparent;}"
+              + ".so-local-ok{background:#6d7f2e;color:#fff;}.so-local-ok:hover{background:#5f7628;}"
+              + ".so-local-cancel{background:#f1f4df;color:#3f4a2c;border-color:#dfe6cb;}.so-local-cancel:hover{border-color:#b9c58f;}"
+              + ".so-local-cancel[hidden]{display:none;}";
+            var st = document.createElement("style");
+            st.id = "soLocalModalStyle";
+            st.textContent = css;
+            document.head.appendChild(st);
+        }
+        var el = document.getElementById("soLocalModalOverlay");
+        if (el == null) {
+            el = document.createElement("div");
+            el.id = "soLocalModalOverlay";
+            el.className = "so-local-overlay";
+            el.setAttribute("role", "dialog");
+            el.setAttribute("aria-modal", "true");
+            el.hidden = true;
+            el.innerHTML =
+                  '<div class="so-local-box">'
+                +   '<div class="so-local-icon" aria-hidden="true"></div>'
+                +   '<h3 class="so-local-title"></h3>'
+                +   '<p class="so-local-msg"></p>'
+                +   '<div class="so-local-actions">'
+                +     '<button type="button" class="so-local-btn so-local-cancel" hidden>취소</button>'
+                +     '<button type="button" class="so-local-btn so-local-ok">확인</button>'
+                +   '</div>'
+                + '</div>';
+            document.body.appendChild(el);
+        }
+        return el;
+    }
+    function soOpenModal(message, opts, isConfirm) {
+        opts = opts || {};
+        var el = soEnsureModal();
+        var icon = el.querySelector(".so-local-icon");
+        var titleEl = el.querySelector(".so-local-title");
+        var msgEl = el.querySelector(".so-local-msg");
+        var okBtn = el.querySelector(".so-local-ok");
+        var cancelBtn = el.querySelector(".so-local-cancel");
+        var type = opts.type || (isConfirm ? "info" : "success");
+        el.setAttribute("data-state", type === "error" ? "error" : "success");
+        icon.textContent = (type === "error") ? "!" : (isConfirm ? "?" : "✓");
+        if (opts.title) {
+            titleEl.textContent = opts.title;
+            msgEl.textContent = message || "";
+            msgEl.hidden = !message;
+        } else {
+            titleEl.textContent = message || "";
+            msgEl.hidden = true;
+        }
+        okBtn.textContent = opts.confirmText || "확인";
+        cancelBtn.textContent = opts.cancelText || "취소";
+        cancelBtn.hidden = !isConfirm;
+        return new Promise(function (resolve) {
+            function done(result) {
+                el.hidden = true;
+                okBtn.onclick = null; cancelBtn.onclick = null; el.onclick = null;
+                document.removeEventListener("keydown", onKey);
+                resolve(result);
+            }
+            function onKey(e) {
+                if (e.key === "Escape") done(false);
+                else if (e.key === "Enter") done(true);
+            }
+            okBtn.onclick = function () { done(true); };
+            cancelBtn.onclick = function () { done(false); };
+            el.onclick = function (e) { if (e.target === el) done(false); };
+            document.addEventListener("keydown", onKey);
+            el.hidden = false;
+            okBtn.focus();
+        });
+    }
+    function soAlert(message, opts) { return soOpenModal(message, opts, false); }
+    function soConfirm(message, opts) { return soOpenModal(message, opts, true); }
+
+
 
 function setBoardTab(mode, initialFilter) {
 
 
     if (mode === "alert" && !loginYn) {
-        alert("로그인이 필요한 기능 입니다 로그인을 해주세요 !");
-        location.href = "/member/loginForm.do?log=notice";
+        soAlert("로그인이 필요한 기능입니다. 로그인을 해주세요!", { type: "error" })
+            .then(function () { location.href = "/member/loginForm.do?log=notice"; });
         return;
     }
 
@@ -289,8 +386,8 @@ function drawNotifPage() {
                     <td>${readBadge}</td>
                     <td>
                         <a href="#"
-                           class="notice-title-link ${titleClass}"
-                           onclick="readNotification(event, ${notification.notification_id}, '${notification.link_url || ""}')">
+                        class="notice-title-link ${titleClass}"
+                        onclick="readNotification(event, ${notification.notification_id})">
                             ${notification.title}
                         </a>
                     </td>
@@ -407,7 +504,7 @@ function moveNotifPage(page) {
 
 
 
-function readNotification(event, notification_id, link_url) {
+function readNotification(event, notification_id) {
     event.preventDefault();
 
         /* [AJAX] POST /notification/ajax/read.do
@@ -432,20 +529,17 @@ function readNotification(event, notification_id, link_url) {
             // 헤더 배지 갱신
             if (typeof loadNotificationBadge === "function") loadNotificationBadge();
 
-            if (link_url && link_url !== "null" && link_url !== "") {
-                // link_url 있으면 해당 페이지로 이동 (공지 상세 등)
-                location.href = link_url;
-            } else {
-                // link_url 없으면 알림 상세 페이지로 이동
-                location.href = "/spendolive/notification/detail.do?notification_id=" + notification_id;
-            }
+            // showNotificationModal은 notification_id(숫자)를 받아 내부에서 데이터를 찾음.
+            // (예전엔 객체를 넘겨서 find가 못 찾아 모달이 안 떴음 → id로 넘기도록 수정)
+            showNotificationModal(notification_id);
+
         } else if (data.result === "LOGIN_REQUIRED") {
-            alert("로그인이 필요합니다.");
+            soAlert("로그인이 필요합니다.", { type: "error" });
         } else {
-            alert("읽음 처리 중 오류가 발생했습니다.");
+            soAlert("읽음 처리 중 오류가 발생했습니다.", { type: "error" });
         }
     })
-    .catch(() => alert("네트워크 오류가 발생했습니다."));
+    .catch(() => soAlert("네트워크 오류가 발생했습니다.", { type: "error" }));
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -503,15 +597,19 @@ function toggleNoticeStar(event, notice_id, button) {
 
     postNoticeStarToggle(notice_id).then(data => {
         if (data.result === "OK") {
-            button.textContent =
-                button.textContent.trim() === "★" ? "☆" : "★";
+            var nowStar = button.textContent.trim() === "★";
+            button.textContent = nowStar ? "☆" : "★";
+            // 페이지 이동/필터로 재렌더될 때 별이 되돌아가지 않도록 데이터도 같이 갱신.
+            // (star_yn은 서버 정렬 기준이라, 다음 목록 로드 시 찜한 공지가 상단에 고정됨)
+            var item = currentNoticeData.find(n => n.notice_id === notice_id);
+            if (item) item.star_yn = nowStar ? "N" : "Y";
         } else if (data.result === "LOGIN_REQUIRED") {
-            alert("로그인이 필요합니다.");
+            soAlert("로그인이 필요합니다.", { type: "error" });
         } else {
-            alert("처리 중 오류가 발생했습니다.");
+            soAlert("처리 중 오류가 발생했습니다.", { type: "error" });
         }
     })
-    .catch(() => alert("네트워크 오류가 발생했습니다."));
+    .catch(() => soAlert("네트워크 오류가 발생했습니다.", { type: "error" }));
 }
 
 function toggleNotificationStar(event, notification_id, button) {
@@ -538,4 +636,34 @@ function toggleNotificationStar(event, notification_id, button) {
                 button.textContent.trim() === "★" ? "☆" : "★";
         }
     });
+
+}
+function showNotificationModal(notificationId){
+
+    const notification = currentNotifData.find(
+        n => n.notification_id === notificationId
+    );
+
+    if(!notification) return;
+
+    // 사이트 공통 모달 규격(soConfirm/soAlert)으로 표시.
+    // 링크가 있으면 "해당 게시글로 이동 / 닫기" 확인창, 없으면 단순 알림.
+    if (notification.link_url) {
+        soConfirm(notification.message || "", {
+            title: notification.title,
+            confirmText: "해당 게시글로 이동",
+            cancelText: "닫기"
+        }).then(function (ok) {
+            if (ok) location.href = notification.link_url;
+        });
+    } else {
+        soAlert(notification.message || "", { title: notification.title });
+    }
+}
+
+// (구) 별도 알림 모달은 이제 soConfirm/soAlert로 대체됨.
+// noticeCenter.jsp의 #notificationModal 마크업과 이 함수는 더 이상 쓰이지 않음(삭제해도 무방).
+function closeNotificationModal(){
+    var el = document.getElementById("notificationModal");
+    if (el) el.classList.remove("show");
 }

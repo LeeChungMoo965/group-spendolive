@@ -236,8 +236,8 @@ function showMemberModal(prefix, type, titleText, messageText) {
             } else if(result.code === 'ADMINLOGIN_COMPLETED') {
                 showMemberModal('login','success', '관리자 로그인 완료 !', result.message || '관리자 로그인이 완료되었습니다.관리자  페이지로 이동하겠습니다.');
                 loginmoveAfterSuccess(result);
-            }else{
-                showMemberModal('login','error', '로그인 실패',  '로그인에 실패하였습니다. 아이디 정보를 확인 해주세요.');
+            }else if(result.code === 'LOGIN_FAILED'){
+                showMemberModal('login','error', '로그인 실패',  result.message);
             }
 
         } catch (error) {
