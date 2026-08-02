@@ -1,5 +1,5 @@
-# 💳 SpendOlive (スペンドオリーブ) - 個人資産・支出管理サービス
-<img width="168" height="168" alt="logo" src="https://github.com/user-attachments/assets/c146908d-e222-49fe-aac6-66c1bb3b74be" />
+# <img width="50" height="50" alt="logo" src="https://github.com/user-attachments/assets/c146908d-e222-49fe-aac6-66c1bb3b74be" /> SpendOlive (スペンドオリーブ) - 個人資産・支出管理サービス
+
 
 
 > **チームプロジェクト (Team Project)** | 開発期間: 2026.06 ~ 2026.08  
