@@ -1,7 +1,7 @@
 # 💳 SpendOlive (スペンドオリーブ) - 個人資産・支出管理サービス
 
-> **チームプロジェクト (Team Project)** | 開発期間: 202X.XX ~ 202X.XX  
-> **担当:** バックエンド / フロントエンド（管理機能・通報処理）
+> **チームプロジェクト (Team Project)** | 開発期間: 2026.06 ~ 202X.08  
+> **担当:** フルスタック（アーキテクチャ共同設計、会員・決済コアシステム、管理者バックオフィス、セキュリティ）
 
 ---
 
@@ -14,11 +14,11 @@
 ## 🛠 2. 使用技術・環境 (Tech Stack)
 | 分野 | 技術スタック |
 | :--- | :--- |
-| **Backend** | Java 17, Spring Boot, MyBatis |
-| **Frontend** | JavaScript (ES6+), JSP, CSS3 |
-| **Database** | Oracle / MySQL |
-| **Tools/DevOps** | Git, GitHub, Eclipse / IntelliJ |
-
+| **Backend** | Java 21, Spring Boot, Spring Security, Spring JDBC(JdbcTemplate), JWT, Lombok |
+| **Frontend** | JavaScript, JSP, JSTL, CSS |
+| **Database & Cache** | Oracle 11g, Redis |
+| **Tools/DevOps** | Apache Tomcat, Maven, Git, GitHub |
+| **External API** | Kakao (Login/Share), Toss Payments, 金融決済院, Solapi, SMTP |
 ---
 
 ## 👨‍💻 3. 担当機能 (My Responsibilities)
