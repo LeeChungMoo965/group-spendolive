@@ -66,7 +66,7 @@
 **4. 適用した解決策 (Solution)**
 - **単一ユーザー制御 (Application Level Lock):** `ConcurrentHashMap.newKeySet()` を活用して現在処理中の決済キー（`userId#roomId`）をインメモリで管理し、単一ユーザーの重複アクセスをスレッドセーフ（Thread-safe）に遮断しました。
 - **複数ユーザー制御 (DB Atomic Insert & Pessimistic Lock):** アプリケーション側で `COUNT` をチェックするのではなく、DBの `INSERT ... SELECT` クエリ内部に `WHERE (SELECT COUNT(...) ) < member_limit` の条件を含めました。これにより、データベースの書き込みロック（悲観的ロック）の特性を活かし、複数のトランザクションが同時に実行されても、定員を超える INSERT 自体を物理的に不可能にしました。
-- ```java
+```java
 // 1. 単一ユーザーの重複リクエスト遮断 (Java インメモリロック)
 String processingKey = userId + "#" + roomId;
 if (!processingPayments.add(processingKey)) {
@@ -104,6 +104,7 @@ WHERE room_id = ?
 **4. 適用した解決策 (Solution)**
 - DBへの `INSERT`/`UPDATE` ロジックを `try-catch` ブロックで囲み、`catch` 発生時には即座にToss決済取消API（`cancelApprovedPayment`）を呼び出すように設計しました。
 - 取消の成功・失敗に応じて明確な例外メッセージをスローし、フロントエンドおよびユーザーに正確な状況を認識させるように処理しました。
+```java
 try {
     // 1. 内部DBトランザクションの実行（決済状態の更新、エスクロー情報の保存など）
     paymentRepository.updatePaymentStatus(paymentInfo);
@@ -147,6 +148,7 @@ try {
 - **[初回過剰請求の防止 - `FIRST`状態の導入]** 満室になった部屋のステータスを一時的に `FIRST` に設定。スケジューラーが自動決済対象を抽出する際、`FIRST` 状態の部屋はスキップさせることで、初月の二重決済を完全に遮断。その後、安全なタイミングで `ACTIVE` へ遷移させました。
 - **[精算ライフサイクルの確立とカスケード返金処理]** 精算状態を `YET(待機)` -> `READY(送金準備)` -> `DONE(完了)` と厳格に遷移させました。返金は管理者が状況を判断した上で実行し、Tossの決済取消APIを呼び出すと同時に、決済履歴（`payment_tb`）、エスクロー保管金（`escrow_payout_tb`）、プラットフォーム収益（`revenue_tb`）の**全ての関連ステータスを同一トランザクション内で `REFUNDED` に一括更新**し、精算プールから完全に隔離しました。
 // 管理者による返金トランザクション（状態の完全隔離）
+```java
 @Transactional(rollbackFor = Exception.class)
 public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
     // 1. 外部決済API (Toss) の承認取消を実行
