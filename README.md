@@ -80,7 +80,7 @@ WHERE room_id = ?
   AND (SELECT COUNT(*) 
        FROM ott_room_member_tb 
        WHERE room_id = ? AND status = 'ACTIVE') < member_limit;
-
+```
 **5. 成果および学び (Result)**
 - 単一ユーザーの重複クリックおよび複数ユーザーのオーバーブッキング問題を100%遮断し、決済データの無欠性を確保しました。
 - 重い分散ロックフレームワークを導入することなく、Javaの並行処理コレクションとRDBMSのロック・原子的演算の特性を正確に理解し、適材適所に配置することで、パフォーマンスと安定性の両方を満たすアーキテクチャを設計しました。
@@ -124,6 +124,7 @@ try {
             message, 
             databaseException);
 }
+```
 **5. 成果および学び (Result)**
 - 決済システムにおける最も致命的な問題である「顧客の金銭的被害（ファントム決済）」を根本から防ぎ、決済データの整合性を100%保証しました。
 - 外部サービスと内部システム間のエラー伝播（Error Propagation）の過程を理解し、安全なフェイルセーフ（Fail-safe）メカニズムを自ら設計するアーキテクチャ設計のスキルを身につけました。
@@ -166,6 +167,7 @@ public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
     
     paymentRepository.insertRefund(refund); // 返金履歴の分離保存
 }
+```
 **5. 成果および学び (Result)**
 - `FIRST` 状態の導入により、複雑な日付計算なしで過剰請求（二重決済）バグを100%解決しました。
 - エスクロー基盤の複雑な資金移動において、返金や途中退出などのエッジケースが発生してもデータが矛盾しない、堅牢なコアー精算システム（State Machine）を設計するドメインモデリングの能力を身につけました。
