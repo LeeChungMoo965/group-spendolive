@@ -41,47 +41,132 @@
 
 ---
 
-## 🚨 4. トラブルシューティング (Troubleshooting) - *★最重要*
+### 🚨 4. トラブルシューティング (Troubleshooting) - *★最重要*
 
-### 💥 Issue 1: 外部APIと内部DB間のトランザクション不一致の解決および補償トランザクションの実装
+> 💡 **主要な技術的課題解決 (Core Problem Solving)**
+> ※ 決済・精算コアの信頼性確保に関する代表的な3つの課題を掲載しています。
+> その他の詳細なエラー解決ログ（フロント連携、認証、DB最適化など）は 🔗 [トラブルシューティングWiki (Notion)] をご参照ください。
 
-- **1. 問題状況 (Problem)**
-  - Toss Payments（外部決済API）の承認には成功し、顧客の口座から出金されたにもかかわらず、その後自社サーバーのDBに決済履歴やエスクロー情報を保存（`INSERT`/`UPDATE`）する過程で例外が発生するリスクが存在しました。
-  - この場合、顧客はお金を支払ったのにサービス内では「未決済」状態のままになるという、**致命的なデータ不一致（Data Inconsistency）**が発生してしまいます。
+<br>
 
-- **2. 原因分析 (Cause)**
-  - 外部API呼び出し（Network I/O）と内部DBのトランザクションは本質的に分離されています。
-  - Springの `@Transactional` を適用してもDBのロールバックが実行されるだけで、すでに完了した外部API（Toss）の決済承認は自動的に取り消されないという、**分散トランザクションの限界**が根本的な原因でした。
+### 💥 Issue 1: インメモリロックとDB悲観的ロック(Atomic Query)を組み合わせた重複決済およびオーバーブッキングの防止
 
-- **3. 解決策の検討プロセス (Approach)**
-  - 完璧な分散トランザクション制御のために 2PC（Two-Phase Commit）方式を検討しましたが、外部決済サービスと密結合できない構造的な限界がありました。
-  - そのため、アプリケーションレベルで**補償トランザクション（Compensating Transaction）**パターンを直接実装し、DB保存に失敗した場合は能動的に外部決済を取り消す「Sagaパターン」の基本概念を適用することに決定しました。
+**1. 問題状況 (Problem)**
+- 決済の過程で、2つの形態の同時実行（Concurrency）問題が発生するリスクが存在しました。
+- **[単一ユーザー]** 決済のローディング中に更新（F5）を押したり、決済ボタンを連続でクリック（連打）した場合、同じPOSTリクエストが重複して送信され、DBに二重決済される問題。
+- **[複数ユーザー]** 残り枠が1つの部屋に複数のユーザーが同時に決済を試みた場合、トランザクションの競合（Race Condition）により定員を超過してしまうオーバーブッキング（データの噛み合わせ）の問題。
 
-- **4. 適用した解決策 (Solution)**
-  - DBへの `INSERT`/`UPDATE` ロジックを `try-catch` ブロックで囲み、`catch` 発生時には即座にToss決済取消API（`cancelApprovedPayment`）を呼び出すように設計しました。
-  - 取消の成功・失敗に応じて明確な例外メッセージをスローし、フロントエンドおよびユーザーに正確な状況を認識させるように処理しました。
+**2. 原因分析 (Cause)**
+- アプリケーション（Java）コード側で `SELECT` を用いて残り枠を確認し、`INSERT` を実行するまでの間に、他のトランザクションが割り込むことができる隙間（Gap）が存在したことが根本的な原因でした。
 
-  ```java
-  try {
-      // 1. 内部DBトランザクションの実行（決済状態の更新、エスクロー情報の保存など）
-      paymentRepository.updatePaymentStatus(paymentInfo);
-      paymentRepository.insertEscrow(escrowInfo);
-      paymentRepository.insertPlatfoem_Revenue(revenueInfo);
-      paymentRepository.updatSettlementroommemberStatus(roomId, userId);
-      
-  } catch (Exception databaseException) {
-      // 🚨 2. DB保存失敗時：すでに承認されたToss決済を即座に取り消し（補償トランザクションの実行）
-      boolean cancelled = cancelApprovedPayment(paymentKey);
+**3. 解決策の検討プロセス (Approach)**
+- 外部インフラであるRedis分散ロックを導入する選択肢もありましたが、インフラの複雑さを増すことなく、RDBMS自体のトランザクション分離レベルと原子性（Atomicity）を活用することが最も直感的で安全だと判断しました。
+- そのため、**単一ユーザーの重複リクエストはアプリケーションレベル（インメモリ）**で素早く弾き返し、**複数ユーザーのオーバーブッキングはDBレベル（条件付きクエリによる排他制御）**で完全に遮断するハイブリッド方式を採用しました。
 
-      String message = cancelled
-              ? "決済情報の保存に失敗したため、Toss承認を自動で取り消しました。"
-              : "決済情報の保存およびToss承認の取消に失敗しました。管理者の確認が必要です。";
+**4. 適用した解決策 (Solution)**
+- **単一ユーザー制御 (Application Level Lock):** `ConcurrentHashMap.newKeySet()` を活用して現在処理中の決済キー（`userId#roomId`）をインメモリで管理し、単一ユーザーの重複アクセスをスレッドセーフ（Thread-safe）に遮断しました。
+- **複数ユーザー制御 (DB Atomic Insert & Pessimistic Lock):** アプリケーション側で `COUNT` をチェックするのではなく、DBの `INSERT ... SELECT` クエリ内部に `WHERE (SELECT COUNT(...) ) < member_limit` の条件を含めました。これにより、データベースの書き込みロック（悲観的ロック）の特性を活かし、複数のトランザクションが同時に実行されても、定員を超える INSERT 自体を物理的に不可能にしました。
+- ```java
+// 1. 単一ユーザーの重複リクエスト遮断 (Java インメモリロック)
+String processingKey = userId + "#" + roomId;
+if (!processingPayments.add(processingKey)) {
+    throw new PaymentProcessException("すでに決済を処理中です。");
+}
+-- 2. 複数ユーザーのオーバーブッキング完全遮断 (DB 条件付き INSERT クエリ)
+INSERT INTO ott_room_member_tb (room_id, member_login_id, status, ...)
+SELECT ?, ?, 'ACTIVE', ...
+FROM ott_room_tb
+WHERE room_id = ?
+  AND (SELECT COUNT(*) 
+       FROM ott_room_member_tb 
+       WHERE room_id = ? AND status = 'ACTIVE') < member_limit;
 
-      throw new PaymentProcessException(
-              "PAYMENT_SAVE_FAILED", 
-              message, 
-              databaseException);
-  }
+**5. 成果および学び (Result)**
+- 単一ユーザーの重複クリックおよび複数ユーザーのオーバーブッキング問題を100%遮断し、決済データの無欠性を確保しました。
+- 重い分散ロックフレームワークを導入することなく、Javaの並行処理コレクションとRDBMSのロック・原子的演算の特性を正確に理解し、適材適所に配置することで、パフォーマンスと安定性の両方を満たすアーキテクチャを設計しました。
+
+<br>
+
+### 💥 Issue 2: 外部APIと内部DB間のトランザクション不一致の解決および補償トランザクションの実装
+
+**1. 問題状況 (Problem)**
+- Toss Payments（外部決済API）の承認には成功し、顧客の口座から出金されたにもかかわらず、その後自社サーバーのDBに決済履歴やエスクロー情報を保存（`INSERT`/`UPDATE`）する過程で例外が発生するリスクが存在しました。
+- この場合、顧客はお金を支払ったのにサービス内では「未決済」状態のままになるという、**致命的なデータ不一致（Data Inconsistency）**が発生してしまいます。
+
+**2. 原因分析 (Cause)**
+- 外部API呼び出し（Network I/O）と内部DBのトランザクションは本質的に分離されています。
+- Springの `@Transactional` を適用してもDBのロールバックが実行されるだけで、すでに完了した外部API（Toss）の決済承認は自動的に取り消されないという、**分散トランザクションの限界**が根本的な原因でした。
+
+**3. 解決策の検討プロセス (Approach)**
+- 完璧な分散トランザクション制御のために 2PC（Two-Phase Commit）方式を検討しましたが、外部決済サービスと密結合できない構造的な限界がありました。
+- そのため、アプリケーションレベルで**補償トランザクション（Compensating Transaction）**パターンを直接実装し、DB保存に失敗した場合は能動的に外部決済を取り消す「Sagaパターン」の基本概念を適用することに決定しました。
+
+**4. 適用した解決策 (Solution)**
+- DBへの `INSERT`/`UPDATE` ロジックを `try-catch` ブロックで囲み、`catch` 発生時には即座にToss決済取消API（`cancelApprovedPayment`）を呼び出すように設計しました。
+- 取消の成功・失敗に応じて明確な例外メッセージをスローし、フロントエンドおよびユーザーに正確な状況を認識させるように処理しました。
+try {
+    // 1. 内部DBトランザクションの実行（決済状態の更新、エスクロー情報の保存など）
+    paymentRepository.updatePaymentStatus(paymentInfo);
+    paymentRepository.insertEscrow(escrowInfo);
+    // ... その他の関連データ保存処理
+    
+} catch (Exception databaseException) {
+    // 🚨 2. DB保存失敗時：すでに承認されたToss決済を即座に取り消し（補償トランザクションの実行）
+    boolean cancelled = cancelApprovedPayment(paymentKey);
+
+    String message = cancelled
+            ? "決済情報の保存に失敗したため、Toss承認を自動で取り消しました。"
+            : "決済情報の保存およびToss承認の取消に失敗しました。管理者の確認が必要です。";
+
+    throw new PaymentProcessException(
+            "PAYMENT_SAVE_FAILED", 
+            message, 
+            databaseException);
+}
+**5. 成果および学び (Result)**
+- 決済システムにおける最も致命的な問題である「顧客の金銭的被害（ファントム決済）」を根本から防ぎ、決済データの整合性を100%保証しました。
+- 外部サービスと内部システム間のエラー伝播（Error Propagation）の過程を理解し、安全なフェイルセーフ（Fail-safe）メカニズムを自ら設計するアーキテクチャ設計のスキルを身につけました。
+
+<br>
+
+### 💥 Issue 3: 決済・精算コアのライフサイクル(State Machine)設計および返金処理のデータ整合性確保
+
+**1. 問題状況 (Problem)**
+- OTT相乗りサービスの自動決済・精算をスケジューラー（バッチ処理）で運用する中で、2つの重大なビジネスロジックの欠陥（Edge Case）が発見されました。
+- **[過剰請求リスク]** 「OTT開始日の10日前」を自動決済日としたため、部屋が満室になりサービスが開始される「前」に自動決済日が到来し、最初の月にユーザーへ**二重決済（Double Billing）**が発生する危険性がありました。
+- **[返金による精算プールの汚染]** ユーザーが途中で抜けた場合、プラットフォームの損失に直結するため、単純な返金処理を行うと、エスクロー（保管金）やプラットフォーム収益データと不整合が起き、ホストへ誤った金額が送金されるリスクがありました。
+
+**2. 原因分析 (Cause)**
+- 決済と精算のフローが「日付（Date）」ベースの単純なスケジューラーに依存しており、各データ行の「状態（Status）」による厳格な制御（State Machine）が欠如していたことが根本原因でした。
+
+**3. 解決策の検討プロセス (Approach)**
+- スケジューラー内に複雑な `if-else` の日付判定ロジックを入れることは、技術的負債になると判断しました。
+- 代わりに、**状態遷移モデル（State Machine）**を導入して決済・精算のライフサイクルを明確に定義し、返金処理はシステム自動化ではなく「管理者承認ベースのトランザクション」として分離する安全な設計を選択しました。
+
+**4. 適用した解決策 (Solution)**
+- **[初回過剰請求の防止 - `FIRST`状態の導入]** 満室になった部屋のステータスを一時的に `FIRST` に設定。スケジューラーが自動決済対象を抽出する際、`FIRST` 状態の部屋はスキップさせることで、初月の二重決済を完全に遮断。その後、安全なタイミングで `ACTIVE` へ遷移させました。
+- **[精算ライフサイクルの確立とカスケード返金処理]** 精算状態を `YET(待機)` -> `READY(送金準備)` -> `DONE(完了)` と厳格に遷移させました。返金は管理者が状況を判断した上で実行し、Tossの決済取消APIを呼び出すと同時に、決済履歴（`payment_tb`）、エスクロー保管金（`escrow_payout_tb`）、プラットフォーム収益（`revenue_tb`）の**全ての関連ステータスを同一トランザクション内で `REFUNDED` に一括更新**し、精算プールから完全に隔離しました。
+// 管理者による返金トランザクション（状態の完全隔離）
+@Transactional(rollbackFor = Exception.class)
+public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
+    // 1. 外部決済API (Toss) の承認取消を実行
+    if(!cancelApprovedPayment(payment.getPaymentKey())) {
+        throw new PaymentProcessException("Toss決済の取消に失敗しました。");
+    }
+    
+    // 2. 内部DBのカスケード状態更新 (REFUNDED に変更して精算対象から除外)
+    paymentRepository.updatePaymentstatusRefund(payment.getPayment_id()); // 決済状態更新
+    
+    SettlementRefundVO refund = new SettlementRefundVO();
+    refund.setPayment_id(payment.getPayment_id());
+    refund.setRefund_status("COMPLETED");
+    // ... (その他の返金メタデータセット)
+    
+    paymentRepository.insertRefund(refund); // 返金履歴の分離保存
+}
+**5. 成果および学び (Result)**
+- `FIRST` 状態の導入により、複雑な日付計算なしで過剰請求（二重決済）バグを100%解決しました。
+- エスクロー基盤の複雑な資金移動において、返金や途中退出などのエッジケースが発生してもデータが矛盾しない、堅牢なコアー精算システム（State Machine）を設計するドメインモデリングの能力を身につけました。
 
 ---
 
