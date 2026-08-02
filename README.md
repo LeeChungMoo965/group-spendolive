@@ -43,13 +43,45 @@
 
 ## 🚨 4. トラブルシューティング (Troubleshooting) - *★最重要*
 
-### 💥 Issue 1: 非同期パラメータの型不一致による `NumberFormatException` の発生
-- **問題 (Problem):** 管理者モーダルで申告処理を実行する際、IDの型不一致によりバックエンドで `NumberFormatException` が発生し処理が失敗。
-- **原因 (Cause):** フロントエンドの `data-*` 属性から値を取得する際、`report_id` と `reported_member_id`（文字列ID）のデータが逆に設定され、数値型 (`int`) のパラメータに文字列が送信されていた。
-- **解決策 (Solution):** 
-  - フロントエンドの `dataset` バインディング順序を修正。
-  - バックエンドでの例外発生時に、明確なエラーメッセージを返す `@ExceptionHandler` レスポンス構造の設計。
-- **成果・学び (Result):** フロント-バック間のデータフローを明確化し、パラメータ検証の重要性を再確認。
+### 💥 Issue 1: 外部APIと内部DB間のトランザクション不一致の解決および補償トランザクションの実装
+
+- **1. 問題状況 (Problem)**
+  - Toss Payments（外部決済API）の承認には成功し、顧客の口座から出金されたにもかかわらず、その後自社サーバーのDBに決済履歴やエスクロー情報を保存（`INSERT`/`UPDATE`）する過程で例外が発生するリスクが存在しました。
+  - この場合、顧客はお金を支払ったのにサービス内では「未決済」状態のままになるという、**致命的なデータ不一致（Data Inconsistency）**が発生してしまいます。
+
+- **2. 原因分析 (Cause)**
+  - 外部API呼び出し（Network I/O）と内部DBのトランザクションは本質的に分離されています。
+  - Springの `@Transactional` を適用してもDBのロールバックが実行されるだけで、すでに完了した外部API（Toss）の決済承認は自動的に取り消されないという、**分散トランザクションの限界**が根本的な原因でした。
+
+- **3. 解決策の検討プロセス (Approach)**
+  - 完璧な分散トランザクション制御のために 2PC（Two-Phase Commit）方式を検討しましたが、外部決済サービスと密結合できない構造的な限界がありました。
+  - そのため、アプリケーションレベルで**補償トランザクション（Compensating Transaction）**パターンを直接実装し、DB保存に失敗した場合は能動的に外部決済を取り消す「Sagaパターン」の基本概念を適用することに決定しました。
+
+- **4. 適用した解決策 (Solution)**
+  - DBへの `INSERT`/`UPDATE` ロジックを `try-catch` ブロックで囲み、`catch` 発生時には即座にToss決済取消API（`cancelApprovedPayment`）を呼び出すように設計しました。
+  - 取消の成功・失敗に応じて明確な例外メッセージをスローし、フロントエンドおよびユーザーに正確な状況を認識させるように処理しました。
+
+  ```java
+  try {
+      // 1. 内部DBトランザクションの実行（決済状態の更新、エスクロー情報の保存など）
+      paymentRepository.updatePaymentStatus(paymentInfo);
+      paymentRepository.insertEscrow(escrowInfo);
+      paymentRepository.insertPlatfoem_Revenue(revenueInfo);
+      paymentRepository.updatSettlementroommemberStatus(roomId, userId);
+      
+  } catch (Exception databaseException) {
+      // 🚨 2. DB保存失敗時：すでに承認されたToss決済を即座に取り消し（補償トランザクションの実行）
+      boolean cancelled = cancelApprovedPayment(paymentKey);
+
+      String message = cancelled
+              ? "決済情報の保存に失敗したため、Toss承認を自動で取り消しました。"
+              : "決済情報の保存およびToss承認の取消に失敗しました。管理者の確認が必要です。";
+
+      throw new PaymentProcessException(
+              "PAYMENT_SAVE_FAILED", 
+              message, 
+              databaseException);
+  }
 
 ---
 
