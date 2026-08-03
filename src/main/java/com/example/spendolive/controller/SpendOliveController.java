@@ -66,11 +66,6 @@ public class SpendOliveController {
         return mav;
     }
 
-    @RequestMapping(value = "/calendar.do", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView calendar(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        return layout("/WEB-INF/views/calendar/calendar.jsp");
-    }
-
     @RequestMapping(value = "/expense.do", method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView expense(HttpServletRequest request, HttpServletResponse response) throws Exception {
         ModelAndView mav = new ModelAndView();
