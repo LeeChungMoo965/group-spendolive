@@ -1,6 +1,7 @@
 package com.example.spendolive.payment.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,7 +41,32 @@ public class PaymentControllerImpl implements PaymentController {
     private MemberService memberService;
     @Autowired
     private OttService ottService;
-
+    private static final Map<String, String> CARD_COMPANY_NAME_MAP = Map.ofEntries(
+        Map.entry("3K", "기업 BC"),
+        Map.entry("46", "광주은행"),
+        Map.entry("71", "롯데카드"),
+        Map.entry("30", "한국산업은행"),
+        Map.entry("31", "BC카드"),
+        Map.entry("51", "삼성카드"),
+        Map.entry("38", "새마을금고"),
+        Map.entry("41", "신한카드"),
+        Map.entry("62", "신협"),
+        Map.entry("36", "씨티카드"),
+        Map.entry("33", "우리BC카드(BC 매입)"),
+        Map.entry("W1", "우리카드(우리 매입)"),
+        Map.entry("37", "우체국예금보험"),
+        Map.entry("39", "저축은행중앙회"),
+        Map.entry("35", "전북은행"),
+        Map.entry("42", "제주은행"),
+        Map.entry("15", "카카오뱅크"),
+        Map.entry("3A", "케이뱅크"),
+        Map.entry("24", "토스뱅크"),
+        Map.entry("21", "하나카드"),
+        Map.entry("61", "현대카드"),
+        Map.entry("11", "KB국민카드"),
+        Map.entry("91", "NH농협카드"),
+        Map.entry("34", "Sh수협은행")
+);
     /** 결제 금액을 확인하는 상세 화면을 표시합니다. */
     @Override
     @RequestMapping(value = "/detail.do", method = { RequestMethod.GET, RequestMethod.POST })
@@ -54,7 +80,7 @@ public class PaymentControllerImpl implements PaymentController {
                 ? null
                 : (MemberVO) session.getAttribute("memberInfo");
         List<MemberCardVO> cardList = memberService.getCardById(memberVO.getId());
-        session.setAttribute("cardList", cardList);
+        
         if (!isLoggedIn(memberVO)) {
             return new ModelAndView("redirect:/member/loginForm.do");
         }
@@ -63,6 +89,8 @@ public class PaymentControllerImpl implements PaymentController {
             String paymentStatus = paymentService.getRoomPaymentStatus(memberVO.getId(), roomId);
             PaymentAmountDTO paymentAmount = paymentService.getPaymentAmount(roomId);
             ModelAndView mav = layout("/WEB-INF/views/payment/detail.jsp");
+            mav.addObject("cardCompanyNameMap", CARD_COMPANY_NAME_MAP);
+            mav.addObject("cardList", cardList);
             mav.addObject("paymentAmount", paymentAmount);
             return mav;
 

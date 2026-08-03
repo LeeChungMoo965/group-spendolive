@@ -54,7 +54,7 @@
                         <thead>
                         <tr>
                             <th>번호</th><th>아이디</th><th>이름</th><th>닉네임</th><th>이메일</th>
-                            <th>연락처</th><th>가입일</th><th>경고</th><th>상태</th><th>권한</th>
+                            <th>연락처</th><th>가입일</th><th>경고</th><th>상태</th><th>권한</th><th></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -75,12 +75,16 @@
                                 </td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${member.status eq 'ACTIVE'}"><span class="badge green">ACTIVE</span></c:when>
-                                        <c:when test="${member.status eq 'LEAVE'}"><span class="badge gray">LEAVE</span></c:when>
-                                        <c:otherwise><span class="badge yellow"><c:out value="${member.status}" /></span></c:otherwise>
+                                        <c:when test="${member.status eq 'ACTIVE'}"><span class="badge green">ACTIVE</span><td><button type="button" 
+                                                    class="mini-btn warning adminmemberSubmitButton"
+                                                    data-id="${member.id}">
+                                                탈퇴
+                                            </button></td></c:when>
+                                        <c:when test="${member.status eq 'LEAVE'}"><span class="badge gray">LEAVE</span>
+                                        </td></c:when>
+                                        <c:otherwise><span class="badge yellow"><c:out value="${member.status}" /></span></td></c:otherwise>
                                     </c:choose>
-                                </td>
-                                <td><c:out value="${member.role}" /></td>
+                                <td></td>
                             </tr>
                         </c:forEach>
                         </tbody>

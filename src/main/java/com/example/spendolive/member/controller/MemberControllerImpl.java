@@ -9,7 +9,6 @@ import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import com.example.spendolive.member.exception.MemberProcessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -31,13 +30,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityReturnValueHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.example.spendolive.payment.service.PaymentServiceImpl;
 import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberAjaxResponse;
 import com.example.spendolive.member.domain.MemberVO;
 
 import com.example.spendolive.member.service.MemberService;
+import com.example.spendolive.mypage.service.MyPageService;
 
 
 @Controller("memberController")
@@ -47,9 +47,9 @@ public class MemberControllerImpl implements MemberController{
     @Autowired
     private MemberService memberService;
     @Autowired
+    private MyPageService mypageService;
+    @Autowired
     private PasswordEncoder passwordEncoder;
-    private MemberVO memberVO;
-    private MemberAccountVO accountmemberVO;
     @Value("${kakao.client.id}")
     private String kakaoclientId;
     @Value("${kakao.redirect.uri}")
@@ -175,12 +175,13 @@ public class MemberControllerImpl implements MemberController{
         ModelAndView mav = new ModelAndView();
         HttpSession session=request.getSession();
         session.setAttribute("isLogOn", false);
+        session.removeAttribute("SPRING_SECURITY_CONTEXT");
         session.removeAttribute("memberInfo");
         session.removeAttribute("login_type");
         session.removeAttribute("loginId");
         mav.setViewName("redirect:/spendolive/main.do");
         return mav;
-    }
+    }                   
     
     
     // 코드리뷰.2
@@ -562,10 +563,10 @@ public ModelAndView openBankingIntegratedcallback(
 // [보안 체크] 내가 보냈던 state 값이 맞는지 검증하는 로직을 넣으면 더 안전합니다.
 
 // 현재 로그인한 사용자의 ID나 고유 번호 가져오기 (세션 등 활용)
-MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-String userId = memberVO.getId();
-ResponseEntity resEntity = null;
-HttpHeaders responseHeaders = new HttpHeaders();
+//MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+//String userId = memberVO.getId();
+//ResponseEntity resEntity = null;
+//HttpHeaders responseHeaders = new HttpHeaders();
 try {
     // 비즈니스 로직 처리를 위해 서비스 호출
     redirectAttributes.addFlashAttribute("msg", "계좌인증을 완료했습니다. 로그인을 다시 해주세요."); 
@@ -577,6 +578,32 @@ try {
     redirectAttributes.addFlashAttribute("msg", "계좌 인증에 실패하였습니다. 다시 시도해 주세요."); 
     return new ModelAndView("redirect:/spendolive/main.do");
 }
+}
+//강제탈퇴(관리자) 
+@Override
+@PostMapping("/whitdraw.do")
+@ResponseBody
+public ResponseEntity<MemberAjaxResponse> whitdraw(@RequestParam("id") String id,  HttpServletRequest request, HttpServletResponse response) throws Exception {
+    request.setCharacterEncoding("utf-8");
+    try {
+            mypageService.withdrawMember(id);
+                return ResponseEntity.ok(new MemberAjaxResponse(
+                    true,
+                    "WITHDRAW_COMPLETED",
+                    "탈퇴가 완료되었습니다.",
+                    "SUCCESS",
+                    id,
+                    "/admin/member/list.do"));
+    }catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MemberAjaxResponse(
+                        false,
+                        "WHITDRAW_FAILED",
+                        "탈퇴에 실패 하였습니다.",
+                        "FAILED",
+                        id,
+                        "/admin/member/list.do"));
+    }
 }
     /* =========================================================
        [추가 기능] 아이디 찾기 - 1단계: 휴대폰 인증번호 발송
@@ -845,4 +872,5 @@ try {
         mav.addObject("body_page", bodyPage);
         return mav;
     }
+
 }

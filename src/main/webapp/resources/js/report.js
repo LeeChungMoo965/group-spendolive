@@ -23,7 +23,7 @@ if (reportActionBtn) {
         const reported_member_id = reportButton.dataset.reported_member_id;
         const chat_text = reportButton.dataset.chat_text;
         if (!room_id || !reported_member_id || !chat_text) {
-            showFailure(reportButton, { message: '신고할 회원 정보를 찾을 수 없습니다.' });
+            showFailure(reportButton, { message: '신고할 회원 정보를 찾을 수 없습니다.' },'report');
             return;
         }
         const body = new URLSearchParams({ room_id });
@@ -46,6 +46,48 @@ if (reportActionBtn) {
     // 결제 중 새로고침이나 창 닫기를 시도하면 브라우저 기본 경고를 표시합니다.
     
   })();
+  (function () {
+  
+    document.addEventListener('click', async function (event) {
+        const waringButton = event.target.closest('.waringSubmitButton');
+        if (!waringButton) return;
+    
+        const report_id = $('#formReportId').val().trim();
+        const reported_member_id = $('#formReportMemberId').val().trim();
+        const admin_comment = $('#adminComment').val().trim();
+        const result = $('#reportResult').val().trim();
+        if (!admin_comment) {
+            alert('처리 결과를 입력해주세요.');
+            $('#adminComment').focus();
+            return;
+        }
+        if (!report_id || !reported_member_id || !admin_comment) {
+            showFailure(waringButton, { message: '경고할 회원 정보를 찾을 수 없습니다.' },'report');
+            return;
+        }
+        const body = new URLSearchParams({ report_id });
+        if (reported_member_id) {
+            body.append('reported_member_id', reported_member_id);
+        }
+        if (admin_comment) {
+            body.append('admin_comment', admin_comment);
+        }if (result) {
+            body.append('result', result);
+        }
+        // 모듈화된 함수 호출
+        await executeRequest({
+            button: waringButton,
+            confirmMessage: '처리 하시겠습니까?',
+            requestUrl: '/admin/report/comment.do',
+            bodyData: body,
+            modalTitle : '신고를 처리하고 있습니다.',
+            fallbackErrorMessage: '신고 결과를 확인하지 못했습니다. 다시 시도해주세요.'
+        },'report');
+    });
+    // 결제 중 새로고침이나 창 닫기를 시도하면 브라우저 기본 경고를 표시합니다.
+    
+  })();
+
 
 
 
