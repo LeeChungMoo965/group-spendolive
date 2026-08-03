@@ -41,11 +41,11 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
   + "FROM member_tb ";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
-    +" from member_tb where id =? ";
+    +" from member_tb where id =? "+ "AND status = 'ACTIVE'";
     private final String checkEmail = "select decode(count(*),1, 'false', 0, 'true') as email"
-    +" from member_tb where email =? ";
+    +" from member_tb where email =? "+ "AND status = 'ACTIVE'";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
-    +" from member_tb where phone =? ";
+    +" from member_tb where phone =? "+ "AND status = 'ACTIVE'";
    
     private final String selectMemberByIdSql =
     "SELECT member_id, id, email, password, member_name, nickname, "
