@@ -192,6 +192,15 @@ th {color:var(--muted);font-size:0.8125rem;}
 .auth-result-text.ok {color:#4f6f1f;}
 .auth-result-text.warn {color:#b45309;}
 
+
+/* 공통 페이지네이션 - 문의 목록과 OTT 모집방 목록에서 같은 클래스 재사용 */
+.pagination {display:flex;justify-content:center;align-items:center;gap:0.375rem;margin-top:1.75rem;}
+.pg-btn {width:2.25rem;height:2.25rem;border-radius:50%;border:0.09375rem solid var(--line);background:#fff;color:var(--muted);font-weight:900;cursor:pointer;font-size:0.8125rem;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
+.pg-btn.active {background:var(--olive);color:#fff;border-color:var(--olive);}
+.pg-btn:hover:not(.active):not(:disabled) {border-color:var(--sage);color:var(--olive-dark);}
+.pg-btn:disabled {cursor:default;opacity:1;}
+.pg-ellipsis {display:inline-flex;align-items:center;justify-content:center;width:1.25rem;color:var(--muted);font-weight:900;}
+
 /* Modal fallback */
 .modal {position:fixed;inset:0;z-index:50;display:none;place-items:center;padding:1.25rem;background:rgba(40,50,31,.5);}
 .modal.show {display:grid;}

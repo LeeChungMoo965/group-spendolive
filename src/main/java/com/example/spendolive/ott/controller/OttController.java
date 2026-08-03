@@ -30,6 +30,8 @@ import com.example.spendolive.ott.service.OttService;
 @RequestMapping("/spendolive")
 public class OttController {
 
+    private static final int RECRUIT_PAGE_SIZE = 10;
+
     private final OttService ottService;
 
     @Value("${kakao.javascript.key:}")
@@ -110,6 +112,7 @@ public class OttController {
     public String recruit(@RequestParam(value = "tab", required = false, defaultValue = "all") String tab,
                           @RequestParam(value = "ott_service_id", required = false) String ott_service_id,
                           @RequestParam(value = "roomNameKeyword", required = false) String roomNameKeyword,
+                          @RequestParam(value = "page", required = false, defaultValue = "1") int page,
                           Model model,
                           RedirectAttributes redirectAttributes,
                           HttpSession session) {
@@ -125,12 +128,27 @@ public class OttController {
             return "redirect:/spendolive/main.do";
         }
         Long selectedOttServiceId = parseOttServiceId(ott_service_id);
+        int totalRecruitRoomCount = ottService.getRecruitRoomCount(selectedOttServiceId, roomNameKeyword);
+        int totalPages = totalRecruitRoomCount == 0
+                ? 0
+                : (totalRecruitRoomCount + RECRUIT_PAGE_SIZE - 1) / RECRUIT_PAGE_SIZE;
+        int currentPage = totalPages == 0
+                ? 1
+                : Math.min(Math.max(page, 1), totalPages);
 
         addCommonOttModel(model, loginId);
         model.addAttribute("tab", tab);
         model.addAttribute("selectedOttServiceId", selectedOttServiceId);
         model.addAttribute("roomNameKeyword", roomNameKeyword);
-        model.addAttribute("recruitRoomList", ottService.getRecruitRooms(loginId, selectedOttServiceId, roomNameKeyword));
+        model.addAttribute("recruitRoomList", ottService.getRecruitRooms(
+                loginId,
+                selectedOttServiceId,
+                roomNameKeyword,
+                currentPage,
+                RECRUIT_PAGE_SIZE));
+        model.addAttribute("totalRecruitRoomCount", totalRecruitRoomCount);
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("totalPages", totalPages);
         model.addAttribute("hostedRoomList", ottService.getHostedRecruitRooms(loginId));
         model.addAttribute("joinedRoomList", ottService.getJoinedRecruitRooms(loginId));
         model.addAttribute("hostedRoomMemberList", ottService.getHostedRoomMembers(loginId));

@@ -25,6 +25,8 @@ public interface OttRepository {
     Long selectOldestAvailableRecruitRoomId(Long ott_service_id, String loginId);
     // 외부인 모집방 목록 조회
     List<OttRoomDTO> selectRecruitRooms(String loginId, Long ott_service_id, String roomNameKeyword);
+    // 검색 조건과 페이지 범위를 적용한 외부인 모집방 목록 조회
+    List<OttRoomDTO> selectRecruitRooms(String loginId, Long ott_service_id, String roomNameKeyword, int offset, int pageSize);
     // 내가 참여 중인 가족·지인 공유방 목록 조회
     List<OttRoomDTO> selectFriendRooms(String loginId);
     // 내가 방장인 가족·지인 공유방 목록 조회
@@ -55,6 +57,8 @@ public interface OttRepository {
     OttRoomDTO selectChatRoom(Long room_id, String loginId);
     // 현재 모집 중인 외부인 방 개수 조회
     int countRecruitRooms();
+    // 검색 조건에 맞는 종료되지 않은 외부인 모집방 개수 조회
+    int countRecruitRooms(Long ott_service_id, String roomNameKeyword);
     // 내가 참여 중인 OTT 방 개수 조회
     int countMyRooms(String loginId);
     // 내가 읽지 않은 OTT 채팅 메시지 개수 조회
@@ -100,8 +104,7 @@ public interface OttRepository {
     // OTT 방의 현재 상태 변경
     void updateRoomStatus(Long room_id, String status);
     // 방 종료 요청 정보와 종료 예정일 저장
-    int updateRoomCloseRequest(Long room_id, String hostId, LocalDate close_effective_date,
-            String close_reason, String close_notice);
+    int updateRoomCloseRequest(Long room_id, String hostId, LocalDate close_effective_date, String close_reason, String close_notice);
 
     // 정산과 결제 저장 기능
     // OTT 정산 회차 기본 정보 등록
@@ -115,11 +118,9 @@ public interface OttRepository {
 
     // 방 멤버 저장 기능
     // 결제 완료 사용자를 ACTIVE 방 멤버로 신규 등록
-    void insertActiveRoomMember(Long room_id, String loginId, int share_amount,
-            double fee_rate, int fee_amount, int pay_amount, int pay_day);
+    void insertActiveRoomMember(Long room_id, String loginId, int share_amount, double fee_rate, int fee_amount, int pay_amount, int pay_day);
     // 기존 방 멤버를 ACTIVE 상태로 재입장 처리
-    void reactivateRoomMember(Long room_id, String loginId, int share_amount,
-            double fee_rate, int fee_amount, int pay_amount, int pay_day);
+    void reactivateRoomMember(Long room_id, String loginId, int share_amount, double fee_rate, int fee_amount, int pay_amount, int pay_day);
     // 해당 정산 회차의 실제 결제 마감일에 맞춰 ACTIVE 멤버의 결제일 갱신
     void updateActiveMemberPayDay(Long room_id, int pay_day);
     // 일반 멤버의 방 나가기 예약 정보 저장
