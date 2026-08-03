@@ -64,8 +64,8 @@
 - そのため、**単一ユーザーの重複リクエストはアプリケーションレベル（インメモリ）**で素早く弾き返し、**複数ユーザーのオーバーブッキングはRedisのアトミック演算（decrement）**を活用して、ロックなしで高速かつ安全に同時実行を制御するハイブリッド方式を採用しました。
 
 **4. 適用した解決策 (Solution)**
-- **単一ユーザー制御 (Application Level Lock):** `ConcurrentHashMap.newKeySet()` を活用して現在処理中の決済キー（`userId#roomId`）をインメモリで管理し、単一ユーザーの重複アクセスをスレッドセーフ（Thread-safe）に遮断しました。
-- **複数ユーザー制御 (DB Atomic Insert & Pessimistic Lock):** アプリケーション側で `COUNT` をチェックするのではなく、DBの `INSERT ... SELECT` クエリ内部に `WHERE (SELECT COUNT(...) ) < member_limit` の条件を含めました。これにより、データベースの書き込みロック（悲観的ロック）の特性を活かし、複数のトランザクションが同時に実行されても、定員を超える INSERT 自体を物理的に不可能にしました。
+- **単一ユーザー制御 (Application Level Lock):** `ConcurrentHashMap` を活用して現在処理中の決済キーをインメモリで管理し、重複アクセスを遮断しました。
+- **複数ユーザー制御 (Redis Atomic Counter):** Redisに部屋の残り枠（Seats）を保存し、決済リクエストが来るたびに `decrement()` を使用してアトミックに枠を減らします。結果が0未満になった場合は、即座に `increment()` でロールバックし例外を発生させることで、物理的に定員超過を防ぎました。
 ```java
 // 1. 単一ユーザーの重複決済(連打)遮断 (Java インメモリロック)
 String processingKey = createProcessingKey(userId, roomId);
