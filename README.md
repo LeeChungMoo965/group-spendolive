@@ -67,10 +67,40 @@
 - **単一ユーザー制御 (Application Level Lock):** `ConcurrentHashMap.newKeySet()` を活用して現在処理中の決済キー（`userId#roomId`）をインメモリで管理し、単一ユーザーの重複アクセスをスレッドセーフ（Thread-safe）に遮断しました。
 - **複数ユーザー制御 (DB Atomic Insert & Pessimistic Lock):** アプリケーション側で `COUNT` をチェックするのではなく、DBの `INSERT ... SELECT` クエリ内部に `WHERE (SELECT COUNT(...) ) < member_limit` の条件を含めました。これにより、データベースの書き込みロック（悲観的ロック）の特性を活かし、複数のトランザクションが同時に実行されても、定員を超える INSERT 自体を物理的に不可能にしました。
 ```java
-// 1. 単一ユーザーの重複リクエスト遮断 (Java インメモリロック)
-String processingKey = userId + "#" + roomId;
+// 1. 単一ユーザーの重複決済(連打)遮断 (Java インメモリロック)
+String processingKey = createProcessingKey(userId, roomId);
 if (!processingPayments.add(processingKey)) {
-    throw new PaymentProcessException("すでに決済を処理中です。");
+    throw new PaymentProcessException("PAYMENT_PROCESSING", "すでに決済を処理中です。");
+}
+
+try {
+    // 2. 複数ユーザーのオーバーブッキング完全遮断 (Redis Atomic Counter 活用)
+    String redisKey = "room:" + roomId + ":seats";
+
+    // 初回アクセス時、残り枠を初期化（TTL 1時間）
+    if (Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(
+        redisKey, String.valueOf(Math.max(limit - currentMembers, 0))))) {
+            redisTemplate.expire(redisKey, 1, TimeUnit.HOURS);
+    }
+
+    // アトミック演算(decrement)による残り枠のマイナス処理
+    Long remainingSeats = redisTemplate.opsForValue().decrement(redisKey);
+    if (remainingSeats == null || remainingSeats < 0) {
+        // 枠がないため、マイナスした1を元に戻して(increment)例外処理
+        redisTemplate.opsForValue().increment(redisKey);
+        throw new PaymentProcessException("ROOM_FULL", "すでに定員に達した部屋です。");
+    }
+
+    try {
+        // 決済および部屋入室ロジックの実行 (省略)
+    } catch (Exception e) {
+        // 決済失敗時、減らした枠を元に戻す(ロールバック)
+        redisTemplate.opsForValue().increment(redisKey);
+        throw e;
+    }
+} finally {
+    // 3. 全ての処理終了後、インメモリロックを解除
+    processingPayments.remove(processingKey);
 }
 -- 2. 複数ユーザーのオーバーブッキング完全遮断 (DB 条件付き INSERT クエリ)
 INSERT INTO ott_room_member_tb (room_id, member_login_id, status, ...)
