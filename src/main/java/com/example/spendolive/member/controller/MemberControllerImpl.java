@@ -468,22 +468,50 @@ public class MemberControllerImpl implements MemberController{
             HttpSession session = request.getSession();
             
             if(memberService.checkId(id)){
+                System.out.println(id);
                 session.setAttribute("login_type", "KAKAO");
                 session.setAttribute("id", id);
                 session.setAttribute("member_name", userInfo.get("nickname")); 
                 return layout("/WEB-INF/views/member/signup.jsp");
             } else {
                 MemberVO memberVO = memberService.getMemberById(id);
-                session.setAttribute("memberInfo", memberVO);
-                session.setAttribute("isLogOn", true);
-                session.setAttribute("login_type", "KAKAO");
-                try{String log = (String) session.getAttribute("log");
-                if(log.equals("mypage")){mav.setViewName("redirect:/spendolive/mypage.do");}
-                else if(log.equals("expense")){mav.setViewName("redirect:/spendolive/expense.do");}
-                else if(log.equals("ott")){mav.setViewName("redirect:/spendolive/ott.do");}  
-                }catch(Exception e){mav.setViewName("redirect:/spendolive/main.do");}
+                List<GrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_" + memberVO.getRole()) );
+                    //스프링 시큐리티용 인증(Authentication) 객체 생성
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(
+                        memberVO.getId(), // principal (아이디 또는 MemberVO)
+                        null,             // credentials (비밀번호는 인증 후 null 처리)
+                        authorities       // 권한 목록
+                    );
+                    //SecurityContext 생성 후 인증 객체 담기
+                    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+                    securityContext.setAuthentication(authentication);      
+                    session.setAttribute("login_type", "KAKAO");
+                    session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
+                    session.setAttribute("isLogOn", true);  
+                    session.setAttribute("memberInfo", memberVO);
+                    List<MemberAccountVO> accountList =memberService.getAccountById(id);
+                    if(accountList != null){
+                        for(MemberAccountVO account : accountList){
+                            if(account.getOpen_bank_token() != null){
+                                memberService.registerOpenBankingIntegratedToken(memberVO,account);
+                            }
+                        }
+                    }
+                    String log = (String) session.getAttribute("log");
+                    if ("mypage".equals(log)) {
+                        mav.setViewName("redirect:/spendolive/mypage.do");
+                    } else if ("expense".equals(log)) {
+                        mav.setViewName("redirect:/spendolive/expense.do");
+                    } else if ("ott".equals(log)) {
+                        mav.setViewName("redirect:/spendolive/ott.do");
+                    } else {
+                        mav.setViewName("redirect:/spendolive/main.do");
+                    }
+                    session.removeAttribute("log");
                 }      
             } catch (Exception e) {
+                e.printStackTrace(); 
                 redirectAttributes.addFlashAttribute("msg", "카카오 로그인 연동 중 서버 오류가 발생했습니다."); 
                 return layout("/WEB-INF/views/member/loginForm.jsp");
             }
