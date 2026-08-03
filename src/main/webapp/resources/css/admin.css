@@ -142,7 +142,7 @@ html,body {overflow-x:hidden;}
 .admin-empty-filter {margin-top:14px;padding:28px;border:1px dashed #d9dfbd;border-radius:var(--radius-md);background:#fffef8;color:var(--muted);text-align:center;font-weight:800;}
 .admin-form-note {margin:0 0 18px;padding:12px 15px;border-radius:var(--radius-md);background:var(--olive-100);color:var(--olive-800);font-size:13px;font-weight:800;}
 .modal-admin-inquiry {width:min(720px,100%);max-height:calc(100vh - 40px);overflow-y:auto;}
-.admin-inquiry-image {width:96px;height:96px;object-fit:cover;border:1px solid #eef0e1;border-radius:12px;}
+.admin-inquiry-image {width:64px;height:64px;object-fit:cover;border:1px solid #eef0e1;border-radius:12px;}
 
 /* OTT 관리 카드 */
 .ott-cell {display:flex;align-items:center;gap:12px;}
@@ -184,3 +184,10 @@ html,body {overflow-x:hidden;}
 @media (max-width:760px) {.hero {display:block;}.stat-grid,.card-grid,.form-grid,.meta-grid {grid-template-columns:1fr;}.panel,.stat-card {padding:20px;}.toolbar,.admin-filter-toolbar {align-items:stretch;}.toolbar-left {width:100%;}.select-input,.admin-search-input,.btn {width:100%;}}
 @media (max-width:680px) {.admin-body .admin-main {padding:18px 14px 52px!important;}.admin-body .admin-main .hero {min-height:190px;padding:28px 24px!important;}.admin-body .admin-main .hero h1 {font-size:36px;}.admin-local-tab,.admin-search-input {width:100%;}}
 @media (prefers-reduced-motion:reduce) {.admin-motion-block,.admin-motion-section,.admin-motion-table,.admin-motion-panel {animation:none!important;opacity:1!important;transform:none!important;}.admin-app-shell,.admin-sidebar,.admin-sidebar-submenu,.admin-content-host,.toast {transition-duration:.01ms!important;}.admin-main,.admin-page-section,.table-wrap,#commentArea {scroll-behavior:auto!important;}}
+
+
+
+/* 고객센터(FAQ/공지사항) 노출 여부 체크박스 */
+.expose-check {display:flex;align-items:center;gap:8px;cursor:pointer;}
+.expose-check input[type="checkbox"] {flex:0 0 auto;width:17px;height:17px;margin:0;accent-color:var(--olive-700);cursor:pointer;}
+.expose-check span {white-space:nowrap;color:var(--text);font-weight:700;}

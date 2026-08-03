@@ -95,7 +95,7 @@
                     <textarea id="faqCreateAnswer" name="answer" class="form-textarea" placeholder="답변 내용을 입력하세요" required></textarea>
                 </div>
 
-                <label class="toolbar-left"><input type="checkbox" name="useYn" value="Y" checked><span>사용자 화면에 노출</span></label>
+                <label class="expose-check"><input type="checkbox" name="useYn" value="Y" checked><span>사용자 화면에 노출</span></label>
 
                 <div class="toolbar"><span></span><div class="toolbar-left">
                     <button type="button" class="btn ghost" data-action="closeModal">취소</button>
@@ -132,7 +132,7 @@
                             <textarea id="faqAnswer${faq.faq_id}" name="answer" class="form-textarea" required>${faq.answer}</textarea>
                         </div>
 
-                        <label class="toolbar-left"><input type="checkbox" name="useYn" value="Y" ${faq.use_yn == 'Y' ? 'checked' : ''}><span>사용자 화면에 노출</span></label>
+                        <label class="expose-check"><input type="checkbox" name="useYn" value="Y" ${faq.use_yn == 'Y' ? 'checked' : ''}><span>사용자 화면에 노출</span></label>
 
                         <div class="toolbar"><span></span><div class="toolbar-left">
                             <button type="button" class="btn ghost" data-action="closeModal">취소</button>

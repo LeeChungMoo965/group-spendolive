@@ -43,7 +43,7 @@
             <button class="btn btn-light" onclick="changeMonth(-1)">
                 ‹ 이전달
             </button>
-            <button class="btn btn-primary" onclick="location.href='${contextPath}/spendolive/expense.do#expense-form'">
+            <button class="btn btn-primary" onclick="location.href='${contextPath}/spendolive/expense/list.do#expense-form'">
                 + 지출등록
             </button>
             <button class="btn btn-light" onclick="changeMonth(1)">
@@ -65,7 +65,7 @@
             </div>
             <!-- 3개 넘으면 calendar.js가 이 아래에 1 2 3 숫자 페이지네이션 자동 생성 -->
 
-            <button class="btn btn-primary full" onclick="location.href='${contextPath}/spendolive/expense.do'">
+            <button class="btn btn-primary full" onclick="location.href='${contextPath}/spendolive/expense/list.do'">
                 지출관리에서 보기
             </button>
         </aside>
