@@ -1,5 +1,7 @@
+
 package com.example.spendolive.Expense.controller;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -8,193 +10,292 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.servlet.http.HttpSession;
-
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.Expense.domain.ExpenseDTO;
 import com.example.spendolive.Expense.service.ExpenseService;
+import com.example.spendolive.common.ajax.AjaxAuthSupport;
+import com.example.spendolive.common.ajax.AjaxDuplicateGuard;
+import com.example.spendolive.common.ajax.AjaxResponse;
 import com.example.spendolive.member.domain.MemberVO;
 
+import jakarta.servlet.http.HttpSession;
+
+/**
+ * 지출관리 통합 Controller.
+ *
+ * 화면 조회는 SSR 방식으로 처리하고,
+ * 예산 저장 및 지출 등록·수정·삭제는 AJAX(JSON) 방식만 사용한다.
+ * 기존 일반 POST 매핑은 AJAX 매핑과 기능이 중복되므로 제거했다.
+ */
 @Controller
 @RequestMapping("/spendolive/expense")
 public class ExpenseController {
 
     private final ExpenseService expenseService;
+    private final AjaxDuplicateGuard duplicateGuard;
 
-    public ExpenseController(ExpenseService expenseService) {
+    public ExpenseController(ExpenseService expenseService,
+                             AjaxDuplicateGuard duplicateGuard) {
         this.expenseService = expenseService;
+        this.duplicateGuard = duplicateGuard;
     }
+
+    // -------------------------------------------------------------------------
+    // SSR 화면 조회
+    // -------------------------------------------------------------------------
 
     @GetMapping("/list.do")
     public String expenseList(@RequestParam(value = "yearMonth", required = false) String yearMonth,
-                            @RequestParam(value = "date", required = false) String date,                        
-                            Model model,
-                            RedirectAttributes redirectAttributes,  
-                            HttpSession session) {
-        Long member_id = getLoginMember_id(session);
+                              @RequestParam(value = "date", required = false) String date,
+                              Model model,
+                              RedirectAttributes redirectAttributes,
+                              HttpSession session) {
 
-        if (member_id == null) {
+        Long memberId = getLoginMemberId(session);
+
+        if (memberId == null) {
             redirectAttributes.addFlashAttribute("msg", "로그인이 필요한 기능입니다. 로그인해 주세요.");
             return "redirect:/member/loginForm.do?log=expense";
         }
 
-        // URL 파라미터를 직접 substring/parse하지 않고 먼저 검증한다.
-        // 잘못된 yearMonth/date 값이 들어와도 현재 달 화면으로 안전하게 이동한다.
         String selectedDate = normalizeDate(date);
-        yearMonth = normalizeYearMonth(yearMonth, selectedDate);
+        String selectedYearMonth = normalizeYearMonth(yearMonth, selectedDate);
+        YearMonth selectedMonth = YearMonth.parse(selectedYearMonth);
 
-        YearMonth selectedMonth = YearMonth.parse(yearMonth);
-        List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(member_id, yearMonth);
-
-        // date가 지정된 경우, 테이블에는 그 날짜 지출만 필터링
+        List<ExpenseDTO> monthExpenseList = expenseService.getExpenseList(memberId, selectedYearMonth);
         List<ExpenseDTO> tableExpenseList = monthExpenseList;
+
         if (selectedDate != null) {
             tableExpenseList = monthExpenseList.stream()
                     .filter(expense -> selectedDate.equals(formatDate(expense.getExpense_date())))
                     .toList();
         }
 
-        model.addAttribute("selectedYearMonth", yearMonth);
-        model.addAttribute("selectedDate", selectedDate); // JSP에서 "OO일만 보는 중" 안내용
-        model.addAttribute("monthList", makeMonthList(yearMonth));
+        model.addAttribute("selectedYearMonth", selectedYearMonth);
+        model.addAttribute("selectedDate", selectedDate);
+        model.addAttribute("monthList", makeMonthList(selectedYearMonth));
         model.addAttribute("expenseList", tableExpenseList);
         model.addAttribute("categoryList", expenseService.getCategoryList());
-        // 선택한 달의 예산을 지출관리 화면에 전달한다.
-        model.addAttribute("monthlyBudget", expenseService.getMonthlyBudget(member_id, yearMonth));
+        model.addAttribute("monthlyBudget", expenseService.getMonthlyBudget(memberId, selectedYearMonth));
 
-        // 상단 요약/하단 분석은 달 전체 기준으로 유지 (monthExpenseList 사용)
         model.addAttribute("expenseTypeSummary", makeExpenseTypeSummary(monthExpenseList));
         model.addAttribute("selectedMonthTotal", sumAmount(monthExpenseList));
-        model.addAttribute("monthChartList", makeMonthChartList(member_id, selectedMonth));
+        model.addAttribute("monthChartList", makeMonthChartList(memberId, selectedMonth));
         model.addAttribute("categorySummaryList", makeCategorySummaryList(monthExpenseList));
         model.addAttribute("rankingList", makeRankingList(monthExpenseList));
 
         model.addAttribute("body_page", "/WEB-INF/views/expense/expense.jsp");
         session.removeAttribute("log");
+
         return "common/layout";
     }
 
-    // java.util.Date를 화면 비교용 yyyy-MM-dd 문자열로 변환한다.
+    // -------------------------------------------------------------------------
+    // AJAX 데이터 처리
+    // -------------------------------------------------------------------------
+
+    @ResponseBody
+    @PostMapping("/budget/save.do")
+    public ResponseEntity<?> saveBudgetAjax(@RequestParam(value = "budget_month", required = false) String budgetMonth,
+                                            @RequestParam(value = "budget_amount", required = false) String budgetAmount,
+                                            HttpSession session) {
+
+        MemberVO member = AjaxAuthSupport.member(session);
+        if (member == null) {
+            return AjaxAuthSupport.unauthorized();
+        }
+
+        try {
+            int parsedBudgetAmount = Integer.parseInt(budgetAmount);
+            String targetMonth = normalizeYearMonth(budgetMonth, null);
+
+            expenseService.saveMonthlyBudget(
+                    Long.valueOf(member.getMember_id()),
+                    targetMonth,
+                    Math.max(0, parsedBudgetAmount)
+            );
+
+            return ResponseEntity.ok(
+                    AjaxResponse.success(
+                            "선택한 달의 예산이 저장되었습니다.",
+                            Map.of("refreshUrl", "/spendolive/expense/list.do?yearMonth=" + targetMonth)
+                    )
+            );
+        } catch (Exception exception) {
+            return ResponseEntity.badRequest()
+                    .body(AjaxResponse.failure("INVALID_REQUEST", "예산 저장에 실패했습니다."));
+        }
+    }
+
+    @ResponseBody
+    @PostMapping("/add.do")
+    public ResponseEntity<?> addExpenseAjax(@ModelAttribute ExpenseDTO expenseDTO,
+                                            BindingResult bindingResult,
+                                            @RequestParam(value = "yearMonth", required = false) String yearMonth,
+                                            HttpSession session) {
+
+        MemberVO member = AjaxAuthSupport.member(session);
+        if (member == null) {
+            return AjaxAuthSupport.unauthorized();
+        }
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest()
+                    .body(AjaxResponse.failure("INVALID_REQUEST", "지출 입력값을 확인해주세요."));
+        }
+
+        String duplicateKey = "expense-add:"
+                + member.getId() + ':'
+                + String.valueOf(expenseDTO.getExpense_title()) + ':'
+                + expenseDTO.getAmount() + ':'
+                + String.valueOf(expenseDTO.getExpense_date());
+
+        if (!duplicateGuard.tryAcquire(duplicateKey, Duration.ofSeconds(5))) {
+            return ResponseEntity.status(409)
+                    .body(AjaxResponse.failure(
+                            "DUPLICATE_REQUEST",
+                            "같은 지출 등록 요청이 이미 처리 중입니다."
+                    ));
+        }
+
+        try {
+            expenseDTO.setMember_id(Long.valueOf(member.getMember_id()));
+            applyRepeatSettings(expenseDTO);
+            expenseService.addExpense(expenseDTO);
+
+            String targetMonth = normalizeYearMonth(yearMonth, null);
+
+            return ResponseEntity.ok(
+                    AjaxResponse.success(
+                            "지출 내역이 등록되었습니다.",
+                            Map.of("refreshUrl", "/spendolive/expense/list.do?yearMonth=" + targetMonth)
+                    )
+            );
+        } catch (Exception exception) {
+            duplicateGuard.release(duplicateKey);
+            return ResponseEntity.badRequest()
+                    .body(AjaxResponse.failure(
+                            "INVALID_REQUEST",
+                            "지출 등록에 실패했습니다. 입력값을 확인해주세요."
+                    ));
+        }
+    }
+
+    @ResponseBody
+    @PostMapping("/modify.do")
+    public ResponseEntity<?> modifyExpenseAjax(@ModelAttribute ExpenseDTO expenseDTO,
+                                               BindingResult bindingResult,
+                                               @RequestParam(value = "yearMonth", required = false) String yearMonth,
+                                               HttpSession session) {
+
+        MemberVO member = AjaxAuthSupport.member(session);
+        if (member == null) {
+            return AjaxAuthSupport.unauthorized();
+        }
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest()
+                    .body(AjaxResponse.failure("INVALID_REQUEST", "지출 수정값을 확인해주세요."));
+        }
+
+        try {
+            expenseDTO.setMember_id(Long.valueOf(member.getMember_id()));
+            applyRepeatSettings(expenseDTO);
+            expenseService.modifyExpense(expenseDTO);
+
+            String targetMonth = normalizeYearMonth(yearMonth, null);
+
+            return ResponseEntity.ok(
+                    AjaxResponse.success(
+                            "지출 내역이 수정되었습니다.",
+                            Map.of("refreshUrl", "/spendolive/expense/list.do?yearMonth=" + targetMonth)
+                    )
+            );
+        } catch (Exception exception) {
+            return ResponseEntity.badRequest()
+                    .body(AjaxResponse.failure("INVALID_REQUEST", "지출 수정에 실패했습니다."));
+        }
+    }
+
+    @ResponseBody
+    @PostMapping("/delete.do")
+    public ResponseEntity<?> deleteExpenseAjax(@RequestParam(value = "expense_id", required = false) String expenseId,
+                                               @RequestParam(value = "yearMonth", required = false) String yearMonth,
+                                               HttpSession session) {
+
+        MemberVO member = AjaxAuthSupport.member(session);
+        if (member == null) {
+            return AjaxAuthSupport.unauthorized();
+        }
+
+        try {
+            Long parsedExpenseId = Long.valueOf(expenseId);
+
+            expenseService.removeExpense(
+                    parsedExpenseId,
+                    Long.valueOf(member.getMember_id())
+            );
+
+            String targetMonth = normalizeYearMonth(yearMonth, null);
+
+            return ResponseEntity.ok(
+                    AjaxResponse.success(
+                            "지출 내역이 삭제되었습니다.",
+                            Map.of("refreshUrl", "/spendolive/expense/list.do?yearMonth=" + targetMonth)
+                    )
+            );
+        } catch (Exception exception) {
+            return ResponseEntity.badRequest()
+                    .body(AjaxResponse.failure(
+                            "NOT_FOUND",
+                            "삭제할 지출 내역을 찾지 못했거나 삭제에 실패했습니다."
+                    ));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 공통 보정 및 화면 데이터 구성
+    // -------------------------------------------------------------------------
+
     private String formatDate(java.util.Date date) {
-        if (date == null) return null;
+        if (date == null) {
+            return null;
+        }
+
         return new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
     }
 
-    
-
-    // 지출관리 화면에서 입력한 월 예산을 저장한다.
-    @PostMapping("/budget/save.do")
-    public String saveMonthlyBudget(@RequestParam("budget_month") String budget_month,
-                                    @RequestParam("budget_amount") int budget_amount,
-                                    HttpSession session) {
-
-        Long member_id = getLoginMember_id(session);
-
-        if (member_id == null) {
-            return "redirect:/member/loginForm.do";
-        }
-
-        String targetMonth = budget_month;
-
-        try {
-            targetMonth = YearMonth.parse(budget_month).toString();
-        } catch (Exception e) {
-            targetMonth = YearMonth.now().toString();
-        }
-
-        // 음수 예산은 0원으로 보정한다.
-        int safeBudgetAmount = Math.max(budget_amount, 0);
-        expenseService.saveMonthlyBudget(member_id, targetMonth, safeBudgetAmount);
-
-        return "redirect:/spendolive/expense/list.do?yearMonth="
-                + targetMonth
-                + "&budgetSaved=Y";
-    }
-
-    @PostMapping("/add.do")
-    public String addExpense(@ModelAttribute ExpenseDTO expenseDTO,
-                             @RequestParam(value = "yearMonth", required = false) String yearMonth,
-                             HttpSession session) {
-
-        Long member_id = getLoginMember_id(session);
-
-        if (member_id == null) {
-            return "redirect:/member/loginForm.do";
-        }
-
-        expenseDTO.setMember_id(member_id);
-        applyRepeatSettings(expenseDTO);
-
-        expenseService.addExpense(expenseDTO);
-
-        yearMonth = normalizeYearMonth(yearMonth, null);
-        return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
-    }
-
-    @PostMapping("/modify.do")
-    public String modifyExpense(@ModelAttribute ExpenseDTO expenseDTO,
-                                @RequestParam(value = "yearMonth", required = false) String yearMonth,
-                                HttpSession session) {
-
-        Long member_id = getLoginMember_id(session);
-
-        if (member_id == null) {
-            return "redirect:/member/loginForm.do";
-        }
-
-        expenseDTO.setMember_id(member_id);
-        applyRepeatSettings(expenseDTO);
-
-        expenseService.modifyExpense(expenseDTO);
-
-        yearMonth = normalizeYearMonth(yearMonth, null);
-        return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
-    }
-
-    @PostMapping("/delete.do")
-    public String deleteExpense(@RequestParam("expense_id") Long expense_id,
-                                @RequestParam(value = "yearMonth", required = false) String yearMonth,
-                                HttpSession session) {
-
-        Long member_id = getLoginMember_id(session);
-
-        if (member_id == null) {
-            return "redirect:/member/loginForm.do";
-        }
-
-        expenseService.removeExpense(expense_id, member_id);
-
-        yearMonth = normalizeYearMonth(yearMonth, null);
-        return "redirect:/spendolive/expense/list.do?yearMonth=" + yearMonth;
-    }
-
-    // yyyy-MM 형식이 아니면 date의 연월 또는 현재 연월로 보정한다.
     private String normalizeYearMonth(String yearMonth, String date) {
         if (yearMonth != null && !yearMonth.isBlank()) {
             try {
                 return YearMonth.parse(yearMonth).toString();
             } catch (Exception ignored) {
-                // 잘못된 주소값은 아래 기본값으로 처리한다.
+                // 아래 기본값으로 보정한다.
             }
         }
 
         if (date != null) {
-            return YearMonth.from(LocalDate.parse(date)).toString();
+            try {
+                return YearMonth.from(LocalDate.parse(date)).toString();
+            } catch (Exception ignored) {
+                // 아래 현재 연월로 보정한다.
+            }
         }
 
         return YearMonth.now().toString();
     }
 
-    // yyyy-MM-dd 형식이 아니면 날짜 필터를 사용하지 않는다.
     private String normalizeDate(String date) {
         if (date == null || date.isBlank()) {
             return null;
@@ -202,39 +303,42 @@ public class ExpenseController {
 
         try {
             return LocalDate.parse(date).toString();
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return null;
         }
     }
 
-    private Long getLoginMember_id(HttpSession session) {
-        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
-
-        if (memberInfo == null) {
+    private Long getLoginMemberId(HttpSession session) {
+        if (session == null) {
             return null;
         }
 
-        return Long.valueOf(memberInfo.getMember_id());
-    }
+        Object memberInfo = session.getAttribute("memberInfo");
+        if (!(memberInfo instanceof MemberVO member)) {
+            return null;
+        }
 
-    private boolean isRepeatTargetType(String expense_type) {
-        return "FIXED".equals(expense_type) || "OTT".equals(expense_type);
+        return Long.valueOf(member.getMember_id());
     }
 
     private void applyRepeatSettings(ExpenseDTO expenseDTO) {
-        if (isRepeatTargetType(expenseDTO.getExpense_type())) {
-            expenseDTO.setFixed_yn("Y");
+        boolean repeatTarget = "FIXED".equals(expenseDTO.getExpense_type())
+                || "OTT".equals(expenseDTO.getExpense_type());
 
-            if (expenseDTO.getRepeat_cycle() == null || expenseDTO.getRepeat_cycle().isBlank()) {
-                expenseDTO.setRepeat_yn("N");
-                expenseDTO.setRepeat_cycle(null);
-            } else {
-                expenseDTO.setRepeat_yn("Y");
-            }
-        } else {
+        if (!repeatTarget) {
             expenseDTO.setFixed_yn("N");
             expenseDTO.setRepeat_yn("N");
             expenseDTO.setRepeat_cycle(null);
+            return;
+        }
+
+        expenseDTO.setFixed_yn("Y");
+
+        if (expenseDTO.getRepeat_cycle() == null || expenseDTO.getRepeat_cycle().isBlank()) {
+            expenseDTO.setRepeat_yn("N");
+            expenseDTO.setRepeat_cycle(null);
+        } else {
+            expenseDTO.setRepeat_yn("Y");
         }
     }
 
@@ -249,7 +353,6 @@ public class ExpenseController {
         return monthList;
     }
 
-
     private Map<String, Integer> makeExpenseTypeSummary(List<ExpenseDTO> expenseList) {
         Map<String, Integer> typeSummary = new LinkedHashMap<>();
         typeSummary.put("FIXED", 0);
@@ -257,25 +360,25 @@ public class ExpenseController {
         typeSummary.put("OTT", 0);
 
         for (ExpenseDTO expense : expenseList) {
-            String expense_type = expense.getExpense_type();
+            String expenseType = expense.getExpense_type();
 
-            if (expense_type == null || !typeSummary.containsKey(expense_type)) {
+            if (expenseType == null || !typeSummary.containsKey(expenseType)) {
                 continue;
             }
 
-            typeSummary.put(expense_type, typeSummary.get(expense_type) + safeAmount(expense));
+            typeSummary.put(expenseType, typeSummary.get(expenseType) + safeAmount(expense));
         }
 
         return typeSummary;
     }
 
-    private List<Map<String, Object>> makeMonthChartList(Long member_id, YearMonth selectedMonth) {
+    private List<Map<String, Object>> makeMonthChartList(Long memberId, YearMonth selectedMonth) {
         List<Map<String, Object>> monthChartList = new ArrayList<>();
         List<Integer> totalList = new ArrayList<>();
 
         for (int i = -2; i <= 0; i++) {
             YearMonth month = selectedMonth.plusMonths(i);
-            int total = sumAmount(expenseService.getExpenseList(member_id, month.toString()));
+            int total = sumAmount(expenseService.getExpenseList(memberId, month.toString()));
             totalList.add(total);
         }
 
@@ -287,7 +390,7 @@ public class ExpenseController {
             int barPercent = 0;
 
             if (maxTotal > 0 && total > 0) {
-                barPercent = Math.max(8, (int) Math.round((total * 100.0) / maxTotal));
+                barPercent = (int) Math.round((total * 100.0) / maxTotal);
             }
 
             Map<String, Object> monthData = new LinkedHashMap<>();
@@ -303,18 +406,18 @@ public class ExpenseController {
 
     private List<Map<String, Object>> makeCategorySummaryList(List<ExpenseDTO> expenseList) {
         Map<String, Integer> categoryTotalMap = new LinkedHashMap<>();
-        int total_amount = sumAmount(expenseList);
+        int totalAmount = sumAmount(expenseList);
 
         for (ExpenseDTO expense : expenseList) {
-            String category_name = expense.getCategory_name();
+            String categoryName = expense.getCategory_name();
 
-            if (category_name == null || category_name.isBlank()) {
-                category_name = "기타";
+            if (categoryName == null || categoryName.isBlank()) {
+                categoryName = "기타";
             }
 
             categoryTotalMap.put(
-                    category_name,
-                    categoryTotalMap.getOrDefault(category_name, 0) + safeAmount(expense)
+                    categoryName,
+                    categoryTotalMap.getOrDefault(categoryName, 0) + safeAmount(expense)
             );
         }
 
@@ -323,8 +426,8 @@ public class ExpenseController {
         for (Map.Entry<String, Integer> entry : categoryTotalMap.entrySet()) {
             int percent = 0;
 
-            if (total_amount > 0) {
-                percent = (int) Math.round((entry.getValue() * 100.0) / total_amount);
+            if (totalAmount > 0) {
+                percent = (int) Math.round((entry.getValue() * 100.0) / totalAmount);
             }
 
             Map<String, Object> categoryData = new LinkedHashMap<>();
@@ -334,7 +437,12 @@ public class ExpenseController {
             categorySummaryList.add(categoryData);
         }
 
-        categorySummaryList.sort((a, b) -> Integer.compare((Integer) b.get("total"), (Integer) a.get("total")));
+        categorySummaryList.sort(
+                (first, second) -> Integer.compare(
+                        (Integer) second.get("total"),
+                        (Integer) first.get("total")
+                )
+        );
 
         return categorySummaryList;
     }
