@@ -133,7 +133,7 @@
 
     function rowMatchesFilter(row, filter) {
         if (!filter || filter === 'all') return true;
-        const status = (row.dataset.rowStatus || '').toLowerCase();
+        const status = (row.dataset.rowStatus || '').toLowerCase().trim();
         const warningCount = Number(row.dataset.warningCount || 0);
         if (filter === 'active') return status === 'active';
         if (filter === 'warning') return warningCount > 0 || ['warning', 'blocked', 'suspended'].includes(status);
@@ -259,13 +259,12 @@
     function openReportProcess(button) {
         const panel = document.getElementById('commentArea');
         if (!panel) return;
-        const form = panel.closest('form');
         const reason = document.getElementById('selectedReportReason');
-        const reportId = form ? form.querySelector('[name="report_id"]') : null;
-        const memberId = form ? form.querySelector('[name="reported_member_id"]') : null;
+        const reportId = document.getElementById('formReportId');
+        const memberId = document.getElementById('formReportMemberId');
         if (reportId) reportId.value = button.dataset.reportId || '';
         if (memberId) memberId.value = button.dataset.reportedMemberId || '';
-        if (reason) reason.textContent = '신고 내용: ' + (button.dataset.reportReason || '');
+        if (reason) reason.textContent = '선택한 신고 사유: ' + (button.dataset.reportReason || '');
         panel.hidden = false;
         replayMotion(panel, 'admin-motion-panel');
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });

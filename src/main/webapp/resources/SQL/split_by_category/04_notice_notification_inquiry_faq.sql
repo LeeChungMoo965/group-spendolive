@@ -76,29 +76,29 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;
 -- 1. 공지사항 (notice_tb) 
 -- ============================================================
 
-CREATE TABLE notice_tb (
-    notice_id   NUMBER          NOT NULL,
-    admin_id    VARCHAR2(20)    NOT NULL,
-    title       VARCHAR2(200)   NOT NULL,
-    content     CLOB            NOT NULL,
-    pinned_yn   CHAR(1)         DEFAULT 'N' NOT NULL,
-    created_at  DATE            DEFAULT SYSDATE NOT NULL,
-    updated_at  DATE,
+    CREATE TABLE notice_tb (
+        notice_id   NUMBER          NOT NULL,
+        admin_id    VARCHAR2(20)    NOT NULL,
+        title       VARCHAR2(200)   NOT NULL,
+        content     CLOB            NOT NULL,
+        pinned_yn   CHAR(1)         DEFAULT 'N' NOT NULL,
+        created_at  DATE            DEFAULT SYSDATE NOT NULL,
+        updated_at  DATE,
 
-    CONSTRAINT pk_notice PRIMARY KEY (notice_id),
-    CONSTRAINT fk_notice_admin FOREIGN KEY (admin_id) REFERENCES member_tb(id),
-    CONSTRAINT ck_notice_pinned CHECK (pinned_yn IN ('Y', 'N'))
-);
+        CONSTRAINT pk_notice PRIMARY KEY (notice_id),
+        CONSTRAINT fk_notice_admin FOREIGN KEY (admin_id) REFERENCES member_tb(id),
+        CONSTRAINT ck_notice_pinned CHECK (pinned_yn IN ('Y', 'N'))
+    );
 
-CREATE SEQUENCE seq_notice START WITH 1 INCREMENT BY 1 NOCACHE;
+    CREATE SEQUENCE seq_notice START WITH 1 INCREMENT BY 1 NOCACHE;
 
-CREATE OR REPLACE TRIGGER trg_notice_bi
-BEFORE INSERT ON notice_tb
-FOR EACH ROW
-WHEN (NEW.notice_id IS NULL)
-BEGIN
-    SELECT seq_notice.NEXTVAL INTO :NEW.notice_id FROM dual;
-END;
+    CREATE OR REPLACE TRIGGER trg_notice_bi
+    BEFORE INSERT ON notice_tb
+    FOR EACH ROW
+    WHEN (NEW.notice_id IS NULL)
+    BEGIN
+        SELECT seq_notice.NEXTVAL INTO :NEW.notice_id FROM dual;
+    END;
 /
 
 

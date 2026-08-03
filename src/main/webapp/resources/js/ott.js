@@ -50,18 +50,14 @@
 
         if (!isSystem && message.mine_yn !== 'Y') {
 
-                const reportLink = document.createElement('a');
-                reportLink.href = '/report/report.do?reported_member_id='+message.sender_id+'&room_id='+room_id+'&chat_text='+message.message_content;
+                const reportLink = document.createElement('button');
                 reportLink.textContent = ' 신고하기';
-                reportLink.className = 'danger-outline';
+                reportLink.dataset.reported_member_id = message.sender_id;
+                reportLink.dataset.room_id = room_id;
+                reportLink.dataset.chat_text = message.message_content;
+                reportLink.className = 'btn btn-danger-outline mini reportSubmitButton';
                 // 필요한 경우 여기에 신고하기 클릭 이벤트 리스너를 달 수 있습니다.
-                reportLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // 예: reportMessage(message.message_id); 
-                    if (confirm('신고 하시겠습니까?')){
-                        location.href ='/report/report.do?reported_member_id='+message.sender_id+'&room_id='+room_id+'&chat_text='+encodeURIComponent(message.message_content);
-                    }
-                });
+                
 
                 time.appendChild(reportLink);
             }

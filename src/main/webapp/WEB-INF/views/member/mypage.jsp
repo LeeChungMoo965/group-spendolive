@@ -284,7 +284,7 @@
             <div class="mypage-panel-head">
                 <div>
                     <p class="eyebrow">REPORT HISTORY</p>
-                    <h2>신고 · 차단 내역</h2>
+                    <h2>신고 내역</h2>
                 </div>
                 <span>내가 신고한 상대와 처리 상태를 확인합니다.</span>
             </div>
@@ -389,21 +389,24 @@
                             <%-- 기존 버튼 스타일을 활용해 주계좌 선택과 거래내역 버튼을 함께 표시한다. --%>
                             <div class="mypage-room-actions">
                                 <c:choose>
-                                    <c:when test="${card.status eq 'YES'}">
-                                        <span class="chip done">주카드</span>
+                                    <c:when test="${account.status eq 'YES'}">
+                                        <span class="chip done">주계좌</span>
                                     </c:when>
                                     <c:otherwise>
-                                        <form action="${contextPath}/spendolive/mypage/card/primary/update.do"
-                                            method="post"
-                                            data-ajax-form
-                                            data-ajax-action="/spendolive/mypage/ajax/card/primary/update.do"
-                                            data-ajax-confirm="이 카드를 주카드로 설정할까요?"
-                                            data-loading-message="주카드를 변경하고 있습니다.">
-                                            <input type="hidden" name="cardIdx" value="${card.card_idx}">
-                                            <button type="submit" class="btn btn-primary btn-mini">주카드로 설정</button>
+                                        <form action="${contextPath}/spendolive/mypage/account/primary/update.do" method="post">
+                                            <input type="hidden" name="accountIdx" value="${account.account_idx}">
+                                            <button type="submit" class="btn btn-primary btn-mini" onclick="return confirm('이 계좌를 주계좌로 설정할까요?');">주계좌로 설정</button>
                                         </form>
                                     </c:otherwise>
                                 </c:choose>
+                                <button type="button"
+                                        class="btn btn-outline btn-mini transaction-history-btn"
+                                        data-account-idx="${account.account_idx}"
+                                        data-account-name="${fn:escapeXml(empty account.account_name ? '계좌' : account.account_name)}"
+                                        data-bank-name="${fn:escapeXml(empty accountBankName ? account.bank_code : accountBankName)}"
+                                        data-account-number="${fn:escapeXml(account.account_number)}"
+                                        data-current-balance="${account.balance}">거래내역
+                                </button>
                             </div>
                         </div>
                     </c:forEach>

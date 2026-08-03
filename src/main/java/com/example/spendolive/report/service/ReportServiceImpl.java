@@ -9,9 +9,8 @@ import com.example.spendolive.member.repository.MemberRepository;
 import com.example.spendolive.member.service.MemberService;
 import com.example.spendolive.report.domain.ReportVO;
 import com.example.spendolive.report.domain.WarningVO;
+import com.example.spendolive.report.exception.ReportProcessException;
 import com.example.spendolive.report.repository.ReportRepository;
-
-import java.lang.reflect.Member;
 import java.util.List;
 @Service
 public class ReportServiceImpl implements ReportService{
@@ -25,11 +24,15 @@ public class ReportServiceImpl implements ReportService{
         ReportVO reportInfo =new ReportVO();
         String reporter = memberInfo.getId();
         int parsed_room_id = Integer.parseInt(room_id);  
+        try{
         reportInfo.setReport_reason(chat_text);
         reportInfo.setReported_member_id(reported_member_id);
         reportInfo.setReporter_id(reporter);
         reportInfo.setRoom_id(parsed_room_id);
         reportRepository.insertReport(reportInfo);
+        }catch(Exception e){
+            throw new ReportProcessException("REPORT_FAILED", "이미 신고가 완료된 건 입니다.");
+        }
     }
     @Override
     @Transactional
@@ -48,8 +51,7 @@ public class ReportServiceImpl implements ReportService{
     }
     @Override
     @Transactional
-    public void insertWarning(String comment,String userId,String reportIdstr,String result) throws Exception{
-        int report_id = Integer.parseInt(reportIdstr);
+    public void insertWarning(String comment,String userId,int reportId,String result) throws Exception{
         MemberVO user = memberRepository.selectMemberById(userId);
         int count = user.getWarning_count();
         if(result.equals("1")){
@@ -58,13 +60,13 @@ public class ReportServiceImpl implements ReportService{
         wVo.setMember_id(userId);
         wVo.setWarning_reason(comment);
         wVo.setStatus("Y");
-        wVo.setReport_id(report_id);
+        wVo.setReport_id(reportId);
         try{
         reportRepository.insertWarning(wVo);
-        reportRepository.updateComment(comment, report_id);
+        reportRepository.updateComment(comment, reportId);
         memberRepository.updateWarning(userId,count);
         }catch(Exception e){
-            System.err.println("🚨 [시스템 에러]: " + e.getMessage());
+            throw new ReportProcessException("REPORT_FAILED", "경고 처리 중 문제가 생겼습니다. 다시 시도 해주세요");
         }
         }else if(result.equals("2")){
             //퇴출

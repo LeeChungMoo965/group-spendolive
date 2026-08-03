@@ -22,6 +22,7 @@
                     <thead>
                         <tr>
                          <th>카드 구분</th>
+                             <th>카드 이름</th>
                                     <th>카드사</th>
                                     <th>카드 번호</th>
                         </tr>
@@ -42,10 +43,19 @@
             </c:otherwise>
         </c:choose>
     </strong></td>
-                            <td>
+    <c:set var="cardCompanyDisplayName"
+                               value="${not empty cardCompanyNameMap[card.card_company] ? cardCompanyNameMap[card.card_company] : (empty card.card_company ? '카드' : card.card_company)}" />
+                                   <c:set var="cardDisplayName"
+                               value="${empty card.card_name or card.card_name eq card.card_company ? cardCompanyDisplayName : card.card_name}" />
+                             <td>
                                 <strong>
-                                    ${card.card_company}
+                                  
+                               <c:out value="${cardDisplayName}" />
                                 </strong>
+                            </td>
+                            <td>                                  
+                               <c:out value="${cardCompanyDisplayName}" />
+                                
                             </td>
                             <td><strong>${card.card_number}</strong></td>
                         </tr>
@@ -152,5 +162,3 @@
 
 <jsp:include page="/WEB-INF/views/payment/popup.jsp" />
 <script src="${contextPath}/resources/js/signup.js"></script>
-<script src="${contextPath}/resources/js/payment.js"></script>
-<script src="${contextPath}/resources/js/app.js"></script>

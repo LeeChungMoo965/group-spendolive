@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.report.domain.ReportAjaxResponse;
 import com.example.spendolive.report.domain.ReportVO;
 import com.example.spendolive.report.service.ReportService;
 
@@ -34,10 +37,10 @@ public class AdminReportControllerImpl implements AdminReportController{
             if(status == null){reportList = reportService.selectReportAll();}
             else{reportList = reportService.selectReport(status);}
             
-            
-            session.setAttribute("reportList", reportList);
-  
-            return layout("/WEB-INF/views/admin/report/report.jsp");
+            ModelAndView mav = layout("/WEB-INF/views/admin/report/report.jsp");
+            mav.addObject("reportList", reportList);
+
+            return mav;
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
@@ -46,18 +49,28 @@ public class AdminReportControllerImpl implements AdminReportController{
     }
     @Override
     @PostMapping("/comment.do")
-    public String comment(@RequestParam String admin_comment,@RequestParam String reported_member_id,@RequestParam String report_id,@RequestParam String result,  HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
+    public ResponseEntity<ReportAjaxResponse> comment(@RequestParam("admin_comment") String admin_comment,@RequestParam("reported_member_id") String reported_member_id,@RequestParam("report_id") int report_id,@RequestParam("result") String result,  HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
         session = request.getSession();
         
         
         try {
             reportService.insertWarning(admin_comment, reported_member_id, report_id, result);
-            redirectAttributes.addFlashAttribute("msg", "처리에 성공 하였습니다. ");
-            return "redirect:/admin/settlement/list.do";
-
+            return ResponseEntity.ok(new ReportAjaxResponse(
+                    true,
+                    "WARINGED_COMPLETED",
+                    "경고 처리에 성공하였습니다..",
+                    "SUCCESS",
+                    null,
+                    "/admin/report/list.do"));
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("msg", "처리에 실패 하였습니다. ");
-            return "redirect:/admin/settlement/list.do";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(new ReportAjaxResponse(
+                false,
+                "WARINGED_FAILED",
+                e.getMessage(),
+                "FAIL",
+                null,
+                "/admin/report/list.do"));
         }
     }
     private ModelAndView layout(String bodyPage) {

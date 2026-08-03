@@ -79,7 +79,7 @@
         </c:choose>
     </section>
 
-    <form action="${contextPath}/admin/report/comment.do" method="post" onsubmit="return confirm('이 내용으로 신고 처리를 완료할까요?');">
+  
         <section id="commentArea" class="panel" hidden>
             <div class="panel-header">
                 <div class="panel-title">
@@ -90,14 +90,14 @@
                 <button type="button" class="btn ghost" data-report-process-cancel>닫기</button>
             </div>
 
-            <input type="hidden" name="reported_member_id" value="">
-            <input type="hidden" name="report_id" value="">
+            <input type="hidden" id="formReportMemberId" name="reported_member_id" value="">
+            <input type="hidden" id="formReportId" name="report_id" value="">
 
             <div class="form-grid" style="grid-template-columns:minmax(180px, .35fr) minmax(0, 1fr);">
                 <div class="form-field">
                     <label for="reportResult">처리 상태</label>
                     <select class="form-input" name="result" id="reportResult">
-                        <option value="1">경고</option>
+                        <option value="1" >경고</option>
                         <option value="2">퇴출</option>
                         <option value="3">반려</option>
                     </select>
@@ -108,9 +108,9 @@
                               placeholder="처리 결과를 입력하세요." required></textarea>
                 </div>
             </div>
-
             <div class="toolbar" style="justify-content:flex-end;margin-bottom:0;">
-                <button class="btn primary" type="submit">처리 결과 저장</button>
+                 <button type="button" class="mini-btn warning waringSubmitButton"
+                        >처리</button>
             </div>
         </section>
     </form>

@@ -9,27 +9,35 @@ import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import com.example.spendolive.member.exception.MemberProcessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityReturnValueHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.example.spendolive.payment.service.PaymentServiceImpl;
 import com.example.spendolive.member.domain.MemberAccountVO;
 import com.example.spendolive.member.domain.MemberAjaxResponse;
 import com.example.spendolive.member.domain.MemberVO;
 
 import com.example.spendolive.member.service.MemberService;
+import com.example.spendolive.mypage.service.MyPageService;
 
 
 @Controller("memberController")
@@ -38,9 +46,10 @@ import com.example.spendolive.member.service.MemberService;
 public class MemberControllerImpl implements MemberController{
     @Autowired
     private MemberService memberService;
-
-    private MemberVO memberVO;
-    private MemberAccountVO accountmemberVO;
+    @Autowired
+    private MyPageService mypageService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @Value("${kakao.client.id}")
     private String kakaoclientId;
     @Value("${kakao.redirect.uri}")
@@ -59,16 +68,38 @@ public class MemberControllerImpl implements MemberController{
     @RequestMapping(value="/login.do" ,method = RequestMethod.POST )
     public ResponseEntity<MemberAjaxResponse> login(@RequestParam Map<String, String> loginMap, HttpServletRequest request, HttpServletResponse response)
             throws Exception {
-        ModelAndView mav = new ModelAndView();
-        memberVO = memberService.login(loginMap);
-        String id = memberVO.getId();
+
+        String id = loginMap.get("id");
+        String rawPassword = loginMap.get("password");
         String url ="";
-        List<MemberAccountVO> accountList =memberService.getAccountById(id);
-        //로그인 성공 하여 memberVO객체가 생성될 시 home화면 이동
-        if(memberVO != null && memberVO.getId() != null && !memberVO.getId().equals("")) {
+      
+        MemberVO memberVO = memberService.getMemberById(id);
+        if (memberVO == null){
+            return ResponseEntity.ok(new MemberAjaxResponse(
+                false,
+                "LOGIN_FAILED",
+                "아이디가 존재하지 않습니다.",
+                "FAIL",
+                null,
+                url));
+        }
+        if (passwordEncoder.matches(rawPassword, memberVO.getPassword())) {
+            List<GrantedAuthority> authorities = List.of(
+            new SimpleGrantedAuthority("ROLE_" + memberVO.getRole()) );
+            //스프링 시큐리티용 인증(Authentication) 객체 생성
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                memberVO.getId(), // principal (아이디 또는 MemberVO)
+                null,             // credentials (비밀번호는 인증 후 null 처리)
+                authorities       // 권한 목록
+            );
+            //SecurityContext 생성 후 인증 객체 담기
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);      
             HttpSession session = request.getSession();
-            session.setAttribute("isLogOn", true);
+            session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
+            session.setAttribute("isLogOn", true);  
             session.setAttribute("memberInfo", memberVO);
+            List<MemberAccountVO> accountList =memberService.getAccountById(id);
             if(accountList != null){
                 for(MemberAccountVO account : accountList){
                     if(account.getOpen_bank_token() != null){
@@ -76,16 +107,19 @@ public class MemberControllerImpl implements MemberController{
                     }
                 }
             }
-            
-            try{
+             
+         
                 
                 String log = (String) session.getAttribute("log");
-                if(log.equals("mypage")){url = "/spendolive/mypage.do";}
-                else if(log.equals("expense")){url = "/spendolive/expense.do";}
-                else if(log.equals("ott")){ url = "/spendolive/ott.do";}
-                
-            }catch(Exception e){   
-                url = "/spendolive/main.do";
+                if ("mypage".equals(log)) {
+                    url = "/spendolive/mypage.do";
+                } else if ("expense".equals(log)) {
+                    url = "/spendolive/expense.do";
+                } else if ("ott".equals(log)) {
+                    url = "/spendolive/ott.do";
+                } else {
+                    url = "/spendolive/main.do";
+                }
                 if(memberVO.getRole().equals("ADMIN")){url = "/spendolive/admin/main.do";
                 return ResponseEntity.ok(new MemberAjaxResponse(
                     true,
@@ -95,28 +129,28 @@ public class MemberControllerImpl implements MemberController{
                     null,
                     url));
                 }
-            }
-              
-        }
-        //로그인 실피 시 로그인 화면 유지
-        else {
-            url = "/spendolive/member/loginForm.do";
+    
             return ResponseEntity.ok(new MemberAjaxResponse(
-                false,
-                "LOGIN_FAILED",
-                "로그인에 실패하였습니다.",
-                "FAIL",
-                null,
-                url));
-        }
-        return ResponseEntity.ok(new MemberAjaxResponse(
                 true,
                 "LOGIN_COMPLETED",
                 "로그인에 성공하였습니다.",
                 "SUCCESS",
                 null,
                 url));
+              
+        }else {
+            url = "/spendolive/member/loginForm.do";
+            return ResponseEntity.ok(new MemberAjaxResponse(
+                false,
+                "LOGIN_FAILED",
+                "비밀번호가 틀립니다",
+                "FAIL",
+                null,
+                url));
+        }
     }
+       
+       
     
     // 코드리뷰.3 ->loginform.jsp
     @Override
@@ -141,12 +175,13 @@ public class MemberControllerImpl implements MemberController{
         ModelAndView mav = new ModelAndView();
         HttpSession session=request.getSession();
         session.setAttribute("isLogOn", false);
+        session.removeAttribute("SPRING_SECURITY_CONTEXT");
         session.removeAttribute("memberInfo");
         session.removeAttribute("login_type");
         session.removeAttribute("loginId");
         mav.setViewName("redirect:/spendolive/main.do");
         return mav;
-    }
+    }                   
     
     
     // 코드리뷰.2
@@ -203,19 +238,19 @@ public class MemberControllerImpl implements MemberController{
     // 코드리뷰.2-1
     @Override
     @ResponseBody
-    @RequestMapping(value="/sendEmail.do", method = RequestMethod.POST)
+    @PostMapping("/sendEmail.do")
     public ResponseEntity<MemberAjaxResponse> sendEmail(@RequestParam("email") String email, HttpServletRequest request) throws Exception {
         
-        try {
+       
             try{
-            if(memberService.checkEmail(email)){
-            }else return ResponseEntity.ok(new MemberAjaxResponse(
+            if(!memberService.checkEmail(email)){
+            return ResponseEntity.ok(new MemberAjaxResponse(
                 false,
                 "EMAIL_EXIST",
                 "EMAIL이 이미 존재 합니다.",
                 "EXIST",
                 email,
-                null));
+                null));}
             }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity
@@ -228,12 +263,12 @@ public class MemberControllerImpl implements MemberController{
                             email,
                             null));
             }
+            try {
             // 메일 발송 후 생성된 6자리 코드 반환받기
             String verificationCode = memberService.sendVerificationEmail(email);
             
             // 사용자가 나중에 입력한 값과 비교할 수 있도록 세션에 인증코드 저장
             HttpSession session = request.getSession();
-            session.removeAttribute("verificationCode");
             session.setAttribute("verificationCode", verificationCode);
             
             return ResponseEntity.ok(new MemberAjaxResponse(
@@ -244,25 +279,25 @@ public class MemberControllerImpl implements MemberController{
                             email,
                             null));
             
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MemberAjaxResponse(
-                            false,
-                            "SEND_FAILED",
-                            "인증번호 발생 중 오류가 발생하였습니다. 잠시 후 다시 시도해주세요.",
-                            "FAILED",
-                            email,
-                            null));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new MemberAjaxResponse(
+                                false,
+                                "SEND_FAILED",
+                                "인증번호 발생 중 오류가 발생하였습니다. 잠시 후 다시 시도해주세요.",
+                                "FAILED",
+                                email,
+                                null));
+            }
+            
         }
-        
-    }
  
  
     // 코드리뷰.2-2
     @Override
-    @RequestMapping(value="/verifyEmail", method = RequestMethod.POST)
+    @PostMapping("/verifyEmail.do")
     @ResponseBody
     public boolean verifyEmail(@RequestParam("inputCode") String inputCode, HttpServletRequest request) {
         HttpSession session = request.getSession();
@@ -282,7 +317,7 @@ public class MemberControllerImpl implements MemberController{
     // 코드리뷰.2-3
             // 1. 휴대폰 인증번호 발송 요청 처리
         @Override
-        @RequestMapping(value="/sendSms.do", method = RequestMethod.POST)
+        @PostMapping("/sendSms.do")
         @ResponseBody
         public  ResponseEntity<MemberAjaxResponse> sendSms(@RequestParam("phone") String phone, HttpServletRequest request) throws Exception {
            
@@ -343,7 +378,7 @@ public class MemberControllerImpl implements MemberController{
         // 코드리뷰.2-4
         // 2. 사용자가 입력한 인증번호 검증 처리
         @Override
-        @RequestMapping(value="/verifySms", method = RequestMethod.POST)
+        @PostMapping("/verifySms.do")
         @ResponseBody
         public boolean verifySms(@RequestParam("inputCode") String inputCode, HttpServletRequest request) {
             HttpSession session = request.getSession();
@@ -362,7 +397,7 @@ public class MemberControllerImpl implements MemberController{
         
         //아이디 중복확인
         @Override
-        @RequestMapping(value="/checkId.do", method = RequestMethod.POST)
+        @PostMapping("/checkId.do")
         @ResponseBody
         public ResponseEntity<MemberAjaxResponse> checkId(@RequestParam("id") String id) throws Exception {
             
@@ -396,7 +431,7 @@ public class MemberControllerImpl implements MemberController{
             }
         }
         @Override
-        @RequestMapping(value="/checkEmail", method = RequestMethod.POST)
+        @PostMapping("/checkEmail")
         @ResponseBody
         public boolean checkEmail(@RequestParam("email") String email) throws Exception {
             return memberService.checkEmail(email);
@@ -438,7 +473,7 @@ public class MemberControllerImpl implements MemberController{
                 session.setAttribute("member_name", userInfo.get("nickname")); 
                 return layout("/WEB-INF/views/member/signup.jsp");
             } else {
-                memberVO = memberService.login(userInfo);
+                MemberVO memberVO = memberService.getMemberById(id);
                 session.setAttribute("memberInfo", memberVO);
                 session.setAttribute("isLogOn", true);
                 session.setAttribute("login_type", "KAKAO");
@@ -528,10 +563,10 @@ public ModelAndView openBankingIntegratedcallback(
 // [보안 체크] 내가 보냈던 state 값이 맞는지 검증하는 로직을 넣으면 더 안전합니다.
 
 // 현재 로그인한 사용자의 ID나 고유 번호 가져오기 (세션 등 활용)
-MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
-String userId = memberVO.getId();
-ResponseEntity resEntity = null;
-HttpHeaders responseHeaders = new HttpHeaders();
+//MemberVO memberVO = (MemberVO) session.getAttribute("memberInfo");
+//String userId = memberVO.getId();
+//ResponseEntity resEntity = null;
+//HttpHeaders responseHeaders = new HttpHeaders();
 try {
     // 비즈니스 로직 처리를 위해 서비스 호출
     redirectAttributes.addFlashAttribute("msg", "계좌인증을 완료했습니다. 로그인을 다시 해주세요."); 
@@ -543,6 +578,32 @@ try {
     redirectAttributes.addFlashAttribute("msg", "계좌 인증에 실패하였습니다. 다시 시도해 주세요."); 
     return new ModelAndView("redirect:/spendolive/main.do");
 }
+}
+//강제탈퇴(관리자) 
+@Override
+@PostMapping("/whitdraw.do")
+@ResponseBody
+public ResponseEntity<MemberAjaxResponse> whitdraw(@RequestParam("id") String id,  HttpServletRequest request, HttpServletResponse response) throws Exception {
+    request.setCharacterEncoding("utf-8");
+    try {
+            mypageService.withdrawMember(id);
+                return ResponseEntity.ok(new MemberAjaxResponse(
+                    true,
+                    "WITHDRAW_COMPLETED",
+                    "탈퇴가 완료되었습니다.",
+                    "SUCCESS",
+                    id,
+                    "/admin/member/list.do"));
+    }catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MemberAjaxResponse(
+                        false,
+                        "WHITDRAW_FAILED",
+                        "탈퇴에 실패 하였습니다.",
+                        "FAILED",
+                        id,
+                        "/admin/member/list.do"));
+    }
 }
     /* =========================================================
        [추가 기능] 아이디 찾기 - 1단계: 휴대폰 인증번호 발송
@@ -811,4 +872,5 @@ try {
         mav.addObject("body_page", bodyPage);
         return mav;
     }
+
 }
