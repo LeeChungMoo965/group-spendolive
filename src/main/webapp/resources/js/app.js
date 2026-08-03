@@ -287,6 +287,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (closeBtn) closeBtn.addEventListener('click', closePanel);
 
 
+
+  
   // ==========================================
   // 2. 글자 크기 및 폰트 설정 기능
   // ==========================================
@@ -501,7 +503,7 @@ async function executeRequest(options,prefix) {
       }
 
       // Response Error
-      showFailure(button, result,prefix);
+      showFailure(button, result, prefix);
 
   } catch (error) {
       // Network or Timeout Exception -> Fallback Check

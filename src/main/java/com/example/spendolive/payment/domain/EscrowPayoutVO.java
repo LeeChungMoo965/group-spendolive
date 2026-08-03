@@ -3,8 +3,6 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.example.spendolive.payment.repository.PaymentRepositoryImpl;
-
 @Data
 public class EscrowPayoutVO {
  

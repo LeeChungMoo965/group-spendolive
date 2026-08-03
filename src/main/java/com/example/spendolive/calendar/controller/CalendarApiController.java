@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spendolive.Expense.domain.ExpenseDTO;
 import com.example.spendolive.Expense.repository.ExpenseRepository;
@@ -40,6 +43,10 @@ public class CalendarApiController {
      * GET /spendolive/calendar/expenses.do?year=2026&month=7
      * 고정/반복 지출은 등록 월 이후에도 매달 자동 포함된다.
      */
+    @GetMapping("/calendar.do")
+    public ModelAndView calendar(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        return layout("/WEB-INF/views/calendar/calendar.jsp");
+    }
     @GetMapping("/expenses.do")
     @ResponseBody
     public List<Map<String, Object>> getMonthlyExpenses(
@@ -76,5 +83,11 @@ public class CalendarApiController {
             result.add(row);
         }
         return result;
+    }
+    private ModelAndView layout(String bodyPage) {
+        ModelAndView mav = new ModelAndView();
+        mav.setViewName("common/layout");
+        mav.addObject("body_page", bodyPage);
+        return mav;
     }
 }

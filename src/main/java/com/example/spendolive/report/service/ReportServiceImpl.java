@@ -51,8 +51,7 @@ public class ReportServiceImpl implements ReportService{
     }
     @Override
     @Transactional
-    public void insertWarning(String comment,String userId,String reportIdstr,String result) throws Exception{
-        int report_id = Integer.parseInt(reportIdstr);
+    public void insertWarning(String comment,String userId,int reportId,String result) throws Exception{
         MemberVO user = memberRepository.selectMemberById(userId);
         int count = user.getWarning_count();
         if(result.equals("1")){
@@ -61,10 +60,10 @@ public class ReportServiceImpl implements ReportService{
         wVo.setMember_id(userId);
         wVo.setWarning_reason(comment);
         wVo.setStatus("Y");
-        wVo.setReport_id(report_id);
+        wVo.setReport_id(reportId);
         try{
         reportRepository.insertWarning(wVo);
-        reportRepository.updateComment(comment, report_id);
+        reportRepository.updateComment(comment, reportId);
         memberRepository.updateWarning(userId,count);
         }catch(Exception e){
             throw new ReportProcessException("REPORT_FAILED", "경고 처리 중 문제가 생겼습니다. 다시 시도 해주세요");
