@@ -284,7 +284,7 @@
             <div class="mypage-panel-head">
                 <div>
                     <p class="eyebrow">REPORT HISTORY</p>
-                    <h2>신고 · 차단 내역</h2>
+                    <h2>신고 내역</h2>
                 </div>
                 <span>내가 신고한 상대와 처리 상태를 확인합니다.</span>
             </div>

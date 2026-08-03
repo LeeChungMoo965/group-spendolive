@@ -78,7 +78,6 @@
          <script src="${contextPath}/resources/js/payment.js"></script>
         <script src="${contextPath}/resources/js/chatbot.js"></script>
         <script src="${contextPath}/resources/js/app.js"></script>
-         <script src="${contextPath}/resources/js/ott.js"></script>
         <%-- data-ajax-form/data-ajax-navigation이 있는 내 담당 화면에서만 요청을 가로챈다. --%>
         <script src="${contextPath}/resources/js/pageAjax.js"></script>
         <script src="${contextPath}/resources/js/bellIcon.js"></script>

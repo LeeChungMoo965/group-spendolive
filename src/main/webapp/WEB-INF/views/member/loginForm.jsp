@@ -140,7 +140,7 @@
             <div class="auth-form-group">
                 <label for="findIdPhone">가입한 휴대폰 번호</label>
                 <div class="auth-input-row">
-                    <input id="findIdPhone" type="text" placeholder="01012345678 또는 010-1234-5678">
+                    <input id="findIdPhone" type="text" placeholder="010-1234-5678 형식">
                     <button type="button" class="auth-btn auth-btn-light" onclick="sendFindIdSms()">인증번호 받기</button>
                 </div>
                 <p class="auth-help-text">회원가입 때 입력한 휴대폰 번호를 입력하세요.</p>
@@ -175,7 +175,7 @@
                 <div class="auth-form-group">
                     <label for="findPwPhone">가입한 휴대폰 번호</label>
                     <div class="auth-input-row">
-                        <input id="findPwPhone" type="text" placeholder="01012345678 또는 010-1234-5678">
+                        <input id="findPwPhone" type="text" placeholder="010-1234-5678 형식">
                         <button type="button" class="auth-btn auth-btn-light" onclick="sendFindPwSms()">인증번호 받기</button>
                     </div>
                     <p class="auth-help-text">아이디와 휴대폰 번호가 DB에 있는 회원 정보와 일치해야 인증번호가 발급됩니다.</p>
@@ -246,13 +246,11 @@
             </div>
 </main>
 </div>
-<script src="${contextPath}/resources/js/chatbot.js"></script>
 <script src="${contextPath}/resources/js/app.js"></script>
 <script src="${contextPath}/resources/js/signup.js"></script>
-   <script src="${contextPath}/resources/js/app.js"></script>
-    <script src="${contextPath}/resources/js/bellIcon.js"></script>
+
 <script>
-    var contextPath = "${contextPath}";
+    var loginContextPath = "${contextPath}";
 
     var msg = "${msg}";
     var message = "${message}";
@@ -323,7 +321,7 @@
             params.append(key, data[key]);
         });
 
-        return fetch(contextPath + url, {
+            return fetch(loginContextPath + url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
@@ -449,8 +447,6 @@
             setResult('findPwResult', '비밀번호 변경 중 오류가 발생했습니다.', 'warn');
         });
     }
-</script>
-<script src="${contextPath}/resources/js/app.js">
 </script>
 </body>
 </html>
