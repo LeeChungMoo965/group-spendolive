@@ -3,7 +3,6 @@ package com.example.spendolive.member.repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -40,14 +39,13 @@ public class MemberRepositoryImpl implements MemberRepository{
   + "TO_CHAR(updated_at, 'YYYY-MM-DD') AS updated_at, "
   + "TO_CHAR(warninged_at, 'YYYY-MM-DD') AS warninged_at, "
   + "TO_CHAR(last_login_at, 'YYYY-MM-DD') AS last_login_at "
-  + "FROM member_tb "
-  + "WHERE status = 'ACTIVE'";
+  + "FROM member_tb ";
     private final String checkId = "select decode(count(*),1, 'false', 0, 'true') as id"
-    +" from member_tb where id =? ";
+    +" from member_tb where id =? "+ "AND status = 'ACTIVE'";
     private final String checkEmail = "select decode(count(*),1, 'false', 0, 'true') as email"
-    +" from member_tb where email =? ";
+    +" from member_tb where email =? "+ "AND status = 'ACTIVE'";
     private final String checkPhone = "select decode(count(*),1, 'false', 0, 'true') as phone"
-    +" from member_tb where phone =? ";
+    +" from member_tb where phone =? "+ "AND status = 'ACTIVE'";
    
     private final String selectMemberByIdSql =
     "SELECT member_id, id, email, password, member_name, nickname, "
@@ -67,8 +65,6 @@ public class MemberRepositoryImpl implements MemberRepository{
                                                 + "order by case when status='YES' then 0 else 1 end, account_idx ";
     private final String selectMemberCardById= "select BILLING_KEY,CARD_COMPANY,CARD_IDX,CARD_NUMBER,CARD_NAME,ID,REG_DATE,STATUS "
                                                 +"from member_card_tb where id=? ";
-    private final String selectMemverCardById = "select billing_key, card_company, card_number from member_card_tb where id =? and status ='YES' ";
-
     // 다른 회원의 계좌가 조회되지 않도록 회원 아이디와 계좌 번호를 함께 검사한다.
     private final String selectTransactionsByAccount = """
             SELECT member_tran_idx,

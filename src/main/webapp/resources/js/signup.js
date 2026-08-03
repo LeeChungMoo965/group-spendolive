@@ -301,3 +301,52 @@ function showMemberModal(prefix, type, titleText, messageText) {
         });
     });
 })();
+(function () {
+
+    document.addEventListener('click', async function (e) {
+        const whitdrawButton = e.target.closest('.adminmemberSubmitButton');
+        if (!whitdrawButton) return;
+        const id = whitdrawButton.dataset.id;
+        const body = new URLSearchParams({ id });
+        try {
+            showMemberModal('adminmember','processing', '탈퇴 진행 중 입니다.', '잠시만 기다려주세요.');
+            const response = await fetch('/member/whitdraw.do', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'Accept': 'application/json'
+                },
+                body: body
+            });
+
+            const result = await response.json();
+
+            // 백엔드가 보내주는 code 값으로 확인 (CHECK_COMPLETED = 사용 가능)
+            if (result.code === 'WITHDRAW_COMPLETED') {
+                showMemberModal('adminmember','success', '탈퇴 완료 !', result.message || '탈퇴 완료되었습니다.');
+                signupmoveAfterSuccess(result);
+            } else {
+                showMemberModal('adminmember','error', '탈퇴 실패', result.message || '탈퇴 중 오류가 발생하였습니다.');
+            }
+
+        } catch (error) {
+            console.error("탈퇴 에러 상세 내용:", error);
+        showMemberModal('adminmember','error', '시스템 오류', '탈퇴 중 오류가 발생했습니다.');
+        }
+    });
+    function signupmoveAfterSuccess(result) {
+  
+        window.setTimeout(function () {
+            window.location.href = result.redirectUrl;
+        }, 1200);
+    }
+})();
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        // 현재 엔터를 친 요소가 input 태그인지 확인 
+        // (textarea나 button에서 엔터를 칠 때는 정상 작동하게 두기 위함)
+        if (event.target.tagName === 'INPUT') {
+            event.preventDefault(); // 기본 동작(submit) 막기
+        }
+    }
+});

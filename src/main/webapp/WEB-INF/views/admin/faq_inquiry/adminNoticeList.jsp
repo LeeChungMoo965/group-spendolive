@@ -28,7 +28,7 @@
 
                 <div class="form-field"><label for="modalNoticeTitleInput">제목</label><input type="text" id="modalNoticeTitleInput" name="title" class="form-input" placeholder="공지 제목을 입력하세요" required></div>
 
-                <div class="form-field"><label>구분</label><label class="toolbar-left"><input type="checkbox" id="modalNoticePinned" name="pinned_yn" value="Y"><span>중요 공지로 설정</span></label></div>
+                <div class="form-field"><label>구분</label><label class="expose-check"><input type="checkbox" id="modalNoticePinned" name="pinned_yn" value="Y"><span>중요 공지로 설정</span></label></div>
 
                 <div class="form-field"><label for="modalNoticeContent">내용</label><textarea id="modalNoticeContent" name="content" class="form-textarea" placeholder="공지 내용을 입력하세요" required></textarea></div>
 

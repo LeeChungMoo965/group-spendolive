@@ -8,7 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>500 - 서버 오류</title>
 </head>
-<body>
+<body class="auth-body">
+<header class="site-header" style="position: absolute; top: 1.5rem; left: 1.5rem;">
+    <img src="${contextPath}/resources/images/logo.png" alt="SpendOlive" style="width:62px; height:62px; border-radius:50%; object-fit:cover;">
+</header>
     <div class="error-container">
         <div class="error-code">500</div>
         <h1 class="error-title">서버 오류가 발생했습니다</h1>

@@ -16,17 +16,17 @@
       <div class="size-card-group">
         <button type="button" id="btn-font-down" class="size-card" title="글자 크기 축소">
           <span class="check-badge">✓</span>
-          <div class="preview-box size-sm">가<span>Aa</span></div>
+          <div class="preview-box size-sm">-</div>
           <span class="card-label">축소</span>
         </button>
-        <button type="button" id="btn-font-reset" class="size-card active" title="글자 크기 기본">
+        <button type="button" id="btn-font-reset" class="size-card" title="글자 크기 기본">
           <span class="check-badge">✓</span>
-          <div class="preview-box size-md">가<span>Aa</span></div>
-          <span class="card-label">기본</span>
+          <div class="preview-box size-md">글자</div>
+          <span class="card-label">크기조절</span>
         </button>
         <button type="button" id="btn-font-up" class="size-card" title="글자 크기 확대">
           <span class="check-badge">✓</span>
-          <div class="preview-box size-lg">가<span>Aa</span></div>
+          <div class="preview-box size-lg">+</div>
           <span class="card-label">확대</span>
         </button>
       </div>

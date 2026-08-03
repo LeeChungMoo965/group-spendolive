@@ -1,6 +1,6 @@
 package com.example.spendolive.payment.controller;
 
-import java.text.DecimalFormat;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import com.example.spendolive.member.domain.MemberVO;
 import com.example.spendolive.member.service.MemberService;
 import com.example.spendolive.ott.domain.OttRoomDTO;
 import com.example.spendolive.ott.domain.OttRoomMemberDTO;
@@ -24,8 +22,6 @@ import com.example.spendolive.payment.domain.PaymentAjaxResponse;
 import com.example.spendolive.payment.domain.SettlementPaymentVO;
 import com.example.spendolive.payment.exception.PaymentProcessException;
 import com.example.spendolive.payment.service.PaymentService;
-import com.example.spendolive.report.domain.ReportVO;
-import com.example.spendolive.report.service.ReportService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,8 +31,6 @@ import jakarta.servlet.http.HttpSession;
 public class AdminPaymentControllerImpl implements AdminPaymentController{
     @Autowired
     private PaymentService paymentService;
-    @Autowired
-    private MemberService memberService;
     @Override
     @GetMapping("/list.do")
     public ModelAndView listUpSettlement(@RequestParam(value = "status", required = false) String status,HttpServletRequest request, HttpServletResponse response, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
@@ -45,9 +39,9 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         
         try {
             List<OttRoomDTO> settlementList = paymentService.selectTodaysettlement(status);
-           
-            session.setAttribute("settlementList", settlementList);
-            return layout("/WEB-INF/views/admin/settlement/settlement.jsp");
+            ModelAndView mav = layout("/WEB-INF/views/admin/settlement/settlement.jsp");
+            mav.addObject("settlementList", settlementList);
+            return mav;
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
@@ -62,8 +56,9 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         
         try {
             List<OttRoomMemberDTO> paymentList = paymentService.selectTodaysettlementmember(status);
-            session.setAttribute("paymentList", paymentList);
-            return layout("/WEB-INF/views/admin/settlement/payment.jsp");
+            ModelAndView mav = layout("/WEB-INF/views/admin/settlement/payment.jsp");
+            mav.addObject("paymentList", paymentList);
+            return mav;
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");
@@ -78,8 +73,9 @@ public class AdminPaymentControllerImpl implements AdminPaymentController{
         
         try {
             List<SettlementPaymentVO> paymentdetailList = paymentService.selectpaymentAll();
-            session.setAttribute("paymentdetailList", paymentdetailList);
-            return layout("/WEB-INF/views/admin/settlement/paymentdetail.jsp");
+            ModelAndView mav = layout("/WEB-INF/views/admin/settlement/paymentdetail.jsp");
+            mav.addObject("paymentdetailList", paymentdetailList);
+            return mav;
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("msg", "리스트업에 실패 하였습니다. ");

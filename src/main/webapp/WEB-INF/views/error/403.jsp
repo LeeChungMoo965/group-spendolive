@@ -8,8 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>403 - 접근 권한 없음</title>
 </head>
-<body>
-    <div class="container">
+<body class="auth-body">
+<header class="site-header" style="position: absolute; top: 1.5rem; left: 1.5rem;">
+    <img src="${contextPath}/resources/images/logo.png" alt="SpendOlive" style="width:62px; height:62px; border-radius:50%; object-fit:cover;">
+</header>
+    <div class="error-container">
         <div class="error-code">403</div>
         <h1 class="error-title">접근 권한이 없습니다</h1>
         <p class="error-message">

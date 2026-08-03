@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isDayNumberClick) {
             return;
         }
-        location.href = `/spendolive/expense.do?date=${info.dateStr}#expense-list`;
+        location.href = `/spendolive/expense/list.do?date=${info.dateStr}#expense-list`;
         },
       
       eventContent: function(arg) {
