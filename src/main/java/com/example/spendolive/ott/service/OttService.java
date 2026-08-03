@@ -21,6 +21,10 @@ public interface OttService {
     // OTT 종류와 방 제목 검색 조건을 적용해 외부 모집방 조회
     List<OttRoomDTO> getRecruitRooms(String loginId, Long ott_service_id, String roomNameKeyword);
 
+    // 검색 조건과 페이지 범위를 적용해 외부 모집방 조회
+    List<OttRoomDTO> getRecruitRooms(String loginId, Long ott_service_id, String roomNameKeyword,
+            int page, int pageSize);
+
     // 사용자가 참여하거나 만든 가족·지인 방 조회
     List<OttRoomDTO> getFriendRooms(String loginId);
 
@@ -65,6 +69,9 @@ public interface OttService {
 
     // 현재 종료되지 않은 외부 모집방 수 조회
     int getRecruitRoomCount();
+
+    // 검색 조건에 맞는 종료되지 않은 외부 모집방 수 조회
+    int getRecruitRoomCount(Long ott_service_id, String roomNameKeyword);
 
     // 사용자가 ACTIVE 상태로 참여 중인 방 수 조회
     int getMyRoomCount(String loginId);

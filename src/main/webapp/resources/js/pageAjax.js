@@ -82,7 +82,13 @@
         if (form.dataset.ajaxPending === 'true') return;
         form.dataset.ajaxPending = 'true';
         window.SpendOliveAjax.disableButton(submitter);
-        const params = new URLSearchParams(new FormData(form));
+
+        const formData = new FormData(form);
+        if (submitter && submitter.name) {
+            formData.set(submitter.name, submitter.value);
+        }
+
+        const params = new URLSearchParams(formData);
         const url = form.action + (form.action.includes('?') ? '&' : '?') + params.toString();
         try {
             await refreshContent(

@@ -63,6 +63,22 @@ public class OttServiceImpl implements OttService {
                 normalizeKeyword(roomNameKeyword)));
     }
 
+    // 검색 조건과 페이지 범위를 적용한 외부인 모집방 목록 조회
+    @Override
+    public List<OttRoomDTO> getRecruitRooms(String loginId, Long ott_service_id, String roomNameKeyword,
+            int page, int pageSize) {
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.max(pageSize, 1);
+        int offset = (safePage - 1) * safePageSize;
+
+        return enrichRooms(ottRepository.selectRecruitRooms(
+                loginId,
+                normalizeOttServiceId(ott_service_id),
+                normalizeKeyword(roomNameKeyword),
+                offset,
+                safePageSize));
+    }
+
     // 내가 참여 중인 가족·지인 공유방 목록 조회
     @Override
     public List<OttRoomDTO> getFriendRooms(String loginId) {
@@ -157,6 +173,14 @@ public class OttServiceImpl implements OttService {
     @Override
     public int getRecruitRoomCount() {
         return ottRepository.countRecruitRooms();
+    }
+
+    // 검색 조건에 맞는 종료되지 않은 외부인 모집방 수 조회
+    @Override
+    public int getRecruitRoomCount(Long ott_service_id, String roomNameKeyword) {
+        return ottRepository.countRecruitRooms(
+                normalizeOttServiceId(ott_service_id),
+                normalizeKeyword(roomNameKeyword));
     }
 
     // 내가 참여 중인 OTT 방 개수 조회

@@ -145,7 +145,27 @@ public class OttRepositoryImpl implements OttRepository {
                   )
                 """;
 
-    private static final String COUNT_RECRUIT_ROOMS_SQL = "SELECT COUNT(*) FROM ott_room_tb WHERE NVL(room_mode, 'RECRUIT') = 'RECRUIT' AND status IN ('RECRUITING', 'REPLACE_RECRUITING')";
+    private static final String COUNT_RECRUIT_ROOMS_SQL = """
+                SELECT COUNT(*)
+                FROM ott_room_tb r
+                JOIN member_tb m
+                  ON r.host_login_id = m.id
+                 AND m.status NOT IN ('LEAVE', 'PERM_BLOCK')
+                WHERE NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
+                  AND r.status IN ('RECRUITING', 'REPLACE_RECRUITING')
+                """;
+
+    private static final String COUNT_FILTERED_RECRUIT_ROOMS_SQL = """
+                SELECT COUNT(*)
+                FROM ott_room_tb r
+                JOIN member_tb m
+                  ON r.host_login_id = m.id
+                 AND m.status NOT IN ('LEAVE', 'PERM_BLOCK')
+                WHERE NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
+                  AND r.status <> 'CLOSED'
+                  AND (? IS NULL OR r.ott_service_id = ?)
+                  AND (? IS NULL OR LOWER(r.room_name) LIKE '%' || LOWER(?) || '%')
+                """;
 
     // 메인 화면에는 금액 추정치가 아니라 사용자가 실제로 관련된 정산 회차 수를 표시한다.
     private static final String COUNT_MY_SETTLEMENTS_SQL = """
@@ -617,6 +637,12 @@ public class OttRepositoryImpl implements OttRepository {
                     WHERE NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
                     AND r.ott_service_id = ?
                     AND r.status IN ('RECRUITING', 'REPLACE_RECRUITING')
+                    AND EXISTS (
+                            SELECT 1
+                            FROM member_tb host_member
+                            WHERE host_member.id = r.host_login_id
+                              AND host_member.status NOT IN ('LEAVE', 'PERM_BLOCK')
+                    )
                     AND r.host_login_id <> ?
                     AND NOT EXISTS (
                             SELECT 1
@@ -700,7 +726,9 @@ public class OttRepositoryImpl implements OttRepository {
                        ), 'NONE') AS my_application_status
                 FROM ott_room_tb r
                 JOIN ott_service_tb s ON r.ott_service_id = s.ott_service_id
-                LEFT JOIN member_tb m ON r.host_login_id = m.id
+                JOIN member_tb m
+                  ON r.host_login_id = m.id
+                 AND m.status NOT IN ('LEAVE', 'PERM_BLOCK')
                 LEFT JOIN ott_room_member_tb rm ON r.room_id = rm.room_id
                 WHERE NVL(r.room_mode, 'RECRUIT') = 'RECRUIT'
                   AND r.status <> 'CLOSED'
@@ -727,6 +755,9 @@ public class OttRepositoryImpl implements OttRepository {
                          TO_CHAR(r.created_at, 'YYYY-MM-DD')
                 ORDER BY r.room_id DESC
                 """;
+
+    private static final String SELECT_RECRUIT_ROOMS_PAGE_SQL =
+            SELECT_RECRUIT_ROOMS_SQL + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
     private static final String SELECT_ROOM_BY_INVITE_CODE_SQL = """
                 SELECT r.room_id,
@@ -1089,6 +1120,21 @@ public class OttRepositoryImpl implements OttRepository {
                 roomNameKeyword);
     }
 
+    // 검색 조건과 페이지 범위를 적용한 외부인 모집방 목록 조회
+    @Override
+    public List<OttRoomDTO> selectRecruitRooms(String loginId, Long ott_service_id, String roomNameKeyword,
+            int offset, int pageSize) {
+        return jdbcTemplate.query(SELECT_RECRUIT_ROOMS_PAGE_SQL,
+                (rs, rowNum) -> mapRoom(rs, true),
+                loginId,
+                ott_service_id,
+                ott_service_id,
+                roomNameKeyword,
+                roomNameKeyword,
+                offset,
+                pageSize);
+    }
+
     // 빠른 참가에서 실제로 roomId를 찾는 SQL이다.
     @Override
     public Long selectOldestAvailableRecruitRoomId(Long ott_service_id, String loginId) {
@@ -1340,6 +1386,19 @@ public class OttRepositoryImpl implements OttRepository {
     @Override
     public int countRecruitRooms() {
         Integer count = jdbcTemplate.queryForObject(COUNT_RECRUIT_ROOMS_SQL, Integer.class);
+        return count == null ? 0 : count;
+    }
+
+    // 검색 조건에 맞는 종료되지 않은 외부인 모집방 개수 조회
+    @Override
+    public int countRecruitRooms(Long ott_service_id, String roomNameKeyword) {
+        Integer count = jdbcTemplate.queryForObject(
+                COUNT_FILTERED_RECRUIT_ROOMS_SQL,
+                Integer.class,
+                ott_service_id,
+                ott_service_id,
+                roomNameKeyword,
+                roomNameKeyword);
         return count == null ? 0 : count;
     }
 

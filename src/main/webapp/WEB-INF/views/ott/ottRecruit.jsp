@@ -134,7 +134,7 @@
                                 <p class="eyebrow">ALL POSTS</p>
                                 <h2>모든 모집글</h2>
                             </div>
-                            <span>${fn:length(recruitRoomList)}개</span>
+                            <span>${totalRecruitRoomCount}개</span>
                         </div>
 
                         <%-- [공통 AJAX 로딩 적용] 사용자가 검색을 실행할 때만 팝업을 띄우고 모집글 영역을 부분 갱신한다. --%>
@@ -168,7 +168,7 @@
 
                         <c:if test="${not empty selectedOttServiceId or not empty roomNameKeyword}">
                             <div class="recruit-search-result-text">
-                                검색 조건에 맞는 모집글 <strong>${fn:length(recruitRoomList)}</strong>개가 조회되었습니다.
+                                검색 조건에 맞는 모집글 <strong>${totalRecruitRoomCount}</strong>개가 조회되었습니다.
                             </div>
                         </c:if>
 
@@ -237,6 +237,48 @@
                                         </div>
                                     </c:forEach>
                                 </div>
+
+                                <%-- 기존 문의 목록의 pagination / pg-btn / pg-ellipsis 구조를 재사용한다. --%>
+                                <c:if test="${totalPages gt 1}">
+                                    <c:set var="pgStart" value="${currentPage - 2 < 1 ? 1 : currentPage - 2}" />
+                                    <c:set var="pgEnd" value="${currentPage + 2 > totalPages ? totalPages : currentPage + 2}" />
+
+                                    <form action="${contextPath}/spendolive/ott/recruit.do"
+                                          method="get"
+                                          class="pagination"
+                                          data-ajax-navigation
+                                          data-loading-message="모집글을 불러오고 있습니다.">
+                                        <input type="hidden" name="tab" value="all">
+                                        <c:if test="${not empty selectedOttServiceId}">
+                                            <input type="hidden" name="ott_service_id" value="${selectedOttServiceId}">
+                                        </c:if>
+                                        <c:if test="${not empty roomNameKeyword}">
+                                            <input type="hidden" name="roomNameKeyword" value="${fn:escapeXml(roomNameKeyword)}">
+                                        </c:if>
+
+                                        <c:if test="${pgStart gt 1}">
+                                            <button type="submit" class="pg-btn" name="page" value="1">1</button>
+                                            <c:if test="${pgStart gt 2}">
+                                                <span class="pg-ellipsis">…</span>
+                                            </c:if>
+                                        </c:if>
+
+                                        <c:forEach begin="${pgStart}" end="${pgEnd}" var="p">
+                                            <button type="submit"
+                                                    class="pg-btn ${p eq currentPage ? 'active' : ''}"
+                                                    name="page"
+                                                    value="${p}"
+                                                    ${p eq currentPage ? 'disabled' : ''}>${p}</button>
+                                        </c:forEach>
+
+                                        <c:if test="${pgEnd lt totalPages}">
+                                            <c:if test="${pgEnd lt totalPages - 1}">
+                                                <span class="pg-ellipsis">…</span>
+                                            </c:if>
+                                            <button type="submit" class="pg-btn" name="page" value="${totalPages}">${totalPages}</button>
+                                        </c:if>
+                                    </form>
+                                </c:if>
                             </c:when>
                             <c:otherwise>
                                 <div class="empty-box">
