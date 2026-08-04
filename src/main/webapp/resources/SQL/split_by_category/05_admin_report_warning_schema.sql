@@ -23,22 +23,13 @@ CREATE TABLE report_tb (
     CONSTRAINT fk_report_reporter FOREIGN KEY (reporter_id) REFERENCES member_tb(id),
     CONSTRAINT fk_report_reported FOREIGN KEY (reported_member_id) REFERENCES member_tb(id),
     CONSTRAINT fk_report_room FOREIGN KEY (room_id) REFERENCES ott_room_tb(room_id),
+    CONSTRAINT uk_report_duplicate UNIQUE (reporter_id, room_id, report_reason),
     CONSTRAINT ck_report_status CHECK (report_status IN ('WAIT', 'PROCESSING', 'COMPLETE', 'REJECT'))
 );
 
-CREATE SEQUENCE seq_report START WITH 1 INCREMENT BY 1 NOCACHE;
-
-CREATE OR REPLACE TRIGGER trg_report_bi
-BEFORE INSERT ON report_tb
-FOR EACH ROW
-WHEN (NEW.report_id IS NULL)
-BEGIN
-    SELECT seq_report.NEXTVAL INTO :NEW.report_id FROM dual;
-END;
-/
-
 CREATE INDEX idx_report_reported ON report_tb(reported_member_id, report_status);
-
+ALTER TABLE report_tb
+ADD CONSTRAINT uk_report_duplicate UNIQUE (reporter_id, room_id, report_reason);
 /* =========================================================
    22. [팀 원본 사용] 경고 테이블
    ========================================================= */
@@ -54,7 +45,6 @@ CREATE TABLE warning_tb (
    
     CONSTRAINT fk_warning_member FOREIGN KEY (member_id) REFERENCES member_tb(id),
     CONSTRAINT fk_warning_report FOREIGN KEY (report_id) REFERENCES report_tb(report_id),
-    CONSTRAINT ck_warning_level CHECK (warning_level IN (1, 2, 3)),
     CONSTRAINT ck_warning_status CHECK (status IN ('Y', 'N'))
 );
 

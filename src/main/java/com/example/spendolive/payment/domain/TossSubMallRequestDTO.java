@@ -1,4 +1,3 @@
-
 package com.example.spendolive.payment.domain;
 import lombok.Builder;
 import lombok.Getter;

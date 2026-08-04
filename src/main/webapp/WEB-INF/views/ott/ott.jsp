@@ -4,14 +4,18 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<section class="page-hero ott-main-hero">
-    <div class="container ott-wide-container">
-        <p class="eyebrow">OTT MANAGEMENT</p>
-        <h1>OTT관리</h1>
-        <p class="hero-text">
-            가족 또는 지인과는 초대형 공유방으로 관리하고, 외부 다른 사람들과는 모집글을 통해 구독 비용을 나눌 수 있습니다.
-        </p>
-    </div>
+<section class="page-hero">
+    <div class="container">
+                <p class="eyebrow">
+                    SPENDING CALENDAR
+                </p>
+                <h1>
+                    OTT 공유방
+                </h1>
+                <p class="hero-text">
+                    월별로 넘겨보는 큰 달력입니다. 날짜에는 지출 금액과 카테고리만 간단히 보여줍니다.
+                </p>
+            </div>
 </section>
 
 <section class="section compact ott-main-section">
@@ -70,7 +74,7 @@
                     </div>
                 </div>
 
-                <a href="${contextPath}/spendolive/ott/friends.do" class="btn btn-primary full ott-main-btn">공유방 만들기</a>
+                <a href="${contextPath}/spendolive/ott/friends.do" class="btn btn-primary full">공유방 만들기</a>
             </article>
 
             <article class="card ott-panel ott-choice-card">
@@ -101,8 +105,10 @@
                     </div>
                 </div>
 
-                <a href="${contextPath}/spendolive/ott/recruit.do" class="btn btn-primary full ott-main-btn">모든 모집글</a>
+                <a href="${contextPath}/spendolive/ott/recruit.do" class="btn btn-primary full">모든 모집글</a>
             </article>
         </div>
     </div>
 </section>
+
+<script src="${contextPath}/resources/js/ott.js"></script>

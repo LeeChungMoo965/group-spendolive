@@ -18,13 +18,13 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<ExpenseDTO> getExpenseList(Long memberId, String yearMonth) {
-        return expenseRepository.selectExpenseList(memberId, yearMonth);
+    public List<ExpenseDTO> getExpenseList(Long member_id, String yearMonth) {
+        return expenseRepository.selectExpenseList(member_id, yearMonth);
     }
 
     @Override
-    public ExpenseDTO getExpense(Long expenseId) {
-        return expenseRepository.selectExpense(expenseId);
+    public ExpenseDTO getExpense(Long expense_id) {
+        return expenseRepository.selectExpense(expense_id);
     }
 
     @Override
@@ -38,8 +38,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public void removeExpense(Long expenseId, Long memberId) {
-        expenseRepository.deleteExpense(expenseId, memberId);
+
+    public void removeExpense(Long expense_id, Long member_id) {
+        expenseRepository.deleteExpense(expense_id, member_id);
+
     }
 
     @Override
@@ -48,7 +50,19 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<ExpenseCategoryDTO> getCategoryListByType(String expenseType) {
-        return expenseRepository.selectCategoryListByType(expenseType);
+    public List<ExpenseCategoryDTO> getCategoryListByType(String expense_type) {
+        return expenseRepository.selectCategoryListByType(expense_type);
+    }
+
+    // Repository에서 선택 월 예산을 조회한다.
+    @Override
+    public int getMonthlyBudget(Long member_id, String budget_month) {
+        return expenseRepository.selectMonthlyBudget(member_id, budget_month);
+    }
+
+    // Repository에 월 예산 등록·수정을 요청한다.
+    @Override
+    public void saveMonthlyBudget(Long member_id, String budget_month, int budget_amount) {
+        expenseRepository.saveMonthlyBudget(member_id, budget_month, budget_amount);
     }
 }

@@ -14,19 +14,19 @@
    ========================================================= */
 
 /* ---------- Button System ---------- */
-.btn,
+/*
 .auth-btn,
 .settlement-send-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 42px;
-  padding: 10px 16px;
-  border-radius: 13px;
+  gap: 0.375rem;
+  min-height: 2.625rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.8125rem;
   border: 1px solid transparent;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 900;
   line-height: 1;
   text-align: center;
@@ -38,19 +38,19 @@
 .btn:hover,
 .auth-btn:hover,
 .settlement-send-btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-0.0625rem);
 }
 
-.btn-primary,
+
 .auth-btn-primary,
 .settlement-send-btn {
   background: var(--olive);
   color: #fff;
   border-color: var(--olive);
-  box-shadow: 0 10px 20px rgba(122, 127, 54, .22);
+  box-shadow: 0 0.625rem 1.25rem rgba(122, 127, 54, .22);
 }
 
-.btn-primary:hover,
+
 .auth-btn-primary:hover,
 .settlement-send-btn:hover {
   background: var(--olive-dark);
@@ -93,18 +93,18 @@
 
 .btn-sm,
 .btn-small {
-  min-height: 34px;
-  padding: 7px 12px;
-  border-radius: 11px;
-  font-size: 13px;
+  min-height: 2.125rem;
+  padding: 0.4375rem 0.75rem;
+  border-radius: 0.6875rem;
+  font-size: 0.8125rem;
 }
 
 .btn-lg,
 .btn-large {
-  min-height: 50px;
-  padding: 14px 22px;
-  border-radius: 16px;
-  font-size: 15px;
+  min-height: 3.125rem;
+  padding: 0.875rem 1.375rem;
+  border-radius: 1rem;
+  font-size: 0.9375rem;
 }
 
 .btn-full,
@@ -121,14 +121,14 @@ button:disabled,
   transform: none;
   box-shadow: none;
 }
-
+*/
 /* ---------- Form System ---------- */
 .form-control,
 input,
 select,
 textarea {
   border-color: var(--line);
-  border-radius: 14px;
+  border-radius: 0.875rem;
   color: var(--text);
 }
 
@@ -137,7 +137,7 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--olive);
-  box-shadow: 0 0 0 4px rgba(122, 127, 54, .13);
+  box-shadow: 0 0 0 0.25rem rgba(122, 127, 54, .13);
 }
 
 label {
@@ -156,9 +156,6 @@ label {
 .table-card,
 .admin-card,
 .ott-choice-card,
-.ott-form-card,
-.ott-room-list-card,
-.recruit-board-card,
 .ott-tab-panel,
 .calendar {
   background: var(--card);
@@ -188,42 +185,38 @@ label {
 
 /* ---------- Tab System ---------- */
 .tab-list,
-.ott-tabs,
 .ott-tab-menu {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .tab-button,
-.ott-tabs a,
 .ott-tab-menu a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 2.5rem;
+  padding: 0 1rem;
   border: 1px solid #dbe7d4;
   border-radius: 999px;
   background: #fff;
   color: #40523d;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 850;
   text-decoration: none;
-  box-shadow: 0 8px 18px rgba(52, 74, 48, .05);
+  box-shadow: 0 0.5rem 1.125rem rgba(52, 74, 48, .05);
   transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
 }
 
 .tab-button:hover,
 .tab-button.active,
-.ott-tabs a:hover,
-.ott-tabs a.active,
 .ott-tab-menu a:hover,
 .ott-tab-menu a.active {
   background: var(--olive);
   border-color: var(--olive);
   color: #fff;
-  transform: translateY(-1px);
+  transform: translateY(-0.0625rem);
 }
 
 /* ---------- Badge / Chip System ---------- */
@@ -235,7 +228,7 @@ em,
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 900;
   line-height: 1;
 }
@@ -253,7 +246,7 @@ table {
 
 th {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 900;
 }
 
@@ -275,11 +268,11 @@ td {
   color: var(--olive-dark) !important;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 43.75rem) { /* 700px / 16 = 43.75rem */
   .btn,
   .auth-btn,
   .settlement-send-btn {
-    min-height: 44px;
+    min-height: 2.75rem;
   }
 }
 
@@ -293,16 +286,16 @@ td {
 
 .so-menu-popover {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 0.625rem);
   right: 0;
-  min-width: 210px;
-  padding: 10px;
+  min-width: 13.125rem;
+  padding: 0.625rem;
   margin: 0;
   list-style: none;
   background: #ffffff;
   border: 1px solid var(--line, #dce5c4);
-  border-radius: 18px;
-  box-shadow: 0 18px 40px rgba(40, 49, 28, 0.14);
+  border-radius: 1.125rem;
+  box-shadow: 0 1.125rem 2.5rem rgba(40, 49, 28, 0.14);
   z-index: 1000;
   display: none;
 }
@@ -319,13 +312,13 @@ td {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.75rem;
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.75rem;
   color: #26331f;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.3;
   white-space: nowrap;
   transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
@@ -338,7 +331,7 @@ td {
 }
 
 .so-menu-arrow {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #8a9140;
 }
 
@@ -346,15 +339,15 @@ td {
 .so-submenu {
   position: absolute;
   top: 0;
-  right: calc(100% + 8px);
-  min-width: 180px;
-  padding: 10px;
+  right: calc(100% + 0.5rem);
+  min-width: 11.25rem;
+  padding: 0.625rem;
   margin: 0;
   list-style: none;
   background: #ffffff;
   border: 1px solid var(--line, #dce5c4);
-  border-radius: 16px;
-  box-shadow: 0 18px 40px rgba(40, 49, 28, 0.14);
+  border-radius: 1rem;
+  box-shadow: 0 1.125rem 2.5rem rgba(40, 49, 28, 0.14);
   display: none;
   z-index: 1001;
 }
@@ -368,22 +361,22 @@ td {
 /* 서브메뉴 안쪽 링크는 조금 가볍게 */
 .so-submenu .so-menu-link {
   font-weight: 700;
-  padding: 11px 13px;
+  padding: 0.6875rem 0.8125rem;
 }
 
 /* 모바일에서는 왼쪽으로 빼면 화면 밖으로 나갈 수 있으니 아래로 표시 */
-@media (max-width: 768px) {
+@media (max-width: 48rem) { /* 768px / 16 = 48rem */
   .so-menu-popover {
       right: 0;
-      min-width: 220px;
+      min-width: 13.75rem;
   }
 
   .so-submenu {
       position: static;
       display: none;
-      margin-top: 6px;
+      margin-top: 0.375rem;
       box-shadow: none;
-      border-radius: 12px;
+      border-radius: 0.75rem;
       background: #f8fbef;
   }
 
@@ -407,7 +400,7 @@ td {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(-8px) scale(0.98);
+  transform: translateY(-0.5rem) scale(0.98);
   transform-origin: top right;
   transition:
       opacity 0.18s ease,
@@ -433,13 +426,13 @@ td {
   display: block !important;
 
   /* 기존 calc(100% + 8px) 때문에 틈이 생겼다면 이걸로 해결 */
-  right: calc(100% - 2px);
+  right: calc(100% - 0.125rem);
 
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 
-  transform: translateX(8px) scale(0.98);
+  transform: translateX(0.5rem) scale(0.98);
   transform-origin: top right;
 
   transition:
@@ -463,7 +456,7 @@ td {
   position: absolute;
   top: 0;
   right: 100%;
-  width: 12px;
+  width: 0.75rem;
   height: 100%;
   background: transparent;
 }
@@ -477,10 +470,15 @@ td {
 }
 
 .so-menu-link:hover {
-  transform: translateX(-2px);
+  transform: translateX(-0.125rem);
 }
 
 /* 서브메뉴 안에서는 너무 많이 움직이지 않게 */
 .so-submenu .so-menu-link:hover {
-  transform: translateX(-2px);
+  transform: translateX(-0.125rem);
 }
+
+/*hero 모음*/
+.page-hero {padding: 45px 0 35px;} /* 기본값 */
+.calendar-page .page-hero {padding: 32px 0 8px;}
+.faq-page .page-hero {padding: 32px 0 8px;}

@@ -36,7 +36,7 @@ public class MyPageReportRepository {
         }
     }
 
-    public int selectWarningCount(String loginId) {
+    public int selectwarning_count(String loginId) {
         String sql = """
                 SELECT COUNT(*)
                 FROM warning_tb
@@ -84,16 +84,17 @@ public class MyPageReportRepository {
             @Override
             public MyPageReportDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
                 MyPageReportDTO report = new MyPageReportDTO();
-                report.setReportId(rs.getLong("report_id"));
-                report.setReportedMemberId(rs.getString("reported_member_id"));
-                report.setReportedMemberName(rs.getString("reported_member_name"));
-                report.setReportedMemberNickname(rs.getString("reported_member_nickname"));
-                report.setReportReason(rs.getString("report_reason"));
-                report.setReportStatus(rs.getString("report_status"));
-                report.setAdminComment(rs.getString("admin_comment"));
-                report.setCreatedAt(rs.getString("created_at"));
-                report.setProcessedAt(rs.getString("processed_at"));
-                report.setBlockedYn(rs.getString("blocked_yn"));
+                report.setReport_id(rs.getLong("report_id"));
+                report.setReported_member_id(rs.getString("reported_member_id"));
+                report.setReported_member_name(rs.getString("reported_member_name"));
+                report.setReported_member_nickname(rs.getString("reported_member_nickname"));
+                report.setReport_reason(rs.getString("report_reason"));
+                report.setReport_status(rs.getString("report_status"));
+                report.setAdmin_comment(rs.getString("admin_comment"));
+                report.setCreated_at(rs.getString("created_at"));
+                report.setProcessed_at(rs.getString("processed_at"));
+                report.setBlocked_yn(rs.getString("blocked_yn"));
+
                 return report;
             }
         };

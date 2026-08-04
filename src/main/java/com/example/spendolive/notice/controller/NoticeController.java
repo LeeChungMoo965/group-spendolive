@@ -71,20 +71,27 @@ public class NoticeController {
     /* ─── 공지 상세 ───────────────────────────────────────── */
     @GetMapping("/detail.do")
     public ModelAndView noticeDetail(
-            @RequestParam(value = "noticeId", required = false, defaultValue = "0") int noticeId,
+            @RequestParam(value = "notice_id", required = false, defaultValue = "0") int notice_id,
+            // 목록에서 어떤 필터(전체/안읽음/중요)를 보다가 들어왔는지 - "목록으로" 링크에
+            // 그대로 실어 보내서 돌아갔을 때 같은 필터가 유지되게 함
+            @RequestParam(value = "filter", required = false, defaultValue = "all") String filter,
             HttpSession session) {
 
-        if (noticeId <= 0) {
+        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
+
+        if (notice_id <= 0) {
             ModelAndView mav = new ModelAndView("common/layout");
             mav.addObject("body_page", "/WEB-INF/views/notice/noticeCenter.jsp");
             mav.addObject("errorMsg", "잘못된 공지 번호입니다.");
-            mav.addObject("loginYn", session.getAttribute("memberInfo") != null);
+            mav.addObject("loginYn", memberInfo != null);
             return mav;
         }
 
         NoticeDTO notice = null;
         try {
-            notice = noticeService.getNoticeDetail(noticeId);
+            // 찜(star_yn) 상태까지 같이 받아와서, 목록에서 찜한 공지는 상세에서도
+            // 채워진 별로 보이도록 함 (기존엔 star_yn을 안 가져와서 항상 빈 별로만 보였음)
+            notice = noticeService.getNoticeDetailForUser(notice_id, memberInfo != null ? memberInfo.getId() : null);
         } catch (Exception e) {
             System.err.println("[NoticeController.noticeDetail] 조회 실패: " + e.getMessage());
         }
@@ -93,15 +100,14 @@ public class NoticeController {
             ModelAndView mav = new ModelAndView("common/layout");
             mav.addObject("body_page", "/WEB-INF/views/notice/noticeCenter.jsp");
             mav.addObject("errorMsg", "존재하지 않는 공지사항입니다.");
-            mav.addObject("loginYn", session.getAttribute("memberInfo") != null);
+            mav.addObject("loginYn", memberInfo != null);
             return mav;
         }
 
         // 로그인 사용자 읽음 처리
-        MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
         if (memberInfo != null && memberInfo.getId() != null) {
             try {
-                noticeService.readNotice(noticeId, memberInfo.getId());
+                noticeService.readNotice(notice_id, memberInfo.getId());
             } catch (Exception e) {
                 System.err.println("[NoticeController.noticeDetail] 읽음 처리 실패: " + e.getMessage());
             }
@@ -111,6 +117,7 @@ public class NoticeController {
         mav.addObject("body_page", "/WEB-INF/views/notice/noticeDetail.jsp");
         mav.addObject("notice", notice);
         mav.addObject("loginYn", memberInfo != null);
+        mav.addObject("filter", filter);
         return mav;
     }
 
@@ -166,7 +173,7 @@ public class NoticeController {
     @PostMapping("/ajax/star.do")
     @ResponseBody
     public Map<String, String> toggleNoticeStar(
-            @RequestParam(value = "noticeId", required = false, defaultValue = "0") int noticeId,
+            @RequestParam(value = "notice_id", required = false, defaultValue = "0") int notice_id,
             HttpSession session) {
 
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
@@ -174,12 +181,12 @@ public class NoticeController {
         if (memberInfo == null || memberInfo.getId() == null) {
             return Map.of("result", "LOGIN_REQUIRED");
         }
-        if (noticeId <= 0) {
+        if (notice_id <= 0) {
             return Map.of("result", "INVALID_PARAM");
         }
 
         try {
-            noticeService.toggleNoticeStar(noticeId, memberInfo.getId());
+            noticeService.toggleNoticeStar(notice_id, memberInfo.getId());
             return Map.of("result", "OK");
         } catch (Exception e) {
             System.err.println("[NoticeController.toggleNoticeStar] 오류: " + e.getMessage());

@@ -28,7 +28,7 @@ public class FileStorageService {
 
     private static final List<String> ALLOWED_EXT = List.of("png", "jpg", "jpeg", "gif", "pdf");
     private static final long MAX_FILE_SIZE = 5L * 1024 * 1024; // 5MB, inquiryWrite.jsp 안내 문구와 동일
-    private static final int MAX_FILE_COUNT = 3;                // inquiryWrite.jsp 안내 문구와 동일
+    private static final int MAX_FILE_COUNT = 5;                // inquiryWrite.jsp 안내 문구와 동일
 
     private final String uploadDir;
 
@@ -40,10 +40,10 @@ public class FileStorageService {
      * 첨부파일들을 디스크에 저장하고, DB insert에 쓸 InquiryFileVO 목록을 만들어 반환한다.
      * DB insert 자체는 호출부(InquiryService)에서 트랜잭션 안에서 처리한다.
      *
-     * @param inquiryId  이미 생성된 문의 번호 (inquiry_tb PK)
+     * @param inquiry_id  이미 생성된 문의 번호 (inquiry_tb PK)
      * @param attachments 폼에서 넘어온 첨부파일 배열 (null/빈 파일 섞여 있어도 됨)
      */
-    public List<InquiryFileVO> storeFiles(int inquiryId, MultipartFile[] attachments) {
+    public List<InquiryFileVO> storeFiles(int inquiry_id, MultipartFile[] attachments) {
         List<InquiryFileVO> result = new ArrayList<>();
         if (attachments == null || attachments.length == 0) {
             return result;
@@ -68,23 +68,23 @@ public class FileStorageService {
         }
 
         try {
-            Path targetDir = Path.of(uploadDir, String.valueOf(inquiryId));
+            Path targetDir = Path.of(uploadDir, String.valueOf(inquiry_id));
             Files.createDirectories(targetDir);
 
             for (MultipartFile file : validFiles) {
-                String originName = file.getOriginalFilename();
-                String ext = extractExtension(originName);
-                String savedName = UUID.randomUUID() + "." + ext;
+                String origin_name = file.getOriginalFilename();
+                String ext = extractExtension(origin_name);
+                String saved_name = UUID.randomUUID() + "." + ext;
 
-                Path targetPath = targetDir.resolve(savedName);
+                Path targetPath = targetDir.resolve(saved_name);
                 file.transferTo(targetPath);
 
                 InquiryFileVO fileVO = new InquiryFileVO();
-                fileVO.setInquiryId(inquiryId);
-                fileVO.setOriginName(originName);
-                fileVO.setSavedName(savedName);
-                fileVO.setFilePath(targetPath.toString());
-                fileVO.setFileSize(file.getSize());
+                fileVO.setInquiry_id(inquiry_id);
+                fileVO.setOrigin_name(origin_name);
+                fileVO.setSaved_name(saved_name);
+                fileVO.setFile_path(targetPath.toString());
+                fileVO.setFile_size(file.getSize());
                 result.add(fileVO);
             }
         } catch (IOException e) {
@@ -92,6 +92,31 @@ public class FileStorageService {
         }
 
         return result;
+    }
+
+    /**
+     * 문의 삭제 시 호출. inquiry_id 하위 디렉토리(첨부파일이 저장된 폴더)를 통째로 지운다.
+     * DB의 inquiry_file_tb 행은 ON DELETE CASCADE로 이미 지워진 상태이므로,
+     * 여기서는 디스크에 남은 실제 파일만 정리하면 된다. 실패해도 문의 삭제 자체는 이미 끝난 뒤라
+     * 예외를 던지지 않고 로그만 남긴다(고아 파일이 남는 것보다 삭제 자체가 실패하는 게 더 나쁨).
+     */
+    public void deleteInquiryFiles(int inquiry_id) {
+        Path targetDir = Path.of(uploadDir, String.valueOf(inquiry_id));
+        if (!Files.exists(targetDir)) {
+            return;
+        }
+        try (var paths = Files.walk(targetDir)) {
+            paths.sorted(java.util.Comparator.reverseOrder()) // 파일 먼저, 디렉토리는 마지막에 삭제
+                 .forEach(p -> {
+                     try {
+                         Files.deleteIfExists(p);
+                     } catch (IOException e) {
+                         System.err.println("[FileStorageService.deleteInquiryFiles] 파일 삭제 실패: " + p + " - " + e.getMessage());
+                     }
+                 });
+        } catch (IOException e) {
+            System.err.println("[FileStorageService.deleteInquiryFiles] 디렉토리 정리 실패: inquiry_id=" + inquiry_id + " - " + e.getMessage());
+        }
     }
 
     private void validateFile(MultipartFile file) {

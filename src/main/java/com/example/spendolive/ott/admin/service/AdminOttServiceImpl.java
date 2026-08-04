@@ -16,7 +16,7 @@ import com.example.spendolive.ott.domain.OttServiceDTO;
  * 역할:
  * - 입력값 정리
  * - 기본값 처리
- * - defaultPrice 자동 계산
+ * - default_price 자동 계산
  * - 삭제 대신 숨김 처리 정책
  */
 @Service
@@ -34,12 +34,12 @@ public class AdminOttServiceImpl implements AdminOttService {
     }
 
     @Override
-    public OttServiceDTO getOttService(Long ottServiceId) {
-        if (ottServiceId == null) {
+    public OttServiceDTO getOttService(Long ott_service_id) {
+        if (ott_service_id == null) {
             return null;
         }
 
-        return adminOttRepository.selectOttService(ottServiceId);
+        return adminOttRepository.selectOttService(ott_service_id);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class AdminOttServiceImpl implements AdminOttService {
 
     @Override
     public boolean modifyOttService(OttServiceDTO ottService) {
-        if (ottService.getOttServiceId() == null) {
+        if (ottService.getOtt_service_id() == null) {
             throw new IllegalArgumentException("수정할 OTT 항목 ID가 없습니다.");
         }
 
@@ -59,52 +59,52 @@ public class AdminOttServiceImpl implements AdminOttService {
     }
 
     @Override
-    public boolean hideOttService(Long ottServiceId) {
-        if (ottServiceId == null) {
+    public boolean hideOttService(Long ott_service_id) {
+        if (ott_service_id == null) {
             throw new IllegalArgumentException("숨김 처리할 OTT 항목 ID가 없습니다.");
         }
 
-        return adminOttRepository.hideOttService(ottServiceId) > 0;
+        return adminOttRepository.hideOttService(ott_service_id) > 0;
     }
 
     private void prepareForSave(OttServiceDTO dto) {
-        dto.setServiceName(normalizeRequired(dto.getServiceName(), "OTT 이름"));
-        dto.setFixedPlanName(normalizeDefault(dto.getFixedPlanName(), "프리미엄"));
+        dto.setService_name(normalizeRequired(dto.getService_name(), "OTT 이름"));
+        dto.setFixed_plan_name(normalizeDefault(dto.getFixed_plan_name(), "프리미엄"));
 
-        if (!"N".equals(dto.getShareYn())) {
-            dto.setShareYn("Y");
+        if (!"N".equals(dto.getShare_yn())) {
+            dto.setShare_yn("Y");
         }
 
-        dto.setRiskLevel(normalizeNullable(dto.getRiskLevel()));
-        dto.setBlockReason(normalizeNullable(dto.getBlockReason()));
+        dto.setRisk_level(normalizeNullable(dto.getRisk_level()));
+        dto.setBlock_reason(normalizeNullable(dto.getBlock_reason()));
 
-        if (dto.getBasePrice() < 0) {
+        if (dto.getBase_price() < 0) {
             throw new IllegalArgumentException("최고 멤버십 가격은 0원 이상이어야 합니다.");
         }
 
-        if (dto.getExtraMemberFee() < 0) {
+        if (dto.getExtra_member_fee() < 0) {
             throw new IllegalArgumentException("추가 멤버 비용은 0원 이상이어야 합니다.");
         }
 
-        if (dto.getExtraMemberCount() < 0) {
+        if (dto.getExtra_member_count() < 0) {
             throw new IllegalArgumentException("추가 멤버 수는 0명 이상이어야 합니다.");
         }
 
-        if (dto.getMaxMemberLimit() <= 0) {
-            dto.setMaxMemberLimit(4);
+        if (dto.getMax_member_limit() <= 0) {
+            dto.setMax_member_limit(4);
         }
 
-        if (dto.getPlatformFeeRate() < 0) {
-            dto.setPlatformFeeRate(0.0);
+        if (dto.getPlatform_fee_rate() < 0) {
+            dto.setPlatform_fee_rate(0.0);
         }
 
         /*
          * 최종 기준금액을 입력하지 않았으면 자동 계산합니다.
-         * basePrice + extraMemberFee * extraMemberCount
+         * base_price + extra_member_fee * extra_member_count
          */
-        if (dto.getDefaultPrice() <= 0) {
-            int calculatedPrice = dto.getBasePrice() + (dto.getExtraMemberFee() * dto.getExtraMemberCount());
-            dto.setDefaultPrice(calculatedPrice);
+        if (dto.getDefault_price() <= 0) {
+            int calculatedPrice = dto.getBase_price() + (dto.getExtra_member_fee() * dto.getExtra_member_count());
+            dto.setDefault_price(calculatedPrice);
         }
     }
 

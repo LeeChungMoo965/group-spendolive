@@ -1,4 +1,5 @@
 /* SpendOlive Complete Fixed JS */
+const contextPath = 'http://localhost:8080';
 let currentMonth = 6;
 
 function openModal(id){const el=document.getElementById(id);if(el)el.classList.add("show")}
@@ -33,38 +34,6 @@ function setAuthMessage(id,message,type){
   el.className="auth-result-text "+type;
 }
 var isIdVerified = false; 
-
-function checkId(){
-  const id=document.getElementById("userId")?.value.trim()||"";
-  if(!id){setAuthMessage("idResult","아이디를 입력해주세요.","warn");return}
-  if(id.length<4){setAuthMessage("idResult","아이디는 4자 이상 입력해주세요.","warn").css('color', '#FF3B30');return}
-  $.ajax({
-    url: eContextPath + "/member/checkId", // 컨트롤러 매핑 주소
-    type: 'POST',
-    data: { id: id },
-    success: function(isSuccess) {
-      if (isSuccess) {
-          $('#idResult').text('✓ 사용 가능한 아이디 입니다.').css('color', '#4CAF50');
-          isIdVerified = true; 
-      } else {
-          $('#idResult').text('✗ 존재하는 아이디 입니다.').css('color', '#FF3B30');
-          isIdVerified = false; 
-      }
-  },
-  error: function() {
-      alert('중복확인 중 오류가 발생했습니다.');
-  }
-});
- 
- 
-  
-}
-
-
-
-
-
-
 document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll(".modal").forEach((modal)=>{
     modal.addEventListener("click",(event)=>{
@@ -74,55 +43,6 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 var isEmailVerified = false; 
 
-// 기존 스크립트와 주소 충돌을 피하기 위해 .do를 뺀 주소 추출 변수
-const eContextPath = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2)) === "/member" ? "" : window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
-
-// 1. 실제 구글 SMTP로 메일을 쏘는
-function sendEmail() {
-    var email = $("#email").val();
-    if(!email || email.trim() === "") {
-        alert("이메일을 입력해 주세요.");
-        return;
-    }
-
-    alert("인증번호를 발송 중입니다. 잠시만 기다려 주세요...");
-    $.ajax({
-      url: eContextPath + "/member/checkEmail", // 컨트롤러 매핑 주소
-      type: 'POST',
-      data: { email: email },
-      success: function(isSuccess) {
-        if (isSuccess) {
-          $.ajax({
-              type: "POST",
-              url: eContextPath + "/member/sendEmail",
-              data: { "email": email },
-              success: function(isSuccess) {
-                  if(isSuccess) {
-                      alert("입력하신 이메일로 인증번호가 전송되었습니다.");
-                      $("#emailAuthArea").show(); 
-    
-                      if(typeof setAuthMessage === 'function') {
-                          setAuthMessage("emailResult","이메일 인증번호가 발송되었습니다.","ok");
-                      }
-                  } else {
-                      alert("메일 발송에 실패했습니다. 이메일 주소를 확인해 주세요.");
-                  }
-              },
-              error: function() {
-                  alert("서버 통신 오류가 발생했습니다.");
-              }
-          });
-        } else {
-          alert('✗ 존재하는 이메일 입니다.');
-        }
-    },
-    error: function() {
-              // 중복확인 메서들 따로 만들기는 하였으나 어차피 데이터 제약조건이 유니크라서 SQL에서 중복 차단
-        alert('중복확인 중 오류가 발생했습니다.');
-    }
-       
-  });
-  }
 
 // 2. 사용자가 입력한 6자리 인증번호를 확인
 function verifyEmail() {
@@ -133,7 +53,7 @@ function verifyEmail() {
   }
 
   $.ajax({
-      url: eContextPath + "/member/verifyEmail", // 컨트롤러 매핑 주소
+      url: contextPath + "/member/verifyEmail.do", // 컨트롤러 매핑 주소
       type: 'POST',
       data: { inputCode: inputCode },
       success: function(isSuccess) {
@@ -157,43 +77,6 @@ function verifyEmail() {
 // 글로벌 변수로 휴대폰 인증 여부 체크용 플래그 선언
 let isPhoneVerified = false;
 
-// 1. 전화번호로 인증번호 발송 요청 (가상 시뮬레이터 가동)
-function sendSms() {
-  const phone = $('#phone').val();
-  if (!phone) {
-      alert('전화번호를 입력해 주세요.');
-      return;
-  }
-  $.ajax({
-      url: eContextPath + "/member/checkPhone", // 컨트롤러 매핑 주소
-      type: 'POST',
-      data: { phone: phone },
-      success: function(isSuccess) {
-        if (isSuccess) {
-          $.ajax({
-              url: eContextPath + "/member/sendSms", // 컨트롤러 매핑 주소
-              type: 'POST',
-              data: { phone: phone },
-              success: function(response) {
-                  alert('인증번호가 발송되었습니다.');
-                  $('#phoneAuthArea').show(); // 숨겨진 인증박스 오픈
-                  $('#phoneAuthResult').text('인증번호 6자리 숫자를 입력하세요.').css('color', '#666');
-              },
-              error: function() {
-                  alert('문자 발송 요청 중 오류가 발생했습니다 핸드폰 번호를 확인해 주세요! ');
-              }
-          });
-        } else {
-          alert('✗ 존재하는 핸드폰 입니다.');
-        }
-    },
-    error: function() {
-        alert('중복확인 중 오류가 발생했습니다.');
-    }
-  });
-  
-}
-
 // 2. 사용자가 입력한 가상 인증번호 검증
 function verifySms() {
   const inputCode = $('#phoneAuthCode').val();
@@ -203,7 +86,7 @@ function verifySms() {
   }
 
   $.ajax({
-      url: eContextPath + "/member/verifySms", // 컨트롤러 매핑 주소
+      url: contextPath +"/member/verifySms.do", // 컨트롤러 매핑 주소
       type: 'POST',
       data: { inputCode: inputCode },
       success: function(isSuccess) {
@@ -232,7 +115,7 @@ if (!isPhoneVerified) {
   alert('전화번호 인증을 완료해 주세요.');
   return false;
 }
-if (!isIdVerified) {
+if (isIdVerified) {
   alert('아이디 중복확인을 완료해 주세요.');
   return false;
 }
@@ -272,8 +155,8 @@ function updateFixedPlanForm(form) {
   const select = form.querySelector('.ott-service-select');
   const option = select && select.selectedOptions ? select.selectedOptions[0] : null;
   const preview = form.querySelector('.ott-fixed-plan-preview');
-  const roomMode = form.dataset.roomMode || 'RECRUIT';
-  const isFriendRoom = roomMode === 'FRIEND';
+  const room_mode = form.dataset.room_mode || 'RECRUIT';
+  const isFriendRoom = room_mode === 'FRIEND';
 
   if (!option || !option.value) {
     form.querySelector('.ott-plan-input')?.setAttribute('value', '');
@@ -285,15 +168,15 @@ function updateFixedPlanForm(form) {
     return;
   }
 
-  const serviceName = option.dataset.serviceName || option.textContent.trim();
+  const service_name = option.dataset.service_name || option.textContent.trim();
   const plan = option.dataset.plan || '프리미엄';
-  const basePrice = toNumber(option.dataset.basePrice);
+  const base_price = toNumber(option.dataset.base_price);
   const extraFee = toNumber(option.dataset.extraFee);
   const extraCount = toNumber(option.dataset.extraCount);
-  const totalPrice = toNumber(option.dataset.totalPrice);
-  const memberLimit = toNumber(option.dataset.memberLimit);
-  const shareAmount = toNumber(option.dataset.shareAmount);
-  const feeAmount = toNumber(option.dataset.feeAmount);
+  const total_price = toNumber(option.dataset.total_price);
+  const member_limit = toNumber(option.dataset.member_limit);
+  const share_amount = toNumber(option.dataset.share_amount);
+  const fee_amount = toNumber(option.dataset.fee_amount);
   const personAmount = toNumber(option.dataset.personAmount);
 
   const planInput = form.querySelector('.ott-plan-input');
@@ -301,11 +184,11 @@ function updateFixedPlanForm(form) {
   const memberInput = form.querySelector('.ott-member-limit-input');
 
   if (planInput) planInput.value = plan;
-  if (totalInput) totalInput.value = totalPrice;
-  if (memberInput) memberInput.value = memberLimit;
+  if (totalInput) totalInput.value = total_price;
+  if (memberInput) memberInput.value = member_limit;
 
-  const displayTotalPrice = isFriendRoom ? basePrice : totalPrice;
-  const displayShareAmount = memberLimit > 0 ? Math.floor(displayTotalPrice / memberLimit) : 0;
+  const displayTotalPrice = isFriendRoom ? base_price : total_price;
+  const displayShareAmount = member_limit > 0 ? Math.floor(displayTotalPrice / member_limit) : 0;
   const displayFeeAmount = Math.floor(displayShareAmount * 0.03);
   const displayPersonAmount = displayShareAmount + displayFeeAmount;
   
@@ -317,11 +200,11 @@ function updateFixedPlanForm(form) {
 
   if (preview) {
     preview.innerHTML = `
-      <strong>${serviceName} · ${plan}</strong>
+      <strong>${service_name} · ${plan}</strong>
       <div class="ott-plan-preview-grid">
-        <span><b>기본 구독료</b>${formatWon(basePrice)}</span>
+        <span><b>기본 구독료</b>${formatWon(base_price)}</span>
         <span><b>${isFriendRoom ? '공유 기준' : '추가 비용'}</b>${extraText}</span>
-        <span><b>N분의 1 기준 금액</b>${formatWon(displayTotalPrice)} / ${memberLimit}명</span>
+        <span><b>N분의 1 기준 금액</b>${formatWon(displayTotalPrice)} / ${member_limit}명</span>
         <span><b>1인 결제금액</b>${formatWon(displayPersonAmount)} <small>분담금 ${formatWon(displayShareAmount)} + 수수료 ${formatWon(displayFeeAmount)}(3%)</small></span>
       </div>
     `;
@@ -341,3 +224,387 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 })();
 // 알림 배지는 bellIcon.js 에서 처리
+
+//팝업
+function openWithdrawModal() {
+  const modal = document.getElementById('withdrawModal');
+  const confirmInput = document.getElementById('withdrawConfirm');
+  if (!modal) {
+      return;
+  }
+
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+  if (confirmInput) {
+      confirmInput.value = '';
+      setTimeout(function () {
+          confirmInput.focus();
+      }, 80);
+  }
+}
+function closeWithdrawModal() {
+  const modal = document.getElementById('withdrawModal');
+  if (!modal) {
+      return;
+  }
+
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+}
+function checkKakaoPassword() {
+  const pwInput = document.getElementById('loginPw');
+  const password = pwInput ? pwInput.value : '';
+  // 대소문자 구분 없이 "KAKAO"만 입력되었는지 확인
+  if (password.trim().toLowerCase() === 'kakao') {
+    alert("'KAKAO'는 입력할 수 없는 비밀번호입니다.");
+    return false; // 로그인 진행 차단
+  }
+
+  return true; // 로그인 계속 진행
+}
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ==========================================
+  // 1. 폰트 패널 열기 / 닫기 기능
+  // ==========================================
+  const fontBtn = document.getElementById('fontToggle');
+  const panel = document.getElementById('fontPanel');
+  const closeBtn = document.getElementById('fontClose');
+  const input = document.getElementById('fontInput');
+
+  function openPanel() {
+      if (panel) panel.classList.add('show');
+      if (fontBtn) fontBtn.classList.add('hide');
+      if (input) input.focus();
+  }
+
+  function closePanel() {
+      if (panel) panel.classList.remove('show');
+      if (fontBtn) fontBtn.classList.remove('hide');
+  }
+
+  if (fontBtn) fontBtn.addEventListener('click', openPanel);
+  if (closeBtn) closeBtn.addEventListener('click', closePanel);
+
+
+
+  
+  // ==========================================
+  // 2. 글자 크기 및 폰트 설정 기능
+  // ==========================================
+  const htmlTag = document.documentElement;
+  const btnUp = document.getElementById('btn-font-up');
+  const btnDown = document.getElementById('btn-font-down');
+  const fontCards = document.querySelectorAll('.font-card');
+
+  const CONFIG = {
+      default: 16,
+      step: 3,
+      min: 10,
+      max: 30
+  };
+
+  // [요청하신 Jua 폰트 추가]
+  const FONT_MAP = {
+      'system': "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+      'jua': '"Jua", sans-serif', // <-- Jua 폰트 반영
+      'sans-serif': "'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', sans-serif",
+      'serif': "'Noto Serif KR', 'Batang', '바탕', serif",
+      'monospace': "'D2Coding', 'Courier New', monospace"
+  };
+
+  const savedSize = localStorage.getItem('userFontSize');
+  const savedFont = localStorage.getItem('userFontFamily') || 'system';
+
+  let currentSize = savedSize ? parseInt(savedSize, 10) : CONFIG.default;
+
+  // --- A. 글자 크기 적용 ---
+  function applyFontSize(size) {
+      htmlTag.style.fontSize = size + 'px';
+      localStorage.setItem('userFontSize', size);
+      updateButtonStatus(size);
+  }
+
+  // --- B. 폰트 종류 적용 ---
+  function applyFontFamily(fontKey) {
+    const selectedFont = FONT_MAP[fontKey] || FONT_MAP['system'];
+    
+    // <html> 태그와 <body> 태그 모두에 폰트를 인라인으로 강제 적용
+    htmlTag.style.setProperty('font-family', selectedFont, 'important');
+    if (document.body) {
+        document.body.style.setProperty('font-family', selectedFont, 'important');
+    }
+
+    localStorage.setItem('userFontFamily', fontKey);
+
+    fontCards.forEach(card => {
+      if (card.getAttribute('data-font') === fontKey) {
+          card.classList.add('active');
+      } else {
+          card.classList.remove('active');
+      }
+  });
+}
+
+  function updateButtonStatus(size) {
+      if (btnUp) {
+          btnUp.disabled = (size >= CONFIG.max);
+          btnUp.style.opacity = (size >= CONFIG.max) ? '0.5' : '1';
+          btnUp.style.cursor = (size >= CONFIG.max) ? 'not-allowed' : 'pointer';
+      }
+      if (btnDown) {
+          btnDown.disabled = (size <= CONFIG.min);
+          btnDown.style.opacity = (size <= CONFIG.min) ? '0.5' : '1';
+          btnDown.style.cursor = (size <= CONFIG.min) ? 'not-allowed' : 'pointer';
+      }
+  }
+
+  // --- C. 초기 실행 ---
+  applyFontSize(currentSize);
+  applyFontFamily(savedFont);
+
+  // --- D. 이벤트 리스너 ---
+  if (btnUp) {
+      btnUp.addEventListener('click', function(e) {
+          e.preventDefault();
+          let nextSize = currentSize + CONFIG.step;
+          if (nextSize > CONFIG.max) nextSize = CONFIG.max;
+
+          if (nextSize !== currentSize) {
+              currentSize = nextSize;
+              applyFontSize(currentSize);
+          }
+      });
+  }
+
+  if (btnDown) {
+      btnDown.addEventListener('click', function(e) {
+          e.preventDefault();
+          let nextSize = currentSize - CONFIG.step;
+          if (nextSize < CONFIG.min) nextSize = CONFIG.min;
+
+          if (nextSize !== currentSize) {
+              currentSize = nextSize;
+              applyFontSize(currentSize);
+          }
+      });
+  }
+
+  fontCards.forEach(card => {
+    card.addEventListener('click', function(e) {
+        e.preventDefault();
+        const fontKey = this.getAttribute('data-font');
+        applyFontFamily(fontKey);
+    });
+});
+});
+//ajax 모달
+let isProcessing = false;
+function showStatusModal(prefix,state, modalTitle, modalMessage, option) {
+    const overlay = document.getElementById(prefix +'StatusOverlay');
+    const spinner = document.getElementById(prefix +'StatusSpinner');
+    const icon = document.getElementById(prefix +'StatusIcon');
+    const title = document.getElementById(prefix +'StatusTitle');
+    const message = document.getElementById(prefix +'StatusMessage');
+    const actions = document.getElementById(prefix +'StatusActions');
+    const closeButton = document.getElementById(prefix +'StatusCloseButton');
+    const actionButton = document.getElementById(prefix +'StatusActionButton');
+    const settings = option || {};
+    if (!overlay) return;
+    if (!title) return;
+      overlay.hidden = false;
+      title.textContent = modalTitle;
+      message.textContent = modalMessage;
+      overlay.dataset.state = state;
+
+    if (spinner) spinner.hidden = state !== 'processing';
+    if (icon) {
+        icon.hidden = state === 'processing';
+        icon.textContent = state === 'success' ? '✓' : '!';
+    }
+    if (actions) actions.hidden = state === 'processing';
+    if (closeButton) closeButton.hidden = state === 'success' || settings.hideClose === true;
+      window.modalActionHandler = typeof settings.onAction === 'function' ? settings.onAction : null;
+
+        if (actionButton) {
+            if (settings.actionText && window.modalActionHandler) {
+            actionButton.textContent = settings.actionText;
+            actionButton.hidden = false;
+            } else {
+            actionButton.hidden = true;
+            }
+        }
+  }
+  window.addEventListener('beforeunload', function (event) {
+    if (!isProcessing) {
+        return;
+    }
+    event.preventDefault();
+    event.returnValue = '';
+});
+  async function readJson(response) {
+    try {
+        return await response.json();
+    } catch (error) {
+        return {
+            success: false,
+            code: 'INVALID_RESPONSE',
+            message: '서버 응답을 확인할 수 없습니다.'
+        };
+    }
+}
+
+async function executeRequest(options,prefix) {
+  const {
+      button,           // 클릭된 타겟 버튼 (disabled 처리용)
+      confirmMessage,   // confirm 창 메시지
+      requestUrl,       // 요청 API 경로
+      bodyData,         // URLSearchParams 객체
+      checkStatusFunc,  // 예외 발생 시 실행할 폴링 함수 () => checkPaymentStatus(id)
+      modalTitle = '결제를 처리하고 있습니다.',
+      modalDesc = '창을 닫거나 새로고침하지 말아주세요.'
+  } = options;
+
+  // 1. 중복 진행 방지
+  if (isProcessing) return;
+
+  // 2. 사용자 확인
+  if (confirmMessage && !window.confirm(confirmMessage)) return;
+
+  isProcessing = true;
+  if (button) button.disabled = true;
+
+  // 3. 상태 모달 열기
+  showStatusModal(prefix, 'processing', modalTitle, modalDesc);
+
+  // 4. 타임아웃 컨트롤러 설정 (30초)
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 30000);
+
+  try {
+      const response = await fetch(contextPath + requestUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+          },
+          body: bodyData.toString(),
+          signal: controller.signal
+      });
+
+      const result = await readJson(response);
+
+      // Success
+      if (response.ok && result.success) {
+          isProcessing = false;
+          moveAfterSuccess(result, prefix);
+          return;
+      }
+
+      // Response Error
+      showFailure(button, result, prefix);
+
+  } catch (error) {
+      // Network or Timeout Exception -> Fallback Check
+      showStatusModal(
+        prefix,
+          'processing',
+          '송금 결과를 확인하고 있습니다.',
+          '통신이 잠시 끊겨 실제 결제 상태를 다시 확인합니다.'
+      );
+
+      const statusResult = await checkStatusFunc();
+
+      if (statusResult && statusResult.success) {
+          isProcessing = false;
+          moveAfterSuccess(statusResult,prefix);
+          return;
+      }
+
+      showFailure(button, statusResult || {
+          message: '송금 결과를 확인하지 못했습니다. 송금 내역을 확인한 뒤 다시 시도해주세요.'
+      });
+
+  } finally {
+      window.clearTimeout(timeoutId);
+  }
+}
+function wait(milliseconds) {
+  return new Promise(resolve => window.setTimeout(resolve, milliseconds));
+}
+
+function hideStatusModal(prefix) {
+  // 결제/정산 진행 중일 때는 닫기 방지
+  if (isProcessing) return;
+
+  const overlay = document.getElementById(prefix + 'StatusOverlay');
+  if (overlay) {
+      overlay.hidden = true;
+  }
+  window.modalActionHandler = null;
+}
+function moveAfterSuccess(result,prefix) {
+  showStatusModal(
+      prefix,
+      'success',
+      '결제가 완료되었습니다.',
+      result.message || '참여한 방으로 이동합니다.',
+      { hideClose: true }
+  );
+
+  window.setTimeout(function () {
+      window.location.href = result.redirectUrl;
+  }, 1200);
+}
+function showFailure(targetButton, result, prefix = 'payment') {
+  isProcessing = false;
+  if (targetButton) {
+      targetButton.disabled = false;
+  }
+
+  if (result && result.code === 'LOGIN_REQUIRED') {
+      showStatusModal(prefix, 'error', '로그인이 필요합니다.', result.message || '다시 로그인해주세요.', {
+          actionText: '로그인 화면으로',
+          onAction: () => {
+              window.location.href = result.redirectUrl || (contextPath + '/member/loginForm.do');
+          }
+      });
+      return;
+  }
+
+  if (result && result.code === 'CARD_REQUIRED') {
+      showStatusModal(prefix, 'error', '결제 카드가 필요합니다.', result.message || '카드를 먼저 등록해주세요.', {
+          actionText: '카드 등록하기',
+          onAction: () => {
+              if (typeof window.requestBillingAuth === 'function') {
+                  window.requestBillingAuth();
+              } else {
+                  window.location.href = contextPath + '/spendolive/mypage.do';
+              }
+          }
+      });
+      return;
+  }
+  if (result && result.code === 'REPORTED_FAILED') {
+    showStatusModal(prefix, 'error', '이미 신고가 완료된 건 입니다.', result.message || '이미 완료된 건 입니다.', {
+        actionText: '메인 화면으로',
+        onAction: () => {
+            if (typeof window.requestBillingAuth === 'function') {
+                window.requestBillingAuth();
+            } else {
+                window.location.href = contextPath + '/spendolive/main.do';
+            }
+        }
+    });
+    return;
+}
+
+  const defaultTitle = prefix === 'payment' ? '결제를 완료하지 못했습니다.' : '실패하였습니다.';
+  showStatusModal(
+      prefix,
+      'error',
+      defaultTitle,
+      result && result.message ? result.message : '잠시 후 다시 시도해주세요.'
+  );
+}

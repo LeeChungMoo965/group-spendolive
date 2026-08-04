@@ -14,6 +14,7 @@ function toggleFaq(el) {
 /* ---- faqList.jsp : 카테고리 필터 ---- */
 function filterFaqCat(btn, cat) {
     // 카테고리를 누르면 검색어/검색 결과 숨김 상태를 초기화하고 카테고리 기준으로만 다시 보여준다
+    if (document.querySelectorAll('.faq-list').length === 0) return;
     const searchInput = document.getElementById('faqSearchInput');
     if (searchInput) searchInput.value = '';
     document.querySelectorAll('.faq-item').forEach(item => { item.style.display = ''; });
@@ -101,9 +102,23 @@ function filterInquiryStatus(btn, status) {
     });
 }
 
-/* ---- inquiryList.jsp : 카드 클릭 시 상세 이동 ---- */
-function goInquiryDetail(contextPath, inquiryId) {
-    window.location.href = contextPath + '/spendolive/inquiry/detail.do?inquiryNo=' + encodeURIComponent(inquiryId);
+/* ---- inquiryList.jsp : 카드 클릭 시 상세 팝업 ---- */
+function openInqDetailModal(inquiryId) {
+    const tpl = document.getElementById('inqDetailTpl' + inquiryId);
+    const body = document.getElementById('inqDetailBody');
+    if (!tpl || !body) return;
+    body.innerHTML = tpl.innerHTML;
+    document.getElementById('inqDetailModal').classList.add('show');
+}
+function closeInqDetailModal(e) {
+    document.getElementById('inqDetailModal').classList.remove('show');
+}
+
+/* ---- inquiryList.jsp : 삭제 버튼 (답변 대기 상태만 노출됨) ---- */
+function deleteInquiry(inquiryId) {
+    if (!confirm('이 문의를 삭제하시겠어요? 삭제하면 되돌릴 수 없어요.')) return;
+    document.getElementById('inqDeleteInquiryNo').value = inquiryId;
+    document.getElementById('inqDeleteForm').submit();
 }
 
 /* ---- inquiryWrite.jsp : 개인정보 수집·이용 상세 [자세히 보기] 토글 ---- */
@@ -123,15 +138,73 @@ function countChars(inputId, countId, max) {
 }
 
 /* ---- inquiryWrite.jsp : 첨부파일 선택 시 파일명 표시 ---- */
+/* ---- inquiryWrite.jsp : 첨부파일 선택 (여러 번 선택해도 누적, 최대 5개 / 5MB) ----
+   <input type="file" multiple>은 파일 선택창을 다시 열 때마다 input.files를
+   통째로 새 걸로 덮어써버리는 브라우저 기본 동작 때문에, 이전에 고른 파일이
+   사라지는 문제가 있었음. 이를 우회하기 위해 선택한 파일을 별도 배열
+   (inqSelectedFiles)로 직접 관리하고, 매번 DataTransfer로 input.files를
+   다시 조립해서 "누적 선택"처럼 보이게 함. */
+const INQ_MAX_FILES = 5;
+const INQ_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+let inqSelectedFiles = [];
+
 function handleFileSelect(input) {
+    const newFiles = Array.from(input.files || []);
+
+    newFiles.forEach(file => {
+        if (inqSelectedFiles.length >= INQ_MAX_FILES) {
+            alert('파일은 최대 ' + INQ_MAX_FILES + '개까지 첨부할 수 있습니다.');
+            return;
+        }
+        if (file.size > INQ_MAX_FILE_SIZE) {
+            alert('"' + file.name + '" 파일은 5MB를 초과해 첨부할 수 없습니다.');
+            return;
+        }
+        // 같은 이름 + 같은 크기의 파일은 중복으로 보고 다시 담지 않음
+        const isDuplicate = inqSelectedFiles.some(f => f.name === file.name && f.size === file.size);
+        if (isDuplicate) return;
+
+        inqSelectedFiles.push(file);
+    });
+
+    syncInquiryFileInput(input);
+    renderInquiryFileList();
+}
+
+/* 누적된 inqSelectedFiles 배열 내용을 실제 <input type="file">의
+   input.files에 다시 채워넣는다 (그래야 폼 제출 시 서버로 전송됨) */
+function syncInquiryFileInput(input) {
+    const dt = new DataTransfer();
+    inqSelectedFiles.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+}
+
+/* 선택된 파일 목록을 화면에 그림. 파일마다 × 버튼으로 개별 삭제 가능 */
+function renderInquiryFileList() {
     const list = document.getElementById('uploadFileNames');
     if (!list) return;
-    if (!input.files || input.files.length === 0) {
-        list.textContent = '';
+
+    if (inqSelectedFiles.length === 0) {
+        list.innerHTML = '';
         return;
     }
-    const names = Array.from(input.files).map(f => f.name);
-    list.textContent = '선택된 파일: ' + names.join(', ');
+
+    const chips = inqSelectedFiles.map((file, idx) =>
+        '<span class="upload-file-chip">' +
+            file.name +
+            ' <a href="javascript:void(0)" class="upload-file-remove" onclick="removeInquiryFile(' + idx + ')" aria-label="파일 삭제">×</a>' +
+        '</span>'
+    ).join('');
+
+    list.innerHTML = '선택된 파일 (' + inqSelectedFiles.length + '/' + INQ_MAX_FILES + ')<br>' + chips;
+}
+
+/* × 버튼 클릭 시 해당 파일만 목록/실제 input에서 제거 */
+function removeInquiryFile(idx) {
+    inqSelectedFiles.splice(idx, 1);
+    const input = document.getElementById('attachmentInput');
+    if (input) syncInquiryFileInput(input);
+    renderInquiryFileList();
 }
 
 /* ---- inquiryWrite.jsp : 제출 전 유효성 검사 (실제 제출은 form action으로 처리) ---- */
@@ -147,5 +220,25 @@ function validateInquiryForm(formEl) {
         alert('제목과 상세 내용을 입력해 주세요.');
         return false;
     }
+
+
+
+    const submitBtn = formEl.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '등록 중...';
+    
     return true;
 }
+/* ---- inquiryList.jsp / inquiryDetail.jsp : 첨부 사진 확대보기(라이트박스) ---- */
+function openInqLightbox(src, name) {
+    const img = document.getElementById('inqLightboxImg');
+    img.src = src;
+    img.alt = name || '';
+    document.getElementById('inqLightbox').classList.add('show');
+}
+function closeInqLightbox(e) {
+    document.getElementById('inqLightbox').classList.remove('show');
+}
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeInqLightbox();
+});

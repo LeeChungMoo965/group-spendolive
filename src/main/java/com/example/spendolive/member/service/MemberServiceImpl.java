@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -28,9 +29,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.spendolive.member.domain.MemberAccountVO;
+import com.example.spendolive.member.domain.MemberCardVO;
+import com.example.spendolive.member.domain.MemberTranVO;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.member.exception.MemberProcessException;
 import com.example.spendolive.member.repository.MemberRepository;
-import com.example.spendolive.payment.service.PaymentService;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -48,7 +51,8 @@ public class MemberServiceImpl implements MemberService {
     private MemberRepository memberRepository;
 
     @Autowired
-    private PaymentService paymentService;
+    private PasswordEncoder passwordEncoder;
+
 
     @Autowired
     private JavaMailSender mailSender;
@@ -73,25 +77,24 @@ public class MemberServiceImpl implements MemberService {
 
     @Value("${solapi.secret-key}")
     private String solapisecretkey;
-
-    @Override
-    public MemberVO login(Map loginMap) throws Exception {
-        return memberRepository.login(loginMap);
-    }
-
+    @Value("${openbanking.code}")
+    private String useCode;
+    @Value("${openbanking.integrated-redirect-uri}")
+    private String openbankingIntegratedredirectUri;
+    
     @Override
     public void addMember(MemberVO memberVO) throws Exception {
+        String rawPassword = memberVO.getPassword();
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        memberVO.setPassword(encodedPassword);
         memberRepository.insertNewMember(memberVO);
     }
 
     @Override
-    public String overlapped(String id) throws Exception {
-        throw new UnsupportedOperationException("Unimplemented method 'overlapped'");
-    }
-
-    @Override
     public String sendVerificationEmail(String toEmail) throws Exception {
-        // 윈도우 한글 이름으로 인해 구글이 EOF를 반환하는 현상 방지
+
+        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+
         if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
             java.util.Properties props =
                     ((org.springframework.mail.javamail.JavaMailSenderImpl) mailSender)
@@ -99,7 +102,6 @@ public class MemberServiceImpl implements MemberService {
             props.put("mail.smtp.localhost", "127.0.0.1");
         }
 
-        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("chung100302@gmail.com");
@@ -120,15 +122,14 @@ public class MemberServiceImpl implements MemberService {
             System.out.println("이메일 발송 에러: " + e.getMessage());
             throw new RuntimeException("이메일 전송 중 에러 발생", e);
         }
+
     }
 
     @Override
     public String sendSmsVerification(String toNumber) throws Exception {
         String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
 
-        DefaultMessageService messageService =
-                SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
-
+        DefaultMessageService messageService =  SolapiClient.INSTANCE.createInstance(solapiapikey, solapisecretkey);
         Message message = new Message();
         message.setFrom("01024414631");
         message.setTo(toNumber);
@@ -138,18 +139,26 @@ public class MemberServiceImpl implements MemberService {
             messageService.send(message);
             return verificationCode;
         } catch (SolapiMessageNotReceivedException exception) {
-            System.out.println(exception.getFailedMessageList());
-            System.out.println(exception.getMessage());
-            throw new RuntimeException("문자 전송 중 오류 발생", exception);
-        } catch (Exception exception) {
-            System.out.println(exception.getMessage());
-            throw new RuntimeException("문자 전송 중 오류 발생", exception);
-        }
-    }
+        // 발송에 실패한 메시지 목록을 확인할 수 있습니다!
+        System.out.println(exception.getFailedMessageList());
+        System.out.println(exception.getMessage());
+        throw new RuntimeException("문자 전송 중 오류 발생");
+        } catch (Exception exception) { 
+        System.out.println(exception.getMessage());
+        throw new RuntimeException("문자 전송 중 오류 발생");
+        } 
 
+    }
     @Override
     public boolean checkId(String id) {
-        return memberRepository.checkId(id);
+        try{
+        if (memberRepository.checkId(id)) {
+            return true;
+            }
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
+        return false;
     }
 
     @Override
@@ -242,16 +251,66 @@ public class MemberServiceImpl implements MemberService {
 
         return userInfoMap;
     }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePrimaryCard(String id, int cardIdx) throws Exception {
+        int updatedCount = memberRepository.updatePrimaryCard(id, cardIdx);
+        if (updatedCount == 0) {
+            throw new IllegalArgumentException("주카드로 설정할 카드를 찾을 수 없습니다.");
+        }
+    }
 
+    @Override
+    public void updateCardName(String id, int cardIdx, String cardName) throws Exception {
+        int updatedCount = memberRepository.updateCardName(id, cardIdx, cardName);
+        if (updatedCount == 0) {
+            throw new IllegalArgumentException("이름을 수정할 카드를 찾을 수 없습니다.");
+        }
+    }
     @Override
     public MemberVO getMemberById(String id) throws Exception {
         return memberRepository.selectMemberById(id);
     }
 
     @Override
-    public MemberAccountVO getAccountById(String id) throws Exception {
+    public List<MemberAccountVO> getAccountById(String id) throws Exception {
         return memberRepository.selectAccountById(id);
     }
+
+    /* =========================================================
+       [마이페이지 계좌·카드 연결 추가 시작]
+       1) 등록 카드 목록 조회
+       2) 로그인 회원이 소유한 계좌의 제목 수정
+       ========================================================= */
+    @Override
+    public List<MemberCardVO> getCardById(String id) throws Exception {
+        return memberRepository.selectCardById(id);
+    }
+
+    @Override
+    public void updateAccountName(String id, int accountIdx, String accountName) throws Exception {
+        int updatedCount = memberRepository.updateAccountName(id, accountIdx, accountName);
+        if (updatedCount == 0) {
+            throw new IllegalArgumentException("수정할 계좌를 찾을 수 없습니다.");
+        }
+    }
+
+    // 선택한 계좌를 주계좌로 바꾸며 다른 계좌의 주계좌 상태도 함께 해제한다.
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePrimaryAccount(String id, int accountIdx) throws Exception {
+        int updatedCount = memberRepository.updatePrimaryAccount(id, accountIdx);
+        if (updatedCount == 0) {
+            throw new IllegalArgumentException("주계좌로 설정할 계좌를 찾을 수 없습니다.");
+        }
+    }
+
+    // 회원 아이디와 계좌 번호를 함께 사용해 본인 계좌 거래내역만 조회한다.
+    @Override
+    public List<MemberTranVO> getTransactionsByAccount(String id, int accountIdx) throws Exception {
+        return memberRepository.selectTransactionsByAccount(id, accountIdx);
+    }
+    /* [마이페이지 계좌·카드 연결 추가 끝] */
 
     @Override
     public void updateMyInfo(MemberVO memberVO, String newPassword) throws Exception {
@@ -259,7 +318,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @SuppressWarnings("unchecked")
     public void registerOpenBankingToken(
             String code,
@@ -268,7 +327,7 @@ public class MemberServiceImpl implements MemberService {
             ResponseEntity<Map> response,
             MemberVO memberVO
     ) throws Exception {
-
+//토큰 발급
         String tokenUrl = "https://testapi.openbanking.or.kr/oauth/2.0/token";
         RestTemplate restTemplate = new RestTemplate();
 
@@ -301,7 +360,7 @@ public class MemberServiceImpl implements MemberService {
 
         System.out.println("발급된 Access Token: " + accessToken);
         System.out.println("발급된 사용자 일련번호(user_seq_no): " + userSeqNo);
-
+//계좌 조회
         String accountUrl =
                 "https://testapi.openbanking.or.kr/v2.0/account/list?user_seq_no="
                         + userSeqNo
@@ -323,48 +382,49 @@ public class MemberServiceImpl implements MemberService {
             throw new RuntimeException("등록된 계좌 정보가 없습니다.");
         }
 
-        Map<String, Object> firstAccount = resList.get(0);
+       
+      
+//잔액 조회
+            Map<String, Object> account = resList.get(0);
+            String fintech_use_num = (String) account.get("fintech_use_num");
+            String accountNum = (String) account.get("account_num_masked");
+            String bankCode = (String) account.get("bank_code_std");
+            String accountHolderName = (String) account.get("account_holder_name");
+            String tranDtime =
+            java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            String uniqueNine = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 9).toUpperCase();
+            String bankTranId = useCode + "U" + uniqueNine;
+            String balanceUrl =
+            "https://testapi.openbanking.or.kr/v2.0/account/balance/fintech_use_num"
+                    + "?bank_tran_id=" + bankTranId
+                    + "&fintech_use_num="
+                    + fintech_use_num
+                    + "&tran_dtime="
+                    + tranDtime;
 
-        String fintechUseNum = (String) firstAccount.get("fintech_use_num");
-        String accountNum = (String) firstAccount.get("account_num_masked");
-        String bankCode = (String) firstAccount.get("bank_code_std");
-        String accountHolderName = (String) firstAccount.get("account_holder_name");
+    HttpEntity<String> balanceEntity = new HttpEntity<>(headers);
+    ResponseEntity<Map> balanceResponse =
+            restTemplate.exchange(balanceUrl, HttpMethod.GET, balanceEntity, Map.class);
+    
+    int balance = 0;
 
-        System.out.println("👉 진짜 24자리 번호 획득: " + fintechUseNum);
-        System.out.println("👉 은행 코드 획득: " + bankCode);
-        System.out.println("👉 계좌번호 획득: " + accountNum);
-
-        String tranDtime =
-                java.time.LocalDateTime.now()
-                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-
-        String balanceUrl =
-                "https://testapi.openbanking.or.kr/v2.0/account/balance/fintech_use_num"
-                        + "?fintech_use_num="
-                        + fintechUseNum
-                        + "&tran_dtime="
-                        + tranDtime;
-
-        HttpEntity<String> balanceEntity = new HttpEntity<>(headers);
-        ResponseEntity<Map> balanceResponse =
-                restTemplate.exchange(balanceUrl, HttpMethod.GET, balanceEntity, Map.class);
-
-        int balance = 0;
-
-        if (balanceResponse.getStatusCode() == HttpStatus.OK
-                && balanceResponse.getBody() != null) {
-            Object balanceAmt = balanceResponse.getBody().get("balance_amt");
-            if (balanceAmt != null) {
-                balance = Integer.parseInt(String.valueOf(balanceAmt));
-            }
-            System.out.println("💰 실시간 계좌 잔액 확인 완료: " + balance + "원");
+    if (balanceResponse.getStatusCode() == HttpStatus.OK
+            && balanceResponse.getBody() != null) {
+        Object balanceAmt = balanceResponse.getBody().get("balance_amt");
+        if (balanceAmt != null) {
+            balance = Integer.parseInt(String.valueOf(balanceAmt));
         }
-
-        memberRepository.updateOpenBankingInfo(
+        System.out.println("💰 실시간 계좌 잔액 확인 완료: " + balance + "원");
+    }
+            System.out.println("👉 진짜 24자리 번호 획득: " + fintech_use_num);
+            System.out.println("👉 은행 코드 획득: " + bankCode);
+            System.out.println("👉 계좌번호 획득: " + accountNum);
+            memberRepository.updateOpenBankingInfo(
                 userId,
                 accessToken,
                 userSeqNo,
-                fintechUseNum,
+                fintech_use_num,
                 bankCode,
                 accountNum,
                 balance,
@@ -373,6 +433,7 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.updateMember_account_status(userId);
 
         // 토스 지급대행은 보안키 지원 문제로 현재 API 요청을 생략하는 구조
+        /*
         paymentService.registerSubMall(
                 userId,
                 bankCode,
@@ -380,8 +441,92 @@ public class MemberServiceImpl implements MemberService {
                 accountHolderName,
                 memberVO
         );
+         */
     }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @SuppressWarnings("unchecked")
+    public void registerOpenBankingIntegratedToken(MemberVO memberVO,MemberAccountVO accountVO) throws Exception {
+        try {
+            
+            RestTemplate restTemplate = new RestTemplate();
+            String fintech_use_num = accountVO.getFintech_use_num();
+            String uniqueNine = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 9).toUpperCase();
+            String bankTranId = useCode + "U" + uniqueNine;
+            String from_date = accountVO.getFrom_date();
+            String from_time = accountVO.getFrom_time();
+            String to_date = accountVO.getTo_date();
+            String to_time = accountVO.getTo_time();
+            String accessToken = accountVO.getOpen_bank_token();
+            HttpHeaders headers = new HttpHeaders();
+            String accountUrl =
+                    "https://testapi.openbanking.or.kr/v2.0/account/transaction_list/fin_num?bank_tran_id=" + bankTranId + "&fintech_use_num=" + fintech_use_num + "&inquiry_type=A"+ "&inquiry_base=T" + "&from_date="+from_date+"&from_time="+from_time+"&to_date="+to_date+"&to_time="+to_time+"&sort_order=D&tran_dtime="+to_date+to_time;
+            headers.set("Authorization", "Bearer " + accessToken);
+            HttpHeaders accountHeaders = new HttpHeaders();
+            accountHeaders.setBearerAuth(accessToken);
+            HttpEntity<String> entity = new HttpEntity<>(accountHeaders);
+            ResponseEntity<Map> response = restTemplate.exchange(accountUrl, HttpMethod.GET, entity, Map.class);
 
+        if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+            throw new RuntimeException("거래내역 조회에 실패했습니다.");
+        }
+        response.getBody().get("res_list");
+        String rsp_code = (String) response.getBody().get("rsp_code");
+         /*                        
+         권한 문제로 임시데이터로 처리
+        List<Map<String, Object>> resList = (List<Map<String, Object>>) response.getBody().get("res_list");
+   
+        if (resList == null || resList.isEmpty()) {
+            System.out.println("ℹ️ 해당 기간 내에 거래 내역이 존재하지 않습니다. (핀테크번호: " + fintech_use_num + ")"+rsp_code);
+            return; // 에러 터뜨리지 말고 안전하게 리턴!
+        }
+        for(Map<String, Object> account : resList){
+        String tran_date = (String) account.get("tran_date");
+        String tran_time = (String) account.get("tran_time");
+        String inout_type = (String) account.get("inout_type");
+        String tran_type = (String) account.get("tran_type");
+        String print_content = (String) account.get("print_content");
+        String tran_amt = (String) account.get("tran_amt");
+        String after_balance_amt = (String) account.get("after_balance_amt");
+        System.out.println("👉 잔액: " + after_balance_amt +tran_date);
+        }
+        */
+        String[] inout_type = {"출금", "입금"};
+        int[] tran_amt = {10000,20000,30000,40000,5000,7000,7500,100000,150000,2000000};
+        int amt_number = new java.util.Random().nextInt(10);
+        int type_nember = new java.util.Random().nextInt(2);
+        String id = memberVO.getId();
+        int idx = accountVO.getAccount_idx();
+        MemberTranVO tran = new MemberTranVO();
+        String tranDtime =
+            java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // 출금은 음수, 입금은 양수로 통일해 현재 잔액과 거래 후 잔액을 계산한다.
+        int signedAmount = tran_amt[amt_number];
+        if(inout_type[type_nember].equals("출금")){
+            signedAmount = signedAmount * -1;
+        }
+
+        int balanceAfter = accountVO.getBalance() + signedAmount;
+
+        tran.setId(id);
+        tran.setInout_type(inout_type[type_nember]);
+        tran.setAccount_idx(idx);
+        tran.setTran_amt(signedAmount);
+        tran.setTran_date(tranDtime);
+        tran.setBalance_after(Long.valueOf(balanceAfter));
+
+        // 거래 당시 잔액을 거래 테이블에 저장한 뒤 계좌의 현재 잔액을 갱신한다.
+        memberRepository.inserttrandetail(tran);
+        memberRepository.updatebalance(signedAmount, idx);
+        accountVO.setBalance(balanceAfter);
+        }catch (Exception e) {
+            System.out.println("오류" + e);
+
+        }
+
+    }
+    
     @Override
     public String findIdByPhone(String phone) throws Exception {
         return memberRepository.findIdByPhone(phone);

@@ -3,13 +3,6 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="${contextPath}/resources/css/faq.css">
-
-<%--
-  참고: 상태 필터(전체/답변대기/답변완료/검토중)는 서버에 status 파라미터로 다시 요청해서
-        전체 문의 중 해당 상태만 걸러 1페이지부터 보여준다 (InquiryController.normalizeStatusFilter 참고).
-        페이지네이션: 문의(필터 적용 후 기준)가 10개 이하면 전부 한 페이지, 넘으면 5개씩.
---%>
 
 <div class="faq-page">
     <div class="page-hero">
@@ -26,26 +19,29 @@
             <a class="btn btn-primary" href="${contextPath}/spendolive/inquiry/write.do">+ 새 문의 작성</a>
         </div>
 
+        <%-- ═══════════════════════════════════════════════════════════
+             #inqBoardArea : 필터/목록/페이지네이션을 감싸는 "교체 대상" 영역.
+             필터·페이지 클릭 시 inquiry.js가 list.do를 fetch해서 이 영역만
+             통째로 갈아끼운다(전체 새로고침 없음). 모달·삭제 폼은 이 밖에 둠. --%>
+        <div id="inqBoardArea">
+
         <div class="filters">
-            <a class="filter-btn ${currentStatus == 'all' ? 'active' : ''}"
-               href="${contextPath}/spendolive/inquiry/list.do?status=all">전체</a>
-            <a class="filter-btn ${currentStatus == 'wait' ? 'active' : ''}"
-               href="${contextPath}/spendolive/inquiry/list.do?status=wait">답변 대기</a>
-            <a class="filter-btn ${currentStatus == 'done' ? 'active' : ''}"
-               href="${contextPath}/spendolive/inquiry/list.do?status=done">답변 완료</a>
-            <a class="filter-btn ${currentStatus == 'review' ? 'active' : ''}"
-               href="${contextPath}/spendolive/inquiry/list.do?status=review">검토 중</a>
+            <%-- a href → data-status 버튼으로 변경. inquiry.js가 클릭을 가로채 AJAX 처리 --%>
+            <button type="button" class="filter-btn ${currentStatus == 'all' ? 'active' : ''}" data-status="all">전체</button>
+            <button type="button" class="filter-btn ${currentStatus == 'wait' ? 'active' : ''}" data-status="wait">답변 대기</button>
+            <button type="button" class="filter-btn ${currentStatus == 'done' ? 'active' : ''}" data-status="done">답변 완료</button>
+            <button type="button" class="filter-btn ${currentStatus == 'review' ? 'active' : ''}" data-status="review">검토 중</button>
         </div>
 
         <c:if test="${not empty inquiryList}">
             <div class="inq-list" id="inqList">
                 <c:forEach var="inq" items="${inquiryList}">
-                    <div class="inq-card" onclick="goInquiryDetail('${contextPath}','${inq.inquiryId}')">
+                    <div class="inq-card" onclick="openInqDetailModal('${inq.inquiry_id}')">
                         <div class="inq-top">
                             <span class="inq-category">${inq.category}</span>
                             <div class="inq-meta">
                                 <span class="badge ${inq.statusCode}">${inq.statusLabel}</span>
-                                <span class="inq-date">${inq.regDate}</span>
+                                <span class="inq-date">${inq.reg_date}</span>
                             </div>
                         </div>
                         <div class="inq-title">${inq.title}</div>
@@ -55,13 +51,13 @@
                                 <c:forEach var="file" items="${inq.files}">
                                     <c:choose>
                                         <c:when test="${file.image}">
-                                            <img src="${contextPath}/spendolive/inquiry/file/${file.fileId}"
-                                                 alt="${file.originName}" class="inq-thumb"
-                                                 onclick="event.stopPropagation(); openInqLightbox(this.src, '${file.originName}')">
+                                            <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                                alt="${file.origin_name}" class="inq-thumb"
+                                                onclick="event.stopPropagation(); openInqLightbox(this.src, '${file.origin_name}')">
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="${contextPath}/spendolive/inquiry/file/${file.fileId}"
-                                               target="_blank" class="inq-file-link">📎 ${file.originName}</a>
+                                            <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                            target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
@@ -76,18 +72,108 @@
                                     <div class="inq-reply"><span class="reply-dot none"></span> 아직 답변이 없습니다</div>
                                 </c:otherwise>
                             </c:choose>
-                            <span class="inq-no">문의 #${inq.inquiryId}</span>
+                            <span class="inq-no">문의 #${inq.inquiry_id}</span>
                         </div>
+                    </div>
+
+                    <%-- 이 카드 클릭 시 위 정보를 모달에 그대로 복사해서 보여줄 숨김 템플릿 --%>
+                    <div class="inq-detail-tpl" id="inqDetailTpl${inq.inquiry_id}" style="display:none">
+                        <div class="inq-detail-header">
+                            <div class="inq-top">
+                                <span class="inq-category">${inq.categoryLabel} · ${inq.inquiryTypeLabel}</span>
+                                <div class="inq-meta">
+                                    <span class="badge ${inq.statusCode}">${inq.statusLabel}</span>
+                                    <span class="inq-date">${inq.reg_date}</span>
+                                </div>
+                            </div>
+                            <div class="inq-title" style="font-size:18px;margin-top:8px">${inq.title}</div>
+                        </div>
+
+                        <div class="inq-detail-section">
+                            <span class="inq-detail-label">문의 내용</span>
+                            <div class="inq-detail-body">${inq.content}</div>
+                        </div>
+
+                        <c:if test="${not empty inq.files}">
+                            <div class="inq-detail-section">
+                                <span class="inq-detail-label">첨부파일</span>
+                                <div class="inq-attachments">
+                                    <c:forEach var="file" items="${inq.files}">
+                                        <c:choose>
+                                            <c:when test="${file.image}">
+                                                <img src="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                                    alt="${file.origin_name}" class="inq-thumb"
+                                                    onclick="openInqLightbox(this.src, '${file.origin_name}')">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <a href="${contextPath}/spendolive/inquiry/file/${file.file_id}"
+                                                target="_blank" class="inq-file-link">📎 ${file.origin_name}</a>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+                                </div>
+                            </div>
+                        </c:if>
+
+                        <div class="inq-detail-section">
+                            <c:choose>
+                                <c:when test="${inq.hasReply}">
+                                    <div class="inq-reply-box">
+                                        <div class="inq-reply-head">
+                                            <strong>관리자 답변</strong>
+                                            <span class="inq-date">${inq.reply_date}</span>
+                                        </div>
+                                        <div class="inq-reply-text">${inq.reply_content}</div>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="empty-box" style="margin-top:0">
+                                        <p>아직 답변이 등록되지 않았습니다.</p>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+
+                        <%-- 답변 대기 상태(관리자 답변 전)인 문의만 수정/삭제 가능.
+                             이미 답변이 달린 문의는 내용을 바꾸면 답변과 안 맞아질 수 있어서 막음. --%>
+                        <c:if test="${inq.status == 'WAIT'}">
+                            <div class="inq-detail-actions" style="display:flex;gap:8px;margin-top:16px">
+                                <a class="btn btn-outline" style="flex:1;text-align:center"
+                                   href="${contextPath}/spendolive/inquiry/edit.do?inquiryNo=${inq.inquiry_id}">수정</a>
+                                <button type="button" class="btn btn-danger-outline" style="flex:1"
+                                        onclick="event.stopPropagation(); deleteInquiry(${inq.inquiry_id})">삭제</button>
+                            </div>
+                        </c:if>
                     </div>
                 </c:forEach>
             </div>
 
             <c:if test="${totalPages > 1}">
+                <%-- 현재 페이지 기준 앞뒤 2개씩만 보여주는 윈도우 방식 --%>
+                <c:set var="pgStart" value="${currentPage - 2 < 1 ? 1 : currentPage - 2}" />
+                <c:set var="pgEnd" value="${currentPage + 2 > totalPages ? totalPages : currentPage + 2}" />
+
+                <%-- 페이지 번호도 a href → data-page 버튼. inquiry.js가 클릭을 가로채 AJAX 처리.
+                     현재 상태 필터(currentStatus)는 data-status로 같이 실어보내 유지 --%>
                 <div class="pagination">
-                    <c:forEach begin="1" end="${totalPages}" var="p">
-                        <a class="pg-btn ${p == currentPage ? 'active' : ''}"
-                           href="${contextPath}/spendolive/inquiry/list.do?status=${currentStatus}&page=${p}">${p}</a>
+                    <c:if test="${pgStart > 1}">
+                        <button type="button" class="pg-btn" data-page="1" data-status="${currentStatus}">1</button>
+                        <c:if test="${pgStart > 2}">
+                            <span class="pg-ellipsis">…</span>
+                        </c:if>
+                    </c:if>
+
+                    <c:forEach begin="${pgStart}" end="${pgEnd}" var="p">
+                        <button type="button" class="pg-btn ${p == currentPage ? 'active' : ''}"
+                                data-page="${p}" data-status="${currentStatus}">${p}</button>
                     </c:forEach>
+
+                    <c:if test="${pgEnd < totalPages}">
+                        <c:if test="${pgEnd < totalPages - 1}">
+                            <span class="pg-ellipsis">…</span>
+                        </c:if>
+                        <button type="button" class="pg-btn" data-page="${totalPages}" data-status="${currentStatus}">${totalPages}</button>
+                    </c:if>
                 </div>
             </c:if>
         </c:if>
@@ -102,12 +188,24 @@
                     </c:when>
                     <c:otherwise>
                         <p>해당 상태의 문의가 없습니다.</p>
-                        <a class="btn btn-outline" href="${contextPath}/spendolive/inquiry/list.do?status=all">전체 문의 보기</a>
+                        <%-- '전체 문의 보기'도 AJAX 필터 버튼으로 (data-status=all) --%>
+                        <button type="button" class="btn btn-outline filter-btn" data-status="all">전체 문의 보기</button>
                     </c:otherwise>
                 </c:choose>
             </div>
         </c:if>
+
+        </div> <%-- /#inqBoardArea --%>
     </div>
+
+    <div class="modal" id="inqDetailModal" onclick="closeInqDetailModal(event)">
+        <div class="modal-box modal-inquiry" onclick="event.stopPropagation()">
+            <button type="button" class="modal-close" onclick="closeInqDetailModal(event)">✕</button>
+            <div id="inqDetailBody"></div>
+        </div>
+    </div>
+
+    <%-- 삭제는 이제 inquiry.js가 fetch(ajax/delete.do)로 처리하므로 숨김 폼 불필요 --%>
 
     <%-- 첨부 사진 확대보기 (01-foundation.css의 공통 .modal 시스템 재사용) --%>
     <div class="modal" id="inqLightbox" onclick="closeInqLightbox(event)">
@@ -118,26 +216,6 @@
     </div>
 </div>
 
-<script>
-    // 문의 제출 후 리다이렉트로 넘어온 1회성 메시지 (main.jsp와 동일한 패턴)
-    var msg = "${msg}";
-    if (msg && msg !== "") {
-        alert(msg);
-    }
-
-    // 첨부 사진 확대보기
-    function openInqLightbox(src, name) {
-        var img = document.getElementById('inqLightboxImg');
-        img.src = src;
-        img.alt = name || '';
-        document.getElementById('inqLightbox').classList.add('show');
-    }
-    function closeInqLightbox(e) {
-        document.getElementById('inqLightbox').classList.remove('show');
-    }
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeInqLightbox();
-    });
-</script>
 <script src="${contextPath}/resources/js/faq.js"></script>
+<script src="${contextPath}/resources/js/inquiry.js"></script>
 

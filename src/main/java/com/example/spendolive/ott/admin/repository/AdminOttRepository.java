@@ -14,11 +14,11 @@ public interface AdminOttRepository {
 
     List<OttServiceDTO> selectOttServiceList();
 
-    OttServiceDTO selectOttService(Long ottServiceId);
+    OttServiceDTO selectOttService(Long ott_service_id);
 
     int insertOttService(OttServiceDTO ottService);
 
     int updateOttService(OttServiceDTO ottService);
 
-    int hideOttService(Long ottServiceId);
+    int hideOttService(Long ott_service_id);
 }

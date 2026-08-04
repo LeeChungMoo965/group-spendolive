@@ -13,7 +13,7 @@ SET DEFINE OFF;
    - 카테고리 중복 INSERT 정리
    - member_tb 필수 컬럼 id, verify_type 누락 수정
    - ott_service_tb INSERT의 risk_level/block_reason 값 오류 수정
-   - alert_tb INSERT 컬럼명 member_id -> id 수정
+   - notification_tb 기준으로 테스트 OTT 알림 INSERT 정리
 */
 
 /* 지출 카테고리 */
@@ -146,8 +146,8 @@ VALUES (3, 6, '점심', 9500, TRUNC(SYSDATE), 'CARD', '학원 근처 점심', 'N
 INSERT INTO expense_tb(member_id, category_id, expense_title, amount, expense_date, payment_method, memo, fixed_yn)
 VALUES (3, 12, '넷플릭스', 4250, TRUNC(SYSDATE, 'MM') + 14, 'TRANSFER', 'OTT 정산금', 'Y');
 
-/* 테스트 알림 */
-INSERT INTO alert_tb(id, alert_type, title, content, target_url)
-VALUES ('user', 'SETTLEMENT', '넷플릭스 정산 요청', '이번 달 넷플릭스 정산금 입금이 필요합니다.', '/settlement/1');
+/* 테스트 OTT 알림 */
+INSERT INTO notification_tb(id, notification_type, title, message, link_url)
+VALUES ('user', 'OTT', '넷플릭스 정산 요청', '이번 달 넷플릭스 정산금 입금이 필요합니다.', '/spendolive/ott/recruit.do?tab=settlement');
 
 COMMIT;

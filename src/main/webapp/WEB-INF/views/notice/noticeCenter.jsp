@@ -3,19 +3,20 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="${contextPath}/resources/css/notice.css">
-
 <section class="page-hero">
     <div class="container">
-        <div class="notice-hero-text">
-            <p class="eyebrow">NOTICE CENTER</p>
-            <h1>공지사항 · 알림센터</h1>
-            <p class="hero-text">
-                SpendOlive의 공지사항과 개인 알림을 한눈에 확인하세요.
-            </p>
-        </div>
-    </div>
+                <p class="eyebrow">
+                    NOTICE CENTER
+                </p>
+                <h1>
+                    공지사항 · 알림센터
+                </h1>
+                <p class="hero-text">
+                    SpendOlive의 공지사항과 개인 알림을 한눈에 확인하세요.
+                </p>
+            </div>
 </section>
+
 
 <section class="section compact notice-list-section">
     <div class="container">
@@ -37,12 +38,11 @@
             </button>
             </div>
 
-            <%-- DB 오류 등 서버 오류 메시지 --%>
+            <%-- DB 오류 등 서버 오류 메시지 - 화면에 계속 남는 빨간 박스 대신 alert 팝업으로 한 번만 띄움 --%>
             <c:if test="${not empty errorMsg}">
-                <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;
-                            padding:12px 18px;border-radius:8px;margin-bottom:16px;">
-                    ⚠ ${errorMsg}
-                </div>
+                <script>
+                    alert("${errorMsg}");
+                </script>
             </c:if>
 
             <div class="card table-card notice-board-card">
@@ -97,4 +97,34 @@
     const loginYn = ${not empty loginYn ? loginYn : false};
 </script>
 
+
 <script src="${contextPath}/resources/js/notice.js"></script>
+
+<!-- 알림 상세 모달 -->
+<div id="notificationModal" class="notification-modal">
+
+    <div class="notification-modal-box">
+
+        <h3 id="notificationModalTitle"></h3>
+
+        <div id="notificationModalMessage" class="notification-modal-message"></div>
+
+        <div class="notification-modal-buttons">
+
+            <button type="button"
+                    class="btn btn-secondary"
+                    onclick="closeNotificationModal()">
+                닫기
+            </button>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    id="notificationMoveBtn">
+                해당 게시글로 이동
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

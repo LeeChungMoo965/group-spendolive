@@ -40,14 +40,15 @@ CREATE TABLE member_tb (
 CREATE SEQUENCE seq_member START WITH 1 INCREMENT BY 1 NOCACHE;
 
 /* =========================================================
-   2. [develop + 마이페이지/OTT 반영] 오픈뱅킹 계좌 연동 컬럼
-      - open_bank_user_seq_no : 금융결제원 사용자 일련번호
-      - open_bank_token       : 오픈뱅킹 Access Token
-      - fintech_use_num       : 실제 계좌 출금/이체에 사용하는 핀테크 이용번호
+   2. 마이페이지/OTT 연동 상태 컬럼
+      - 실제 오픈뱅킹 값은 member_account_tb에 저장
+      - 실제 카드 빌링키는 member_card_tb에 저장
    ========================================================= */
 ALTER TABLE member_tb ADD (
-    account_status  VARCHAR2(4),
-    card_status VARCHAR2(4)
+    account_status  VARCHAR2(4) DEFAULT 'NO' NOT NULL,
+    card_status     VARCHAR2(4) DEFAULT 'NO' NOT NULL,
+    CONSTRAINT ck_member_account_status CHECK (account_status IN ('YES', 'NO')),
+    CONSTRAINT ck_member_card_link_status CHECK (card_status IN ('YES', 'NO'))
 );
 
 alter table member_tb add(
@@ -69,26 +70,48 @@ CREATE TABLE MEMBER_ACCOUNT_TB (
     ACCOUNT_NUMBER       VARCHAR2(30) NOT NULL,                           -- 마스킹된 계좌번호 (ex: 110-***-1234)
     FINTECH_USE_NUM      VARCHAR2(50) NOT NULL,                           -- 금결원 핵심 키 (핀테크이용번호 💥)
     BALANCE              NUMBER DEFAULT 0,                                -- 계좌 잔액 (실시간 동기화용 💰)
-    OPEN_BANK_TOKEN      VARCHAR2(255) NOT NULL,                          -- 금결원 사용자 토큰
+    OPEN_BANK_TOKEN      VARCHAR2(300) NOT NULL,                          -- 금결원 사용자 토큰
     OPEN_BANK_USER_SEQ   VARCHAR2(50) NOT NULL,                           -- 금결원 사용자 일련번호
     ACCOUNT_HOLDER_NAM   VARCHAR2(50),
     REG_DATE             DATE DEFAULT SYSDATE,                            -- 연동 일자
+    account_name VARCHAR2(20) default '계좌',
+     to_date VARCHAR2(8) default '20260721',
+    from_date VARCHAR2(8) default '20260701',
+    to_time VARCHAR2(6) default '235959',
+    from_time VARCHAR2(6) default '000000',
+    status         VARCHAR2(20) DEFAULT 'NO' NOT NULL,
+    CONSTRAINT ck_member_account_status CHECK (status IN ('YES', 'NO')),
     
     -- 회원 테이블과의 연관 관계 (회원 탈퇴 시 계좌도 같이 자동 삭제)
-    CONSTRAINT FK_ACCOUNT_MEMBER_ID FOREIGN KEY (ID) 
+
+    CONSTRAINT FK_ACCOUNT_member_id FOREIGN KEY (ID) 
+
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
+ALTER TABLE member_account_tb ADD (
+    to_date VARCHAR2(8) default '20260721',
+    from_date VARCHAR2(8) default '20260701',
+    to_time VARCHAR2(6) default '235959',
+    from_time VARCHAR2(6) default '000000',
+    account_name VARCHAR2(20) default '계좌',
+     status         VARCHAR2(20) DEFAULT 'NO' NOT NULL,
+    CONSTRAINT ck_member_account_status CHECK (status IN ('YES', 'NO'))
+);
+ALTER TABLE MEMBER_ACCOUNT_TB
+MODIFY OPEN_BANK_TOKEN VARCHAR2(1000);
+
 
 CREATE TABLE MEMBER_CARD_TB (
     CARD_IDX        NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, -- 고유 번호
     ID              VARCHAR2(20) NOT NULL,                           -- 회원 ID (FK)
-    BILLING_KEY     VARCHAR2(100) NOT NULL,                          -- 토스 빌링키 (가장 중요 💥)
+    BILLING_KEY     VARCHAR2(100) NOT NULL,                          -- 토스 빌링키 
     CARD_COMPANY    VARCHAR2(50),                                    -- 카드사 이름 (ex: 신한, 현대)
     CARD_NUMBER     VARCHAR2(20),                                    -- 마스킹된 카드번호 (ex: 433012******1234)
+    CARD_NAME       VARCHAR2(30),                                    -- 마이페이지 표시용 카드 이름
     REG_DATE        DATE DEFAULT SYSDATE,                            -- 등록일
     
     -- 회원 테이블과의 연관 관계 설정 (회원 탈퇴 시 카드 정보도 삭제되게)
-    CONSTRAINT FK_CARD_MEMBER_ID FOREIGN KEY (MEMBER_ID) 
+    CONSTRAINT FK_CARD_MEMBER_ID FOREIGN KEY (ID) 
     REFERENCES MEMBER_TB(ID) ON DELETE CASCADE
 );
 
@@ -96,3 +119,26 @@ ALTER TABLE member_card_tb ADD (
     status         VARCHAR2(20) DEFAULT 'NO' NOT NULL,
     CONSTRAINT ck_member_card_status CHECK (status IN ('YES', 'NO'))
 );
+
+CREATE TABLE MEMBER_tran_TB (
+    MEMBER_tran_IDX NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    ID            VARCHAR2(20) NOT NULL,                           
+    ACCOUNT_IDX            NUMBER NOT NULL,                          
+    tran_date       VARCHAR2(30) NOT NULL,                           
+    inout_type      VARCHAR2(10) NOT NULL,                       
+    tran_amt              NUMBER,
+    BALANCE_AFTER         NUMBER, -- 해당 거래가 끝난 직후의 계좌 잔액
+    REG_DATE             DATE DEFAULT SYSDATE,              
+    
+    CONSTRAINT FK_MEMBER_tran_member_id FOREIGN KEY (ID) 
+    REFERENCES MEMBER_TB(ID) ON DELETE CASCADE,
+    
+    CONSTRAINT FK_MEMBER_tran_account_idx FOREIGN KEY (account_idx) 
+    REFERENCES MEMBER_ACCOUNT_TB(account_idx) ON DELETE CASCADE
+);
+
+ALTER TABLE MEMBER_TRAN_TB
+ADD BALANCE_AFTER NUMBER;
+
+COMMENT ON COLUMN MEMBER_TRAN_TB.BALANCE_AFTER
+IS '해당 거래가 끝난 직후의 계좌 잔액';
