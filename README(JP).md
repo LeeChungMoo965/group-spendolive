@@ -229,7 +229,7 @@ public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
 
 ### 実行手順 (How to Run)
 1. 本リポジトリをクローンします。
-   `git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git`
+   `git clone https://github.com/LeeChungMoo965/group-spendolive.git`
 2. IDE（IntelliJ IDEA, Eclipse等）を開き、Mavenプロジェクトとしてインポートします。
 3. ローカル環境の Oracle DB および Redis サーバーを起動します。
 4. プロジェクト内に含まれる DDL スクリプトを実行し、データベースのテーブルを生成します。
