@@ -207,6 +207,35 @@ public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
 ## 5. 関連リンク (Links)
 - **GitHub Repository:** [Link](https://github.com/LeeChungMoo965/group-spendolive/tree/master/src/main)
 - **画面設計 Figma :**[Link](https://www.figma.com/design/jXBp0uN1p2c65oKGgrZjmq/%EB%B0%B1%EC%97%94%EB%93%9C-%EC%B5%9C%EC%A2%85-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-UI?node-id=0-1&t=va79lufa0lhW4jKj-1)
+## 6. 環境構築 (Getting Started)
+
+### 必須要件 (Prerequisites)
+- Java 21
+- Spring Boot (WAR Packaging)
+- Apache Maven 3.8.x 以上 (または IDE 内蔵 Maven)
+- Oracle Database 11g
+- Redis
+
+### 環境変数の設定 (Environment Variables)
+セキュリティ保護のため、DBパスワードおよび各種外部APIキーが含まれる `application.properties` はリポジトリから除外されています。
+ローカルで実行する際は、`src/main/resources/` ディレクトリ配下に `application.properties` を作成し、リポジトリ内の `application-template.properties` を参考に以下の外部APIキーを設定してください。
+
+**[連携が必要な外部API]**
+- Google SMTP (メール認証用)
+- Kakao Developers (ソーシャルログイン用)
+- 金融決済院 OpenBanking API (口座連携用)
+- Toss Payments API (決済処理用)
+- Solapi (SMS送信処理用)
+
+### 実行手順 (How to Run)
+1. 本リポジトリをクローンします。
+   `git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git`
+2. IDE（IntelliJ IDEA, Eclipse等）を開き、Mavenプロジェクトとしてインポートします。
+3. ローカル環境の Oracle DB および Redis サーバーを起動します。
+4. プロジェクト内に含まれる DDL スクリプトを実行し、データベースのテーブルを生成します。
+5. `application.properties` の設定（DB接続情報および各種APIキー）を完了させます。
+6. `SpendoliveApplication.java` を実行します。（※ 本プロジェクトはJSPを使用しているため、WARパッケージングで動作します）
+
 
 ## ERD (Entity Relationship Diagram)
 <img width="500" height="240" alt="Relational_1" src="https://github.com/user-attachments/assets/a03ccd1a-473a-465a-992c-94973c2b2ebc" />
