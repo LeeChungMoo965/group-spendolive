@@ -363,6 +363,34 @@ public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
 
 - **화면설계 Figma :**[Link](https://www.figma.com/design/jXBp0uN1p2c65oKGgrZjmq/%EB%B0%B1%EC%97%94%EB%93%9C-%EC%B5%9C%EC%A2%85-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-UI?node-id=0-1&t=va79lufa0lhW4jKj-1)
 
+## 6. 환경 구축 (Getting Started)
+
+### 필수 요건 (Prerequisites)
+- Java 21
+- Spring Boot (WAR Packaging)
+- Apache Maven 3.8.x 이상 (또는 IDE 내장 Maven)
+- Oracle Database 11g
+- Redis
+
+### 환경 변수 설정 (Environment Variables)
+보안을 위해 DB 비밀번호 및 각종 외부 API 키가 포함된 `application.properties` 파일은 리포지토리 추적에서 제외되었습니다.
+로컬 환경에서 실행할 때는 `src/main/resources/` 경로에 `application.properties`를 직접 생성하고, 리포지토리에 함께 업로드된 `application-template.properties` 파일을 참고하여 환경에 맞게 값을 설정해 주세요.
+
+**[연동이 필요한 외부 API]**
+- Google SMTP (이메일 인증용)
+- Kakao Developers (소셜 로그인용)
+- 금융결제원 OpenBanking API (계좌 연동용)
+- Toss Payments API (결제 처리용)
+- Solapi (SMS 발송 처리용)
+
+### 실행 순서 (How to Run)
+1. 본 리포지토리를 클론합니다.
+   `git clone https://github.com/LeeChungMoo965/group-spendolive.git`
+2. IDE(IntelliJ IDEA, Eclipse 등)를 열고, 프로젝트를 Maven 프로젝트로 임포트합니다.
+3. 로컬 환경의 Oracle DB 및 Redis 서버를 실행합니다.
+4. 프로젝트 내에 포함된 DDL 스크립트를 실행하여 데이터베이스 테이블을 생성합니다.
+5. `application.properties`의 설정(DB 접속 정보 및 각종 API 키)을 완료합니다.
+6. `SpendoliveApplication.java`를 실행합니다. (※ 본 프로젝트는 프론트엔드 뷰 템플릿으로 JSP를 사용하고 있으므로 WAR 패키징 방식으로 동작합니다.)
 
 
 ## ERD (Entity Relationship Diagram)
