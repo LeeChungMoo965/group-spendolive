@@ -209,7 +209,6 @@ public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
 - **画面設計 Figma :**[Link](https://www.figma.com/design/jXBp0uN1p2c65oKGgrZjmq/%EB%B0%B1%EC%97%94%EB%93%9C-%EC%B5%9C%EC%A2%85-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-UI?node-id=0-1&t=va79lufa0lhW4jKj-1)
 
 ## 📊 ERD (Entity Relationship Diagram)
-<div align="center">
-  <img width="279" height="122" alt="Relational_1" src="https://github.com/user-attachments/assets/a03ccd1a-473a-465a-992c-94973c2b2ebc" />
-</div>
+<img width="500" height="240" alt="Relational_1" src="https://github.com/user-attachments/assets/a03ccd1a-473a-465a-992c-94973c2b2ebc" />
+
 
