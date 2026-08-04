@@ -7,13 +7,13 @@
 
 ---
 
-## 📌 1. プロジェクト概要 (Project Overview)
-- **サービス紹介:** (서비스 한 줄 소개: 예 - ユーザーの支出を視覚化し、資産管理をサポートするWebサービス)
-- **開発背景:** (개발 배경 1~2줄)
+## 1. プロジェクト概要 (Project Overview)
+- **サービス紹介:** ユーザーの「固定支出」管理に焦点を当て、サブスクリプション（OTT等）のグループ共有から自動決済・精算までを安全にサポートするパーソナル支出管理サービスです。
+- **開発背景:** サブスクリプション時代において、把握しづらくなった定期決済を効率的に管理するプラットフォームを構想しました。その中で、手動送金の煩わしさや金銭トラブルが最も多い「OTTの共有」に着目。単なるユーザーマッチングではなく、システムによる確実な決済と精算コア（エスクロー）を直接実装することで、誰もが安心できるスマートな支出管理の基盤を構築したいと考え企画しました。
 
 ---
 
-## 🛠 2. 使用技術・環境 (Tech Stack)
+## 2. 使用技術・環境 (Tech Stack)
 | 分野 | 技術スタック |
 | :--- | :--- |
 | **Backend** | Java 21, Spring Boot, Spring Security, Spring JDBC(JdbcTemplate), JWT, Lombok |
@@ -23,7 +23,7 @@
 | **External API** | Kakao (Login/Share), Toss Payments, 金融決済院, Solapi, SMTP |
 ---
 
-## 👨‍💻 3. 担当機能 (My Responsibilities)
+## 3. 担当機能 (My Responsibilities)
 
 - **アーキテクチャ設計およびテックリード協業**
   - テックリードと共にプロジェクト全体のアーキテクチャ設計および技術的な調整を担当
@@ -41,15 +41,15 @@
 
 ---
 
-### 🚨 4. トラブルシューティング (Troubleshooting) - *★最重要*
+### 4. トラブルシューティング (Troubleshooting) - *★最重要*
 
-> 💡 **主要な技術的課題解決 (Core Problem Solving)**
+> **主要な技術的課題解決 (Core Problem Solving)**
 > ※ 決済・精算コアの信頼性確保に関する代表的な3つの課題を掲載しています。
 > その他の詳細なエラー解決ログ（フロント連携、認証、DB最適化など）は 🔗 [トラブルシューティングWiki (Notion)] をご参照ください。
 
 <br>
 
-### 💥 Issue 1: インメモリロックとDB悲観的ロック(Atomic Query)を組み合わせた重複決済およびオーバーブッキングの防止
+### Issue 1: インメモリロックとDB悲観的ロック(Atomic Query)を組み合わせた重複決済およびオーバーブッキングの防止
 
 **1. 問題状況 (Problem)**
 - 決済の過程で、2つの形態の同時実行（Concurrency）問題が発生するリスクが存在しました。
@@ -117,7 +117,7 @@ WHERE room_id = ?
 
 <br>
 
-### 💥 Issue 2: 外部APIと内部DB間のトランザクション不一致の解決および補償トランザクションの実装
+### Issue 2: 外部APIと内部DB間のトランザクション不一致の解決および補償トランザクションの実装
 
 **1. 問題状況 (Problem)**
 - Toss Payments（外部決済API）の承認には成功し、顧客の口座から出金されたにもかかわらず、その後自社サーバーのDBに決済履歴やエスクロー情報を保存（`INSERT`/`UPDATE`）する過程で例外が発生するリスクが存在しました。
@@ -142,7 +142,7 @@ try {
     // ... その他の関連データ保存処理
     
 } catch (Exception databaseException) {
-    // 🚨 2. DB保存失敗時：すでに承認されたToss決済を即座に取り消し（補償トランザクションの実行）
+    // 2. DB保存失敗時：すでに承認されたToss決済を即座に取り消し（補償トランザクションの実行）
     boolean cancelled = cancelApprovedPayment(paymentKey);
 
     String message = cancelled
@@ -161,7 +161,7 @@ try {
 
 <br>
 
-### 💥 Issue 3: 決済・精算コアのライフサイクル(State Machine)設計および返金処理のデータ整合性確保
+### Issue 3: 決済・精算コアのライフサイクル(State Machine)設計および返金処理のデータ整合性確保
 
 **1. 問題状況 (Problem)**
 - OTT相乗りサービスの自動決済・精算をスケジューラー（バッチ処理）で運用する中で、2つの重大なビジネスロジックの欠陥（Edge Case）が発見されました。
@@ -204,11 +204,11 @@ public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
 
 ---
 
-## 🔗 5. 関連リンク (Links)
+## 5. 関連リンク (Links)
 - **GitHub Repository:** [Link](https://github.com/...)
 - **画面設計 Figma :**[Link](https://www.figma.com/design/jXBp0uN1p2c65oKGgrZjmq/%EB%B0%B1%EC%97%94%EB%93%9C-%EC%B5%9C%EC%A2%85-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-UI?node-id=0-1&t=va79lufa0lhW4jKj-1)
 
-## 📊 ERD (Entity Relationship Diagram)
+## ERD (Entity Relationship Diagram)
 <img width="500" height="240" alt="Relational_1" src="https://github.com/user-attachments/assets/a03ccd1a-473a-465a-992c-94973c2b2ebc" />
 
 
