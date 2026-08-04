@@ -1,15 +1,19 @@
 package com.example.spendolive.inquiry.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -18,7 +22,7 @@ import com.example.spendolive.inquiry.service.InquiryService;
 import com.example.spendolive.member.domain.MemberVO;
 
 @Controller
-@RequestMapping("/spendolive/admin/inquiry")
+@RequestMapping("/admin/inquiry")
 public class AdminInquiryController {
 
     private final InquiryService inquiryService;
@@ -53,23 +57,28 @@ public class AdminInquiryController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
 
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminInquiryList.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminInquiryList.jsp");
 
         String normalizedStatus = normalizeStatusFilter(status);
         try {
             int totalPages = inquiryService.getAdminInquiryTotalPages(normalizedStatus);
             int currentPage = Math.min(Math.max(page, 1), totalPages);
+            int totalCount = inquiryService.getAdminInquiryTotalCount(normalizedStatus);
+            int pageSize = inquiryService.getAdminPageSize();
 
             mav.addObject("inquiryList", inquiryService.getAllInquiriesForAdmin(normalizedStatus, currentPage));
             mav.addObject("currentPage", currentPage);
             mav.addObject("totalPages", totalPages);
             mav.addObject("currentStatus", status.toLowerCase());
+            // 목록은 최신순(내림차순)이라, 화면 맨 위 줄이 startNumber, 그 아래로 1씩 감소하며 매김 (오래된 문의=1)
+            mav.addObject("startNumber", totalCount - (currentPage - 1) * pageSize);
         } catch (Exception e) {
             System.err.println("[AdminInquiryController.list] 목록 로드 실패: " + e.getMessage());
             mav.addObject("inquiryList", List.of());
             mav.addObject("currentPage", 1);
             mav.addObject("totalPages", 1);
             mav.addObject("currentStatus", "all");
+            mav.addObject("startNumber", 0);
             mav.addObject("errorMsg", "문의 목록을 불러오는 중 오류가 발생했습니다.");
         }
         return mav;
@@ -84,7 +93,7 @@ public class AdminInquiryController {
         if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
         if (inquiryNo <= 0) {
             ra.addFlashAttribute("errorMsg", "잘못된 문의 번호입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/list.do");
+            return new ModelAndView("redirect:/admin/inquiry/list.do");
         }
 
         InquiryVO inquiry = null;
@@ -96,44 +105,51 @@ public class AdminInquiryController {
 
         if (inquiry == null) {
             ra.addFlashAttribute("errorMsg", "존재하지 않는 문의입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/list.do");
+            return new ModelAndView("redirect:/admin/inquiry/list.do");
         }
 
         ModelAndView mav = new ModelAndView("common/layout");
-        mav.addObject("body_page", "/WEB-INF/views/admin/adminInquiryDetail.jsp");
+        mav.addObject("body_page", "/WEB-INF/views/admin/faq_inquiry/adminInquiryDetail.jsp");
         mav.addObject("inquiry", inquiry);
         return mav;
     }
 
-    /* ─── 답변 등록/수정 ─────────────────────────────────── */
-    @PostMapping("/reply.do")
-    public ModelAndView reply(
-            @RequestParam(value = "inquiryId", defaultValue = "0") int inquiryId,
-            @RequestParam(value = "replyContent", required = false) String replyContent,
+    /* ─── 답변 등록/수정 (AJAX) ───────────────────────────
+       목록이 팝업(모달)+AJAX 방식이므로, 답변도 페이지 이동 없이 JSON으로 처리.
+       성공 후에는 adminInquiry.js가 모달을 닫고 목록 조각(#adminBoardArea)만
+       다시 불러와 상태 배지를 갱신한다. */
+    @PostMapping("/ajax/reply.do")
+    @ResponseBody
+    public ResponseEntity<?> ajaxReply(
+            @RequestParam(value = "inquiry_id", defaultValue = "0") int inquiry_id,
+            @RequestParam(value = "reply_content", required = false) String reply_content,
             @RequestParam(value = "status", defaultValue = "DONE") String status,
-            HttpSession session, RedirectAttributes ra) {
+            HttpSession session) {
 
-        if (!isAdmin(session)) return new ModelAndView("redirect:/spendolive/main.do");
-        if (inquiryId <= 0) {
-            ra.addFlashAttribute("errorMsg", "잘못된 문의 번호입니다.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/list.do");
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("result", "FORBIDDEN", "message", "관리자만 접근할 수 있습니다."));
         }
-        if (replyContent == null || replyContent.isBlank()) {
-            ra.addFlashAttribute("errorMsg", "답변 내용을 입력해 주세요.");
-            return new ModelAndView("redirect:/spendolive/admin/inquiry/detail.do?inquiryNo=" + inquiryId);
+        if (inquiry_id <= 0) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("result", "INVALID_PARAM", "message", "잘못된 문의 번호입니다."));
         }
-        // 관리자가 고를 수 있는 상태는 DONE(답변완료) / REVIEW(검토중) 둘 중 하나로 제한
+        if (reply_content == null || reply_content.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("result", "INVALID_PARAM", "message", "답변 내용을 입력해 주세요."));
+        }
+        // 관리자가 고를 수 있는 상태는 DONE(답변완료)/REVIEW(검토중) 둘 중 하나로 제한
         if (!"DONE".equals(status) && !"REVIEW".equals(status)) {
             status = "DONE";
         }
 
         try {
-            inquiryService.replyToInquiry(inquiryId, replyContent.strip(), status);
-            ra.addFlashAttribute("msg", "답변이 등록되었습니다.");
+            inquiryService.replyToInquiry(inquiry_id, reply_content.strip(), status);
+            return ResponseEntity.ok(Map.of("result", "OK", "message", "답변이 등록되었습니다."));
         } catch (DataAccessException e) {
-            System.err.println("[AdminInquiryController.reply] 답변 등록 실패: " + e.getMessage());
-            ra.addFlashAttribute("errorMsg", "답변 등록 중 오류가 발생했습니다.");
+            System.err.println("[AdminInquiryController.ajaxReply] 답변 등록 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("result", "ERROR", "message", "답변 등록 중 오류가 발생했습니다."));
         }
-        return new ModelAndView("redirect:/spendolive/admin/inquiry/detail.do?inquiryNo=" + inquiryId);
     }
 }

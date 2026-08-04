@@ -52,7 +52,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
         // 4단계: 최고 점수가 기준(MIN_SCORE) 이상이면 그 FAQ 답변을 반환
         if (best != null && bestScore >= MIN_SCORE) {
-            return new ChatbotAnswerDTO(true, best.getAnswer(), best.getFaqId(), best.getCategory());
+            return new ChatbotAnswerDTO(true, best.getAnswer(), best.getFaq_id(), best.getCategory());
         }
 
         // 기준 미달이면 매칭 실패로 처리

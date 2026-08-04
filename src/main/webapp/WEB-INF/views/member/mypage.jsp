@@ -1,84 +1,156 @@
+<%-- [AJAX 변경 주석] 회원정보·계좌명·주계좌·주카드 폼은 기존 action을 호환용으로 유지하고 AJAX 전용 주소를 추가했다. --%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<section class="page-hero mypage-hero">
-    <div class="container mypage-container">
+<section class="page-hero">
+    <div class="container">
         <p class="eyebrow">MY PAGE</p>
         <h1>마이페이지</h1>
         <p class="hero-text">프로필, 이번 달 지출 총액, 계좌연동, 신고/차단 관리, 나의 OTT 공유방을 한 화면에서 확인합니다.</p>
     </div>
 </section>
 
-<section class="section compact mypage-page">
-    <div class="container mypage-container">
+<section class="section compact mypage-page" data-context-path="${contextPath}">
+    <div class="container">
         <c:if test="${param.profileUpdated == 'Y'}">
-            <div class="mypage-alert done">회원정보가 수정되었습니다.</div>
+            <div class="alert done">회원정보가 수정되었습니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'passwordMismatch'}">
-            <div class="mypage-alert warn">새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.</div>
+            <div class="alert warn">새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'currentPasswordMismatch'}">
-            <div class="mypage-alert warn">현재 비밀번호가 일치하지 않습니다.</div>
+            <div class="alert warn">현재 비밀번호가 일치하지 않습니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'passwordCheckRequired'}">
-            <div class="mypage-alert warn">비밀번호 변경 전 확인 버튼을 눌러주세요.</div>
+            <div class="alert warn">비밀번호 변경 전 확인 버튼을 눌러주세요.</div>
         </c:if>
         <c:if test="${param.profileError == 'emailNotVerified'}">
-            <div class="mypage-alert warn">이메일을 변경하려면 이메일 인증을 완료해야 합니다.</div>
+            <div class="alert warn">이메일을 변경하려면 이메일 인증을 완료해야 합니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'phoneNotVerified'}">
-            <div class="mypage-alert warn">전화번호를 변경하려면 전화번호 인증을 완료해야 합니다.</div>
+            <div class="alert warn">전화번호를 변경하려면 전화번호 인증을 완료해야 합니다.</div>
         </c:if>
         <c:if test="${param.profileError == 'updateFailed'}">
-            <div class="mypage-alert warn">회원정보 수정 중 오류가 발생했습니다. 이메일/전화번호 중복 여부를 확인해 주세요.</div>
+            <div class="alert warn">회원정보 수정 중 오류가 발생했습니다. 이메일/전화번호 중복 여부를 확인해 주세요.</div>
+        </c:if>
+        <%-- =====================================================
+             [마이페이지 계좌·카드 연결 추가]
+             계좌 제목 수정 결과 메시지
+             ===================================================== --%>
+        <c:if test="${param.accountNameUpdated == 'Y'}">
+            <div class="alert done">계좌 제목이 수정되었습니다.</div>
+        </c:if>
+        <c:if test="${param.assetError == 'invalidAccountName'}">
+            <div class="alert warn">계좌 제목은 1자 이상 20자 이하로 입력해주세요.</div>
+        </c:if>
+        <c:if test="${param.assetError == 'accountNameUpdateFailed'}">
+            <div class="alert warn">계좌 제목 수정 중 오류가 발생했습니다.</div>
+        </c:if>
+        <%-- 주계좌 변경 결과 메시지 --%>
+        <c:if test="${param.primaryAccountUpdated == 'Y'}">
+            <div class="alert done">주계좌가 변경되었습니다.</div>
+        </c:if>
+        <c:if test="${param.assetError == 'primaryAccountUpdateFailed'}">
+            <div class="alert warn">주계좌 변경 중 오류가 발생했습니다.</div>
         </c:if>
 
         <c:if test="${param.withdrawError == 'confirmRequired'}">
-            <div class="mypage-alert warn">회원탈퇴를 진행하려면 확인 문구를 정확히 입력해주세요.</div>
+            <div class="alert warn">회원탈퇴를 진행하려면 확인 문구를 정확히 입력해주세요.</div>
         </c:if>
         <c:if test="${param.withdrawError == 'failed'}">
-            <div class="mypage-alert warn">회원탈퇴 처리 중 오류가 발생했습니다. 다시 시도해 주세요.</div>
+            <div class="alert warn">회원탈퇴 처리 중 오류가 발생했습니다. 다시 시도해 주세요.</div>
         </c:if>
 
         <div class="mypage-top-grid">
             <article class="card mypage-profile-card">
+                <p class="eyebrow">PROFILE</p>
                 <div class="avatar">${profileInitial}</div>
                 <div>
-                    <p class="eyebrow">PROFILE</p>
                     <h3>${memberInfo.member_name}</h3>
-                    <p class="mypage-muted">${memberInfo.nickname} · ${memberInfo.id}</p>
-                    <p class="mypage-muted">가입일 ${memberInfo.created_at}</p>
+                    <p class="mypage-muted">닉네임 : ${memberInfo.nickname}</p>
+                    <p class="mypage-muted">아이디 : ${memberInfo.id}</p>
+                    <p class="mypage-muted">가입일 : ${memberInfo.created_at}</p>
                 </div>
-                <a href="#profile-edit" class="btn btn-outline full">회원정보 수정</a>
+                <%-- [마이페이지 화면 전환 추가] 최초에는 숨기고 버튼을 눌렀을 때 회원정보 수정 영역 표시 --%>
+                <button type="button" class="btn btn-primary full" onclick="showMyPagePanel('profile-edit')">회원정보 수정</button>
             </article>
 
             <article class="card mypage-stat-card">
                 <p class="eyebrow">MONTHLY EXPENSE</p>
                 <h3>이번 달 지출 총액</h3>
-                <strong><fmt:formatNumber value="${thisMonthExpenseTotal}" pattern="#,##0" />원</strong>
-                <p class="mypage-muted">이번 달 등록된 지출 내역 합계입니다.</p>
+                <strong class="mypage-monthly-expense-amount">
+                    <fmt:formatNumber value="${thisMonthExpenseTotal}" pattern="#,##0" />원
+                </strong>
+
+                <%-- 이번 달 예산과 지출 대비 사용률을 표시한다. --%>
+                <div class="mypage-budget-summary">
+                    <div>
+                        <span>이번 달 예산</span>
+                        <c:choose>
+                            <c:when test="${thisMonthBudget > 0}">
+                                <strong>
+                                    <fmt:formatNumber value="${thisMonthBudget}" pattern="#,##0" />원
+                                </strong>
+                            </c:when>
+                            <c:otherwise>
+                                <strong>미설정</strong>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+
+                    <c:if test="${thisMonthBudget > 0}">
+                        <div>
+                            <span>예산 사용률</span>
+                            <strong>${thisMonthBudgetPercent}%</strong>
+                        </div>
+                    </c:if>
+                </div>
+
+                <p class="mypage-muted">이번 달 등록된 지출 내역과 설정 예산입니다.</p>
                 <a href="${contextPath}/spendolive/expense/list.do" class="btn btn-primary full">지출관리로 이동</a>
             </article>
 
+            <%-- =====================================================
+                 [마이페이지 주계좌 표시 추가]
+                 STATUS가 YES인 계좌만 상단 계좌관리 카드에 표시한다.
+                 연결 계좌는 있지만 주계좌가 없으면 목록에서 선택하도록 안내한다.
+                 ===================================================== --%>
             <article class="card mypage-bank-card">
                 <p class="eyebrow">OPEN BANKING</p>
                 <h3>계좌관리</h3>
                 <c:choose>
-                    <c:when test="${accountConnected}">
-                        <p class="mypage-muted">연결된 오픈뱅킹 계정</p>
+                    <c:when test="${not empty currentAccount}">
+                        <c:set var="currentBankName" value="${bankNameMap[currentAccount.bank_code]}" />
+                        <p class="mypage-muted">현재 주계좌</p>
                         <div class="mypage-account-box">
-                            <span>사용자번호</span>
-                            <strong>${openBankUserSeq}</strong>
+                            <span><c:out value="${empty currentAccount.account_name ? '주계좌' : currentAccount.account_name}" /></span>
+                            <strong>
+                                <c:out value="${empty currentBankName ? currentAccount.bank_code : currentBankName}" />
+                                · <c:out value="${currentAccount.account_number}" />
+                            </strong>
+                            <span>잔여금</span>
+                            <strong><fmt:formatNumber value="${currentAccount.balance}" pattern="#,##0" />원</strong>
                         </div>
-                        <a href="${contextPath}/member/openBankingAuth.do" class="btn btn-outline full">계좌 다시 연동하기</a>
+                    </c:when>
+                    <c:when test="${not empty accountList}">
+                        <p class="mypage-muted">연결된 계좌 중 주계좌를 선택해주세요.</p>
+                        <div class="mypage-account-box">
+                            <span>현재 주계좌</span>
+                            <strong>설정된 주계좌가 없습니다.</strong>
+                        </div>
                     </c:when>
                     <c:otherwise>
                         <p class="mypage-muted">현재 연결된 계좌가 없습니다.</p>
-                        <a href="${contextPath}/member/openBankingAuth.do" class="btn btn-primary full">안전한 오픈뱅킹 계좌 연동하기</a>
+                        <div class="mypage-account-box">
+                            <span>현재 주계좌</span>
+                            <strong>계좌 정보가 없습니다.</strong>
+                        </div>
                     </c:otherwise>
                 </c:choose>
+                <button type="button" class="btn btn-primary full" onclick="showMyPagePanel('asset-manage')">나의 계좌 · 카드 목록보기</button>
             </article>
 
             <article class="card mypage-report-card">
@@ -87,18 +159,20 @@
                 <div class="mypage-report-summary mypage-report-summary-vertical">
                     <div class="mypage-report-line">
                         <span>내 패널티</span>
-                        <strong>${warningCount}번째</strong>
+                        <strong>${warning_count}번째</strong>
                     </div>
                     <div class="mypage-report-line">
                         <span>내가 신고한 건수</span>
                         <strong>${myReportCount}건</strong>
                     </div>
                 </div>
-                <a href="#report-manage" class="btn btn-outline full">신고/차단 내역 보기</a>
+                <%-- [마이페이지 화면 전환 추가] 버튼을 눌렀을 때 신고·차단 영역 표시 --%>
+                <button type="button" class="btn btn-primary full" onclick="showMyPagePanel('report-manage')">신고/차단 내역 보기</button>
             </article>
         </div>
 
-        <article id="profile-edit" class="card mypage-panel mypage-profile-edit">
+        <%-- [마이페이지 화면 전환 추가] 최초 진입 시 숨겨지는 회원정보 수정 영역 --%>
+        <article id="profile-edit" class="card mypage-panel mypage-profile-edit mypage-toggle-panel is-hidden">
             <div class="mypage-panel-head">
                 <div>
                     <p class="eyebrow">EDIT PROFILE</p>
@@ -107,7 +181,8 @@
                 <span>비밀번호 변경 시 확인 입력이 필요합니다.</span>
             </div>
 
-            <form action="${contextPath}/spendolive/mypage/update.do" method="post" class="mypage-edit-form" id="mypageProfileForm">
+            <%-- 기존 일반 POST action은 호환용이며, data-ajax-action이 실제 비동기 처리 주소다. --%>
+            <form action="${contextPath}/spendolive/mypage/update.do" method="post" class="mypage-edit-form" id="mypageProfileForm" data-ajax-form data-ajax-action="/spendolive/mypage/ajax/update.do" data-loading-message="회원정보를 저장하고 있습니다.">
                 <input type="hidden" id="originalEmail" value="${memberInfo.email}">
                 <input type="hidden" id="originalPhone" value="${memberInfo.phone}">
                 <input type="hidden" id="emailVerified" value="N">
@@ -143,11 +218,12 @@
                                 이메일
                                 <input type="email" name="email" id="mypageEmail" value="${memberInfo.email}" required>
                             </label>
-                            <button type="button" class="btn btn-outline" onclick="sendMyPageEmailCode()">이메일 인증</button>
+                            <%-- [공통 AJAX 로딩 적용] this를 전달해 요청 중 클릭한 버튼만 잠그고 완료 후 복구한다. --%>
+                            <button type="button" class="btn btn-primary full" onclick="sendMyPageEmailCode(this)">이메일 인증</button>
                         </div>
                         <div class="mypage-code-row">
                             <input type="text" id="mypageEmailCode" placeholder="이메일 인증번호 입력">
-                            <button type="button" class="btn btn-primary" onclick="verifyMyPageEmailCode()">확인</button>
+                            <button type="button" class="btn btn-primary full" onclick="verifyMyPageEmailCode(this)">확인</button>
                         </div>
                         <p class="mypage-help" id="emailVerifyMessage">이메일을 변경할 때만 인증이 필요합니다.</p>
                     </div>
@@ -158,11 +234,12 @@
                                 전화번호
                                 <input type="text" name="phone" id="mypagePhone" value="${memberInfo.phone}">
                             </label>
-                            <button type="button" class="btn btn-outline" onclick="sendMyPagePhoneCode()">전화번호 인증</button>
+                            <%-- [공통 AJAX 로딩 적용] 휴대전화 인증도 동일한 팝업·버튼 잠금 규격을 사용한다. --%>
+                            <button type="button" class="btn btn-primary full" onclick="sendMyPagePhoneCode(this)">전화번호 인증</button>
                         </div>
                         <div class="mypage-code-row">
                             <input type="text" id="mypagePhoneCode" placeholder="문자 인증번호 입력">
-                            <button type="button" class="btn btn-primary" onclick="verifyMyPagePhoneCode()">확인</button>
+                            <button type="button" class="btn btn-primary full" onclick="verifyMyPagePhoneCode(this)">확인</button>
                         </div>
                         <p class="mypage-help" id="phoneVerifyMessage">전화번호를 변경할 때만 인증이 필요합니다.</p>
                     </div>
@@ -188,7 +265,7 @@
                                     새 비밀번호 확인
                                     <input type="password" name="passwordConfirm" id="passwordConfirm" placeholder="새 비밀번호 재입력">
                                 </label>
-                                <button type="button" class="btn btn-outline" onclick="checkMyPagePassword()">비밀번호 확인</button>
+                                <button type="button" class="btn btn-primary full" onclick="checkMyPagePassword()">비밀번호 확인</button>
                             </div>
                             <p class="mypage-help" id="passwordCheckMessage">비밀번호를 변경할 때는 현재 비밀번호와 새 비밀번호 확인이 필요합니다.</p>
                         </div>
@@ -197,16 +274,17 @@
 
                 <div class="mypage-form-actions">
                     <button type="submit" class="btn btn-primary">수정 완료</button>
-                    <a href="${contextPath}/spendolive/mypage.do" class="btn btn-outline">취소</a>
+                    <a href="${contextPath}/spendolive/mypage.do" class="btn btn-danger-outline">취소</a>
                 </div>
             </form>
         </article>
 
-        <article id="report-manage" class="card mypage-panel">
+        <%-- [마이페이지 화면 전환 추가] 최초 진입 시 숨겨지는 신고·차단 내역 영역 --%>
+        <article id="report-manage" class="card mypage-panel mypage-toggle-panel is-hidden">
             <div class="mypage-panel-head">
                 <div>
                     <p class="eyebrow">REPORT HISTORY</p>
-                    <h2>신고 · 차단 내역</h2>
+                    <h2>신고 내역</h2>
                 </div>
                 <span>내가 신고한 상대와 처리 상태를 확인합니다.</span>
             </div>
@@ -231,26 +309,28 @@
                                 <c:forEach var="report" items="${myReportList}">
                                     <tr>
                                         <td>
-                                            <strong>${report.reportedMemberNickname}</strong>
-                                            <small>${report.reportedMemberId}</small>
+
+                                            <strong>${report.reported_member_nickname}</strong>
+                                            <small>${report.reported_member_id}</small>
+
                                         </td>
-                                        <td class="mypage-reason">${report.reportReason}</td>
+                                        <td class="mypage-reason">${report.report_reason}</td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${report.reportStatus == 'WAIT'}"><span class="chip wait">접수</span></c:when>
-                                                <c:when test="${report.reportStatus == 'PROCESSING'}"><span class="chip request">처리중</span></c:when>
-                                                <c:when test="${report.reportStatus == 'COMPLETE'}"><span class="chip done">처리완료</span></c:when>
-                                                <c:when test="${report.reportStatus == 'REJECT'}"><span class="chip muted-chip">반려</span></c:when>
-                                                <c:otherwise><span class="chip muted-chip">${report.reportStatus}</span></c:otherwise>
+                                                <c:when test="${report.report_status == 'WAIT'}"><span class="chip wait">접수</span></c:when>
+                                                <c:when test="${report.report_status == 'PROCESSING'}"><span class="chip request">처리중</span></c:when>
+                                                <c:when test="${report.report_status == 'COMPLETE'}"><span class="chip done">처리완료</span></c:when>
+                                                <c:when test="${report.report_status == 'REJECT'}"><span class="chip muted-chip">반려</span></c:when>
+                                                <c:otherwise><span class="chip muted-chip">${report.report_status}</span></c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${report.blockedYn == 'Y'}"><span class="chip done">차단됨</span></c:when>
+                                                <c:when test="${report.blocked_yn == 'Y'}"><span class="chip done">차단됨</span></c:when>
                                                 <c:otherwise><span class="chip muted-chip">미차단</span></c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td>${report.createdAt}</td>
+                                        <td>${report.created_at}</td>
                                     </tr>
                                 </c:forEach>
                             </tbody>
@@ -260,13 +340,195 @@
             </c:choose>
         </article>
 
+        <%-- =====================================================
+             [마이페이지 계좌·카드 연결 추가 시작]
+             담당자가 만든 조회 결과를 계좌와 카드로 나누어 출력한다.
+             한 페이지에 각각 4칸을 보여주며 부족한 칸은 JavaScript가 빈 칸으로 채운다.
+             계좌의 수정 버튼은 ACCOUNT_NAME을 변경하고 거래내역 버튼은 Ajax로 상세 내역을 조회한다.
+             ===================================================== --%>
+        <article id="asset-manage" class="card mypage-panel mypage-toggle-panel is-hidden">
+            <div class="mypage-panel-head">
+                <div>
+                    <p class="eyebrow">MY ASSETS</p>
+                    <h2>나의 계좌 · 카드 목록</h2>
+                </div>
+                <span>계좌와 카드를 각각 한 화면에 4개씩 확인합니다.</span>
+            </div>
+
+            <section class="mypage-asset-section">
+                <div class="mypage-asset-section-head">
+                    <h3>계좌</h3>
+                    <div class="mypage-asset-pager" data-pager-for="accountAssetList">
+                        <button type="button" class="btn btn-outline btn-mini" data-page-direction="prev">이전</button>
+                        <span><b data-current-page>1</b> / <b data-total-page>1</b></span>
+                        <button type="button" class="btn btn-outline btn-mini" data-page-direction="next">다음</button>
+                    </div>
+                </div>
+
+                <div class="mypage-asset-list" id="accountAssetList" data-empty-text="계좌 정보가 없습니다.">
+                    <c:forEach var="account" items="${accountList}">
+                        <c:set var="accountBankName" value="${bankNameMap[account.bank_code]}" />
+                        <div class="mypage-asset-item" data-asset-item>
+                            <div class="mypage-asset-main">
+                                <form action="${contextPath}/spendolive/mypage/account/name/update.do" method="post" class="mypage-asset-title-form" data-ajax-form data-ajax-action="/spendolive/mypage/ajax/account/name/update.do" data-loading-message="계좌 제목을 수정하고 있습니다.">
+                                    <input type="hidden" name="accountIdx" value="${account.account_idx}">
+                                    <input type="text" name="accountName" maxlength="20" readonly
+                                           value="${fn:escapeXml(empty account.account_name ? '계좌' : account.account_name)}"
+                                           aria-label="계좌 제목">
+                                    <button type="button" class="btn btn-outline btn-mini" onclick="toggleAccountNameEdit(this)">수정</button>
+                                </form>
+                                <p>
+                                    <c:out value="${empty accountBankName ? account.bank_code : accountBankName}" />
+                                    계좌번호 - <c:out value="${account.account_number}" />
+                                </p>
+                            </div>
+                            <div class="mypage-account-balance">
+                                <span>남은 금액</span>
+                                <strong><fmt:formatNumber value="${account.balance}" pattern="#,##0" />원</strong>
+                            </div>
+                            <%-- 기존 버튼 스타일을 활용해 주계좌 선택과 거래내역 버튼을 함께 표시한다. --%>
+                            <div class="mypage-room-actions">
+                                <c:choose>
+                                    <c:when test="${account.status eq 'YES'}">
+                                        <span class="chip done">주계좌</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form action="${contextPath}/spendolive/mypage/account/primary/update.do" method="post">
+                                            <input type="hidden" name="accountIdx" value="${account.account_idx}">
+                                            <button type="submit" class="btn btn-primary btn-mini" onclick="return confirm('이 계좌를 주계좌로 설정할까요?');">주계좌로 설정</button>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
+                                <button type="button"
+                                        class="btn btn-outline btn-mini transaction-history-btn"
+                                        data-account-idx="${account.account_idx}"
+                                        data-account-name="${fn:escapeXml(empty account.account_name ? '계좌' : account.account_name)}"
+                                        data-bank-name="${fn:escapeXml(empty accountBankName ? account.bank_code : accountBankName)}"
+                                        data-account-number="${fn:escapeXml(account.account_number)}"
+                                        data-current-balance="${account.balance}">거래내역
+                                </button>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </div>
+
+                <%-- 선택한 계좌의 거래내역과 거래 직후 잔액을 표시한다. --%>
+                <div id="accountTransactionPanel" class="mypage-form-section is-hidden" hidden>
+                    <div class="mypage-form-section-head">
+                        <div>
+                            <h3 id="accountTransactionTitle">계좌 거래내역</h3>
+                            <p id="accountTransactionAccountInfo">계좌를 선택해주세요.</p>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-mini" onclick="closeAccountTransactions()">닫기</button>
+                    </div>
+
+                    <div class="mypage-account-box">
+                        <span>현재 잔액</span>
+                        <strong id="accountTransactionCurrentBalance">0원</strong>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="mypage-table">
+                            <thead>
+                                <tr>
+                                    <th>거래일시</th>
+                                    <th>구분</th>
+                                    <th>거래금액</th>
+                                    <th>거래 후 잔액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountTransactionBody">
+                                <tr>
+                                    <td colspan="4">거래내역 버튼을 눌러주세요.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <%-- 거래내역이 10건을 초과하면 기존 계좌·카드 페이지 버튼 스타일로 페이지를 이동한다. --%>
+                    <div id="accountTransactionPager" class="mypage-form-actions mypage-asset-pager is-hidden" hidden>
+                        <button type="button" class="btn btn-outline btn-mini" data-transaction-page="prev">이전</button>
+                        <span><b id="accountTransactionCurrentPage">1</b> / <b id="accountTransactionTotalPage">1</b></span>
+                        <button type="button" class="btn btn-outline btn-mini" data-transaction-page="next">다음</button>
+                    </div>
+
+                    <div class="mypage-account-box">
+                        <span>계좌 등록 당시 잔액</span>
+                        <strong id="accountTransactionInitialBalance">0원</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mypage-asset-section">
+                <div class="mypage-asset-section-head">
+                    <h3>카드</h3>
+                    <div class="mypage-asset-pager" data-pager-for="cardAssetList">
+                        <button type="button" class="btn btn-outline btn-mini" data-page-direction="prev">이전</button>
+                        <span><b data-current-page>1</b> / <b data-total-page>1</b></span>
+                        <button type="button" class="btn btn-outline btn-mini" data-page-direction="next">다음</button>
+                    </div>
+                </div>
+
+                <div class="mypage-asset-list" id="cardAssetList" data-empty-text="카드 정보가 없습니다.">
+                    <c:forEach var="card" items="${cardList}">
+                        <%-- CARD_COMPANY에는 issuerCode 원본을 유지하고 화면에서만 카드사명으로 바꾼다. --%>
+                        <c:set var="cardCompanyDisplayName"
+                               value="${not empty cardCompanyNameMap[card.card_company] ? cardCompanyNameMap[card.card_company] : (empty card.card_company ? '카드' : card.card_company)}" />
+
+                        <%-- 15번 SQL 실행으로 CARD_NAME에 코드가 복사된 기존 데이터는
+                             카드 별칭을 직접 수정하기 전까지 카드사명으로 자연스럽게 표시한다. --%>
+                        <c:set var="cardDisplayName"
+                               value="${empty card.card_name or card.card_name eq card.card_company ? cardCompanyDisplayName : card.card_name}" />
+
+                        <div class="mypage-asset-item mypage-card-item" data-asset-item>
+                            <div class="mypage-asset-main">
+                                <%-- [마이페이지 카드 이름 수정]
+                                     카드사명과 별개로 사용자가 알아보기 쉬운 표시 이름을 저장한다. --%>
+                                <form action="${contextPath}/spendolive/mypage/card/name/update.do" method="post"
+                                      class="mypage-asset-title-form" data-ajax-form
+                                      data-ajax-action="/spendolive/mypage/ajax/card/name/update.do"
+                                      data-loading-message="카드 이름을 수정하고 있습니다.">
+                                    <input type="hidden" name="cardIdx" value="${card.card_idx}">
+                                    <input type="text" name="cardName" maxlength="30" readonly
+                                           value="${fn:escapeXml(cardDisplayName)}"
+                                           aria-label="카드 이름">
+                                    <button type="button" class="btn btn-outline btn-mini" onclick="toggleCardNameEdit(this)">수정</button>
+                                </form>
+                                <p>
+                                    <c:out value="${cardCompanyDisplayName}" />
+                                    카드번호 - <c:out value="${card.card_number}" />
+                                </p>
+                            </div>
+
+                            <%-- 계좌의 주계좌 UI와 같은 버튼·상태 디자인을 재사용한다. --%>
+                            <div>
+                                <c:choose>
+                                    <c:when test="${card.status eq 'YES'}">
+                                        <span class="chip done">주카드</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form action="${contextPath}/spendolive/mypage/card/primary/update.do" method="post" data-ajax-form data-ajax-action="/spendolive/mypage/ajax/card/primary/update.do" data-ajax-confirm="이 카드를 주카드로 설정할까요?" data-loading-message="주카드를 변경하고 있습니다.">
+                                            <input type="hidden" name="cardIdx" value="${card.card_idx}">
+                                            <button type="submit" class="btn btn-primary btn-mini"
+                                                    >주카드로 설정</button>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </div>
+            </section>
+        </article>
+        <%-- [마이페이지 계좌·카드 연결 추가 끝] --%>
+
         <article class="card mypage-panel">
             <div class="mypage-panel-head">
                 <div>
                     <p class="eyebrow">FRIENDS ROOM</p>
                     <h2>가족 · 지인들과의 공유방</h2>
                 </div>
-                <a href="${contextPath}/spendolive/ott/friends.do" class="btn btn-outline">가족 · 지인 공유방 관리</a>
+                <a href="${contextPath}/spendolive/ott/friends.do" class="btn btn-primary">가족 · 지인 공유방 관리</a>
             </div>
 
             <c:choose>
@@ -278,12 +540,12 @@
                         <c:forEach var="room" items="${friendRoomList}">
                             <div class="mypage-room-card">
                                 <div>
-                                    <strong>${room.roomName}</strong>
-                                    <p>${room.serviceName} · ${room.planName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
-                                    <small>결제일 매월 ${room.billingDay}일 · 상태 ${room.status}</small>
+                                    <strong>${room.room_name}</strong>
+                                    <p>${room.service_name} · ${room.plan_name} · ${room.current_member_count}/${room.member_limit}명</p>
+                                    <small>결제일 매월 ${room.billing_day}일 · 상태 ${room.status}</small>
                                 </div>
                                 <div class="mypage-room-actions">
-                                    <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                    <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary full">대화방</a>
                                 </div>
                             </div>
                         </c:forEach>
@@ -298,7 +560,7 @@
                     <p class="eyebrow">RECRUIT ROOM</p>
                     <h2>외부인들과의 공유방</h2>
                 </div>
-                <a href="${contextPath}/spendolive/ott/recruit.do" class="btn btn-outline">모든 모집글 관리</a>
+                <a href="${contextPath}/spendolive/ott/recruit.do" class="btn btn-primary">모든 모집글 관리</a>
             </div>
 
             <div class="mypage-room-two-col">
@@ -313,11 +575,11 @@
                                 <c:forEach var="room" items="${hostedRecruitRoomList}">
                                     <div class="mypage-room-card">
                                         <div>
-                                            <strong>${room.roomName}</strong>
-                                            <p>${room.serviceName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
+                                            <strong>${room.room_name}</strong>
+                                            <p>${room.service_name} · ${room.current_member_count}/${room.member_limit}명</p>
                                             <small>내가 만든 방 · ${room.status}</small>
                                         </div>
-                                        <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                        <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary">대화방</a>
                                     </div>
                                 </c:forEach>
                             </div>
@@ -336,17 +598,17 @@
                                 <c:forEach var="room" items="${joinedRecruitRoomList}">
                                     <div class="mypage-room-card">
                                         <div>
-                                            <strong>${room.roomName}</strong>
-                                            <p>${room.serviceName} · ${room.currentMemberCount}/${room.memberLimit}명</p>
-                                            <small>방장 ${room.hostNickname}</small>
+                                            <strong>${room.room_name}</strong>
+                                            <p>${room.service_name} · ${room.current_member_count}/${room.member_limit}명</p>
+                                            <small>방장 ${room.host_nickname}</small>
                                             <c:choose>
-                                                <c:when test="${room.myApplicationStatus eq 'APPLIED'}">
+                                                <c:when test="${room.my_application_status eq 'APPLIED'}">
                                                     <span class="status-pill APPLIED">승인 대기중</span>
                                                 </c:when>
-                                                <c:when test="${room.myApplicationStatus eq 'REJECTED'}">
+                                                <c:when test="${room.my_application_status eq 'REJECTED'}">
                                                     <span class="status-pill REJECTED">거절됨</span>
                                                 </c:when>
-                                                <c:when test="${room.myApplicationStatus eq 'ACTIVE'}">
+                                                <c:when test="${room.my_application_status eq 'ACTIVE'}">
                                                     <span class="status-pill ACTIVE">참여중</span>
                                                 </c:when>
                                                 <c:otherwise>
@@ -354,8 +616,8 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
-                                        <c:if test="${room.myApplicationStatus eq 'ACTIVE' or empty room.myApplicationStatus}">
-                                            <a href="${contextPath}/spendolive/ott/chat/room.do?roomId=${room.roomId}" class="btn btn-primary">대화방</a>
+                                        <c:if test="${room.my_application_status eq 'ACTIVE' or empty room.my_application_status}">
+                                            <a href="${contextPath}/spendolive/ott/chat/room.do?room_id=${room.room_id}" class="btn btn-primary">대화방</a>
                                         </c:if>
                                     </div>
                                 </c:forEach>
@@ -366,20 +628,20 @@
             </div>
         </article>
 
-        <div id="withdraw-section" class="mypage-withdraw-row">
-            <button type="button" class="btn mypage-danger-outline" onclick="openWithdrawModal()">회원탈퇴</button>
+        <div id="withdraw-section" class="withdraw-row">
+            <button type="button" class="btn btn-danger-outline" onclick="openWithdrawModal()">회원탈퇴</button>
         </div>
 
     </div>
 </section>
 
-<div class="mypage-withdraw-modal" id="withdrawModal" aria-hidden="true">
-    <div class="mypage-withdraw-modal-box">
-        <button type="button" class="mypage-withdraw-close" onclick="closeWithdrawModal()" aria-label="회원탈퇴 창 닫기">×</button>
+<div class="withdraw-modal" id="withdrawModal" aria-hidden="true">
+    <div class="withdraw-modal-box">
+        <button type="button" class="withdraw-close" onclick="closeWithdrawModal()" aria-label="회원탈퇴 창 닫기">×</button>
         <p class="eyebrow">ACCOUNT DELETE</p>
         <h2>회원탈퇴</h2>
         <p class="mypage-muted">회원탈퇴를 하면 현재 계정으로 다시 로그인할 수 없습니다. 오픈뱅킹 연결 정보도 함께 해제됩니다.</p>
-        <ul class="mypage-withdraw-list">
+        <ul class="withdraw-list">
             <li>회원 상태가 탈퇴 상태로 변경됩니다.</li>
             <li>로그인 세션이 즉시 종료됩니다.</li>
             <li>기존 지출/정산 이력은 서비스 기록 보존을 위해 바로 삭제하지 않습니다.</li>
@@ -390,258 +652,13 @@
                 <input type="text" name="withdrawConfirm" id="withdrawConfirm" placeholder="탈퇴합니다">
             </label>
             <p class="mypage-help warn">위 입력칸에 <strong>탈퇴합니다</strong>를 정확히 입력해야 탈퇴할 수 있습니다.</p>
-            <div class="mypage-withdraw-actions">
-                <button type="button" class="btn btn-outline" onclick="closeWithdrawModal()">취소</button>
-                <button type="button" class="btn mypage-danger-btn" onclick="submitWithdrawForm()">회원탈퇴 진행</button>
+            <div class="withdraw-actions">
+                <button type="button" class="btn btn-primary btn-mini" onclick="closeWithdrawModal()">취소</button>
+                <button type="button" class="btn btn-danger-outline" onclick="submitWithdrawForm()">회원탈퇴 진행</button>
             </div>
         </form>
     </div>
 </div>
 
-<script>
-(function () {
-    const emailInput = document.getElementById('mypageEmail');
-    const phoneInput = document.getElementById('mypagePhone');
-    const passwordFields = ['currentPassword', 'newPassword', 'passwordConfirm'];
-
-    if (emailInput) {
-        emailInput.addEventListener('input', function () {
-            document.getElementById('emailVerified').value = 'N';
-            setMessage('emailVerifyMessage', '이메일을 변경했다면 인증을 다시 진행해주세요.', 'warn');
-        });
-    }
-
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function () {
-            document.getElementById('phoneVerified').value = 'N';
-            setMessage('phoneVerifyMessage', '전화번호를 변경했다면 인증을 다시 진행해주세요.', 'warn');
-        });
-    }
-
-    passwordFields.forEach(function (fieldId) {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('input', function () {
-                document.getElementById('passwordChecked').value = 'N';
-                setMessage('passwordCheckMessage', '비밀번호 변경 전 확인 버튼을 눌러주세요.', 'warn');
-            });
-        }
-    });
-
-    const form = document.getElementById('mypageProfileForm');
-    if (form) {
-        form.addEventListener('submit', function (event) {
-            const emailChanged = document.getElementById('mypageEmail').value.trim() !== document.getElementById('originalEmail').value.trim();
-            const phoneChanged = document.getElementById('mypagePhone').value.trim() !== document.getElementById('originalPhone').value.trim();
-            const newPassword = document.getElementById('newPassword').value.trim();
-
-            if (emailChanged && document.getElementById('emailVerified').value !== 'Y') {
-                alert('이메일을 변경하려면 이메일 인증을 완료해주세요.');
-                event.preventDefault();
-                return;
-            }
-
-            if (phoneChanged && document.getElementById('phoneVerified').value !== 'Y') {
-                alert('전화번호를 변경하려면 전화번호 인증을 완료해주세요.');
-                event.preventDefault();
-                return;
-            }
-
-            if (newPassword && document.getElementById('passwordChecked').value !== 'Y') {
-                alert('비밀번호 변경 전 비밀번호 확인 버튼을 눌러주세요.');
-                event.preventDefault();
-            }
-        });
-    }
-})();
-
-function postForm(url, data) {
-    return fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-        },
-        body: new URLSearchParams(data)
-    });
-}
-
-function setMessage(id, message, type) {
-    const target = document.getElementById(id);
-    if (!target) {
-        return;
-    }
-    target.textContent = message;
-    target.classList.remove('success', 'warn');
-    if (type) {
-        target.classList.add(type);
-    }
-}
-
-function sendMyPageEmailCode() {
-    const email = document.getElementById('mypageEmail').value.trim();
-    if (!email) {
-        alert('이메일을 입력해주세요.');
-        return;
-    }
-
-    postForm('${contextPath}/spendolive/mypage/email/send.do', { email: email })
-        .then(function (res) { return res.text(); })
-        .then(function (result) {
-            if (result === 'SUCCESS') {
-                document.getElementById('emailVerified').value = 'N';
-                setMessage('emailVerifyMessage', '인증번호를 발송했습니다. 이메일을 확인해주세요.', 'success');
-            } else {
-                setMessage('emailVerifyMessage', '인증번호 발송에 실패했습니다.', 'warn');
-            }
-        })
-        .catch(function () {
-            setMessage('emailVerifyMessage', '인증번호 발송 중 오류가 발생했습니다.', 'warn');
-        });
-}
-
-function verifyMyPageEmailCode() {
-    const email = document.getElementById('mypageEmail').value.trim();
-    const inputCode = document.getElementById('mypageEmailCode').value.trim();
-    if (!inputCode) {
-        alert('이메일 인증번호를 입력해주세요.');
-        return;
-    }
-
-    postForm('${contextPath}/spendolive/mypage/email/verify.do', { email: email, inputCode: inputCode })
-        .then(function (res) { return res.text(); })
-        .then(function (result) {
-            if (result === 'true') {
-                document.getElementById('emailVerified').value = 'Y';
-                setMessage('emailVerifyMessage', '이메일 인증이 완료되었습니다.', 'success');
-            } else {
-                document.getElementById('emailVerified').value = 'N';
-                setMessage('emailVerifyMessage', '인증번호가 일치하지 않습니다.', 'warn');
-            }
-        })
-        .catch(function () {
-            setMessage('emailVerifyMessage', '이메일 인증 확인 중 오류가 발생했습니다.', 'warn');
-        });
-}
-
-function sendMyPagePhoneCode() {
-    const phone = document.getElementById('mypagePhone').value.trim();
-    if (!phone) {
-        alert('전화번호를 입력해주세요.');
-        return;
-    }
-
-    postForm('${contextPath}/spendolive/mypage/phone/send.do', { phone: phone })
-        .then(function (res) { return res.text(); })
-        .then(function (result) {
-            if (result === 'SUCCESS') {
-                document.getElementById('phoneVerified').value = 'N';
-                setMessage('phoneVerifyMessage', '인증번호를 발송했습니다. 문자를 확인해주세요.', 'success');
-            } else {
-                setMessage('phoneVerifyMessage', '인증번호 발송에 실패했습니다.', 'warn');
-            }
-        })
-        .catch(function () {
-            setMessage('phoneVerifyMessage', '인증번호 발송 중 오류가 발생했습니다.', 'warn');
-        });
-}
-
-function verifyMyPagePhoneCode() {
-    const phone = document.getElementById('mypagePhone').value.trim();
-    const inputCode = document.getElementById('mypagePhoneCode').value.trim();
-    if (!inputCode) {
-        alert('문자 인증번호를 입력해주세요.');
-        return;
-    }
-
-    postForm('${contextPath}/spendolive/mypage/phone/verify.do', { phone: phone, inputCode: inputCode })
-        .then(function (res) { return res.text(); })
-        .then(function (result) {
-            if (result === 'true') {
-                document.getElementById('phoneVerified').value = 'Y';
-                setMessage('phoneVerifyMessage', '전화번호 인증이 완료되었습니다.', 'success');
-            } else {
-                document.getElementById('phoneVerified').value = 'N';
-                setMessage('phoneVerifyMessage', '인증번호가 일치하지 않습니다.', 'warn');
-            }
-        })
-        .catch(function () {
-            setMessage('phoneVerifyMessage', '전화번호 인증 확인 중 오류가 발생했습니다.', 'warn');
-        });
-}
-
-
-function openWithdrawModal() {
-    const modal = document.getElementById('withdrawModal');
-    const confirmInput = document.getElementById('withdrawConfirm');
-    if (!modal) {
-        return;
-    }
-
-    modal.classList.add('show');
-    modal.setAttribute('aria-hidden', 'false');
-    if (confirmInput) {
-        confirmInput.value = '';
-        setTimeout(function () {
-            confirmInput.focus();
-        }, 80);
-    }
-}
-
-function closeWithdrawModal() {
-    const modal = document.getElementById('withdrawModal');
-    if (!modal) {
-        return;
-    }
-
-    modal.classList.remove('show');
-    modal.setAttribute('aria-hidden', 'true');
-}
-
-function submitWithdrawForm() {
-    const confirmInput = document.getElementById('withdrawConfirm');
-    const form = document.getElementById('withdrawForm');
-
-    if (!confirmInput || !form) {
-        return;
-    }
-
-    if (confirmInput.value.trim() !== '탈퇴합니다') {
-        alert('확인 문구를 정확히 입력해주세요.');
-        confirmInput.focus();
-        return;
-    }
-
-    if (confirm('정말 회원탈퇴를 진행할까요? 탈퇴 후에는 현재 계정으로 다시 로그인할 수 없습니다.')) {
-        form.submit();
-    }
-}
-
-document.addEventListener('click', function (event) {
-    const modal = document.getElementById('withdrawModal');
-    if (modal && event.target === modal) {
-        closeWithdrawModal();
-    }
-});
-
-function checkMyPagePassword() {
-    const currentPassword = document.getElementById('currentPassword').value.trim();
-    const newPassword = document.getElementById('newPassword').value.trim();
-    const passwordConfirm = document.getElementById('passwordConfirm').value.trim();
-
-    if (!currentPassword || !newPassword || !passwordConfirm) {
-        document.getElementById('passwordChecked').value = 'N';
-        setMessage('passwordCheckMessage', '현재 비밀번호, 새 비밀번호, 새 비밀번호 확인을 모두 입력해주세요.', 'warn');
-        return;
-    }
-
-    if (newPassword !== passwordConfirm) {
-        document.getElementById('passwordChecked').value = 'N';
-        setMessage('passwordCheckMessage', '새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.', 'warn');
-        return;
-    }
-
-    document.getElementById('passwordChecked').value = 'Y';
-    setMessage('passwordCheckMessage', '새 비밀번호 확인이 완료되었습니다. 저장 시 현재 비밀번호도 다시 확인됩니다.', 'success');
-}
-</script>
+<script src="${contextPath}/resources/js/mypage.js" data-ajax-reload></script>
 

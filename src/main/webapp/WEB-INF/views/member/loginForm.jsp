@@ -11,6 +11,9 @@
     </title>
     <link rel="stylesheet" href="${contextPath}/resources/css/styles.css">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <style>
     /* =========================================================
        [추가 UI] 로그인/아이디 찾기/비밀번호 찾기 폼 전환용 CSS
@@ -93,7 +96,7 @@
             </div>
             <div class="auth-divider">또는 일반 로그인</div>
 
-            <form action="${contextPath}/member/login.do" method="post">
+            <form action="${contextPath}/member/login.do" method="post"onsubmit="return checkKakaoPassword()">
                 <div class="auth-form-group">
                     <label for="loginId">아이디 또는 이메일</label>
                     <input id="loginId" type="text" name="id" placeholder="아이디 또는 이메일을 입력하세요" required>
@@ -115,7 +118,7 @@
                         <a href="#" onclick="showAuthPanel('findPw'); return false;">비밀번호 찾기</a>
                     </div>
                 </div>
-                <button class="auth-btn auth-btn-primary" type="submit">로그인</button>
+                <button id="loginButton" class="auth-btn auth-btn-primary" type="submit">로그인</button>
             </form>
             <div class="auth-link-row">
                 <span>아직 회원이 아니신가요?</span>
@@ -137,7 +140,7 @@
             <div class="auth-form-group">
                 <label for="findIdPhone">가입한 휴대폰 번호</label>
                 <div class="auth-input-row">
-                    <input id="findIdPhone" type="text" placeholder="01012345678 또는 010-1234-5678">
+                    <input id="findIdPhone" type="text" placeholder="010-1234-5678 형식">
                     <button type="button" class="auth-btn auth-btn-light" onclick="sendFindIdSms()">인증번호 받기</button>
                 </div>
                 <p class="auth-help-text">회원가입 때 입력한 휴대폰 번호를 입력하세요.</p>
@@ -172,7 +175,7 @@
                 <div class="auth-form-group">
                     <label for="findPwPhone">가입한 휴대폰 번호</label>
                     <div class="auth-input-row">
-                        <input id="findPwPhone" type="text" placeholder="01012345678 또는 010-1234-5678">
+                        <input id="findPwPhone" type="text" placeholder="010-1234-5678 형식">
                         <button type="button" class="auth-btn auth-btn-light" onclick="sendFindPwSms()">인증번호 받기</button>
                     </div>
                     <p class="auth-help-text">아이디와 휴대폰 번호가 DB에 있는 회원 정보와 일치해야 인증번호가 발급됩니다.</p>
@@ -201,11 +204,53 @@
             <p id="findPwResult" class="auth-result-text"></p>
             <button type="button" class="auth-btn auth-btn-primary auth-back-login" onclick="showAuthPanel('login')">로그인으로 돌아가기</button>
         </div>
+             <jsp:include page="/WEB-INF/views/common/font.jsp" />
     </section>
+     <div id="loginStatusOverlay"
+                    class="status-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="loginStatusTitle"
+                    aria-describedby="loginStatusMessage"
+                    hidden>
+                    <div class="status-box">
+                    
+                    <div id="loginStatusSpinner"
+                            class="status-spinner"
+                            aria-hidden="true"></div>
+
+                        <div id="loginStatusIcon"
+                            class="status-icon"
+                            aria-hidden="true"
+                            hidden></div>
+                            <h3 id="loginStatusTitle">로그인중 입니다.</h3>
+                        <p id="loginStatusMessage">
+                            창을 닫거나 새로고침하지 말아주세요.
+                        </p>
+                    <div id="loginStatusActions"
+                            class="status-actions"
+                            hidden>
+                            <button type="button"
+                                    id="loginStatusCloseButton"
+                                    class="btn btn-outline">
+                                확인
+                            </button>
+                            <button type="button"
+                                    id="loginStatusActionButton"
+                                    class="btn btn-primary"
+                                    hidden>
+                                이동하기
+                            </button>
+                        </div>
+                </div>
+            </div>
 </main>
 </div>
+<script src="${contextPath}/resources/js/app.js"></script>
+<script src="${contextPath}/resources/js/signup.js"></script>
+
 <script>
-    var contextPath = "${contextPath}";
+    var loginContextPath = "${contextPath}";
 
     var msg = "${msg}";
     var message = "${message}";
@@ -276,7 +321,7 @@
             params.append(key, data[key]);
         });
 
-        return fetch(contextPath + url, {
+            return fetch(loginContextPath + url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
@@ -402,8 +447,6 @@
             setResult('findPwResult', '비밀번호 변경 중 오류가 발생했습니다.', 'warn');
         });
     }
-</script>
-<script src="${contextPath}/resources/js/app.js">
 </script>
 </body>
 </html>

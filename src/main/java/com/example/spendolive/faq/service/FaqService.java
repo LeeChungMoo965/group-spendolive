@@ -12,8 +12,16 @@ public interface FaqService {
 
     // 관리자 화면
     List<FaqVO> getAllFaqList();
-    FaqVO getFaqDetail(int faqId);
+    Map<String, List<FaqVO>> getAllFaqGroupedByCategory(); // 관리자 목록도 카테고리별로 묶어서 보여주기 위함(숨김 포함)
+    FaqVO getFaqDetail(int faq_id);
     int insertFaq(FaqVO faq);
     void updateFaq(FaqVO faq);
-    void deleteFaq(int faqId);
+    void deleteFaq(int faq_id);
+
+    // 새 FAQ가 들어갈 다음 순서 (해당 카테고리 맨 뒤)
+    int getNextSortOrder(String category);
+
+    // 목록에서 ▲▼ 버튼으로 순서 바꾸기 (같은 카테고리 안에서만 이동)
+    void moveFaqUp(int faq_id);
+    void moveFaqDown(int faq_id);
 }

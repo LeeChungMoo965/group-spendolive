@@ -4,8 +4,6 @@
     <c:set var="contextPath" value="${pageContext.request.contextPath}" />
     <c:set var="requestURI" value="${pageContext.request.requestURI}" />
 
-    <link rel="stylesheet" href="${contextPath}/resources/css/bellIcon.css">
-
 <c:choose>
     <c:when test="${memberInfo.role == 'ADMIN'}">
     <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
@@ -19,14 +17,14 @@
                 </div>
             </a>
             <nav class="admin-nav">
-                <a href="index.html" data-nav="dashboard">대시보드</a>
-                <a href="member.html" data-nav="member">회원관리</a>
+                <a href="${contextPath}/spendolive/admin/main.do" data-nav="dashboard">대시보드</a>
+                <a href="${contextPath}/admin/member/list.do" data-nav="member">회원관리</a>
                 <a href="${contextPath}/admin/ott/list.do" data-nav="ott">OTT 관리</a>
-                <a href="${contextPath}/admin/settlement/list.do" data-nav="party">정산관리</a>
+                <a href="${contextPath}/admin/settlement/list.do" data-nav="settlement">정산관리</a>
                 <a href="${contextPath}/admin/report/list.do" data-nav="report">신고관리</a>
-                <a href="${contextPath}/spendolive/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
-                <a href="${contextPath}/spendolive/admin/notice/list.do" data-nav="notice">공지사항 관리</a>
-                <a href="${contextPath}/spendolive/admin/faq/list.do" data-nav="faq">FAQ 관리</a>
+                <a href="${contextPath}/admin/inquiry/list.do" data-nav="inquiry">문의관리</a>
+                <a href="${contextPath}/admin/notice/list.do" data-nav="notice">공지사항 관리</a>
+                
             </nav>
             <div class="admin-actions">
                 <strong><a class="btn btn-light" href="${contextPath}/member/logout.do">로그아웃</a>
@@ -44,15 +42,32 @@
             </a>
 
             <nav class="nav">
-                <a href="${contextPath}/spendolive/notice/center.do"
-                class="header-bell ${fn:contains(requestURI, '/notice') ? 'active' : ''}">
+                <div class="header-bell-wrap">
+                    <button type="button"
+                        id="bellToggleBtn"
+                        class="header-bell ${fn:contains(requestURI, '/notice') ? 'active' : ''}"
+                        onclick="toggleNotifDropdown(event)">
 
-                    <span class="bell-icon">🔔</span>
+                        <span class="bell-icon">🔔</span>
 
-                    <span id="notificationBadge"
-                        class="notification-badge"
-                        style="display:none;"></span>
-                </a>
+                        <span id="notificationBadge"
+                            class="notification-badge"
+                            style="display:none;"></span>
+                    </button>
+
+                    <%-- 종 아이콘 클릭 시 뜨는 최근 알림 미리보기. 최근 5개는 그냥 보이고,
+                         그 이상은 스크롤로 내려서 봄. 실제 목록/읽음처리는
+                         notice.js의 loadNotificationList 로직을 그대로 재사용함 --%>
+                    <div id="notifDropdown" class="notif-dropdown">
+                        <div class="notif-dropdown-header">
+                            <strong>알림</strong>
+                            <a href="${contextPath}/spendolive/notice/center.do?tab=alert">전체보기</a>
+                        </div>
+                        <div id="notifDropdownList" class="notif-dropdown-list">
+                            <div class="notif-dropdown-empty">불러오는 중...</div>
+                        </div>
+                    </div>
+                </div>
             </nav>
 
             <div class="header-actions">
@@ -128,8 +143,8 @@
                                 </li>
                                 <li>
                                     <a class="so-menu-link"
-                                    href="${contextPath}/payment/paymenting.do">
-                                        정산하기
+                                    href="${contextPath}/spendolive/ott/recruit.do?tab=manage">
+                                        참여방 관리
                                     </a>
                                 </li>
                             </ul>
@@ -156,12 +171,7 @@
                                         자주 묻는 질문
                                     </a>
                                 </li>
-                                <li>
-                                    <a class="so-menu-link ${fn:contains(requestURI, '/report') ? 'active' : ''}"
-                                    href="${contextPath}/spendolive/report/write.do">
-                                        신고하기
-                                    </a>
-                                </li>
+                            
                             </ul>
                         </li>
 
@@ -175,6 +185,10 @@
 
                             <ul class="so-submenu">
                                 <li>
+                                    <a class="so-menu-link"
+                                    href="${contextPath}/member/openBankingIntegratedAuth.do">
+                                        통합 계좌 연동
+                                    </a>
                                     <a class="so-menu-link"
                                     href="${contextPath}/member/openBankingAuth.do">
                                         계좌 연동
@@ -198,8 +212,7 @@
     </c:otherwise>
     </c:choose>
     <script src="https://js.tosspayments.com/v2/standard"></script>
-    <script src="${contextPath}/resources/js/app.js"></script>
-    <script src="${contextPath}/resources/js/bellIcon.js"></script>
+ 
     <script>
     (function() {
         var btn = document.getElementById('soMenuBtn');
@@ -223,7 +236,7 @@
         const clientKey = "test_ck_yZqmkKeP8gBgMeYDwNpprbQRxB9l";
         const customerKey = "${memberInfo.id}";
         const tossPayments = TossPayments(clientKey);
-
+       
         //@docs https://docs.tosspayments.com/sdk/v2/js#tosspaymentspayment
         //const payment = tossPayments.payment({ customerKey });
         // 비회원 결제
@@ -232,6 +245,9 @@
         //@docs https://docs.tosspayments.com/sdk/v2/js#paymentrequestpayment
         async function requestBillingAuth() {
             const contextPath = "${contextPath}";
+             if(customerKey === ""){
+            alert("로그인해 주세요");
+            }
             await payment.requestBillingAuth({
             method: "CARD", // 자동결제(빌링)는 카드만 지원합니다
             successUrl: window.location.origin + contextPath + "/payment/callback.do", 
@@ -240,4 +256,8 @@
             customerName: '${memberInfo.member_name}',
             });
         }
+        var msg = "${msg}";
+if(msg && msg !== "") {
+    alert(msg);
+}
     </script>

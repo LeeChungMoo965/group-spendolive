@@ -54,7 +54,7 @@ public class AdminOttRepositoryImpl implements AdminOttRepository {
     }
 
     @Override
-    public OttServiceDTO selectOttService(Long ottServiceId) {
+    public OttServiceDTO selectOttService(Long ott_service_id) {
         String sql = """
                 SELECT ott_service_id,
                        service_name,
@@ -73,7 +73,7 @@ public class AdminOttRepositoryImpl implements AdminOttRepository {
                 """;
 
         try {
-            return jdbcTemplate.queryForObject(sql, ottServiceRowMapper(), ottServiceId);
+            return jdbcTemplate.queryForObject(sql, ottServiceRowMapper(), ott_service_id);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -98,17 +98,17 @@ public class AdminOttRepositoryImpl implements AdminOttRepository {
                 """;
 
         return jdbcTemplate.update(sql,
-                ottService.getServiceName(),
-                ottService.getDefaultPrice(),
-                ottService.getFixedPlanName(),
-                ottService.getBasePrice(),
-                ottService.getExtraMemberFee(),
-                ottService.getExtraMemberCount(),
-                ottService.getMaxMemberLimit(),
-                ottService.getPlatformFeeRate(),
-                ottService.getShareYn(),
-                ottService.getRiskLevel(),
-                ottService.getBlockReason());
+                ottService.getService_name(),
+                ottService.getDefault_price(),
+                ottService.getFixed_plan_name(),
+                ottService.getBase_price(),
+                ottService.getExtra_member_fee(),
+                ottService.getExtra_member_count(),
+                ottService.getMax_member_limit(),
+                ottService.getPlatform_fee_rate(),
+                ottService.getShare_yn(),
+                ottService.getRisk_level(),
+                ottService.getBlock_reason());
     }
 
     @Override
@@ -130,29 +130,29 @@ public class AdminOttRepositoryImpl implements AdminOttRepository {
                 """;
 
         return jdbcTemplate.update(sql,
-                ottService.getServiceName(),
-                ottService.getDefaultPrice(),
-                ottService.getFixedPlanName(),
-                ottService.getBasePrice(),
-                ottService.getExtraMemberFee(),
-                ottService.getExtraMemberCount(),
-                ottService.getMaxMemberLimit(),
-                ottService.getPlatformFeeRate(),
-                ottService.getShareYn(),
-                ottService.getRiskLevel(),
-                ottService.getBlockReason(),
-                ottService.getOttServiceId());
+                ottService.getService_name(),
+                ottService.getDefault_price(),
+                ottService.getFixed_plan_name(),
+                ottService.getBase_price(),
+                ottService.getExtra_member_fee(),
+                ottService.getExtra_member_count(),
+                ottService.getMax_member_limit(),
+                ottService.getPlatform_fee_rate(),
+                ottService.getShare_yn(),
+                ottService.getRisk_level(),
+                ottService.getBlock_reason(),
+                ottService.getOtt_service_id());
     }
 
     @Override
-    public int hideOttService(Long ottServiceId) {
+    public int hideOttService(Long ott_service_id) {
         String sql = """
                 UPDATE ott_service_tb
                 SET share_yn = 'N'
                 WHERE ott_service_id = ?
                 """;
 
-        return jdbcTemplate.update(sql, ottServiceId);
+        return jdbcTemplate.update(sql, ott_service_id);
     }
 
     private RowMapper<OttServiceDTO> ottServiceRowMapper() {
@@ -161,18 +161,18 @@ public class AdminOttRepositoryImpl implements AdminOttRepository {
             public OttServiceDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
                 OttServiceDTO dto = new OttServiceDTO();
 
-                dto.setOttServiceId(rs.getLong("ott_service_id"));
-                dto.setServiceName(rs.getString("service_name"));
-                dto.setDefaultPrice(rs.getInt("default_price"));
-                dto.setShareYn(rs.getString("share_yn"));
-                dto.setRiskLevel(rs.getString("risk_level"));
-                dto.setBlockReason(rs.getString("block_reason"));
-                dto.setFixedPlanName(rs.getString("fixed_plan_name"));
-                dto.setBasePrice(rs.getInt("base_price"));
-                dto.setExtraMemberFee(rs.getInt("extra_member_fee"));
-                dto.setExtraMemberCount(rs.getInt("extra_member_count"));
-                dto.setMaxMemberLimit(rs.getInt("max_member_limit"));
-                dto.setPlatformFeeRate(rs.getDouble("platform_fee_rate"));
+                dto.setOtt_service_id(rs.getLong("ott_service_id"));
+                dto.setService_name(rs.getString("service_name"));
+                dto.setDefault_price(rs.getInt("default_price"));
+                dto.setShare_yn(rs.getString("share_yn"));
+                dto.setRisk_level(rs.getString("risk_level"));
+                dto.setBlock_reason(rs.getString("block_reason"));
+                dto.setFixed_plan_name(rs.getString("fixed_plan_name"));
+                dto.setBase_price(rs.getInt("base_price"));
+                dto.setExtra_member_fee(rs.getInt("extra_member_fee"));
+                dto.setExtra_member_count(rs.getInt("extra_member_count"));
+                dto.setMax_member_limit(rs.getInt("max_member_limit"));
+                dto.setPlatform_fee_rate(rs.getDouble("platform_fee_rate"));
 
                 return dto;
             }

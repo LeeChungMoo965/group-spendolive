@@ -13,93 +13,111 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spendolive.Expense.domain.ExpenseDTO;
+import com.example.spendolive.admin.dashboard.domain.AdminDashboardDTO;
+import com.example.spendolive.admin.dashboard.service.AdminDashboardService;
 import com.example.spendolive.Expense.service.ExpenseService;
 import com.example.spendolive.member.domain.MemberVO;
+import com.example.spendolive.ott.service.OttService;
 
 @Controller
 @RequestMapping("/spendolive")
 public class SpendOliveController {
 
     private final ExpenseService expenseService;
+    private final OttService ottService;
+    private final AdminDashboardService adminDashboardService;
 
-    public SpendOliveController(ExpenseService expenseService) {
+    public SpendOliveController(ExpenseService expenseService,
+                                OttService ottService,
+                                AdminDashboardService adminDashboardService) {
         this.expenseService = expenseService;
+        this.ottService = ottService;
+        this.adminDashboardService = adminDashboardService;
     }
 
     @RequestMapping(value = {"/", "/main.do"}, method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView main(HttpServletRequest request, HttpServletResponse response) throws Exception {
         ModelAndView mav = layout("/WEB-INF/views/main/main.jsp");
-        addMainDashboardData(mav, request.getSession());
+
+        // 메인 그래프에서 선택한 달의 지출과 예산을 조회한다.
+        addMainDashboardData(
+                mav,
+                request.getSession(),
+                request.getParameter("yearMonth")
+        );
+
         return mav;
     }
 
     @RequestMapping(value = {"/admin/main.do"}, method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView adminmain(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        return layout("/WEB-INF/views/admin/main/main.jsp");
-    }
+        ModelAndView mav = layout("/WEB-INF/views/admin/main/main.jsp");
 
-    @RequestMapping(value = "/calendar.do", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView calendar(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        return layout("/WEB-INF/views/calendar/calendar.jsp");
-    }
+        // 관리자 메인 화면에 실제 DB 기준 운영 현황을 표시한다.
+        // 통계 조회에 문제가 생겨도 관리자 메뉴 전체가 500 오류로 막히지 않도록 0건 화면을 유지한다.
+        try {
+            AdminDashboardDTO dashboard = adminDashboardService.getDashboardSummary();
+            mav.addObject("adminDashboard", dashboard);
+        } catch (Exception e) {
+            mav.addObject("adminDashboard", new AdminDashboardDTO());
+            mav.addObject("adminDashboardError", "대시보드 통계를 불러오지 못했습니다. DB 테이블 상태를 확인해주세요.");
+        }
 
-    @RequestMapping(value = "/expense.do", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView expense(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        ModelAndView mav = new ModelAndView();
-        mav.setViewName("redirect:/spendolive/expense/list.do");
         return mav;
     }
-    
     private ModelAndView layout(String bodyPage) {
         ModelAndView mav = new ModelAndView();
         mav.setViewName("common/layout");
         mav.addObject("body_page", bodyPage);
         return mav;
     }
-
     /**
      * 메인 페이지 대시보드 데이터 세팅
-     *
-     * 역할:
-     * - 로그인 상태이면 DB에 저장된 이번 달 지출 데이터를 조회해서 JSP에 넘긴다.
-     * - 비로그인 상태이면 JSP/JS에서 랜덤 대시보드를 돌릴 수 있도록 로그인 여부만 넘긴다.
-     *
-     * 데이터 기준:
-     * - FIXED    : 고정지출
-     * - VARIABLE : 변동지출
-     * - OTT      : OTT지출
-     * - 총지출   : 고정지출 + 변동지출 + OTT지출
+     * - 선택한 달의 고정·변동·OTT 지출과 월 예산을 조회한다.
+     * - 비로그인 상태에서는 기존 랜덤 대시보드를 사용한다.
      */
-    private void addMainDashboardData(ModelAndView mav, HttpSession session) {
+    private void addMainDashboardData(ModelAndView mav,
+                                      HttpSession session,
+                                      String requestedYearMonth) {
+
+        String selectedYearMonth = normalizeYearMonth(requestedYearMonth);
+        YearMonth selectedMonth = YearMonth.parse(selectedYearMonth);
+
+        // JSP의 달 선택 입력창과 제목에 사용할 값이다.
+        mav.addObject("mainSelectedYearMonth", selectedYearMonth);
+        mav.addObject("mainSelectedMonthLabel", selectedMonth.getMonthValue() + "월");
+
         MemberVO memberInfo = (MemberVO) session.getAttribute("memberInfo");
 
-        // 비로그인 사용자는 DB 조회를 하지 않고, 화면 JS에서 랜덤 값으로 보여준다.
+        // 비로그인 사용자는 DB 조회 없이 기존 랜덤 값으로 보여준다.
         if (memberInfo == null) {
             mav.addObject("mainLoggedIn", false);
             mav.addObject("mainFixedTotal", 0);
             mav.addObject("mainVariableTotal", 0);
             mav.addObject("mainOttTotal", 0);
+            mav.addObject("mainOttSettlementCount", 0);
+            mav.addObject("mainBudget", 1700000);
             return;
         }
 
-        long memberId = memberInfo.getMember_id();
-        String currentYearMonth = YearMonth.now().toString();
-
+        long member_id = memberInfo.getMember_id();
         int fixedTotal = 0;
         int variableTotal = 0;
         int ottTotal = 0;
 
-        List<ExpenseDTO> expenseList = expenseService.getExpenseList(memberId, currentYearMonth);
+        // 선택한 달의 예산과 지출 목록을 조회한다.
+        int monthlyBudget = expenseService.getMonthlyBudget(member_id, selectedYearMonth);
+        List<ExpenseDTO> expenseList = expenseService.getExpenseList(member_id, selectedYearMonth);
 
         for (ExpenseDTO expense : expenseList) {
             int amount = expense.getAmount() == null ? 0 : expense.getAmount();
-            String expenseType = expense.getExpenseType();
+            String expense_type = expense.getExpense_type();
 
-            if ("FIXED".equals(expenseType)) {
+            if ("FIXED".equals(expense_type)) {
                 fixedTotal += amount;
-            } else if ("VARIABLE".equals(expenseType)) {
+            } else if ("VARIABLE".equals(expense_type)) {
                 variableTotal += amount;
-            } else if ("OTT".equals(expenseType)) {
+            } else if ("OTT".equals(expense_type)) {
                 ottTotal += amount;
             }
         }
@@ -108,5 +126,25 @@ public class SpendOliveController {
         mav.addObject("mainFixedTotal", fixedTotal);
         mav.addObject("mainVariableTotal", variableTotal);
         mav.addObject("mainOttTotal", ottTotal);
+
+        // 금액으로 추정하지 않고 선택 월에 사용자가 실제로 관련된 정산 회차를 센다.
+        mav.addObject(
+                "mainOttSettlementCount",
+                ottService.getMySettlementCount(memberInfo.getId(), selectedYearMonth));
+
+        mav.addObject("mainBudget", monthlyBudget);
+    }
+
+    // 잘못된 연월 값은 현재 달로 바꿔서 조회 오류를 막는다.
+    private String normalizeYearMonth(String yearMonth) {
+        if (yearMonth == null || yearMonth.isBlank()) {
+            return YearMonth.now().toString();
+        }
+
+        try {
+            return YearMonth.parse(yearMonth).toString();
+        } catch (Exception e) {
+            return YearMonth.now().toString();
+        }
     }
 }

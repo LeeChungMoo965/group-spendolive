@@ -1,100 +1,117 @@
-    <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
-    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-    <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-    <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-    <c:set var="contextPath" value="${pageContext.request.contextPath}" />
-    <link rel="stylesheet" href="${contextPath}/resources/css/admin.css">
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" isELIgnored="false" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
+<div class="admin-main" data-admin-page="report" data-admin-title="신고관리">
+    <section class="hero">
+        <div>
+            <div class="hero-kicker">Report Management</div>
+            <h1>신고관리</h1>
+            <p>신고 내용과 신고자·대상자를 확인하고 경고, 퇴출 또는 반려 결과를 기록합니다.</p>
+        </div>
+    </section>
 
-    <body data-page="report">
-    <div class="admin-shell">
-    <main class="admin-main">
-    
-    <section class="hero"><div><div class="hero-kicker">Report Management</div><h1>신고관리</h1>
-    <p>신고 리스트에서 신고 항목, 내용, 신고자와 대상자를 확인하고 처리결과 상태를 변경합니다.</p></div></section>
-    <br>
-    <section class="panel"><div class="panel-header"><div class="panel-title"><div class="section-kicker">Report List</div>
-    <h2>신고 리스트(총 ${reportList.size()}건)</h2><p>신고 항목과 내용을 확인한 뒤 처리 상태를 바꿀 수 있습니다.</p></div>
-    <div class="filter-pills"><button onclick="location.href='${contextPath}/admin/report/list.do'">전체</button><button onclick="location.href='${contextPath}/admin/report/list.do?status=WAIT'">대기</button><button>처리중</button><button onclick="location.href='${contextPath}/admin/report/list.do?status=COMPLETE'">완료</button></div>
-    </div><div class="table-wrap">
-      
-    <c:choose>
-                <c:when test="${empty reportList}">
-                <div class="panel-title" style="padding: 20px; text-align: center;">
-                    <div class="section-kicker">신고 건이 없습니다</div>
-                </div>
+    <c:if test="${not empty msg}"><div class="flash-ok"><c:out value="${msg}" /></div></c:if>
+
+    <div class="admin-local-tabs" aria-label="신고 상태 필터">
+        <button type="button" class="admin-local-tab active" data-admin-row-filter="all" data-filter-target="#adminReportTable">전체 신고</button>
+        <button type="button" class="admin-local-tab" data-admin-row-filter="wait" data-filter-target="#adminReportTable">처리 대기</button>
+        <button type="button" class="admin-local-tab" data-admin-row-filter="complete" data-filter-target="#adminReportTable">처리 완료</button>
+    </div>
+
+    <section class="panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <div class="section-kicker">Report List</div>
+                <h2>신고 목록 (<span id="reportVisibleCount">${empty reportList ? 0 : reportList.size()}</span>건)</h2>
+                <p>필터를 눌러도 페이지를 다시 불러오지 않고 현재 표 안에서 결과가 바뀝니다.</p>
+            </div>
+            <input id="reportSearchInput" class="admin-search-input" type="search"
+                   placeholder="신고자, 대상자, 내용 검색" data-search-table="#adminReportTable">
+        </div>
+
+        <c:choose>
+            <c:when test="${empty reportList}">
+                <div class="admin-empty-filter">등록된 신고가 없습니다.</div>
             </c:when>
-                <c:otherwise>
-                <table class="admin-table">
-                <thead><tr><th>번호</th><th>신고자</th><th>신고대상</th><th>신고내용</th><th>신고 날짜</th><th>상태</th><th>처리</th></tr></thead><tbody>
-                        <c:forEach var="report" items="${reportList}" varStatus="s">
-                      
-    <tr><td>${s.count}</td><td>${report.reporter_id}</td><td>${report.reported_member_id}</td><td><textarea style="margin-top: 12px;" class="form-textarea"  readonly>${report.report_reason}</textarea></td><td>${report.created_at}</td><td><span class="badge yellow">${report.report_status}</span></td>
-    <td><button type="button" class="mini-btn" onclick="comment('${report.report_id}', '${report.reported_member_id}','${s.count}','${report.report_reason}')">처리</button></td></tr>
-    
+            <c:otherwise>
+                <div class="table-wrap">
+                    <table id="adminReportTable" class="admin-table"
+                           data-admin-filter-table="true"
+                           data-search-input="reportSearchInput"
+                           data-empty-target="#reportFilterEmpty"
+                           data-count-target="#reportVisibleCount">
+                        <thead>
+                        <tr><th>번호</th><th>신고자</th><th>신고 대상</th><th>신고 내용</th><th>신고일</th><th>상태</th><th>처리</th></tr>
+                        </thead>
+                        <tbody>
+                        <c:forEach var="report" items="${reportList}" varStatus="status">
+                            <tr data-row-status="${report.report_status}">
+                                <td>${status.count}</td>
+                                <td><c:out value="${report.reporter_id}" /></td>
+                                <td><c:out value="${report.reported_member_id}" /></td>
+                                <td><div style="max-width:420px;white-space:pre-wrap;"><c:out value="${report.report_reason}" /></div></td>
+                                <td><c:out value="${report.created_at}" /></td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${report.report_status eq 'WAIT'}"><span class="badge yellow">WAIT</span></c:when>
+                                        <c:otherwise><span class="badge green"><c:out value="${report.report_status}" /></span></c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${report.report_status eq 'WAIT'}">
+                                            <button type="button" class="mini-btn warning" data-report-process
+                                                    data-report-id="${report.report_id}"
+                                                    data-reported-member-id="${report.reported_member_id}"
+                                                    data-report-reason="<c:out value='${report.report_reason}' />">처리</button>
+                                        </c:when>
+                                        <c:otherwise><span class="badge green">처리 완료</span></c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
                         </c:forEach>
-                        </tbody></table>
-                </c:otherwise>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="reportFilterEmpty" class="admin-empty-filter" hidden>선택한 조건에 해당하는 신고가 없습니다.</div>
+            </c:otherwise>
         </c:choose>
-        </div></section>
-        <form action="${contextPath}/admin/report/comment.do" method="post">
- <section id="commentArea" class="panel" style="display:none; margin-top: 20px; width: 100%;">
-            
-                
+    </section>
+
+  
+        <section id="commentArea" class="panel" hidden>
+            <div class="panel-header">
                 <div class="panel-title">
                     <div class="section-kicker">Process Result</div>
-                    <h2>신고 처리결과 작성</h2>
-                </div><div class="table-wrap">
-                
-                <div class="form-grid" style="margin-top:18px">
-                    <div class="form-field">
-                     
-                        <label>처리 상태</label>
-                        <select class="form-input" name="result" id="reportResult">
-                            <option value="1">경고</option>
-                            <option value="2">퇴출</option>
-                            <option value="3">반려</option>
-                        </select>
-                    </div>
-           
-         
-                    <input type="hidden" name="reported_member_id" id="form_reported_member_id" value="">
-                    <input type="hidden" name="report_id" id="form_report_id" value="">
+                    <h2>신고 처리 결과 작성</h2>
+                    <p id="selectedReportReason" class="admin-form-note"></p>
                 </div>
-                <label>코멘트</label>
-                <textarea name="admin_comment" class="form-textarea" placeholder="처리 결과를 입력하세요." style="margin-top: 12px;">신고 내용을 확인했고 대상 회원에게 경고 1회를 적용했습니다.</textarea>
-                
-                <div class="toolbar" style="margin-top:16px">
-                    <span></span>
-                    <button class="btn primary" type="submit">처리결과 저장</button>
+                <button type="button" class="btn ghost" data-report-process-cancel>닫기</button>
+            </div>
+
+            <input type="hidden" id="formReportMemberId" name="reported_member_id" value="">
+            <input type="hidden" id="formReportId" name="report_id" value="">
+
+            <div class="form-grid" style="grid-template-columns:minmax(180px, .35fr) minmax(0, 1fr);">
+                <div class="form-field">
+                    <label for="reportResult">처리 상태</label>
+                    <select class="form-input" name="result" id="reportResult">
+                        <option value="1" >경고</option>
+                        <option value="2">퇴출</option>
+                        <option value="3">반려</option>
+                    </select>
                 </div>
+                <div class="form-field">
+                    <label for="adminComment">관리자 코멘트</label>
+                    <textarea id="adminComment" name="admin_comment" class="form-textarea"
+                              placeholder="처리 결과를 입력하세요." required></textarea>
                 </div>
-             </section>
-                </form>
-    
-    </main>
-
-    <footer class="footer">
-        <div class="footer-inner">
-            <div>SpendOlive Admin UI Preview</div>
-            <div>DB 연결 없이 화면 확인용으로 제작된 독립 HTML 프로젝트입니다.</div>
-        </div>
-    </footer>
-    <div class="toast" aria-live="polite"></div>
-
-
-    </div>
-    </body>
-    </html>
-    <script>
-    
-    
-        // 컨트롤러가 보낸 일회성 메시지(msg)가 있다면 alert을 띄운다
-        var msg = "${msg}";
-        if(msg && msg !== "") {
-            alert(msg);
-        }
-    </script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<script src="${contextPath}/resources/js/admin.js"></script>
+            </div>
+            <div class="toolbar" style="justify-content:flex-end;margin-bottom:0;">
+                 <button type="button" class="mini-btn warning waringSubmitButton"
+                        >처리</button>
+            </div>
+        </section>
+    </form>
+</div>

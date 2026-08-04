@@ -68,14 +68,14 @@ public class AdminOttController {
     }
 
     @GetMapping("/edit.do")
-    public ModelAndView edit(@RequestParam("ottServiceId") Long ottServiceId,
+    public ModelAndView edit(@RequestParam("ott_service_id") Long ott_service_id,
                              HttpSession session,
                              RedirectAttributes redirectAttributes) {
         if (!isAdmin(session)) {
             return new ModelAndView("redirect:/spendolive/main.do");
         }
 
-        OttServiceDTO editService = adminOttService.getOttService(ottServiceId);
+        OttServiceDTO editService = adminOttService.getOttService(ott_service_id);
 
         if (editService == null) {
             redirectAttributes.addFlashAttribute("errorMsg", "존재하지 않는 OTT 항목입니다.");
@@ -130,7 +130,7 @@ public class AdminOttController {
     }
 
     @PostMapping("/delete.do")
-    public ModelAndView delete(@RequestParam("ottServiceId") Long ottServiceId,
+    public ModelAndView delete(@RequestParam("ott_service_id") Long ott_service_id,
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {
         if (!isAdmin(session)) {
@@ -138,7 +138,7 @@ public class AdminOttController {
         }
 
         try {
-            boolean hidden = adminOttService.hideOttService(ottServiceId);
+            boolean hidden = adminOttService.hideOttService(ott_service_id);
 
             if (hidden) {
                 redirectAttributes.addFlashAttribute("msg", "OTT 항목이 숨김 처리되었습니다.");

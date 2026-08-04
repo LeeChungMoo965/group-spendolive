@@ -41,25 +41,40 @@ public class NotificationController {
         return notificationService.getNotificationList(memberInfo.getId());
     }
 
-    @GetMapping("/ajax/unreadCount.do")
-    public Map<String, Integer> unreadCount(HttpSession session) {
+    // 벨 드롭다운 전용: 안읽은 알림만 반환. 읽음 처리되면 다음 호출부터 목록에서 사라짐.
+    // (전체 내역이 필요한 알림센터 페이지는 기존 /ajax/list.do 그대로 사용)
+    @GetMapping("/ajax/unread_list.do")
+    public List<NotificationDTO> unreadNotificationList(HttpSession session) {
 
         MemberVO memberInfo =
                 (MemberVO) session.getAttribute("memberInfo");
 
         if (memberInfo == null || memberInfo.getId() == null) {
-            return Map.of("unreadCount", 0);
+            return Collections.emptyList();
         }
 
-        int unreadCount =
-                notificationService.getUnreadCount(memberInfo.getId());
+        return notificationService.getUnreadNotificationList(memberInfo.getId());
+    }
 
-        return Map.of("unreadCount", unreadCount);
+    @GetMapping("/ajax/unread_count.do")
+    public Map<String, Integer> unread_count(HttpSession session) {
+
+        MemberVO memberInfo =
+                (MemberVO) session.getAttribute("memberInfo");
+
+        if (memberInfo == null || memberInfo.getId() == null) {
+            return Map.of("unread_count", 0);
+        }
+
+        int unread_count =
+                notificationService.getUnread_count(memberInfo.getId());
+
+        return Map.of("unread_count", unread_count);
     }
 
     @PostMapping("/ajax/read.do")
     public Map<String, String> readNotification(
-            @RequestParam("notificationId") int notificationId,
+            @RequestParam("notification_id") int notification_id,
             HttpSession session) {
 
         MemberVO memberInfo =
@@ -70,7 +85,7 @@ public class NotificationController {
         }
 
         notificationService.readNotification(
-                notificationId,
+                notification_id,
                 memberInfo.getId());
 
         return Map.of("result", "OK");
@@ -78,7 +93,7 @@ public class NotificationController {
 
     @PostMapping("/ajax/star.do")
     public Map<String, String> toggleStar(
-            @RequestParam("notificationId") int notificationId,
+            @RequestParam("notification_id") int notification_id,
             HttpSession session) {
 
         MemberVO memberInfo =
@@ -89,7 +104,7 @@ public class NotificationController {
         }
 
         notificationService.toggleStar(
-                notificationId,
+                notification_id,
                 memberInfo.getId());
 
         return Map.of("result", "OK");

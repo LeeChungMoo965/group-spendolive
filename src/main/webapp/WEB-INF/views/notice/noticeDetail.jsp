@@ -2,8 +2,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
-<link rel="stylesheet" href="${contextPath}/resources/css/notice.css">
-
 <section class="section compact">
     <div class="container">
 
@@ -13,7 +11,7 @@
                         padding:16px 20px;border-radius:10px;margin-bottom:24px;font-weight:500;">
                 ⚠ ${errorMsg}
                 <div style="margin-top:10px;">
-                    <a href="${contextPath}/spendolive/notice/center.do" class="btn btn-primary">목록으로</a>
+                    <a href="${contextPath}/spendolive/notice/center.do?filter=${filter}" class="btn btn-primary">목록으로</a>
                 </div>
             </div>
         </c:if>
@@ -24,7 +22,7 @@
 
                 <div class="notice-detail-top">
                     <c:choose>
-                        <c:when test="${notice.pinnedYn == 'Y'}">
+                        <c:when test="${notice.pinned_yn == 'Y'}">
                             <span class="chip notice-important">중요 공지</span>
                         </c:when>
                         <c:otherwise>
@@ -32,18 +30,20 @@
                         </c:otherwise>
                     </c:choose>
 
-                    <button type="button" class="notice-star-btn" id="detailStarBtn"
-                            data-notice-id="${notice.noticeId}"
-                            data-login="${not empty loginYn ? loginYn : false}">
-                        ☆
+                    <button type="button" class="notice-star-btn ${notice.star_yn == 'Y' ? 'active' : ''}" id="detailStarBtn"
+                            data-notice-id="${notice.notice_id}"
+                            data-login="${not empty loginYn ? loginYn : false}"
+                            data-star="${notice.star_yn == 'Y' ? 'Y' : 'N'}">
+                        ${notice.star_yn == 'Y' ? '★' : '☆'}
                     </button>
                 </div>
 
                 <h1 class="notice-detail-title">${notice.title}</h1>
 
                 <div class="notice-detail-info">
-                    <span>작성자 ${not empty notice.adminId ? notice.adminId : '관리자'}</span>
-                    <span>등록일 ${notice.createdAt}</span>
+                    <span>작성자 ${not empty notice.admin_id ? notice.admin_id : '관리자'}</span>
+
+                    <span>등록일 ${notice.created_at}</span>
                 </div>
 
                 <div class="notice-detail-content">
@@ -51,7 +51,7 @@
                 </div>
 
                 <div class="notice-detail-actions">
-                    <a href="${contextPath}/spendolive/notice/center.do" class="btn btn-primary">목록으로</a>
+                    <a href="${contextPath}/spendolive/notice/center.do?filter=${filter}" class="btn btn-primary">목록으로</a>
                 </div>
             </div>
         </c:if>
@@ -59,47 +59,5 @@
     </div>
 </section>
 
-<script>
-(function () {
-    var btn = document.getElementById("detailStarBtn");
-    if (!btn) return;
-
-    var noticeId = btn.dataset.noticeId;
-    var isLogin  = btn.dataset.login === "true";
-    var lsKey    = "notice_star_" + noticeId;
-
-    function setStar(active) {
-        btn.textContent = active ? "★" : "☆";
-        active ? btn.classList.add("active") : btn.classList.remove("active");
-    }
-
-    setStar(localStorage.getItem(lsKey) === "Y");
-
-    btn.addEventListener("click", function () {
-        if (isLogin) {
-            fetch("/spendolive/notice/ajax/star.do", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "noticeId=" + noticeId
-            })
-            .then(function(r){ return r.json(); })
-            .then(function(data) {
-                if (data.result === "OK") {
-                    var nowActive = btn.textContent.trim() === "★";
-                    setStar(!nowActive);
-                    nowActive ? localStorage.removeItem(lsKey) : localStorage.setItem(lsKey, "Y");
-                } else if (data.result === "LOGIN_REQUIRED") {
-                    alert("로그인이 필요합니다.");
-                } else {
-                    alert("처리 중 오류가 발생했습니다.");
-                }
-            })
-            .catch(function(){ alert("네트워크 오류가 발생했습니다."); });
-        } else {
-            var nowActive = btn.textContent.trim() === "★";
-            setStar(!nowActive);
-            nowActive ? localStorage.removeItem(lsKey) : localStorage.setItem(lsKey, "Y");
-        }
-    });
-})();
-</script>
+<script src="${contextPath}/resources/js/notice.js"></script>
+<script src="${contextPath}/resources/js/noticeDetail.js"></script>
