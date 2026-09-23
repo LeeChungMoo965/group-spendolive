@@ -42,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService{
+    private final PaymentStoreService paymentStoreService;
     @Autowired
     private PaymentRepository paymentRepository;
     @Autowired
@@ -550,7 +551,7 @@ public class PaymentServiceImpl implements PaymentService{
 
             try {
                 // Toss 승인 후 DB 저장에 실패하면 아래에서 즉시 승인 취소를 요청합니다.
-                savePaymentAll(paymentInfo,escrowInfo,revenueInfo,roomId, userId);
+                paymentStoreService.savePaymentAll(paymentInfo,escrowInfo,revenueInfo,roomId, userId);
             } catch (Exception databaseException) {
                 boolean cancelled = cancelApprovedPayment(paymentKey);
 
@@ -588,15 +589,6 @@ public class PaymentServiceImpl implements PaymentService{
     @Transactional(rollbackFor = Exception.class)
     public List<SettlementPaymentVO> selectpaymentAll() throws Exception { 
         return paymentRepository.selectsettlement_paymentAll();
-       
-    }
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void savePaymentAll(SettlementPaymentVO paymentInfo, EscrowPayoutVO escrowInfo, PlatformRevenueVO revenueInfo, int roomId, String userId) throws Exception { 
-        paymentRepository.updatePaymentStatus(paymentInfo);
-        paymentRepository.insertEscrow(escrowInfo);
-        paymentRepository.insertPlatfoem_Revenue(revenueInfo);
-        paymentRepository.updatSettlementroommemberStatus(roomId, userId);
        
     }
     @Override
