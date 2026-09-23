@@ -43,14 +43,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService{
     private final PaymentStoreService paymentStoreService;
-    @Autowired
-    private PaymentRepository paymentRepository;
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private OttRepository ottRepository;
-    @Autowired
-    private OttService ottService;
+    private final PaymentRepository paymentRepository;
+    private final MemberRepository memberRepository;
+    private final OttRepository ottRepository;
+    private final OttService ottService;
     private final StringRedisTemplate redisTemplate;
     @Value("${openbanking.useorg-code}")
     private String useorgCode;
