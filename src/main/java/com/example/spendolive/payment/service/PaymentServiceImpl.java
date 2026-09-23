@@ -594,6 +594,15 @@ public class PaymentServiceImpl implements PaymentService{
        
     }
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Void savePaymentAll(paymentInfo,escrowInfo,revenueInfo,roomId, userId) throws Exception { 
+        paymentRepository.updatePaymentStatus(paymentInfo);
+        paymentRepository.insertEscrow(escrowInfo);
+        paymentRepository.insertPlatfoem_Revenue(revenueInfo);
+        paymentRepository.updatSettlementroommemberStatus(roomId, userId);
+       
+    }
+    @Override
     public boolean cancelApprovedPayment(String paymentKey) throws Exception{
         String cancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
         RestTemplate restTemplate = new RestTemplate();
