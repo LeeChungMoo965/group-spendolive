@@ -68,7 +68,7 @@ public class PaymentServiceImpl implements PaymentService{
     // 같은 서버에서 동일 회원이 동일 방 결제를 동시에 요청하는 것을 차단합니다.
     private final Set<String> processingPayments = ConcurrentHashMap.newKeySet();
     private final Set<String> processingRefunds = ConcurrentHashMap.newKeySet();
-    
+    private final RestTemplate restTemplate;
 
     @Override
     @Transactional(rollbackFor = Exception.class) //금결원 출금이체 프로세스 (권한 문제로 홀딩)
@@ -78,7 +78,6 @@ public class PaymentServiceImpl implements PaymentService{
         String apiUrl = "https://testapi.openbanking.or.kr/v2.0/transfer/withdraw/fintech_use_num";
 
         // 2. RestTemplate 및 헤더 세팅 (Bearer 토큰 필수)
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON); // 출금이체는 JSON 바디로 요청
         headers.set("Authorization", "Bearer " + memberInfo.getOpen_bank_token());
@@ -153,7 +152,6 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void issueAndSaveBillingKey(String customerKey, String authKey, String userId) throws Exception {
-        RestTemplate restTemplate = new RestTemplate();
         
         // 1. 최신 2024-06-01 버전 규격 엔드포인트 주소
         String url = "https://api.tosspayments.com/v1/billing/authorizations/issue";
@@ -416,8 +414,6 @@ public class PaymentServiceImpl implements PaymentService{
             int base,
             int settlementId,
             String hostId) throws Exception {
-
-        RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(
                 0,
                 new org.springframework.http.converter.StringHttpMessageConverter(
@@ -590,7 +586,6 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public boolean cancelApprovedPayment(String paymentKey) throws Exception{
         String cancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
-        RestTemplate restTemplate = new RestTemplate();
         String myRealSecretKey = secretKey; 
         String rawKey = myRealSecretKey.trim() + ":";
         String encodedSecretKey = Base64.getEncoder().encodeToString(rawKey.getBytes());
@@ -648,8 +643,6 @@ public class PaymentServiceImpl implements PaymentService{
     String TOSS_API_URL = "https://api.tosspayments.com/v1/payouts/sub-malls"; 
     
     try {
-        
-        RestTemplate restTemplate = new RestTemplate();
         String name = memberVO.getMember_name();
         
         // v1은 계좌 실시간 조회를 안 하므로 마스킹이 섞여도 포맷만 맞으면 무조건 패스합니다.
