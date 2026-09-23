@@ -411,7 +411,6 @@ public class PaymentServiceImpl implements PaymentService{
 
     // 결제 프로세스 검토 완료
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void executeAutomaticPayment(
             String userId,
             int amount,
