@@ -592,7 +592,7 @@ public class PaymentServiceImpl implements PaymentService{
     }
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Void savePaymentAll(paymentInfo,escrowInfo,revenueInfo,roomId, userId) throws Exception { 
+    public Void savePaymentAll(SettlementPaymentVO paymentInfo, EscrowPayoutVO escrowInfo, PlatformRevenueVO revenueInfo, int roomId, String userId) throws Exception { 
         paymentRepository.updatePaymentStatus(paymentInfo);
         paymentRepository.insertEscrow(escrowInfo);
         paymentRepository.insertPlatfoem_Revenue(revenueInfo);
