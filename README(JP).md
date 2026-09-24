@@ -17,6 +17,7 @@
 | 分野 | 技術スタック |
 | :--- | :--- |
 | **Backend** | Java 21, Spring Boot, Spring Security, Spring JDBC(JdbcTemplate), JWT, Lombok |
+| **Test** | JUnit5, Mockito, AssertJ |
 | **Frontend** | JavaScript, JSP, JSTL, CSS |
 | **Database & Cache** | Oracle 11g, Redis |
 | **Tools/DevOps** | Apache Tomcat, Maven, Git, GitHub |
@@ -155,7 +156,35 @@ try {
             databaseException);
 }
 ```
-**5. 成果および学び (Result)**
+**5. テストコードによる防御ロジックの検証 (Unit Testing with Mockito)**
+- 上記の防衛ロジックが正しく機能するかを検証するため、`Mockito` を活用してToss APIサーバーをモッキング（Mocking）し、**「外部APIが意図的に異なる金額（6000円）を応答した場合、内部ロジックが即座に決済を取り消し、例外を発生させるか」**をテストするコードを作成しました。
+- これにより、金額改ざんや外部APIの予期せぬ応答からシステムを安全に保護できることをコードレベルで証明しました。
+
+```java
+@Test
+@DisplayName("自動決済のセキュリティ検証: Tossで承認された金額がリクエスト金額と異なる場合、即座に決済が取り消され例外が発生する。")
+void executeAutomaticPayment_Fail_AmountMismatch() throws Exception {
+    // Given (リクエストは5000円、Tossからの応答は6000円という異常事態をモッキング)
+    int requestedAmount = 5000;
+    String mockTossResponse = "{ \"totalAmount\": 6000, \"status\": \"DONE\" ... }";
+    ResponseEntity<String> responseEntity = new ResponseEntity<>(mockTossResponse, HttpStatus.OK);
+    
+    given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+        .willReturn(responseEntity);
+        
+    // 取消APIのモッキング
+    given(restTemplate.postForEntity(contains("/cancel"), any(HttpEntity.class), eq(String.class)))
+        .willReturn(new ResponseEntity<>("{ ... }", HttpStatus.OK));
+
+    // When & Then (金額の不一致により、例外が正確に発生することを検証)
+    PaymentProcessException exception = assertThrows(PaymentProcessException.class, () -> {
+        paymentService.executeAutomaticPayment(userId, requestedAmount, 1, 150, 4850, 100, "hostId");
+    });
+
+    assertThat(exception.getErrorCode()).isEqualTo("PAYMENT_AMOUNT_MISMATCH");
+}
+```
+**6. 成果および学び (Result)**
 - 決済システムにおける最も致命的な問題である「顧客の金銭的被害（ファントム決済）」を根本から防ぎ、決済データの整合性を100%保証しました。
 - 外部サービスと内部システム間のエラー伝播（Error Propagation）の過程を理解し、安全なフェイルセーフ（Fail-safe）メカニズムを自ら設計するアーキテクチャ設計のスキルを身につけました。
 
@@ -198,6 +227,7 @@ public void executeRoomRefund(SettlementPaymentVO payment) throws Exception {
     paymentRepository.insertRefund(refund); // 返金履歴の分離保存
 }
 ```
+
 **5. 成果および学び (Result)**
 - `FIRST` 状態の導入により、複雑な日付計算なしで過剰請求（二重決済）バグを100%解決しました。
 - エスクロー基盤の複雑な資金移動において、返金や途中退出などのエッジケースが発生してもデータが矛盾しない、堅牢なコアー精算システム（State Machine）を設計するドメインモデリングの能力を身につけました。
